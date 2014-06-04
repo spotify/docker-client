@@ -19,15 +19,15 @@
  * under the License.
  */
 
-package com.spotify.docker;
+package com.spotify.docker.client;
 
-import com.spotify.docker.messages.Container;
-import com.spotify.docker.messages.ContainerConfig;
-import com.spotify.docker.messages.ContainerCreation;
-import com.spotify.docker.messages.ContainerExit;
-import com.spotify.docker.messages.ContainerInfo;
-import com.spotify.docker.messages.HostConfig;
-import com.spotify.docker.messages.ImageInfo;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.ImageInfo;
 
 import java.util.List;
 

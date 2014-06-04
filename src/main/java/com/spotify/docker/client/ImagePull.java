@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.spotify.docker;
+package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
 
@@ -34,7 +34,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static com.spotify.docker.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 
 class ImagePull implements Closeable {
 

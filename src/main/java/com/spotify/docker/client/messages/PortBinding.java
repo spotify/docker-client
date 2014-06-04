@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.spotify.docker.messages;
+package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
 
@@ -30,19 +30,36 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerExit {
+public class PortBinding {
 
-  @JsonProperty("StatusCode") private Integer statusCode;
+  @JsonProperty("HostIp") private String hostIp;
+  @JsonProperty("HostPort") private String hostPort;
 
-  public ContainerExit() {
+  public String hostIp() {
+    return hostIp;
   }
 
-  public ContainerExit(final Integer statusCode) {
-    this.statusCode = statusCode;
+  public void hostIp(final String hostIp) {
+    this.hostIp = hostIp;
   }
 
-  public Integer statusCode() {
-    return statusCode;
+  public String hostPort() {
+    return hostPort;
+  }
+
+  public void hostPort(final String hostPort) {
+    this.hostPort = hostPort;
+  }
+
+  public static PortBinding of(final String ip, final String port) {
+    final PortBinding binding = new PortBinding();
+    binding.hostIp(ip);
+    binding.hostPort(port);
+    return binding;
+  }
+
+  public static PortBinding of(final String ip, final int port) {
+    return of(ip, String.valueOf(port));
   }
 
   @Override
@@ -54,9 +71,12 @@ public class ContainerExit {
       return false;
     }
 
-    final ContainerExit that = (ContainerExit) o;
+    final PortBinding that = (PortBinding) o;
 
-    if (statusCode != null ? !statusCode.equals(that.statusCode) : that.statusCode != null) {
+    if (hostIp != null ? !hostIp.equals(that.hostIp) : that.hostIp != null) {
+      return false;
+    }
+    if (hostPort != null ? !hostPort.equals(that.hostPort) : that.hostPort != null) {
       return false;
     }
 
@@ -65,13 +85,16 @@ public class ContainerExit {
 
   @Override
   public int hashCode() {
-    return statusCode != null ? statusCode.hashCode() : 0;
+    int result = hostIp != null ? hostIp.hashCode() : 0;
+    result = 31 * result + (hostPort != null ? hostPort.hashCode() : 0);
+    return result;
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("statusCode", statusCode)
+        .add("hostIp", hostIp)
+        .add("hostPort", hostPort)
         .toString();
   }
 }

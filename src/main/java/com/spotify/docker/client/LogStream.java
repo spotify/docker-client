@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.spotify.docker;
+package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;

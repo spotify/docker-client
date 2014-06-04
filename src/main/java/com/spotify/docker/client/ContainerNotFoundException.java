@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.spotify.docker;
+package com.spotify.docker.client;
 
 public class ContainerNotFoundException extends DockerException {
 

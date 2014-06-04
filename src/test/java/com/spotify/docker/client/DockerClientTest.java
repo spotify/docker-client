@@ -19,15 +19,15 @@
  * under the License.
  */
 
-package com.spotify.docker;
+package com.spotify.docker.client;
 
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 
-import com.spotify.docker.messages.Container;
-import com.spotify.docker.messages.ContainerConfig;
-import com.spotify.docker.messages.ContainerCreation;
-import com.spotify.docker.messages.ContainerInfo;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerInfo;
 
 import org.junit.After;
 import org.junit.Rule;
