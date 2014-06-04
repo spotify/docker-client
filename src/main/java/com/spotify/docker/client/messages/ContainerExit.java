@@ -19,38 +19,30 @@
  * under the License.
  */
 
-package com.spotify.docker.messages;
+package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerCreation {
+public class ContainerExit {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Warnings") private ImmutableList<String> warnings;
+  @JsonProperty("StatusCode") private Integer statusCode;
 
-  public ContainerCreation() {
+  public ContainerExit() {
   }
 
-  public ContainerCreation(final String id) {
-    this.id = id;
+  public ContainerExit(final Integer statusCode) {
+    this.statusCode = statusCode;
   }
 
-  public String id() {
-    return id;
-  }
-
-  public List<String> getWarnings() {
-    return warnings;
+  public Integer statusCode() {
+    return statusCode;
   }
 
   @Override
@@ -62,12 +54,9 @@ public class ContainerCreation {
       return false;
     }
 
-    final ContainerCreation that = (ContainerCreation) o;
+    final ContainerExit that = (ContainerExit) o;
 
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (warnings != null ? !warnings.equals(that.warnings) : that.warnings != null) {
+    if (statusCode != null ? !statusCode.equals(that.statusCode) : that.statusCode != null) {
       return false;
     }
 
@@ -76,16 +65,13 @@ public class ContainerCreation {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (warnings != null ? warnings.hashCode() : 0);
-    return result;
+    return statusCode != null ? statusCode.hashCode() : 0;
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("id", id)
-        .add("warnings", warnings)
+        .add("statusCode", statusCode)
         .toString();
   }
 }

@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.spotify.docker.messages;
+package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
 

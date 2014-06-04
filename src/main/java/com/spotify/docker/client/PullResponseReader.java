@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.spotify.docker;
+package com.spotify.docker.client;
 
 import java.io.IOException;
 import java.io.InputStream;

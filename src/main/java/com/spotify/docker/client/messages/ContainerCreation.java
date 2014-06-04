@@ -19,47 +19,38 @@
  * under the License.
  */
 
-package com.spotify.docker.messages;
+package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class PortBinding {
+public class ContainerCreation {
 
-  @JsonProperty("HostIp") private String hostIp;
-  @JsonProperty("HostPort") private String hostPort;
+  @JsonProperty("Id") private String id;
+  @JsonProperty("Warnings") private ImmutableList<String> warnings;
 
-  public String hostIp() {
-    return hostIp;
+  public ContainerCreation() {
   }
 
-  public void hostIp(final String hostIp) {
-    this.hostIp = hostIp;
+  public ContainerCreation(final String id) {
+    this.id = id;
   }
 
-  public String hostPort() {
-    return hostPort;
+  public String id() {
+    return id;
   }
 
-  public void hostPort(final String hostPort) {
-    this.hostPort = hostPort;
-  }
-
-  public static PortBinding of(final String ip, final String port) {
-    final PortBinding binding = new PortBinding();
-    binding.hostIp(ip);
-    binding.hostPort(port);
-    return binding;
-  }
-
-  public static PortBinding of(final String ip, final int port) {
-    return of(ip, String.valueOf(port));
+  public List<String> getWarnings() {
+    return warnings;
   }
 
   @Override
@@ -71,12 +62,12 @@ public class PortBinding {
       return false;
     }
 
-    final PortBinding that = (PortBinding) o;
+    final ContainerCreation that = (ContainerCreation) o;
 
-    if (hostIp != null ? !hostIp.equals(that.hostIp) : that.hostIp != null) {
+    if (id != null ? !id.equals(that.id) : that.id != null) {
       return false;
     }
-    if (hostPort != null ? !hostPort.equals(that.hostPort) : that.hostPort != null) {
+    if (warnings != null ? !warnings.equals(that.warnings) : that.warnings != null) {
       return false;
     }
 
@@ -85,16 +76,16 @@ public class PortBinding {
 
   @Override
   public int hashCode() {
-    int result = hostIp != null ? hostIp.hashCode() : 0;
-    result = 31 * result + (hostPort != null ? hostPort.hashCode() : 0);
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (warnings != null ? warnings.hashCode() : 0);
     return result;
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("hostIp", hostIp)
-        .add("hostPort", hostPort)
+        .add("id", id)
+        .add("warnings", warnings)
         .toString();
   }
 }
