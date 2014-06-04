@@ -98,7 +98,6 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5</version>
         <configuration>
-          <arguments>-DskipITs</arguments>
           <pushChanges>false</pushChanges>
           <tagNameFormat>@{project.version}</tagNameFormat>
         </configuration>
