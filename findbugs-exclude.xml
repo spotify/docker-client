@@ -1,0 +1,8 @@
+<FindBugsFilter>
+
+  <!--We're not using Java serialization-->
+  <Match>
+    <Bug pattern="SE_BAD_FIELD"/>
+  </Match>
+
+</FindBugsFilter>

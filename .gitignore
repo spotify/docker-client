@@ -1,0 +1,6 @@
+target/
+pom.xml.versionsBackup
+*.iml
+*~
+.idea/*
+.DS_Store
