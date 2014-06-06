@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/spotify/docker-client.svg)](https://travis-ci.org/spotify/docker-client)
+
 Docker Client
 =============
 
