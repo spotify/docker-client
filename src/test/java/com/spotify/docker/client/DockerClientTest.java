@@ -92,7 +92,7 @@ public class DockerClientTest {
 
   @Test
   public void testPullWithTag() throws Exception {
-    sut.pull("ubuntu:12.04");
+    sut.pull("busybox:buildroot-2014.02");
   }
 
   @Test
