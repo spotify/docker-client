@@ -75,7 +75,7 @@ public class DefaultDockerClient implements DockerClient {
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
-  private static final String VERSION = "v1.11";
+  private static final String VERSION = "v1.12";
   private static final DefaultClientConfig CLIENT_CONFIG = new DefaultClientConfig(
       ObjectMapperProvider.class,
       LogsResponseReader.class,
