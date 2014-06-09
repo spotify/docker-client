@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
@@ -134,6 +135,19 @@ public class DockerClientTest {
     } catch(ImageNotFoundException e) {
       // we should get exception because we deleted image
     }
+  }
+
+  @Test
+  public void testTag() throws Exception {
+    sut.pull("busybox");
+
+    // Tag image
+    final String newImageName = "testRepo:testTag";
+    sut.tag("busybox", newImageName);
+
+    // Verify tag was successful by trying to remove it.
+    final RemovedImage removedImage = getOnlyElement(sut.removeImage(newImageName));
+    assertThat(removedImage, equalTo(new RemovedImage(UNTAGGED, newImageName)));
   }
 
   @Test

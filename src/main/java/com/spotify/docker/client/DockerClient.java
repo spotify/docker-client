@@ -106,6 +106,15 @@ public interface DockerClient {
       throws DockerException, InterruptedException;
 
   /**
+   * Tag a docker image.
+   *
+   * @param image The image to tag.
+   * @param name The new name that will be applied to the image.
+   */
+  void tag(final String image, final String name)
+      throws DockerException, InterruptedException;
+
+  /**
    * Create a docker container.
    *
    * @param config The container configuration.
