@@ -53,7 +53,7 @@ import static org.junit.Assert.assertThat;
 
 public class DockerClientTest {
 
-  public static final int DOCKER_PORT = Integer.valueOf(env("DOCKER_PORT", "4160"));
+  public static final int DOCKER_PORT = Integer.valueOf(env("DOCKER_PORT", "2375"));
   public static final String DOCKER_HOST = env("DOCKER_HOST", ":" + DOCKER_PORT);
   public static final String DOCKER_ADDRESS;
   public static final String DOCKER_ENDPOINT;
