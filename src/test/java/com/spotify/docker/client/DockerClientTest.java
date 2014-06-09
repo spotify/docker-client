@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.Version;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -42,10 +43,13 @@ import static com.google.common.base.Optional.fromNullable;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
@@ -93,6 +97,12 @@ public class DockerClientTest {
   @Test
   public void testPullWithTag() throws Exception {
     sut.pull("busybox:buildroot-2014.02");
+  }
+
+  @Test
+  public void tstVersion() throws Exception {
+    final Version version = sut.version();
+    assertThat(version.version(), not(isEmptyOrNullString()));
   }
 
   @Test

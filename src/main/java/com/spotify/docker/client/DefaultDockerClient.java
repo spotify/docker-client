@@ -32,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.Version;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -98,6 +99,12 @@ public class DefaultDockerClient implements DockerClient {
     this.client = Client.create(CLIENT_CONFIG);
     this.client.setConnectTimeout((int) CONNECT_TIMEOUT_MILLIS);
     this.client.setReadTimeout((int) READ_TIMEOUT_MILLIS);
+  }
+
+  @Override
+  public Version version() throws DockerException, InterruptedException {
+    final WebResource resource = resource().path("version");
+    return request(GET, Version.class, resource, resource.accept(APPLICATION_JSON_TYPE));
   }
 
   @Override
