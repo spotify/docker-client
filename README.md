@@ -6,7 +6,7 @@ Docker Client
 This is a simple [docker](https://github.com/dotcloud/docker) client written in Java.
 
 ```java
-final DockerClient docker = new DefaultDockerClient("http://localhost:4243");
+final DockerClient docker = new DefaultDockerClient("http://localhost:2375");
 
 // Pull image
 docker.pull("busybox");
