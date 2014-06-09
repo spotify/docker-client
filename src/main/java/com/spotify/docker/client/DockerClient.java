@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.Version;
 
 import java.util.List;
 
@@ -37,6 +38,11 @@ import java.util.List;
  * Note: All methods throw DockerException on unexpected docker response status codes.
  */
 public interface DockerClient {
+
+  /**
+   * Get the docker version.
+   */
+  Version version() throws DockerException, InterruptedException;
 
   /**
    * List docker containers.
