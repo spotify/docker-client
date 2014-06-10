@@ -32,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -86,6 +87,9 @@ public class DefaultDockerClient implements DockerClient {
 
   private static final GenericType<List<Container>> CONTAINER_LIST =
       new GenericType<List<Container>>() {};
+
+  private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
+      new GenericType<List<RemovedImage>>() {};
 
   private final Client client;
   private final URI uri;
@@ -300,6 +304,30 @@ public class DefaultDockerClient implements DockerClient {
           throw new ImageNotFoundException(image, e);
         default:
           throw e;
+      }
+    }
+  }
+
+  @Override
+  public List<RemovedImage> removeImage(String image)
+      throws DockerException, InterruptedException {
+    return removeImage(image, false, false);
+  }
+
+  @Override
+  public List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
+      throws DockerException, InterruptedException {
+    try {
+      final WebResource resource = resource().path("images").path(image)
+          .queryParam("force", String.valueOf(force))
+          .queryParam("noprune", String.valueOf(noPrune));
+      return request(DELETE, REMOVED_IMAGE_LIST, resource, resource.accept(APPLICATION_JSON_TYPE));
+    } catch (UniformInterfaceException e) {
+      switch (e.getResponse().getStatus()) {
+        case 404:
+          throw new ImageNotFoundException(image);
+        default:
+          throw new DockerException(e);
       }
     }
   }

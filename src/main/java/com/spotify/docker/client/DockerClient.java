@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
 import java.util.List;
@@ -71,6 +72,29 @@ public interface DockerClient {
    * @throws ImageNotFoundException if the image was not found (404).
    */
   ImageInfo inspectImage(String image)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Remove a docker image.
+   *
+   * @param image The image to remove.
+   * @return A list describing each image which was removed.
+   * @throws ImageNotFoundException if the image was not found (404).
+   */
+  List<RemovedImage> removeImage(String image)
+      throws DockerException, InterruptedException;
+
+
+  /**
+   * Remove a docker image.
+   *
+   * @param image The image to remove.
+   * @param force Force image removal.
+   * @param noPrune Do not delete untagged parents.
+   * @return A list describing each image which was removed.
+   * @throws ImageNotFoundException if the image was not found (404).
+   */
+  List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
       throws DockerException, InterruptedException;
 
   /**
