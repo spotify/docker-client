@@ -100,8 +100,14 @@ public class DockerClientTest {
   }
 
   @Test
-  public void tstVersion() throws Exception {
+  public void testVersion() throws Exception {
     final Version version = sut.version();
+    assertThat(version.apiVersion(), not(isEmptyOrNullString()));
+    assertThat(version.arch(), not(isEmptyOrNullString()));
+    assertThat(version.gitCommit(), not(isEmptyOrNullString()));
+    assertThat(version.goVersion(), not(isEmptyOrNullString()));
+    assertThat(version.kernelVersion(), not(isEmptyOrNullString()));
+    assertThat(version.os(), not(isEmptyOrNullString()));
     assertThat(version.version(), not(isEmptyOrNullString()));
   }
 
