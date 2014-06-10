@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
 import org.junit.After;
@@ -40,12 +41,14 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.base.Optional.fromNullable;
+import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
+import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -53,6 +56,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 
 public class DockerClientTest {
@@ -109,6 +113,27 @@ public class DockerClientTest {
     assertThat(version.kernelVersion(), not(isEmptyOrNullString()));
     assertThat(version.os(), not(isEmptyOrNullString()));
     assertThat(version.version(), not(isEmptyOrNullString()));
+  }
+
+  @Test
+  public void testRemoveImage() throws Exception {
+    sut.pull("busybox");
+    final String image = "busybox:buildroot-2013.08.1";
+    final List<RemovedImage> removedImages = sut.removeImage(image);
+    assertThat(removedImages, contains(
+        new RemovedImage(UNTAGGED, image),
+        new RemovedImage(DELETED,
+                         "d200959a3e91d88e6da9a0ce458e3cdefd3a8a19f8f5e6a1e7f10f268aea5594"),
+        new RemovedImage(DELETED,
+                         "c120b7cab0b0509fd4de20a57d0f5c17106f3451200dfbfd8c6ab1ccb9391938")));
+
+    // Try to inspect deleted image and make sure ImageNotFoundException is thrown
+    try {
+      sut.inspectImage(image);
+      fail("inspectImage should have thrown ImageNotFoundException");
+    } catch(ImageNotFoundException e) {
+      // we should get exception because we deleted image
+    }
   }
 
   @Test
