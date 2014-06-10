@@ -294,6 +294,32 @@ public class DefaultDockerClient implements DockerClient {
   }
 
   @Override
+  public void tag(final String image, final String name)
+      throws DockerException, InterruptedException {
+    final ImageRef imageRef = new ImageRef(name);
+
+    final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+    params.add("repo", imageRef.getImage());
+    if (imageRef.getTag() != null) {
+      params.add("tag", imageRef.getTag());
+    }
+
+    final WebResource resource =
+        resource().path("images").path(image).path("tag").queryParams(params);
+
+    try {
+      request(POST, resource, resource);
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ImageNotFoundException(image, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public ImageInfo inspectImage(final String image) throws DockerException, InterruptedException {
     try {
       final WebResource resource = resource().path("images").path(image).path("json");
