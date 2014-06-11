@@ -6,6 +6,7 @@
   <version>2.2.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
+  <description>A docker client</description>
   <url>https://github.com/spotify/docker-client</url>
 
   <properties>
@@ -32,6 +33,34 @@
     <url>https://github.com/spotify/docker-client</url>
     <tag>HEAD</tag>
   </scm>
+
+  <developers>
+    <developer>
+      <id>dano</id>
+      <name>Daniel Norberg</name>
+      <email>dano@spotify.com</email>
+    </developer>
+    <developer>
+      <id>ryan</id>
+      <name>Ryan Culbertson</name>
+      <email>ryan@spotify.com</email>
+    </developer>
+    <developer>
+      <id>drewc</id>
+      <name>Drew Csillag</name>
+      <email>drewc@spotify.com</email>
+    </developer>
+    <developer>
+      <id>philipcristiano</id>
+      <name>Philip Cristiano</name>
+      <email>philipcristiano@spotify.com</email>
+    </developer>
+    <developer>
+      <id>rohan</id>
+      <name>Rohan Singh</name>
+      <email>rohan@spotify.com</email>
+    </developer>
+  </developers>
 
   <dependencies>
     <!--compile deps-->
@@ -98,9 +127,7 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5</version>
         <configuration>
-          <arguments>-Dgpg.skip=true</arguments>
-          <pushChanges>false</pushChanges>
-          <tagNameFormat>@{project.version}</tagNameFormat>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
         </configuration>
         <dependencies>
           <dependency>

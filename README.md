@@ -32,3 +32,12 @@ docker.killContainer(id);
 docker.removeContainer(id);
 ```
 
+
+Releasing
+=========
+
+```sh
+mvn release:clean
+mvn release:prepare
+mvn release:perform
+```
