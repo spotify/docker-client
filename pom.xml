@@ -55,6 +55,11 @@
       <name>Philip Cristiano</name>
       <email>philipcristiano@spotify.com</email>
     </developer>
+    <developer>
+      <id>rohan</id>
+      <name>Rohan Singh</name>
+      <email>rohan@spotify.com</email>
+    </developer>
   </developers>
 
   <dependencies>
