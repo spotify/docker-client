@@ -50,6 +50,11 @@
       <name>Drew Csillag</name>
       <email>drewc@spotify.com</email>
     </developer>
+    <developer>
+      <id>philipcristiano</id>
+      <name>Philip Cristiano</name>
+      <email>philipcristiano@spotify.com</email>
+    </developer>
   </developers>
 
   <dependencies>
