@@ -68,7 +68,6 @@ import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient {
 
@@ -270,6 +269,12 @@ public class DefaultDockerClient implements DockerClient {
 
   @Override
   public void pull(final String image) throws DockerException, InterruptedException {
+    pull(image, new LoggingProgressHandler(image));
+  }
+
+  @Override
+  public void pull(final String image, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
     final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
@@ -280,16 +285,9 @@ public class DefaultDockerClient implements DockerClient {
 
     final WebResource resource = resource().path("images").path("create").queryParams(params);
 
-    try (ImagePull pull = request(POST, ImagePull.class, resource,
-                                  resource.accept(APPLICATION_OCTET_STREAM_TYPE))) {
-      pull.tail(image);
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ImageNotFoundException(image, e);
-        default:
-          throw e;
-      }
+    try (ImagePull pull =
+             request(POST, ImagePull.class, resource, resource.accept(APPLICATION_JSON_TYPE))) {
+      pull.tail(handler);
     }
   }
 
