@@ -31,22 +31,22 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 
-public class PullResponseReader implements MessageBodyReader<ImagePull> {
+public class ImageTransferResponseReader implements MessageBodyReader<ImageTransfer> {
 
   @Override
   public boolean isReadable(final Class<?> type, final Type genericType,
                             final Annotation[] annotations,
                             final MediaType mediaType) {
-    return type == ImagePull.class;
+    return type == ImageTransfer.class;
   }
 
   @Override
-  public ImagePull readFrom(final Class<ImagePull> type, final Type genericType,
+  public ImageTransfer readFrom(final Class<ImageTransfer> type, final Type genericType,
                             final Annotation[] annotations,
                             final MediaType mediaType,
                             final MultivaluedMap<String, String> httpHeaders,
                             final InputStream entityStream)
       throws IOException, WebApplicationException {
-    return new ImagePull(entityStream);
+    return new ImageTransfer(entityStream);
   }
 }

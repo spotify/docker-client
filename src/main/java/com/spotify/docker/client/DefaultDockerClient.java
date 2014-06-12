@@ -80,7 +80,7 @@ public class DefaultDockerClient implements DockerClient {
   private static final DefaultClientConfig CLIENT_CONFIG = new DefaultClientConfig(
       ObjectMapperProvider.class,
       LogsResponseReader.class,
-      PullResponseReader.class);
+      ImageTransferResponseReader.class);
 
   private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile("/?[a-zA-Z0-9_-]+");
 
@@ -269,7 +269,7 @@ public class DefaultDockerClient implements DockerClient {
 
   @Override
   public void pull(final String image) throws DockerException, InterruptedException {
-    pull(image, new LoggingProgressHandler(image));
+    pull(image, new LoggingPullHandler(image));
   }
 
   @Override
@@ -285,9 +285,36 @@ public class DefaultDockerClient implements DockerClient {
 
     final WebResource resource = resource().path("images").path("create").queryParams(params);
 
-    try (ImagePull pull =
-             request(POST, ImagePull.class, resource, resource.accept(APPLICATION_JSON_TYPE))) {
+    try (ImageTransfer pull =
+             request(POST, ImageTransfer.class, resource, resource.accept(APPLICATION_JSON_TYPE))) {
       pull.tail(handler);
+    }
+  }
+
+  @Override
+  public void push(final String image) throws DockerException, InterruptedException {
+    push(image, new LoggingPushHandler(image));
+  }
+
+  @Override
+  public void push(final String image, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
+    final ImageRef imageRef = new ImageRef(image);
+
+    final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+    if (imageRef.getTag() != null) {
+      params.add("tag", imageRef.getTag());
+    }
+
+    final WebResource resource =
+        resource().path("images").path(imageRef.getImage()).path("push").queryParams(params);
+
+    // the docker daemon requires that the X-Registry-Auth header is specified
+    // with a non-empty string even if your registry doesn't use authentication
+    try (ImageTransfer push =
+             request(POST, ImageTransfer.class, resource,
+                     resource.accept(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
+      push.tail(handler);
     }
   }
 

@@ -21,32 +21,22 @@
 
 package com.spotify.docker.client;
 
-import com.spotify.docker.client.messages.ProgressMessage;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class LoggingProgressHandler implements ProgressHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(LoggingProgressHandler.class);
+public class ImagePushFailedException extends DockerException {
 
   private final String image;
 
-  public LoggingProgressHandler(String image) {
+  public ImagePushFailedException(final String image, final Throwable cause) {
+    super("Image push failed: " + image, cause);
     this.image = image;
   }
 
-  @Override
-  public void progress(ProgressMessage message) throws DockerException {
-    if (message.error() != null) {
-      if (message.error().contains("404")) {
-        throw new ImageNotFoundException(image, message.toString());
-      } else {
-        throw new ImagePullFailedException(image, message.toString());
-      }
-    }
+  public ImagePushFailedException(final String image, final String message) {
+    super("Image push failed: " + image + ": " + message);
+    this.image = image;
+  }
 
-    log.info("pull {}: {}", image, message);
+  public String getImage() {
+    return image;
   }
 
 }
