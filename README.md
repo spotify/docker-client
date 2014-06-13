@@ -32,9 +32,20 @@ docker.killContainer(id);
 docker.removeContainer(id);
 ```
 
+Maven
+-----
+
+```xml
+<dependency>
+  <groupId>com.spotify</groupId>
+  <artifactId>docker-client</artifactId>
+  <version>2.2.1</version>
+</dependency>
+```
+
 
 Releasing
-=========
+---------
 
 ```sh
 mvn release:clean
