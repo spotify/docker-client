@@ -24,8 +24,8 @@ package com.spotify.docker.client;
 import com.google.common.base.Throwables;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
+import com.spotify.docker.client.messages.ProgressMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,33 +40,35 @@ class ImagePull implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(ImagePull.class);
   private final InputStream stream;
+  private final MappingIterator<ProgressMessage> iterator;
 
   private volatile boolean closed;
 
-  ImagePull(final InputStream stream) {
+  ImagePull(final InputStream stream) throws IOException {
     this.stream = stream;
+    final JsonParser parser = objectMapper().getFactory().createParser(stream);
+    iterator = objectMapper().readValues(parser, ProgressMessage.class);
   }
 
-  void tail(final String image)
-      throws DockerException {
+  public boolean hasNextMessage() throws DockerException {
     try {
-      final JsonParser parser = objectMapper().getFactory().createParser(stream);
-      final MappingIterator<JsonNode> iterator = objectMapper().readValues(parser, JsonNode.class);
-      while (iterator.hasNextValue()) {
-        final JsonNode message;
-        message = iterator.nextValue();
-        final JsonNode error = message.get("error");
-        if (error != null) {
-          if (error.toString().contains("404")) {
-            throw new ImageNotFoundException(image, message.toString());
-          } else {
-            throw new ImagePullFailedException(image, message.toString());
-          }
-        }
-        log.info("pull {}: {}", image, message);
-      }
+      return iterator.hasNextValue();
     } catch (IOException e) {
       throw new DockerException(e);
+    }
+  }
+
+  public ProgressMessage nextMessage() throws DockerException {
+    try {
+      return iterator.nextValue();
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+  }
+
+  public void tail(ProgressHandler handler) throws DockerException {
+    while (hasNextMessage()) {
+      handler.progress(nextMessage());
     }
   }
 

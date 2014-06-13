@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
@@ -37,6 +38,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -57,6 +59,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
@@ -148,6 +151,30 @@ public class DockerClientTest {
     // Verify tag was successful by trying to remove it.
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(newImageName));
     assertThat(removedImage, equalTo(new RemovedImage(UNTAGGED, newImageName)));
+  }
+
+  @Test
+  public void testCustomProgressMessageHandler() throws Exception {
+
+    final List<ProgressMessage> messages = new ArrayList<>();
+
+    sut.pull("busybox", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        messages.add(message);
+      }
+    });
+
+    // Verify that we have multiple messages, and each one has a non-null field
+    assertThat(messages, not(empty()));
+    for (ProgressMessage message : messages) {
+      assertTrue(message.error() != null ||
+                 message.id() != null ||
+                 message.progress() != null ||
+                 message.progressDetail() != null ||
+                 message.status() != null ||
+                 message.stream() != null);
+    }
   }
 
   @Test

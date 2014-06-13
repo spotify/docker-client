@@ -106,6 +106,15 @@ public interface DockerClient {
       throws DockerException, InterruptedException;
 
   /**
+   * Pull a docker container image, using a custom ProgressMessageHandler
+   *
+   * @param image The image to pull.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   */
+  void pull(String image, ProgressHandler handler)
+      throws DockerException, InterruptedException;
+
+  /**
    * Tag a docker image.
    *
    * @param image The image to tag.
