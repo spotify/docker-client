@@ -115,6 +115,23 @@ public interface DockerClient {
       throws DockerException, InterruptedException;
 
   /**
+   * Push a docker container image.
+   *
+   * @param image The image to push.
+   */
+  void push(String image)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Push a docker container image, using a custom ProgressHandler
+   *
+   * @param image The image to push.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   */
+  void push(String image, ProgressHandler handler)
+      throws DockerException, InterruptedException;
+
+  /**
    * Tag a docker image.
    *
    * @param image The image to tag.

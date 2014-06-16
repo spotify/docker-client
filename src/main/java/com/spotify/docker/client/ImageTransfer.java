@@ -36,15 +36,15 @@ import java.io.InputStream;
 
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 
-class ImagePull implements Closeable {
+class ImageTransfer implements Closeable {
 
-  private static final Logger log = LoggerFactory.getLogger(ImagePull.class);
+  private static final Logger log = LoggerFactory.getLogger(ImageTransfer.class);
   private final InputStream stream;
   private final MappingIterator<ProgressMessage> iterator;
 
   private volatile boolean closed;
 
-  ImagePull(final InputStream stream) throws IOException {
+  ImageTransfer(final InputStream stream) throws IOException {
     this.stream = stream;
     final JsonParser parser = objectMapper().getFactory().createParser(stream);
     iterator = objectMapper().readValues(parser, ProgressMessage.class);
