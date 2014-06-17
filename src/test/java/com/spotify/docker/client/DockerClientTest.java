@@ -197,6 +197,7 @@ public class DockerClientTest {
     // Inspect using container ID
     {
       final ContainerInfo info = sut.inspectContainer(id);
+      assertThat(info.id(), equalTo(id));
       assertThat(info.config().image(), equalTo(config.image()));
       assertThat(info.config().cmd(), equalTo(config.cmd()));
     }
