@@ -23,10 +23,12 @@ package com.spotify.docker.client;
 
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
+import com.google.common.util.concurrent.SettableFuture;
 
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -40,6 +42,11 @@ import org.junit.rules.ExpectedException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.base.Optional.fromNullable;
@@ -53,6 +60,7 @@ import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
@@ -221,6 +229,56 @@ public class DockerClientTest {
     // Verify that the container is gone
     exception.expect(ContainerNotFoundException.class);
     sut.inspectContainer(id);
+  }
+
+  @Test
+  public void interruptTest() throws Exception {
+
+    // Pull image
+    sut.pull("busybox");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    // Start container
+    sut.startContainer(id);
+
+    // Wait for container on a thread
+    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    final SettableFuture<Boolean> started = SettableFuture.create();
+    final SettableFuture<Boolean> interrupted = SettableFuture.create();
+
+    final Future<ContainerExit> exitFuture = executorService.submit(new Callable<ContainerExit>() {
+      @Override
+      public ContainerExit call() throws Exception {
+        try {
+          started.set(true);
+          return sut.waitContainer(id);
+        } catch (InterruptedException e) {
+          interrupted.set(true);
+          throw e;
+        }
+      }
+    });
+
+    // Interrupt waiting thread
+    started.get();
+    executorService.shutdownNow();
+    try {
+      exitFuture.get();
+      fail();
+    } catch (ExecutionException e) {
+      assertThat(e.getCause(), instanceOf(InterruptedException.class));
+    }
+
+    // Verify that the thread was interrupted
+    assertThat(interrupted.get(), is(true));
   }
 
   private String randomName() {
