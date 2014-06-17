@@ -99,7 +99,7 @@ public class DefaultDockerClient implements DockerClient {
 
   public DefaultDockerClient(final URI uri) {
     this.uri = uri;
-    this.client = Client.create(CLIENT_CONFIG);
+    this.client = new Client(new InterruptibleURLConnectionClientHandler(), CLIENT_CONFIG);
     this.client.setConnectTimeout((int) CONNECT_TIMEOUT_MILLIS);
     this.client.setReadTimeout((int) READ_TIMEOUT_MILLIS);
   }
