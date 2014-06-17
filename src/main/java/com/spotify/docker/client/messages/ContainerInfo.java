@@ -38,7 +38,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)
 public class ContainerInfo {
 
-  @JsonProperty("ID") private String id;
+  @JsonProperty("Id") private String id;
   @JsonProperty("Created") private Date created;
   @JsonProperty("Path") private String path;
   @JsonProperty("Args") private ImmutableList<String> args;
