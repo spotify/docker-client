@@ -74,6 +74,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -234,13 +235,11 @@ public class DockerClientTest {
 
   @Test
   public void testBuildName() throws Exception {
-    // TODO: We should really verify that the image ID from the build matches the image ID we
-    // get from calling inspectImage. We can't do that now because inspectImage is filled with
-    // null values due to a bug.
     final String imageName = "testBuildName";
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    sut.build(Paths.get(dockerDirectory), imageName);
-    assertThat(sut.inspectImage(imageName), notNullValue());
+    final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
+    final ImageInfo info = sut.inspectImage(imageName);
+    assertThat(info.id(), startsWith(imageId));
   }
 
   @Test
