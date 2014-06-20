@@ -22,6 +22,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.base.Strings;
+import com.google.common.io.Resources;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SettableFuture;
 
@@ -41,6 +42,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -49,9 +51,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
+import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
@@ -60,6 +66,7 @@ import static java.lang.System.getenv;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -204,6 +211,106 @@ public class DockerClientTest {
                  message.status() != null ||
                  message.stream() != null);
     }
+  }
+
+  @Test
+  public void testBuildImageId() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
+
+    final String returnedImageId = sut.build(
+        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+          @Override
+          public void progress(ProgressMessage message) throws DockerException {
+            final String imageId = message.buildImageId();
+            if (imageId != null){
+              imageIdFromMessage.set(imageId);
+            }
+          }
+        });
+
+    assertThat(returnedImageId, is(imageIdFromMessage.get()));
+  }
+
+  @Test
+  public void testBuildName() throws Exception {
+    // TODO: We should really verify that the image ID from the build matches the image ID we
+    // get from calling inspectImage. We can't do that now because inspectImage is filled with
+    // null values due to a bug.
+    final String imageName = "testBuildName";
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    sut.build(Paths.get(dockerDirectory), imageName);
+    assertThat(sut.inspectImage(imageName), notNullValue());
+  }
+
+  @Test
+  public void testBuildNoCache() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String usingCache = "Using cache";
+
+    // Build once to make sure we have cached images.
+    sut.build(Paths.get(dockerDirectory));
+
+    // Build again and make sure we used cached image by parsing output.
+    final AtomicBoolean usedCache = new AtomicBoolean(false);
+    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        if (message.stream().contains(usingCache)) {
+          usedCache.set(true);
+        }
+      }
+    });
+    assertTrue(usedCache.get());
+
+    // Build again with NO_CACHE set, and verify we don't use cache.
+    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        assertThat(message.stream(), not(containsString(usingCache)));
+      }
+    }, NO_CACHE);
+  }
+
+  @Test
+  public void testBuildNoRm() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String removingContainers = "Removing intermediate container";
+
+    // Test that intermediate containers are removed by default by parsing output. We must
+    // set NO_CACHE so that docker will generate some containers to remove.
+    final AtomicBoolean removedContainer = new AtomicBoolean(false);
+    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        if (message.stream().contains(removingContainers)) {
+          removedContainer.set(true);
+        }
+      }
+    }, NO_CACHE);
+    assertTrue(removedContainer.get());
+
+    // Set NO_RM and verify we don't get message that containers were removed.
+    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        assertThat(message.stream(), not(containsString(removingContainers)));
+      }
+    }, NO_CACHE, NO_RM);
+  }
+
+  @Test
+  public void testGetImageIdFromBuild() {
+    // Include a new line because that's what docker returns.
+    final ProgressMessage message1 = new ProgressMessage()
+        .stream("Successfully built 2d6e00052167\n");
+    assertThat(message1.buildImageId(), is("2d6e00052167"));
+
+    final ProgressMessage message2 = new ProgressMessage().id("123");
+    assertThat(message2.buildImageId(), nullValue());
+
+    final ProgressMessage message3 = new ProgressMessage().stream("Step 2 : CMD[]");
+    assertThat(message3.buildImageId(), nullValue());
   }
 
   @Test

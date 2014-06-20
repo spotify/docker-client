@@ -31,6 +31,8 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -139,6 +141,73 @@ public interface DockerClient {
    */
   void tag(final String image, final String name)
       throws DockerException, InterruptedException;
+
+  /**
+   * Build a docker image.
+   *
+   * @param directory The directory containing the dockerfile.
+   * @param params Additional flags to use during build.
+   * @return The id of the built image if successful, otherwise null.
+   */
+  String build(final Path directory, final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException;
+
+  /**
+   * Build a docker image.
+   *
+   * @param directory The directory containing the dockerfile.
+   * @param name The repository name and optional tag to apply to the built image.
+   * @param params Additional flags to use during build.
+   * @return The id of the built image if successful, otherwise null.
+   */
+  String build(final Path directory, final String name, final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException;
+
+  /**
+   * Build a docker image.
+   *
+   * @param directory The directory containing the dockerfile.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @param params Additional flags to use during build.
+   * @return The id of the built image if successful, otherwise null.
+   */
+  String build(final Path directory, final ProgressHandler handler, final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException;
+
+  /**
+   * Build a docker image.
+   *
+   * @param directory The directory containing the dockerfile.
+   * @param name The repository name and optional tag to apply to the built image.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @param params Additional flags to use during build.
+   * @return The id of the built image if successful, otherwise null.
+   */
+  String build(final Path directory, final String name, final ProgressHandler handler,
+               final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException;
+
+  /**
+   * Flags which can be passed to the <code>build</code> method.
+   */
+  public static enum BuildParameter {
+    /** Suppress verbose build output. */
+    QUIET("q", true),
+    /** Do not use the cache when building the image. */
+    NO_CACHE("nocache", true),
+    /** Do not remove intermediate containers after a successful build. */
+    NO_RM("rm", false),
+    /** Always remove intermediate containers. */
+    FORCE_RM("forcerm", true);
+
+    final String queryParam;
+    final boolean value;
+
+    private BuildParameter(final String queryParam, final boolean value) {
+      this.queryParam = queryParam;
+      this.value = value;
+    }
+  }
 
   /**
    * Create a docker container.

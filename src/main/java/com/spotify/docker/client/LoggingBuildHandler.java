@@ -26,23 +26,17 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoggingPushHandler implements ProgressHandler {
+public class LoggingBuildHandler implements ProgressHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(LoggingPushHandler.class);
-
-  private final String image;
-
-  public LoggingPushHandler(String image) {
-    this.image = image;
-  }
+  private static final Logger log = LoggerFactory.getLogger(LoggingBuildHandler.class);
 
   @Override
   public void progress(ProgressMessage message) throws DockerException {
     if (message.error() != null) {
-        throw new ImagePushFailedException(image, message.toString());
+      throw new DockerException(message.toString());
     }
 
-    log.info("push {}: {}", image, message);
+    log.info("build: {}", message);
   }
 
 }

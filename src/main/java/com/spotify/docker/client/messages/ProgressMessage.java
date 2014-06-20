@@ -38,24 +38,67 @@ public class ProgressMessage {
     return id;
   }
 
+  public ProgressMessage id(final String id) {
+    this.id = id;
+    return this;
+  }
+
   public String status() {
     return status;
+  }
+
+  public ProgressMessage status(final String status) {
+    this.status = status;
+    return this;
   }
 
   public String stream() {
     return stream;
   }
 
+  public ProgressMessage stream(final String stream) {
+    this.stream = stream;
+    return this;
+  }
+
   public String error() {
     return error;
+  }
+
+  public ProgressMessage error(final String error) {
+    this.error = error;
+    return this;
   }
 
   public String progress() {
     return progress;
   }
 
+  public ProgressMessage progress(final String progress) {
+    this.progress = progress;
+    return this;
+  }
+
   public ProgressDetail progressDetail() {
     return progressDetail;
+  }
+
+  public ProgressMessage progressDetail(final ProgressDetail progressDetail) {
+    this.progressDetail = progressDetail;
+    return this;
+  }
+
+  /**
+   * Checks if the stream field contains a string a like "Successfully built 2d6e00052167", and
+   * if so, returns the image id. Otherwise null is returned. This string is expected when an image
+   * is built successfully.
+   * @return The image id if this is a build success message, otherwise null.
+   */
+  public String buildImageId() {
+    // stream messages end with new line, so call trim to remove it
+    return stream != null && stream.startsWith("Successfully built")
+           ? stream.substring(stream.lastIndexOf(' ') + 1).trim()
+           : null;
   }
 
   @Override

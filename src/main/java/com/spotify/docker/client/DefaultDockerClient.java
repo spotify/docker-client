@@ -32,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 import com.sun.jersey.api.client.Client;
@@ -47,11 +48,13 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -61,6 +64,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.spotify.docker.client.CompressedDirectory.delete;
 import static com.sun.jersey.api.client.config.ClientConfig.PROPERTY_READ_TIMEOUT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -80,7 +84,7 @@ public class DefaultDockerClient implements DockerClient {
   private static final DefaultClientConfig CLIENT_CONFIG = new DefaultClientConfig(
       ObjectMapperProvider.class,
       LogsResponseReader.class,
-      ImageTransferResponseReader.class);
+      ProgressResponseReader.class);
 
   private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile("/?[a-zA-Z0-9_-]+");
 
@@ -285,8 +289,8 @@ public class DefaultDockerClient implements DockerClient {
 
     final WebResource resource = resource().path("images").path("create").queryParams(params);
 
-    try (ImageTransfer pull =
-             request(POST, ImageTransfer.class, resource, resource.accept(APPLICATION_JSON_TYPE))) {
+    try (ProgressStream pull = request(POST, ProgressStream.class, resource,
+                                       resource.accept(APPLICATION_JSON_TYPE))) {
       pull.tail(handler);
     }
   }
@@ -311,8 +315,8 @@ public class DefaultDockerClient implements DockerClient {
 
     // the docker daemon requires that the X-Registry-Auth header is specified
     // with a non-empty string even if your registry doesn't use authentication
-    try (ImageTransfer push =
-             request(POST, ImageTransfer.class, resource,
+    try (ProgressStream push =
+             request(POST, ProgressStream.class, resource,
                      resource.accept(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
       push.tail(handler);
     }
@@ -341,6 +345,60 @@ public class DefaultDockerClient implements DockerClient {
         default:
           throw e;
       }
+    }
+  }
+
+  @Override
+  public String build(final Path directory, final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException {
+    return build(directory, null, new LoggingBuildHandler(), params);
+  }
+
+  @Override
+  public String build(final Path directory, final String name, final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException {
+    return build(directory, name, new LoggingBuildHandler(), params);
+  }
+
+  @Override
+  public String build(final Path directory, final ProgressHandler handler,
+                      final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException {
+    return build(directory, null, handler, params);
+  }
+
+  @Override
+  public String build(final Path directory, final String name, final ProgressHandler handler,
+                      final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException {
+    checkNotNull(handler, "handler");
+
+    final Multimap<String, String> paramMap = ArrayListMultimap.create();
+    for (final BuildParameter param : params) {
+      paramMap.put(param.queryParam, String.valueOf(param.value));
+    }
+    if (name != null) {
+      paramMap.put("t", name);
+    }
+
+    final WebResource resource = resource().path("build").queryParams(multivaluedMap(paramMap));
+    final File compressedDirectory = CompressedDirectory.create(directory);
+
+    try (ProgressStream build = request(POST, ProgressStream.class, resource,
+                                        resource.accept(APPLICATION_JSON_TYPE)
+                                            .entity(compressedDirectory, "application/tar"))) {
+      String imageId = null;
+      while (build.hasNextMessage()) {
+        final ProgressMessage message = build.nextMessage();
+        final String id = message.buildImageId();
+        if (id != null) {
+          imageId = id;
+        }
+        handler.progress(message);
+      }
+      return imageId;
+    } finally {
+      delete(compressedDirectory);
     }
   }
 
