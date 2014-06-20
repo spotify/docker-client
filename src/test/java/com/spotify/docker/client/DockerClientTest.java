@@ -41,6 +41,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -63,6 +65,7 @@ import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.contains;
@@ -311,6 +314,16 @@ public class DockerClientTest {
 
     final ProgressMessage message3 = new ProgressMessage().stream("Step 2 : CMD[]");
     assertThat(message3.buildImageId(), nullValue());
+  }
+
+  public void testAnsiProgressHandler() throws Exception {
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    sut.pull("busybox", new AnsiProgressHandler(new PrintStream(out)));
+    // The progress handler uses ascii escape characters to move the cursor around to nicely print
+    // progress bars. This is hard to test programmatically, so let's just verify the output
+    // contains some expected phrases.
+    assertThat(out.toString(), allOf(containsString("Pulling repository busybox"),
+                                     containsString("Download complete")));
   }
 
   @Test
