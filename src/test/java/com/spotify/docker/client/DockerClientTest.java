@@ -30,6 +30,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -64,6 +65,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertThat;
@@ -159,6 +161,25 @@ public class DockerClientTest {
     // Verify tag was successful by trying to remove it.
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(newImageName));
     assertThat(removedImage, equalTo(new RemovedImage(UNTAGGED, newImageName)));
+  }
+
+  @Test
+  public void testInspectImage() throws Exception {
+    sut.pull("busybox");
+    final ImageInfo info = sut.inspectImage("busybox");
+    assertThat(info, notNullValue());
+    assertThat(info.architecture(), not(isEmptyOrNullString()));
+    assertThat(info.author(), not(isEmptyOrNullString()));
+    assertThat(info.config(), notNullValue());
+    assertThat(info.container(), not(isEmptyOrNullString()));
+    assertThat(info.containerConfig(), notNullValue());
+    assertThat(info.comment(), notNullValue());
+    assertThat(info.created(), notNullValue());
+    assertThat(info.dockerVersion(), not(isEmptyOrNullString()));
+    assertThat(info.id(), not(isEmptyOrNullString()));
+    assertThat(info.os(), equalTo("linux"));
+    assertThat(info.parent(), not(isEmptyOrNullString()));
+    assertThat(info.size(), notNullValue());
   }
 
   @Test

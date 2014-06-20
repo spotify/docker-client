@@ -34,17 +34,17 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageInfo {
 
-  @JsonProperty("id") private String id;
-  @JsonProperty("parent") private String parent;
-  @JsonProperty("comment") private String comment;
-  @JsonProperty("created") private Date created;
-  @JsonProperty("container") private String container;
-  @JsonProperty("container_config") private ContainerConfig containerConfig;
-  @JsonProperty("docker_version") private String dockerVersion;
-  @JsonProperty("author") private String author;
-  @JsonProperty("config") private ContainerConfig config;
-  @JsonProperty("architecture") private String architecture;
-  @JsonProperty("os") private String os;
+  @JsonProperty("Id") private String id;
+  @JsonProperty("Parent") private String parent;
+  @JsonProperty("Comment") private String comment;
+  @JsonProperty("Created") private Date created;
+  @JsonProperty("Container") private String container;
+  @JsonProperty("ContainerConfig") private ContainerConfig containerConfig;
+  @JsonProperty("DockerVersion") private String dockerVersion;
+  @JsonProperty("Author") private String author;
+  @JsonProperty("Config") private ContainerConfig config;
+  @JsonProperty("Architecture") private String architecture;
+  @JsonProperty("Os") private String os;
   @JsonProperty("Size") private Long size;
 
   public String id() {
