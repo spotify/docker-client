@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
+import java.net.URI;
 
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 
@@ -50,25 +52,30 @@ class ProgressStream implements Closeable {
     iterator = objectMapper().readValues(parser, ProgressMessage.class);
   }
 
-  public boolean hasNextMessage() throws DockerException {
+  public boolean hasNextMessage(final String method, final URI uri) throws DockerException {
     try {
       return iterator.hasNextValue();
+    } catch (SocketTimeoutException e) {
+      throw new DockerTimeoutException(method, uri, e);
     } catch (IOException e) {
       throw new DockerException(e);
     }
   }
 
-  public ProgressMessage nextMessage() throws DockerException {
+  public ProgressMessage nextMessage(final String method, final URI uri) throws DockerException {
     try {
       return iterator.nextValue();
+    } catch (SocketTimeoutException e) {
+      throw new DockerTimeoutException(method, uri, e);
     } catch (IOException e) {
       throw new DockerException(e);
     }
   }
 
-  public void tail(ProgressHandler handler) throws DockerException {
-    while (hasNextMessage()) {
-      handler.progress(nextMessage());
+  public void tail(ProgressHandler handler, final String method, final URI uri)
+      throws DockerException {
+    while (hasNextMessage(method, uri)) {
+      handler.progress(nextMessage(method, uri));
     }
   }
 
