@@ -291,7 +291,7 @@ public class DefaultDockerClient implements DockerClient {
 
     try (ProgressStream pull = request(POST, ProgressStream.class, resource,
                                        resource.accept(APPLICATION_JSON_TYPE))) {
-      pull.tail(handler);
+      pull.tail(handler, POST, resource.getURI());
     }
   }
 
@@ -318,7 +318,7 @@ public class DefaultDockerClient implements DockerClient {
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
                      resource.accept(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
-      push.tail(handler);
+      push.tail(handler, POST, resource.getURI());
     }
   }
 
@@ -388,8 +388,8 @@ public class DefaultDockerClient implements DockerClient {
                                         resource.accept(APPLICATION_JSON_TYPE)
                                             .entity(compressedDirectory, "application/tar"))) {
       String imageId = null;
-      while (build.hasNextMessage()) {
-        final ProgressMessage message = build.nextMessage();
+      while (build.hasNextMessage(POST, resource.getURI())) {
+        final ProgressMessage message = build.nextMessage(POST, resource.getURI());
         final String id = message.buildImageId();
         if (id != null) {
           imageId = id;
