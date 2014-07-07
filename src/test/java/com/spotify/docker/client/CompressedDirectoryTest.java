@@ -31,6 +31,8 @@ import org.junit.Test;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +44,9 @@ public class CompressedDirectoryTest {
 
   @Test
   public void testFile() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    final File file = CompressedDirectory.create(dockerDirectory);
+    // note: Paths.get(someURL.toUri()) is the platform-neutral way to convert a URL to a Path
+    final URL dockerDirectory = Resources.getResource("dockerDirectory");
+    final File file = CompressedDirectory.create(Paths.get(dockerDirectory.toURI()));
     try (BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
          GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fileIn);
          TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
