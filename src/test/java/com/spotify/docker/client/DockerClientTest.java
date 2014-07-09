@@ -42,7 +42,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -58,6 +63,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
@@ -156,7 +162,7 @@ public class DockerClientTest {
     try {
       sut.inspectImage(image);
       fail("inspectImage should have thrown ImageNotFoundException");
-    } catch(ImageNotFoundException e) {
+    } catch (ImageNotFoundException e) {
       // we should get exception because we deleted image
     }
   }
@@ -227,7 +233,7 @@ public class DockerClientTest {
           @Override
           public void progress(ProgressMessage message) throws DockerException {
             final String imageId = message.buildImageId();
-            if (imageId != null){
+            if (imageId != null) {
               imageIdFromMessage.set(imageId);
             }
           }
@@ -421,7 +427,44 @@ public class DockerClientTest {
     assertThat(interrupted.get(), is(true));
   }
 
+  @Test(expected = DockerTimeoutException.class)
+  public void testConnectTimeout() throws Exception {
+    // Attempt to connect to an unroutable ip address -> connect will time out.
+    final DockerClient connectTimeoutClient = DefaultDockerClient.builder()
+        .uri("http://172.31.255.1:2375")
+        .connectTimeoutMillis(100)
+        .readTimeoutMillis(NO_TIMEOUT)
+        .build();
+    connectTimeoutClient.version();
+  }
+
+  @Test(expected = DockerTimeoutException.class)
+  public void testReadTimeout() throws Exception {
+    try (final ServerSocket s = new ServerSocket()) {
+      // Bind and listen but do not accept -> read will time out.
+      s.bind(new InetSocketAddress("127.0.0.1", 0));
+      awaitConnectable(s.getInetAddress(), s.getLocalPort());
+      final DockerClient connectTimeoutClient = DefaultDockerClient.builder()
+          .uri("http://127.0.0.1:" + s.getLocalPort())
+          .connectTimeoutMillis(NO_TIMEOUT)
+          .readTimeoutMillis(100)
+          .build();
+      connectTimeoutClient.version();
+    }
+  }
+
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());
+  }
+
+  private void awaitConnectable(final InetAddress address, final int port)
+      throws InterruptedException {
+    while (true) {
+      try (Socket ignored = new Socket(address, port)) {
+        return;
+      } catch (IOException e) {
+        Thread.sleep(100);
+      }
+    }
   }
 }
