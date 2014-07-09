@@ -75,8 +75,10 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 public class DefaultDockerClient implements DockerClient {
 
-  private static final long CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
-  private static final long READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
+  public static final long NO_TIMEOUT = 0;
+
+  private static final long DEFAULT_CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
+  private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
@@ -97,15 +99,33 @@ public class DefaultDockerClient implements DockerClient {
   private final Client client;
   private final URI uri;
 
+  /**
+   * Create a new client with default configuration.
+   * @param uri The docker rest api uri.
+   */
   public DefaultDockerClient(final String uri) {
     this(URI.create(uri));
   }
 
+  /**
+   * Create a new client with default configuration.
+   * @param uri The docker rest api uri.
+   */
   public DefaultDockerClient(final URI uri) {
-    this.uri = uri;
+    this.uri = checkNotNull(uri, "uri");
     this.client = new Client(new InterruptibleURLConnectionClientHandler(), CLIENT_CONFIG);
-    this.client.setConnectTimeout((int) CONNECT_TIMEOUT_MILLIS);
-    this.client.setReadTimeout((int) READ_TIMEOUT_MILLIS);
+    this.client.setConnectTimeout((int) DEFAULT_CONNECT_TIMEOUT_MILLIS);
+    this.client.setReadTimeout((int) DEFAULT_READ_TIMEOUT_MILLIS);
+  }
+
+  /**
+   * Create a new client using the configuration of the builder.
+   */
+  private DefaultDockerClient(final Builder builder) {
+    this.uri = checkNotNull(builder.uri, "uri");
+    this.client = new Client(new InterruptibleURLConnectionClientHandler(), CLIENT_CONFIG);
+    this.client.setConnectTimeout((int) builder.connectTimeoutMillis);
+    this.client.setReadTimeout((int) builder.readTimeoutMillis);
   }
 
   @Override
@@ -545,4 +565,52 @@ public class DefaultDockerClient implements DockerClient {
     return multivaluedMap;
   }
 
+  /**
+   * Create a new {@link DefaultDockerClient} builder.
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+
+    private URI uri;
+    private long connectTimeoutMillis = DEFAULT_CONNECT_TIMEOUT_MILLIS;
+    private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
+
+    public URI uri() {
+      return uri;
+    }
+
+    public Builder uri(final URI uri) {
+      this.uri = uri;
+      return this;
+    }
+
+    public Builder uri(final String uri) {
+      return uri(URI.create(uri));
+    }
+
+    public long connectTimeoutMillis() {
+      return connectTimeoutMillis;
+    }
+
+    public Builder connectTimeoutMillis(final long connectTimeoutMillis) {
+      this.connectTimeoutMillis = connectTimeoutMillis;
+      return this;
+    }
+
+    public long readTimeoutMillis() {
+      return readTimeoutMillis;
+    }
+
+    public Builder readTimeoutMillis(final long readTimeoutMillis) {
+      this.readTimeoutMillis = readTimeoutMillis;
+      return this;
+    }
+
+    public DefaultDockerClient build() {
+      return new DefaultDockerClient(this);
+    }
+  }
 }

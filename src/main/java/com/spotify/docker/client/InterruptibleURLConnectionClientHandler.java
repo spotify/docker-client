@@ -21,6 +21,7 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -65,7 +66,9 @@ class InterruptibleURLConnectionClientHandler extends TerminatingClientHandler {
       throw new ClientHandlerException(new InterruptedIOException(e.toString()));
     } catch (ExecutionException e) {
       request.close();
-      throw new ClientHandlerException(e.getCause() == null ? e : e.getCause());
+      final Throwable cause = e.getCause() == null ? e : e.getCause();
+      Throwables.propagateIfInstanceOf(cause, ClientHandlerException.class);
+      throw new ClientHandlerException(cause);
     }
   }
 
