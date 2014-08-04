@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -46,12 +47,25 @@ import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.B
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
 
 /**
- * This helper class is used during the docker build command to create a gzip tarball
- * of a directory containing a Dockerfile.
+ * This helper class is used during the docker build command to create a gzip tarball of a directory
+ * containing a Dockerfile.
  */
 class CompressedDirectory {
 
   private static final Logger log = LoggerFactory.getLogger(CompressedDirectory.class);
+
+  /**
+   * Default mode to be applied to tar file entries if detailed Posix-compliant mode cannot be
+   * obtained.
+   */
+  private static final int DEFAULT_FILE_MODE = TarArchiveEntry.DEFAULT_FILE_MODE;
+
+  /**
+   * Identifier used to indicate the OS supports a Posix compliant view of the file system.
+   *
+   * @see PosixFileAttributeView#name()
+   */
+  private static final String POSIX_FILE_VIEW = "posix";
 
   /**
    * This method creates a gzip tarball of the specified directory. File permissions will be
@@ -102,6 +116,7 @@ class CompressedDirectory {
   /**
    * Convenience method for deleting files. This method safely handles null values, and will never
    * throw an exception.
+   *
    * @param file the file to delete.
    * @return true if file was deleted successfully, otherwise false.
    */
@@ -136,6 +151,30 @@ class CompressedDirectory {
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
       final TarArchiveEntry entry = new TarArchiveEntry(file.toFile());
+
+      final Path relativePath = root.relativize(file);
+      entry.setName(relativePath.toString());
+      entry.setMode(getFileMode(file));
+      entry.setSize(attrs.size());
+      tarStream.putArchiveEntry(entry);
+      Files.copy(file, tarStream);
+      tarStream.closeArchiveEntry();
+      return FileVisitResult.CONTINUE;
+    }
+
+    private static int getFileMode(Path file) throws IOException {
+      if (isPosixComplantFS()) {
+        return getPosixFileMode(file);
+      } else {
+        return DEFAULT_FILE_MODE;
+      }
+    }
+
+    private static boolean isPosixComplantFS() {
+      return FileSystems.getDefault().supportedFileAttributeViews().contains(POSIX_FILE_VIEW);
+    }
+
+    private static int getPosixFileMode(Path file) throws IOException {
       final PosixFileAttributes attr = Files.readAttributes(file, PosixFileAttributes.class);
       final Set<PosixFilePermission> perm = attr.permissions();
 
@@ -156,14 +195,7 @@ class CompressedDirectory {
           perm.contains(PosixFilePermission.OTHERS_WRITE),
           perm.contains(PosixFilePermission.OTHERS_EXECUTE));
 
-      final Path relativePath = root.relativize(file);
-      entry.setName(relativePath.toString());
-      entry.setMode(mode);
-      entry.setSize(attr.size());
-      tarStream.putArchiveEntry(entry);
-      Files.copy(file, tarStream);
-      tarStream.closeArchiveEntry();
-      return FileVisitResult.CONTINUE;
+      return mode;
     }
 
     private static int getModeFromPermissions(boolean read, boolean write, boolean execute) {
@@ -179,5 +211,6 @@ class CompressedDirectory {
       }
       return result;
     }
+
   }
 }
