@@ -90,7 +90,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
-public class DockerClientTest {
+public class DefaultDockerClientTest {
 
   public static final int DOCKER_PORT = Integer.valueOf(env("DOCKER_PORT", "2375"));
   public static final String DOCKER_HOST = env("DOCKER_HOST", ":" + DOCKER_PORT);
@@ -113,12 +113,13 @@ public class DockerClientTest {
     return fromNullable(getenv(key)).or(defaultValue);
   }
 
-  private final DockerClient sut = new DefaultDockerClient(URI.create(DOCKER_ENDPOINT));
+  private final DefaultDockerClient sut = new DefaultDockerClient(URI.create(DOCKER_ENDPOINT));
 
   private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
 
   @After
-  public void removeContainers() throws Exception {
+  public void tearDown() throws Exception {
+    // Remove containers
     final List<Container> containers = sut.listContainers();
     for (Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
@@ -127,6 +128,9 @@ public class DockerClientTest {
         sut.removeContainer(info.id());
       }
     }
+
+    // Close the client
+    sut.close();
   }
 
   @Test
@@ -430,12 +434,13 @@ public class DockerClientTest {
   @Test(expected = DockerTimeoutException.class)
   public void testConnectTimeout() throws Exception {
     // Attempt to connect to an unroutable ip address -> connect will time out.
-    final DockerClient connectTimeoutClient = DefaultDockerClient.builder()
+    try (final DefaultDockerClient connectTimeoutClient = DefaultDockerClient.builder()
         .uri("http://172.31.255.1:2375")
         .connectTimeoutMillis(100)
         .readTimeoutMillis(NO_TIMEOUT)
-        .build();
-    connectTimeoutClient.version();
+        .build()) {
+      connectTimeoutClient.version();
+    }
   }
 
   @Test(expected = DockerTimeoutException.class)
