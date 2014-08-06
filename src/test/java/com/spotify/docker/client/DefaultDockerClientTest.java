@@ -434,7 +434,7 @@ public class DefaultDockerClientTest {
   @Test(expected = DockerTimeoutException.class)
   public void testConnectTimeout() throws Exception {
     // Attempt to connect to an unroutable ip address -> connect will time out.
-    try(final DefaultDockerClient connectTimeoutClient = DefaultDockerClient.builder()
+    try (final DefaultDockerClient connectTimeoutClient = DefaultDockerClient.builder()
         .uri("http://172.31.255.1:2375")
         .connectTimeoutMillis(100)
         .readTimeoutMillis(NO_TIMEOUT)
