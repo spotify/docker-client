@@ -24,6 +24,8 @@ package com.spotify.docker.client;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.io.CharStreams;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -48,6 +50,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -58,6 +61,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -73,7 +80,7 @@ import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
-public class DefaultDockerClient implements DockerClient {
+public class DefaultDockerClient implements DockerClient, Closeable {
 
   public static final long NO_TIMEOUT = 0;
 
@@ -96,6 +103,19 @@ public class DefaultDockerClient implements DockerClient {
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {};
 
+  private static final AtomicInteger CLIENT_COUNTER = new AtomicInteger();
+
+  private final ExecutorService executor = MoreExecutors.getExitingExecutorService(
+      (ThreadPoolExecutor) Executors.newCachedThreadPool(
+          new ThreadFactoryBuilder()
+              .setDaemon(true)
+              .setNameFormat("docker-client-" + CLIENT_COUNTER.incrementAndGet() + "-%d")
+              .build()));
+
+
+  private final InterruptibleURLConnectionClientHandler clientHandler =
+      new InterruptibleURLConnectionClientHandler(executor);
+
   private final Client client;
   private final URI uri;
 
@@ -113,7 +133,7 @@ public class DefaultDockerClient implements DockerClient {
    */
   public DefaultDockerClient(final URI uri) {
     this.uri = checkNotNull(uri, "uri");
-    this.client = new Client(new InterruptibleURLConnectionClientHandler(), CLIENT_CONFIG);
+    this.client = new Client(clientHandler, CLIENT_CONFIG);
     this.client.setConnectTimeout((int) DEFAULT_CONNECT_TIMEOUT_MILLIS);
     this.client.setReadTimeout((int) DEFAULT_READ_TIMEOUT_MILLIS);
   }
@@ -123,9 +143,15 @@ public class DefaultDockerClient implements DockerClient {
    */
   private DefaultDockerClient(final Builder builder) {
     this.uri = checkNotNull(builder.uri, "uri");
-    this.client = new Client(new InterruptibleURLConnectionClientHandler(), CLIENT_CONFIG);
+    this.client = new Client(clientHandler, CLIENT_CONFIG);
     this.client.setConnectTimeout((int) builder.connectTimeoutMillis);
     this.client.setReadTimeout((int) builder.readTimeoutMillis);
+  }
+
+  @Override
+  public void close() {
+    executor.shutdownNow();
+    client.destroy();
   }
 
   @Override

@@ -23,7 +23,6 @@ package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.MoreExecutors;
 
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientRequest;
@@ -40,11 +39,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * A client handler that makes the jersey client interruptible by executing all http requests on a
@@ -52,8 +47,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 class InterruptibleURLConnectionClientHandler extends TerminatingClientHandler {
 
-  private final ExecutorService executor = MoreExecutors.getExitingExecutorService(
-      (ThreadPoolExecutor) Executors.newCachedThreadPool(), 0, SECONDS);
+  private final ExecutorService executor;
+
+  InterruptibleURLConnectionClientHandler(final ExecutorService executor) {
+    this.executor = executor;
+  }
 
   @Override
   public ClientResponse handle(final ClientRequest cr) throws ClientHandlerException {
