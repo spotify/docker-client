@@ -34,6 +34,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -158,6 +159,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public Version version() throws DockerException, InterruptedException {
     final WebResource resource = resource().path("version");
     return request(GET, Version.class, resource, resource.accept(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public Info info() throws DockerException, InterruptedException {
+    final WebResource resource = resource().path("info");
+    return request(GET, Info.class, resource, resource.accept(APPLICATION_JSON_TYPE));
   }
 
   @Override

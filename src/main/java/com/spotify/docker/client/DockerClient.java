@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
@@ -46,6 +47,11 @@ public interface DockerClient {
    * Get the docker version.
    */
   Version version() throws DockerException, InterruptedException;
+
+  /**
+   * Get docker instance information.
+   */
+  Info info() throws DockerException, InterruptedException;
 
   /**
    * List docker containers.
