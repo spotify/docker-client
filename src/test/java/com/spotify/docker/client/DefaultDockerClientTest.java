@@ -37,7 +37,6 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -87,6 +86,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -468,6 +468,19 @@ public class DefaultDockerClientTest {
           .build();
       connectTimeoutClient.version();
     }
+  }
+
+  @Test
+  public void testInspectContainerWithExposedPorts() throws Exception {
+    sut.pull("rohan/memcached-mini");
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("rohan/memcached-mini")
+        .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+    final ContainerInfo containerInfo = sut.inspectContainer(container.id());
+    assertThat(containerInfo, notNullValue());
+    assertThat(containerInfo.networkSettings().ports(), hasEntry("11211/tcp", null));
   }
 
   private String randomName() {

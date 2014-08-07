@@ -22,11 +22,12 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class NetworkSettings {
   @JsonProperty("Gateway") private String gateway;
   @JsonProperty("Bridge") private String bridge;
   @JsonProperty("PortMapping") private ImmutableMap<String, Map<String, String>> portMapping;
-  @JsonProperty("Ports") private ImmutableMap<String, List<PortBinding>> ports;
+  @JsonProperty("Ports") private Map<String, List<PortBinding>> ports;
 
   private NetworkSettings() {
   }
@@ -72,7 +73,7 @@ public class NetworkSettings {
   }
 
   public Map<String, List<PortBinding>> ports() {
-    return ports;
+    return (ports == null) ? null : Collections.unmodifiableMap(ports);
   }
 
   @Override
@@ -146,7 +147,7 @@ public class NetworkSettings {
     private String gateway;
     private String bridge;
     private ImmutableMap<String, Map<String, String>> portMapping;
-    private ImmutableMap<String, List<PortBinding>> ports;
+    private Map<String, List<PortBinding>> ports;
 
     private Builder() {
     }
@@ -190,11 +191,7 @@ public class NetworkSettings {
     }
 
     public Builder ports(final Map<String, List<PortBinding>> ports) {
-      final ImmutableMap.Builder<String, List<PortBinding>> builder = ImmutableMap.builder();
-      for (Map.Entry<String, List<PortBinding>> entry : ports.entrySet()) {
-        builder.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
-      }
-      this.ports = builder.build();
+      this.ports = (ports == null) ? null : Maps.newHashMap(ports);
       return this;
     }
 
