@@ -32,10 +32,12 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -148,6 +150,16 @@ public class DefaultDockerClientTest {
     assertThat(version.kernelVersion(), not(isEmptyOrNullString()));
     assertThat(version.os(), not(isEmptyOrNullString()));
     assertThat(version.version(), not(isEmptyOrNullString()));
+  }
+
+  @Test
+  public void testInfo() throws Exception {
+    final Info info = sut.info();
+    assertThat(info.executionDriver(), not(isEmptyOrNullString()));
+    assertThat(info.initPath(), not(isEmptyOrNullString()));
+    assertThat(info.kernelVersion(), not(isEmptyOrNullString()));
+    assertThat(info.storageDriver(), not(isEmptyOrNullString()));
+    assertThat(info.sockets(), not(empty()));
   }
 
   @Test
