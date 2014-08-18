@@ -22,6 +22,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SettableFuture;
@@ -37,6 +38,8 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +47,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -75,9 +79,11 @@ import static java.lang.System.getenv;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -345,6 +351,56 @@ public class DefaultDockerClientTest {
     // contains some expected phrases.
     assertThat(out.toString(), allOf(containsString("Pulling repository busybox"),
                                      containsString("Download complete")));
+  }
+
+  @Test
+  public void testExportContainer() throws Exception {
+    // Pull image
+    sut.pull("busybox");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    ImmutableSet.Builder<String> files = ImmutableSet.builder();
+    try (TarArchiveInputStream tarStream = new TarArchiveInputStream(sut.exportContainer(id))) {
+      TarArchiveEntry entry;
+      while ((entry = tarStream.getNextTarEntry()) != null) {
+        files.add(entry.getName());
+      }
+    }
+
+    // Check that some common files exist
+    assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/sh")));
+  }
+
+  @Test
+  public void testCopyContainer() throws Exception {
+    // Pull image
+    sut.pull("busybox");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    ImmutableSet.Builder<String> files = ImmutableSet.builder();
+    try (TarArchiveInputStream tarStream = new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
+      TarArchiveEntry entry;
+      while ((entry = tarStream.getNextTarEntry()) != null) {
+        files.add(entry.getName());
+      }
+    }
+
+    // Check that some common files exist
+    assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
   }
 
   @Test

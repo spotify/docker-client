@@ -32,7 +32,10 @@ import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -291,6 +294,32 @@ public interface DockerClient {
    * @throws ContainerNotFoundException if the container was not found (404).
    */
   void removeContainer(String containerId, boolean removeVolumes)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Export a docker container as a tar archive.
+   *
+   * @param containerId The id of the container to export.
+   * @return A stream in tar format that contains the contents of the container file system.
+   */
+  InputStream exportContainer(String containerId)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Copies some files out of a container.
+   *
+   * @param containerId The id of the container to copy files from.
+   * @param path        The path inside of the container to copy.  If this is a directory, it will
+   *                    be copied recursively.  If this is a file, only that file will be copied.
+   * @return A stream in tar format that contains the copied files.  If a directory was copied, the
+   * directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")} will
+   * result in a directory called {@code share} in the tar archive).  The directory name is
+   * completely resolved, so copying {@code "/usr/share/././."} will still create a directory called
+   * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
+   * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
+   * tar archive containing a single folder named after the container ID.
+   */
+  InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
 
   /**
