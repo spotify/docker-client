@@ -27,6 +27,8 @@ import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -54,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
@@ -80,6 +83,7 @@ import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -306,6 +310,30 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw new DockerException(e);
       }
     }
+  }
+
+  @Override
+  public InputStream exportContainer(String containerId)
+      throws DockerException, InterruptedException {
+    final WebResource resource = resource()
+        .path("containers").path(containerId).path("export");
+    return request(GET, InputStream.class, resource,
+                   resource.accept(APPLICATION_OCTET_STREAM_TYPE));
+  }
+
+  @Override
+  public InputStream copyContainer(String containerId, String path)
+      throws DockerException, InterruptedException {
+    final WebResource resource = resource()
+        .path("containers").path(containerId).path("copy");
+
+    // Internal JSON object; not worth it to create class for this
+    JsonNodeFactory nf = JsonNodeFactory.instance;
+    final JsonNode params = nf.objectNode().set("Resource", nf.textNode(path));
+
+    return request(POST, InputStream.class, resource,
+                   resource.accept(APPLICATION_OCTET_STREAM_TYPE)
+                       .entity(params, APPLICATION_JSON_TYPE));
   }
 
   @Override
