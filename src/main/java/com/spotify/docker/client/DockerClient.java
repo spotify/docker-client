@@ -32,8 +32,7 @@ import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -44,7 +43,7 @@ import java.util.List;
  *
  * Note: All methods throw DockerException on unexpected docker response status codes.
  */
-public interface DockerClient {
+public interface DockerClient extends Closeable {
 
   /**
    * Get the docker version.
@@ -332,6 +331,12 @@ public interface DockerClient {
    */
   LogStream logs(String containerId, LogsParameter... params)
       throws DockerException, InterruptedException;
+
+  /**
+   * Closes any and all underlying connections to docker, and release resources.
+   */
+  @Override
+  void close();
 
   /**
    * Parameters for {@link #logs(String, LogsParameter...)}
