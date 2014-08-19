@@ -50,9 +50,6 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -91,8 +88,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final long DEFAULT_CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
-
-  private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
   private static final String VERSION = "v1.12";
   private static final DefaultClientConfig CLIENT_CONFIG = new DefaultClientConfig(
