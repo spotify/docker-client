@@ -32,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerState;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
@@ -128,7 +129,7 @@ public class DefaultDockerClientTest {
   @After
   public void tearDown() throws Exception {
     // Remove containers
-    final List<Container> containers = sut.listContainers();
+    final List<Container> containers = sut.listContainers(DockerClient.ListContainersParam.allContainers());
     for (Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
       if (info != null && info.name().contains(nameTag)) {
@@ -401,6 +402,36 @@ public class DefaultDockerClientTest {
 
     // Check that some common files exist
     assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
+  }
+
+  @Test
+  public void testStopContainer() throws Exception {
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+        // make sure the container's busy doing something upon startup
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Must be running
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+    }
+
+    sut.stopContainer(containerId, 5);
+
+    // Must no longer be running
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(false));
+    }
   }
 
   @Test

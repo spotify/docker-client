@@ -257,6 +257,9 @@ public interface DockerClient extends Closeable {
   void startContainer(String containerId, HostConfig hostConfig)
       throws DockerException, InterruptedException;
 
+  void stopContainer(String containerId, int secondsToWaitBeforeKilling)
+      throws DockerException, InterruptedException;
+
   /**
    * Wait for a docker container to exit.
    *
