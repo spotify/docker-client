@@ -32,7 +32,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerState;
+import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
@@ -48,7 +48,6 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -72,6 +71,8 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
+import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
+import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
@@ -84,10 +85,12 @@ import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -568,6 +571,32 @@ public class DefaultDockerClientTest {
     final ContainerInfo containerInfo = sut.inspectContainer(container.id());
     assertThat(containerInfo, notNullValue());
     assertThat(containerInfo.networkSettings().ports(), hasEntry("11211/tcp", null));
+  }
+
+  @Test
+  public void testListImages() throws Exception {
+    sut.pull("busybox");
+    final List<Image> images = sut.listImages();
+    assertThat(images.size(), greaterThan(0));
+
+    // Verify that image contains valid values
+    final Image image = images.get(0);
+    assertThat(image.virtualSize(), greaterThan(0L));
+    assertThat(image.created(), not(isEmptyOrNullString()));
+    assertThat(image.id(), not(isEmptyOrNullString()));
+    assertThat(image.parentId(), not(isEmptyOrNullString()));
+
+    // Using allImages() should give us more images
+    final List<Image> allImages = sut.listImages(allImages());
+    assertThat(allImages.size(), greaterThan(images.size()));
+
+    // Including just dangling images should give us less images
+    final List<Image> danglingImages = sut.listImages(danglingImages());
+    assertThat(danglingImages.size(), lessThan(images.size()));
+
+    // Specifying both allImages() and danglingImages() should give us only dangling images
+    final List<Image> allAndDanglingImages = sut.listImages(allImages(), danglingImages());
+    assertThat(allAndDanglingImages.size(), equalTo(danglingImages.size()));
   }
 
   private String randomName() {

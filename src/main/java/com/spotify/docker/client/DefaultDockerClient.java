@@ -27,6 +27,7 @@ import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.spotify.docker.client.messages.Container;
@@ -35,6 +36,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
@@ -56,8 +58,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
+import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -72,7 +76,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.CompressedDirectory.delete;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 import static com.sun.jersey.api.client.config.ClientConfig.PROPERTY_READ_TIMEOUT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -99,6 +105,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Container>> CONTAINER_LIST =
       new GenericType<List<Container>>() {};
+
+  private static final GenericType<List<Image>> IMAGE_LIST =
+      new GenericType<List<Image>>() {};
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {};
@@ -177,6 +186,47 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("containers").path("json")
         .queryParams(multivaluedMap(paramMap));
     return request(GET, CONTAINER_LIST, resource, resource.accept(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public List<Image> listImages(ListImagesParam... params)
+      throws DockerException, InterruptedException {
+    final MultivaluedMap<String, String> paramMap = new MultivaluedMapImpl();
+    final Map<String, String> filters = newHashMap();
+    for (ListImagesParam param : params) {
+      if (param instanceof ListImagesFilterParam) {
+        filters.put(param.name(), param.value());
+      } else {
+        paramMap.putSingle(param.name(), param.value());
+      }
+    }
+
+    // If filters were specified, we must put them in a JSON object and pass them using the
+    // 'filters' query param like this: filters={"dangling":["true"]}
+    try {
+      if (!filters.isEmpty()) {
+        final StringWriter writer = new StringWriter();
+        final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+        generator.writeStartObject();
+        for (Map.Entry<String, String> entry : filters.entrySet()) {
+          generator.writeArrayFieldStart(entry.getKey());
+          generator.writeString(entry.getValue());
+          generator.writeEndArray();
+        }
+        generator.writeEndObject();
+        generator.close();
+        // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
+        final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
+        paramMap.putSingle("filters", encoded);
+      }
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+
+    final WebResource resource = resource()
+        .path("images").path("json")
+        .queryParams(paramMap);
+    return request(GET, IMAGE_LIST, resource, resource.accept(APPLICATION_JSON_TYPE));
   }
 
   @Override
