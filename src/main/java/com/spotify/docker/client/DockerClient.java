@@ -27,6 +27,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -62,6 +63,9 @@ public interface DockerClient extends Closeable {
    * @return A list of containers.
    */
   List<Container> listContainers(ListContainersParam... params)
+      throws DockerException, InterruptedException;
+
+  List<Image> listImages(ListImagesParam... params)
       throws DockerException, InterruptedException;
 
   /**
@@ -425,6 +429,87 @@ public interface DockerClient extends Closeable {
      */
     public static ListContainersParam create(final String name, final String value) {
       return new ListContainersParam(name, value);
+    }
+  }
+
+  /**
+   * Parameters for {@link #listImages(ListImagesParam...)}
+   */
+  public static class ListImagesParam {
+
+    private final String name;
+    private final String value;
+
+    public ListImagesParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Show all images. Only intermediate image layers are shown by default.
+     */
+    public static ListImagesParam allImages() {
+      return allImages(true);
+    }
+
+    /**
+     * Show all images. Only intermediate image layers are shown by default.
+     */
+    public static ListImagesParam allImages(final boolean all) {
+      return create("all", String.valueOf(all));
+    }
+
+    /**
+     * Show dangling images only. A dangling image is one which does not have a repository name.
+     * By default both dangling and non-dangling will be shown.
+     */
+    public static ListImagesParam danglingImages() {
+      return danglingImages(true);
+    }
+
+    /**
+     * Enable or disable dangling image filter.
+     */
+    public static ListImagesParam danglingImages(final boolean dangling) {
+      return filter("dangling", String.valueOf(dangling));
+    }
+
+    /**
+     * Create a custom filter.
+     */
+    public static ListImagesParam filter(final String name, final String value) {
+      return new ListImagesFilterParam(name, value);
+    }
+
+    /**
+     * Create a custom parameter.
+     */
+    public static ListImagesParam create(final String name, final String value) {
+      return new ListImagesParam(name, value);
+    }
+  }
+
+  /**
+   * Filter parameter for {@link #listImages(ListImagesParam...)}. This should be used by
+   * ListImagesParam only.
+   */
+  static class ListImagesFilterParam extends ListImagesParam {
+    public ListImagesFilterParam(String name, String value) {
+      super(name, value);
     }
   }
 }
