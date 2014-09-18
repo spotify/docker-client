@@ -46,6 +46,12 @@ import java.util.List;
 public interface DockerClient extends Closeable {
 
   /**
+   * Ping the docker daemon. Returns "OK" if all is well, though that
+   * it simply returns a 200 status is probably sufficient information.
+   */
+  String ping() throws DockerException, InterruptedException;
+
+  /**
    * Get the docker version.
    */
   Version version() throws DockerException, InterruptedException;

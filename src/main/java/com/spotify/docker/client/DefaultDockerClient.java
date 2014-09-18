@@ -155,6 +155,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public String ping() throws DockerException, InterruptedException {
+    final WebResource resource = client.resource(uri).path("_ping");
+    return request(GET, String.class, resource, resource);
+  }
+
+  @Override
   public Version version() throws DockerException, InterruptedException {
     final WebResource resource = resource().path("version");
     return request(GET, Version.class, resource, resource.accept(APPLICATION_JSON_TYPE));
