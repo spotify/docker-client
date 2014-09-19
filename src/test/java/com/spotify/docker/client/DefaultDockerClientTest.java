@@ -151,6 +151,12 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testPingReturnsOk() throws Exception {
+    final String pingResponse = sut.ping();
+    assertThat(pingResponse, equalTo("OK"));
+  }
+
+  @Test
   public void testVersion() throws Exception {
     final Version version = sut.version();
     assertThat(version.apiVersion(), not(isEmptyOrNullString()));
