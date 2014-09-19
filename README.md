@@ -35,13 +35,11 @@ docker.removeContainer(id);
 Maven
 -----
 
-Change `VERSION GOES HERE` to the latest non-SNAPSHOT version.
-
 ```xml
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>VERSION GOES HERE</version>
+  <version>2.4.2</version>
 </dependency>
 ```
 
