@@ -56,6 +56,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -440,6 +441,44 @@ public class DefaultDockerClientTest {
     {
       final ContainerInfo containerInfo = sut.inspectContainer(containerId);
       assertThat(containerInfo.state().running(), equalTo(false));
+    }
+  }
+
+  @Test
+  public void testRestartContainer() throws Exception {
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+            // make sure the container's busy doing something upon startup
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Must be running
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+    }
+
+    final ContainerInfo tempContainerInfo = sut.inspectContainer(containerId);
+    final Date expectedCreated = tempContainerInfo.created();
+    final Date notExpectedStartedAtTime = tempContainerInfo.state().startedAt();
+    final Date notExpectedFinishedAtTime = tempContainerInfo.state().finishedAt();
+
+    sut.restartContainer(containerId);
+
+    // Should be running with short run time
+    {
+      final ContainerInfo containerInfoLatest = sut.inspectContainer(containerId);
+      assertThat(containerInfoLatest.state().running(), equalTo(true));
+      assertThat(containerInfoLatest.created(), equalTo(expectedCreated));
+      assertThat(containerInfoLatest.state().finishedAt(), not(equalTo(notExpectedFinishedAtTime)));
+      assertThat(containerInfoLatest.state().startedAt(), not(equalTo(notExpectedStartedAtTime)));
     }
   }
 
