@@ -186,9 +186,9 @@ public class DefaultDockerClientTest {
     assertThat(removedImages, contains(
         new RemovedImage(UNTAGGED, image),
         new RemovedImage(DELETED,
-                         "d200959a3e91d88e6da9a0ce458e3cdefd3a8a19f8f5e6a1e7f10f268aea5594"),
+                         "b1c51f7d9f0430b3c8d2c5baa211cbb612bcf1bc588cec5edf928ce24b5f982e"),
         new RemovedImage(DELETED,
-                         "c120b7cab0b0509fd4de20a57d0f5c17106f3451200dfbfd8c6ab1ccb9391938")));
+                         "c1853e76a63de2bd3f7d6182a76d0e0bcc4af58b5ddaab034776e3e7619bd22f")));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
     try {
