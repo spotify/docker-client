@@ -271,6 +271,27 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Restart a docker container. with a 10 second default wait
+   *
+   * @param containerId The id of the container to restart.
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+
+  void restartContainer(String containerId)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Restart a docker container.
+   *
+   * @param containerId                The id of the container to restart.
+   * @param secondsToWaitBeforeRestart number of seconds to wait before killing the container.
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+  void restartContainer(String containerId, int secondsToWaitBeforeRestart)
+      throws DockerException, InterruptedException;
+
+
+  /**
    * Wait for a docker container to exit.
    *
    * @param containerId The id of the container to wait for.
