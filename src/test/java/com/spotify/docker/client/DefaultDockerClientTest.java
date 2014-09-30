@@ -466,19 +466,15 @@ public class DefaultDockerClientTest {
     }
 
     final ContainerInfo tempContainerInfo = sut.inspectContainer(containerId);
-    final Date expectedCreated = tempContainerInfo.created();
-    final Date notExpectedStartedAtTime = tempContainerInfo.state().startedAt();
-    final Date notExpectedFinishedAtTime = tempContainerInfo.state().finishedAt();
+    final Integer originalPid = tempContainerInfo.state().pid();
 
     sut.restartContainer(containerId);
 
     // Should be running with short run time
     {
       final ContainerInfo containerInfoLatest = sut.inspectContainer(containerId);
-      assertThat(containerInfoLatest.state().running(), equalTo(true));
-      assertThat(containerInfoLatest.created(), equalTo(expectedCreated));
-      assertThat(containerInfoLatest.state().finishedAt(), not(equalTo(notExpectedFinishedAtTime)));
-      assertThat(containerInfoLatest.state().startedAt(), not(equalTo(notExpectedStartedAtTime)));
+      assertTrue(containerInfoLatest.state().running());
+      assertThat(containerInfoLatest.state().pid(), not(equalTo(originalPid)));
     }
   }
 
