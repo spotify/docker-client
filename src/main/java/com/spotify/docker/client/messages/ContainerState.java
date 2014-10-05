@@ -35,6 +35,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 public class ContainerState {
 
   @JsonProperty("Running") private Boolean running;
+  @JsonProperty("Paused") private Boolean paused;
+  @JsonProperty("Restarting") private Boolean restarting;
   @JsonProperty("Pid") private Integer pid;
   @JsonProperty("ExitCode") private Integer exitCode;
   @JsonProperty("StartedAt") private Date startedAt;
@@ -44,40 +46,28 @@ public class ContainerState {
     return running;
   }
 
-  public void running(final Boolean running) {
-    this.running = running;
+  public Boolean paused() {
+    return paused;
+  }
+
+  public Boolean restarting() {
+    return restarting;
   }
 
   public Integer pid() {
     return pid;
   }
 
-  public void pid(final Integer pid) {
-    this.pid = pid;
-  }
-
   public Integer exitCode() {
     return exitCode;
-  }
-
-  public void exitCode(final Integer exitCode) {
-    this.exitCode = exitCode;
   }
 
   public Date startedAt() {
     return startedAt == null ? null : new Date(startedAt.getTime());
   }
 
-  public void startedAt(final Date startedAt) {
-    this.startedAt = (startedAt == null ? null : new Date(startedAt.getTime()));
-  }
-
   public Date finishedAt() {
     return finishedAt == null ? null : new Date(finishedAt.getTime());
-  }
-
-  public void finishedAt(final Date finishedAt) {
-    this.finishedAt = (finishedAt == null ? null : new Date(finishedAt.getTime()));
   }
 
   @Override
@@ -103,6 +93,12 @@ public class ContainerState {
     if (running != null ? !running.equals(that.running) : that.running != null) {
       return false;
     }
+    if (paused != null ? !paused.equals(that.paused) : that.paused != null) {
+      return false;
+    }
+    if (restarting != null ? !restarting.equals(that.restarting) : that.restarting != null) {
+      return false;
+    }
     if (startedAt != null ? !startedAt.equals(that.startedAt) : that.startedAt != null) {
       return false;
     }
@@ -114,6 +110,8 @@ public class ContainerState {
   public int hashCode() {
     int result = running != null ? running.hashCode() : 0;
     result = 31 * result + (pid != null ? pid.hashCode() : 0);
+    result = 31 * result + (paused != null ? paused.hashCode() : 0);
+    result = 31 * result + (restarting != null ? restarting.hashCode() : 0);
     result = 31 * result + (exitCode != null ? exitCode.hashCode() : 0);
     result = 31 * result + (startedAt != null ? startedAt.hashCode() : 0);
     result = 31 * result + (finishedAt != null ? finishedAt.hashCode() : 0);
@@ -125,6 +123,8 @@ public class ContainerState {
     return Objects.toStringHelper(this)
         .add("running", running)
         .add("pid", pid)
+        .add("paused", paused)
+        .add("restarting", restarting)
         .add("exitCode", exitCode)
         .add("startedAt", startedAt)
         .add("finishedAt", finishedAt)
