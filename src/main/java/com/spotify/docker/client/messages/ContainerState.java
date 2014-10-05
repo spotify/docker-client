@@ -26,58 +26,54 @@ import com.google.common.base.Objects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Date;
-
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerState {
 
-  @JsonProperty("Running") private Boolean running;
-  @JsonProperty("Pid") private Integer pid;
-  @JsonProperty("ExitCode") private Integer exitCode;
-  @JsonProperty("StartedAt") private Date startedAt;
-  @JsonProperty("FinishedAt") private Date finishedAt;
+  @JsonProperty("Running")
+  private Boolean running;
+  @JsonProperty("Paused")
+  private Boolean paused;
+  @JsonProperty("Restarting")
+  private Boolean restarting;
+  @JsonProperty("Pid")
+  private Integer pid;
+  @JsonProperty("ExitCode")
+  private Integer exitCode;
+  @JsonProperty("StartedAt")
+  private String startedAt;
+  @JsonProperty("FinishedAt")
+  private String finishedAt;
+
 
   public Boolean running() {
     return running;
   }
 
-  public void running(final Boolean running) {
-    this.running = running;
+  public Boolean paused() {
+    return paused;
+  }
+
+  public Boolean restarting() {
+    return restarting;
   }
 
   public Integer pid() {
     return pid;
   }
 
-  public void pid(final Integer pid) {
-    this.pid = pid;
-  }
-
   public Integer exitCode() {
     return exitCode;
   }
 
-  public void exitCode(final Integer exitCode) {
-    this.exitCode = exitCode;
+  public String startedAt() {
+    return startedAt;
   }
 
-  public Date startedAt() {
-    return startedAt == null ? null : new Date(startedAt.getTime());
-  }
-
-  public void startedAt(final Date startedAt) {
-    this.startedAt = (startedAt == null ? null : new Date(startedAt.getTime()));
-  }
-
-  public Date finishedAt() {
-    return finishedAt == null ? null : new Date(finishedAt.getTime());
-  }
-
-  public void finishedAt(final Date finishedAt) {
-    this.finishedAt = (finishedAt == null ? null : new Date(finishedAt.getTime()));
+  public String finishedAt() {
+    return finishedAt;
   }
 
   @Override
