@@ -46,11 +46,14 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.TerminatingClientHandler;
 import com.sun.jersey.api.client.UniformInterface;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
+import org.apache.http.conn.ConnectTimeoutException;
 
 import java.io.Closeable;
 import java.io.File;
@@ -114,6 +117,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final AtomicInteger CLIENT_COUNTER = new AtomicInteger();
 
+  private static final URI UNIX_SOCKET_URI = URI.create("unix://localhost");
+
   private final ExecutorService executor = MoreExecutors.getExitingExecutorService(
       (ThreadPoolExecutor) Executors.newCachedThreadPool(
           new ThreadFactoryBuilder()
@@ -122,8 +127,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
               .build()));
 
 
-  private final InterruptibleURLConnectionClientHandler clientHandler =
-      new InterruptibleURLConnectionClientHandler(executor);
+  private final TerminatingClientHandler clientHandler;
 
   private final Client client;
   private final URI uri;
@@ -141,20 +145,34 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final URI uri) {
-    this.uri = checkNotNull(uri, "uri");
+    final URI originalUri = checkNotNull(uri, "uri");
+    this.clientHandler = new InterruptibleApacheClientHandler(originalUri, executor);
     this.client = new Client(clientHandler, CLIENT_CONFIG);
     this.client.setConnectTimeout((int) DEFAULT_CONNECT_TIMEOUT_MILLIS);
     this.client.setReadTimeout((int) DEFAULT_READ_TIMEOUT_MILLIS);
+
+    if (originalUri.getScheme().equals("unix")) {
+      this.uri = UNIX_SOCKET_URI;
+    } else {
+      this.uri = originalUri;
+    }
   }
 
   /**
    * Create a new client using the configuration of the builder.
    */
   private DefaultDockerClient(final Builder builder) {
-    this.uri = checkNotNull(builder.uri, "uri");
+    final URI originalUri = checkNotNull(builder.uri, "uri");
+    this.clientHandler = new InterruptibleApacheClientHandler(originalUri, executor);
     this.client = new Client(clientHandler, CLIENT_CONFIG);
     this.client.setConnectTimeout((int) builder.connectTimeoutMillis);
     this.client.setReadTimeout((int) builder.readTimeoutMillis);
+
+    if (originalUri.getScheme().equals("unix")) {
+      this.uri = UNIX_SOCKET_URI;
+    } else {
+      this.uri = originalUri;
+    }
   }
 
   @Override
@@ -693,7 +711,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                      final ClientHandlerException e)
       throws DockerException, InterruptedException {
     final Throwable cause = e.getCause();
-    if (cause instanceof SocketTimeoutException) {
+    if ((cause instanceof SocketTimeoutException) || (cause instanceof ConnectTimeoutException)) {
       throw new DockerTimeoutException(method, resource.getURI(), e);
     } else if (cause instanceof InterruptedIOException) {
       throw new InterruptedException("Interrupted: " + method + " " + resource);

@@ -105,21 +105,30 @@ import static org.junit.Assert.fail;
 
 public class DefaultDockerClientTest {
 
-  public static final int DOCKER_PORT = Integer.valueOf(env("DOCKER_PORT", "2375"));
-  public static final String DOCKER_HOST = env("DOCKER_HOST", ":" + DOCKER_PORT);
-  public static final String DOCKER_ADDRESS;
   public static final String DOCKER_ENDPOINT;
 
   @Rule public ExpectedException exception = ExpectedException.none();
 
   static {
     // Parse DOCKER_HOST
-    final String stripped = DOCKER_HOST.replaceAll(".*://", "");
-    final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
-    final String host = hostAndPort.getHostText();
-    DOCKER_ADDRESS = Strings.isNullOrEmpty(host) ? "localhost" : host;
-    DOCKER_ENDPOINT = format("http://%s:%d", DOCKER_ADDRESS,
-                             hostAndPort.getPortOrDefault(DOCKER_PORT));
+    int dockerPort = Integer.valueOf(env("DOCKER_PORT", "2375"));
+    String dockerHost;
+    if (System.getProperty("os.name").toLowerCase().equals("linux")) {
+      dockerHost = env("DOCKER_HOST", "unix:///var/run/docker.sock");
+    } else {
+      dockerHost = env("DOCKER_HOST", ":" + dockerPort);
+    }
+
+    if (!dockerHost.startsWith("unix://")) {
+      final String stripped = dockerHost.replaceAll(".*://", "");
+      final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
+      final String host = hostAndPort.getHostText();
+      final String dockerAddress = Strings.isNullOrEmpty(host) ? "localhost" : host;
+      DOCKER_ENDPOINT = format("http://%s:%d", dockerAddress,
+                               hostAndPort.getPortOrDefault(dockerPort));
+    } else {
+      DOCKER_ENDPOINT = dockerHost;
+    }
   }
 
   private static String env(final String key, final String defaultValue) {
