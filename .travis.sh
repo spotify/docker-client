@@ -22,6 +22,12 @@ case "$1" in
 
     VERBOSE=1 sekexe/run "docker -d -H tcp://0.0.0.0:2375" &
 
+    if [ $UNIX_SOCKETS == "yes" ]
+    then
+      socat UNIX-LISTEN:/tmp/docker.sock,fork TCP4:$HOST_IP:2375 &
+      export DOCKER_HOST=unix:///tmp/docker.sock
+    fi
+
     while ! docker info; do sleep 1; done
 
     ;;

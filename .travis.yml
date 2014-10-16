@@ -12,3 +12,7 @@ before_install:
 
 before_script:
   - . .travis.sh before_script
+
+env:
+  - UNIX_SOCKETS=no
+  - UNIX_SOCKETS=yes
