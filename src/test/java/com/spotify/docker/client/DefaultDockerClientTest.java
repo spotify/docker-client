@@ -286,7 +286,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildName() throws Exception {
-    final String imageName = "testBuildName";
+    final String imageName = "test-build-name";
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
