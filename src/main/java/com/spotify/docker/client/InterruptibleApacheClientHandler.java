@@ -30,6 +30,8 @@ import com.sun.jersey.api.client.TerminatingClientHandler;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
 
+import de.gesellix.socketfactory.unix.UnixSocketFactory;
+
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.HttpConnectionParams;
@@ -93,9 +95,8 @@ class InterruptibleApacheClientHandler extends TerminatingClientHandler {
                            (Integer) cr.getProperties().get(ClientConfig.PROPERTY_READ_TIMEOUT));
       this.httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
 
-      final SocketFactoryService sfs = SocketFactoryService.getInstance();
-      final SocketFactory sf = (SocketFactory) sfs.getSchemeSocketFactory(cr.getURI().getScheme());
-      if (sf != null) {
+      if (cr.getURI().getScheme().equalsIgnoreCase("unix")) {
+        SocketFactory sf = new UnixSocketFactory();
         sf.configure(httpClient, (String) sf.sanitize(baseUri.toString()));
       }
     }
