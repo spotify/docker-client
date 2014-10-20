@@ -26,7 +26,7 @@ import java.util.Objects;
 
 /**
  *
- * @author pete
+ * @author Peter Harman
  */
 public class AuthConfig {
 
