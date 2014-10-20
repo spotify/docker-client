@@ -27,6 +27,7 @@ import com.google.common.io.Resources;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SettableFuture;
 
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -647,6 +648,23 @@ public class DefaultDockerClientTest {
     // Specifying both allImages() and danglingImages() should give us only dangling images
     final List<Image> allAndDanglingImages = sut.listImages(allImages(), danglingImages());
     assertThat(allAndDanglingImages.size(), equalTo(danglingImages.size()));
+  }
+
+  @Test
+  public void testDockerDateFormat() throws Exception {
+    // This is the created date for busybox converted from nanoseconds to milliseconds
+    final Date expected = new StdDateFormat().parse("2014-10-01T20:46:08.914Z");
+    final DockerDateFormat dateFormat = new DockerDateFormat();
+    // Verify DockerDateFormat handles millisecond precision correctly
+    final Date milli = dateFormat.parse("2014-10-01T20:46:08.914Z");
+    assertThat(milli, equalTo(expected));
+    // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
+    final Date nano = dateFormat.parse("2014-10-01T20:46:08.914288461Z");
+    assertThat(nano, equalTo(expected));
+    // Verify the formatter works when used with the client
+    sut.pull("busybox");
+    final ImageInfo imageInfo = sut.inspectImage("busybox");
+    assertThat(imageInfo.created(), equalTo(expected));
   }
 
   private String randomName() {
