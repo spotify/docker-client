@@ -31,7 +31,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import static com.google.common.base.Preconditions.checkArgument;
+import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -53,8 +53,10 @@ import com.sun.jersey.api.client.UniformInterface;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.core.util.Base64;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+import org.apache.commons.compress.utils.Charsets;
 import org.apache.http.conn.ConnectTimeoutException;
 
 import java.io.Closeable;
@@ -79,23 +81,19 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.CompressedDirectory.delete;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import com.spotify.docker.client.messages.AuthConfig;
 import static com.sun.jersey.api.client.config.ClientConfig.PROPERTY_READ_TIMEOUT;
-import com.sun.jersey.core.util.Base64;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import org.apache.commons.compress.utils.Charsets;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
