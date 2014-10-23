@@ -1,7 +1,10 @@
 Docker Client [![Build Status](https://travis-ci.org/spotify/docker-client.svg)](https://travis-ci.org/spotify/docker-client)
 =============
 
-This is a simple [docker](https://github.com/dotcloud/docker) client written in Java.
+This is a simple [Docker](https://github.com/dotcloud/docker) client written in Java.
+
+Usage
+-----
 
 ```java
 final DockerClient docker = new DefaultDockerClient("http://localhost:2375");
@@ -30,6 +33,27 @@ docker.killContainer(id);
 docker.removeContainer(id);
 ```
 
+### Unix socket support
+
+Unix socket support is available on Linux since v2.5.0:
+
+```java
+final DockerClient docker = new DefaultDockerClient("unix:///var/run/docker.sock");
+```
+
+### HTTPS support
+
+We can connect to [HTTPS-secured Docker instances](https://docs.docker.com/articles/https/)
+with client-server authentication. The semantics are similar to using [the `DOCKER_CERT_PATH`
+environment variable](https://docs.docker.com/articles/https/#client-modes):
+
+```java
+final DockerClient docker = new DefaultDockerClient.builder()
+    .uri(URI.create("https://boot2docker:2376"))
+    .dockerCertificates(new DockerCertificates("/Users/rohan/.docker/boot2docker-vm/"))
+    .build();
+```
+
 Maven
 -----
 
@@ -37,7 +61,7 @@ Maven
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.4.2</version>
+  <version>2.5.0</version>
 </dependency>
 ```
 
