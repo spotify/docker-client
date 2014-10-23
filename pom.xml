@@ -102,19 +102,19 @@
       <version>2.2.3</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
+      <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>1.18.1</version>
+      <version>2.13</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>1.18.1</version>
+      <groupId>org.glassfish.jersey.connectors</groupId>
+      <artifactId>jersey-apache-connector</artifactId>
+      <version>2.13</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey.contribs</groupId>
-      <artifactId>jersey-apache-client4</artifactId>
-      <version>1.18.1</version>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>2.13</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -246,6 +246,48 @@
             <id>attach-javadocs</id>
             <goals>
               <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <createSourcesJar>true</createSourcesJar>
+          <artifactSet>
+            <includes>
+              <include>com.fasterxml.jackson.**</include>
+              <include>javax.annotation:*</include>
+              <include>javax.ws.rs:*</include>
+              <include>org.glassfish.**</include>
+            </includes>
+          </artifactSet>
+          <relocations>
+            <relocation>
+              <pattern>javax.annotation</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.javax.annotation</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>javax.inject</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.javax.inject</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>javax.ws.rs</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.javax.ws.rs</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.fasterxml.jackson</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
+            </relocation>
+          </relocations>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
             </goals>
           </execution>
         </executions>

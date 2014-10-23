@@ -21,8 +21,6 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -42,18 +40,19 @@ import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.TerminatingClientHandler;
-import com.sun.jersey.api.client.UniformInterface;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 import java.io.Closeable;
 import java.io.File;
@@ -69,20 +68,29 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.CompressedDirectory.delete;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static com.sun.jersey.api.client.config.ClientConfig.PROPERTY_READ_TIMEOUT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.HttpMethod.DELETE;
@@ -93,14 +101,15 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
+  private static final String VERSION = "v1.12";
+
   public static final long NO_TIMEOUT = 0;
 
   private static final long DEFAULT_CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
-
-  private static final String VERSION = "v1.12";
-  private static final DefaultClientConfig CLIENT_CONFIG = new DefaultClientConfig(
+  private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
       ObjectMapperProvider.class,
+      JacksonFeature.class,
       LogsResponseReader.class,
       ProgressResponseReader.class);
 
@@ -117,8 +126,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final AtomicInteger CLIENT_COUNTER = new AtomicInteger();
 
-  private static final URI UNIX_SOCKET_URI = URI.create("unix://localhost");
-
   private final ExecutorService executor = MoreExecutors.getExitingExecutorService(
       (ThreadPoolExecutor) Executors.newCachedThreadPool(
           new ThreadFactoryBuilder()
@@ -127,9 +134,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
               .build()));
 
 
-  private final TerminatingClientHandler clientHandler;
-
   private final Client client;
+
   private final URI uri;
 
   /**
@@ -137,91 +143,98 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final String uri) {
-    this(URI.create(uri));
+    this(URI.create(uri.replaceAll("^unix:///", "unix://localhost/")));
   }
+
 
   /**
    * Create a new client with default configuration.
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final URI uri) {
-    final URI originalUri = checkNotNull(uri, "uri");
-    this.clientHandler = new InterruptibleApacheClientHandler(originalUri, executor);
-    this.client = new Client(clientHandler, CLIENT_CONFIG);
-    this.client.setConnectTimeout((int) DEFAULT_CONNECT_TIMEOUT_MILLIS);
-    this.client.setReadTimeout((int) DEFAULT_READ_TIMEOUT_MILLIS);
-
-    if (originalUri.getScheme().equals("unix")) {
-      this.uri = UNIX_SOCKET_URI;
-    } else {
-      this.uri = originalUri;
-    }
+    this(new Builder().uri(uri));
   }
 
   /**
    * Create a new client using the configuration of the builder.
    */
   private DefaultDockerClient(final Builder builder) {
-    final URI originalUri = checkNotNull(builder.uri, "uri");
-    this.clientHandler = new InterruptibleApacheClientHandler(originalUri, executor);
-    this.client = new Client(clientHandler, CLIENT_CONFIG);
-    this.client.setConnectTimeout((int) builder.connectTimeoutMillis);
-    this.client.setReadTimeout((int) builder.readTimeoutMillis);
+    URI originalUri = checkNotNull(builder.uri, "uri");
+
+    final ClientConfig config = DEFAULT_CONFIG
+        .connectorProvider(new ApacheConnectorProvider())
+        .property(ClientProperties.CONNECT_TIMEOUT, (int) builder.connectTimeoutMillis)
+        .property(ClientProperties.READ_TIMEOUT, (int) builder.readTimeoutMillis)
+        .property(ApacheClientProperties.CONNECTION_MANAGER,
+                  new PoolingHttpClientConnectionManager(getSchemeRegistry(originalUri)));
+
+    this.client = ClientBuilder.newClient(config);
 
     if (originalUri.getScheme().equals("unix")) {
-      this.uri = UNIX_SOCKET_URI;
+      this.uri = UnixConnectionSocketFactory.sanitizeUri(originalUri);
     } else {
       this.uri = originalUri;
     }
   }
 
+  private Registry<ConnectionSocketFactory> getSchemeRegistry(final URI originalUri) {
+    return RegistryBuilder
+        .<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", SSLConnectionSocketFactory.getSocketFactory())
+        .register("unix", new UnixConnectionSocketFactory(originalUri))
+        .build();
+  }
+
   @Override
   public void close() {
     executor.shutdownNow();
-    client.destroy();
+    client.close();
   }
 
   @Override
   public String ping() throws DockerException, InterruptedException {
-    final WebResource resource = client.resource(uri).path("_ping");
-    return request(GET, String.class, resource, resource);
+    final WebTarget resource = client.target(uri).path("_ping");
+    return request(GET, String.class, resource, resource.request());
   }
 
   @Override
   public Version version() throws DockerException, InterruptedException {
-    final WebResource resource = resource().path("version");
-    return request(GET, Version.class, resource, resource.accept(APPLICATION_JSON_TYPE));
+    final WebTarget resource = resource().path("version");
+    return request(GET, Version.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
   @Override
   public Info info() throws DockerException, InterruptedException {
-    final WebResource resource = resource().path("info");
-    return request(GET, Info.class, resource, resource.accept(APPLICATION_JSON_TYPE));
+    final WebTarget resource = resource().path("info");
+    return request(GET, Info.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
   @Override
   public List<Container> listContainers(final ListContainersParam... params)
       throws DockerException, InterruptedException {
-    final Multimap<String, String> paramMap = ArrayListMultimap.create();
+    WebTarget resource = resource()
+        .path("containers").path("json");
+
     for (ListContainersParam param : params) {
-      paramMap.put(param.name(), param.value());
+      resource = resource.queryParam(param.name(), param.value());
     }
-    final WebResource resource = resource()
-        .path("containers").path("json")
-        .queryParams(multivaluedMap(paramMap));
-    return request(GET, CONTAINER_LIST, resource, resource.accept(APPLICATION_JSON_TYPE));
+
+    return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
   @Override
   public List<Image> listImages(ListImagesParam... params)
       throws DockerException, InterruptedException {
-    final MultivaluedMap<String, String> paramMap = new MultivaluedMapImpl();
+    WebTarget resource = resource()
+        .path("images").path("json");
+
     final Map<String, String> filters = newHashMap();
     for (ListImagesParam param : params) {
       if (param instanceof ListImagesFilterParam) {
         filters.put(param.name(), param.value());
       } else {
-        paramMap.putSingle(param.name(), param.value());
+        resource = resource.queryParam(param.name(), param.value());
       }
     }
 
@@ -241,16 +254,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         generator.close();
         // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
         final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
-        paramMap.putSingle("filters", encoded);
+        resource = resource.queryParam("filters", encoded);
       }
     } catch (IOException e) {
       throw new DockerException(e);
     }
 
-    final WebResource resource = resource()
-        .path("images").path("json")
-        .queryParams(paramMap);
-    return request(GET, IMAGE_LIST, resource, resource.accept(APPLICATION_JSON_TYPE));
+    return request(GET, IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
   @Override
@@ -259,31 +269,22 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return createContainer(config, null);
   }
 
-  public static interface ExceptionPropagator {
-
-    void propagate(UniformInterfaceException e) throws DockerException;
-  }
-
   @Override
   public ContainerCreation createContainer(final ContainerConfig config,
                                            final String name)
       throws DockerException, InterruptedException {
+    WebTarget resource = resource()
+        .path("containers").path("create");
 
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
     if (name != null) {
       checkArgument(CONTAINER_NAME_PATTERN.matcher(name).matches(),
                     "Invalid container name: \"%s\"", name);
-      params.add("name", name);
+      resource = resource.queryParam("name", name);
     }
 
     try {
-      final WebResource resource = resource()
-          .path("containers").path("create")
-          .queryParams(params);
       return request(POST, ContainerCreation.class, resource, resource
-          .entity(config)
-          .type(APPLICATION_JSON_TYPE)
-          .accept(APPLICATION_JSON_TYPE));
+          .request(APPLICATION_JSON_TYPE), Entity.json(config));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -306,12 +307,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     checkNotNull(containerId, "containerId");
     checkNotNull(hostConfig, "hostConfig");
     try {
-      final WebResource resource = resource()
+      final WebTarget resource = resource()
           .path("containers").path(containerId).path("start");
       request(POST, resource, resource
-          .type(APPLICATION_JSON_TYPE)
-          .accept(APPLICATION_JSON_TYPE)
-          .entity(hostConfig));
+                  .request(APPLICATION_JSON_TYPE),
+              Entity.json(hostConfig));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -333,11 +333,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     checkNotNull(containerId, "containerId");
     checkNotNull(secondsToWaitBeforeRestart, "secondsToWait");
     try {
-      final WebResource resource = resource().path("containers").path(containerId)
-          .path("restart");
-      request(POST, resource, resource
-          .queryParam("t", String.valueOf(secondsToWaitBeforeRestart)));
-    } catch (UniformInterfaceException e) {
+      final WebTarget resource = resource().path("containers").path(containerId)
+          .path("restart")
+          .queryParam("t", String.valueOf(secondsToWaitBeforeRestart));
+      request(POST, resource, resource.request());
+    } catch (WebApplicationException e) {
       switch (e.getResponse().getStatus()) {
         case 404:
           throw new ContainerNotFoundException(containerId, e);
@@ -351,9 +351,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void killContainer(final String containerId) throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource().path("containers").path(containerId).path("kill");
-      request(POST, resource, resource);
-    } catch (UniformInterfaceException e) {
+      final WebTarget resource = resource().path("containers").path(containerId).path("kill");
+      request(POST, resource, resource.request());
+    } catch (WebApplicationException e) {
       switch (e.getResponse().getStatus()) {
         case 404:
           throw new ContainerNotFoundException(containerId, e);
@@ -367,10 +367,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void stopContainer(final String containerId, final int secondsToWaitBeforeKilling)
       throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource().path("containers").path(containerId).path("stop");
-      request(POST, resource, resource
-          .queryParam("t", String.valueOf(secondsToWaitBeforeKilling)));
-    } catch (UniformInterfaceException e) {
+      final WebTarget resource = resource().path("containers").path(containerId).path("stop")
+          .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
+      request(POST, resource, resource.request());
+    } catch (WebApplicationException e) {
       switch (e.getResponse().getStatus()) {
         case 304: // already stopped, so we're cool
           return;
@@ -386,11 +386,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public ContainerExit waitContainer(final String containerId)
       throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource()
+      final WebTarget resource = resource()
           .path("containers").path(containerId).path("wait");
       // Wait forever
-      resource.setProperty(PROPERTY_READ_TIMEOUT, 0);
-      return request(POST, ContainerExit.class, resource, resource.accept(APPLICATION_JSON_TYPE));
+      return request(POST, ContainerExit.class, resource,
+                     resource.request(APPLICATION_JSON_TYPE)
+                             .property(ClientProperties.READ_TIMEOUT, 0));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -411,12 +412,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void removeContainer(final String containerId, final boolean removeVolumes)
       throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource()
+      final WebTarget resource = resource()
           .path("containers").path(containerId);
       request(DELETE, resource, resource
           .queryParam("v", String.valueOf(removeVolumes))
-          .accept(APPLICATION_JSON_TYPE));
-    } catch (UniformInterfaceException e) {
+          .request(APPLICATION_JSON_TYPE));
+    } catch (WebApplicationException e) {
       switch (e.getResponse().getStatus()) {
         case 404:
           throw new ContainerNotFoundException(containerId);
@@ -429,16 +430,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public InputStream exportContainer(String containerId)
       throws DockerException, InterruptedException {
-    final WebResource resource = resource()
+    final WebTarget resource = resource()
         .path("containers").path(containerId).path("export");
     return request(GET, InputStream.class, resource,
-                   resource.accept(APPLICATION_OCTET_STREAM_TYPE));
+                   resource.request(APPLICATION_OCTET_STREAM_TYPE));
   }
 
   @Override
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
-    final WebResource resource = resource()
+    final WebTarget resource = resource()
         .path("containers").path(containerId).path("copy");
 
     // Internal JSON object; not worth it to create class for this
@@ -446,16 +447,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final JsonNode params = nf.objectNode().set("Resource", nf.textNode(path));
 
     return request(POST, InputStream.class, resource,
-                   resource.accept(APPLICATION_OCTET_STREAM_TYPE)
-                       .entity(params, APPLICATION_JSON_TYPE));
+                   resource.request(APPLICATION_OCTET_STREAM_TYPE),
+                   Entity.json(params));
   }
 
   @Override
   public ContainerInfo inspectContainer(final String containerId)
       throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource().path("containers").path(containerId).path("json");
-      return request(GET, ContainerInfo.class, resource, resource.accept(APPLICATION_JSON_TYPE));
+      final WebTarget resource = resource().path("containers").path(containerId).path("json");
+      return request(GET, ContainerInfo.class, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -476,17 +477,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-    params.add("fromImage", imageRef.getImage());
+    WebTarget resource = resource().path("images").path("create");
+
+    resource = resource.queryParam("fromImage", imageRef.getImage());
     if (imageRef.getTag() != null) {
-      params.add("tag", imageRef.getTag());
+      resource = resource.queryParam("tag", imageRef.getTag());
     }
 
-    final WebResource resource = resource().path("images").path("create").queryParams(params);
-
     try (ProgressStream pull = request(POST, ProgressStream.class, resource,
-                                       resource.accept(APPLICATION_JSON_TYPE))) {
-      pull.tail(handler, POST, resource.getURI());
+                                       resource.request(APPLICATION_JSON_TYPE))) {
+      pull.tail(handler, POST, resource.getUri());
     }
   }
 
@@ -500,20 +500,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-    if (imageRef.getTag() != null) {
-      params.add("tag", imageRef.getTag());
-    }
+    WebTarget resource =
+        resource().path("images").path(imageRef.getImage()).path("push");
 
-    final WebResource resource =
-        resource().path("images").path(imageRef.getImage()).path("push").queryParams(params);
+    if (imageRef.getTag() != null) {
+      resource = resource.queryParam("tag", imageRef.getTag());
+    }
 
     // the docker daemon requires that the X-Registry-Auth header is specified
     // with a non-empty string even if your registry doesn't use authentication
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
-                     resource.accept(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
-      push.tail(handler, POST, resource.getURI());
+                     resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
+      push.tail(handler, POST, resource.getUri());
     }
   }
 
@@ -522,17 +521,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(name);
 
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-    params.add("repo", imageRef.getImage());
+    WebTarget resource =
+        resource().path("images").path(image).path("tag");
+
+    resource = resource.queryParam("repo", imageRef.getImage());
     if (imageRef.getTag() != null) {
-      params.add("tag", imageRef.getTag());
+      resource = resource.queryParam("tag", imageRef.getTag());
     }
 
-    final WebResource resource =
-        resource().path("images").path(image).path("tag").queryParams(params);
-
     try {
-      request(POST, resource, resource);
+      request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -568,23 +566,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
-    final Multimap<String, String> paramMap = ArrayListMultimap.create();
+    WebTarget resource = resource().path("build");
+
     for (final BuildParameter param : params) {
-      paramMap.put(param.queryParam, String.valueOf(param.value));
+      resource = resource.queryParam(param.queryParam, String.valueOf(param.value));
     }
     if (name != null) {
-      paramMap.put("t", name);
+     resource = resource.queryParam("t", name);
     }
 
-    final WebResource resource = resource().path("build").queryParams(multivaluedMap(paramMap));
     final File compressedDirectory = CompressedDirectory.create(directory);
 
     try (ProgressStream build = request(POST, ProgressStream.class, resource,
-                                        resource.accept(APPLICATION_JSON_TYPE)
-                                            .entity(compressedDirectory, "application/tar"))) {
+                                        resource.request(APPLICATION_JSON_TYPE),
+                                        Entity.entity(compressedDirectory, "application/tar"))) {
       String imageId = null;
-      while (build.hasNextMessage(POST, resource.getURI())) {
-        final ProgressMessage message = build.nextMessage(POST, resource.getURI());
+      while (build.hasNextMessage(POST, resource.getUri())) {
+        final ProgressMessage message = build.nextMessage(POST, resource.getUri());
         final String id = message.buildImageId();
         if (id != null) {
           imageId = id;
@@ -600,8 +598,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public ImageInfo inspectImage(final String image) throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource().path("images").path(image).path("json");
-      return request(GET, ImageInfo.class, resource, resource.accept(APPLICATION_JSON_TYPE));
+      final WebTarget resource = resource().path("images").path(image).path("json");
+      return request(GET, ImageInfo.class, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -622,11 +620,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
       throws DockerException, InterruptedException {
     try {
-      final WebResource resource = resource().path("images").path(image)
+      final WebTarget resource = resource().path("images").path(image)
           .queryParam("force", String.valueOf(force))
           .queryParam("noprune", String.valueOf(noPrune));
-      return request(DELETE, REMOVED_IMAGE_LIST, resource, resource.accept(APPLICATION_JSON_TYPE));
-    } catch (UniformInterfaceException e) {
+      return request(DELETE, REMOVED_IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (WebApplicationException e) {
       switch (e.getResponse().getStatus()) {
         case 404:
           throw new ImageNotFoundException(image);
@@ -639,16 +637,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public LogStream logs(final String containerId, final LogsParameter... params)
       throws DockerException, InterruptedException {
-    final Multimap<String, String> paramMap = ArrayListMultimap.create();
+    WebTarget resource = resource()
+        .path("containers").path(containerId).path("logs");
+
     for (final LogsParameter param : params) {
-      paramMap.put(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
+      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
     }
-    final WebResource resource = resource()
-        .path("containers").path(containerId).path("logs")
-        .queryParams(multivaluedMap(paramMap));
+
     try {
       return request(GET, LogStream.class, resource,
-                     resource.accept("application/vnd.docker.raw-stream"));
+                     resource.request("application/vnd.docker.raw-stream"));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -659,60 +657,86 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private WebResource resource() {
-    return client.resource(uri).path(VERSION);
+  private WebTarget resource() {
+    return client.target(uri).path(VERSION);
   }
 
   private <T> T request(final String method, final GenericType<T> type,
-                        final WebResource resource, final WebResource.Builder request)
+                        final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      return request.method(method, type);
-    } catch (ClientHandlerException e) {
-      throw propagate(method, resource, e);
-    } catch (UniformInterfaceException e) {
+      return request.async().method(method, type).get();
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
 
   private <T> T request(final String method, final Class<T> clazz,
-                        final WebResource resource, final UniformInterface request)
+                        final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      return request.method(method, clazz);
-    } catch (ClientHandlerException e) {
+      return request.async().method(method, clazz).get();
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
-    } catch (UniformInterfaceException e) {
+    }
+  }
+
+  private <T> T request(final String method, final Class<T> clazz,
+                        final WebTarget resource, final Invocation.Builder request,
+                        final Entity<?> entity)
+      throws DockerException, InterruptedException {
+    try {
+      return request.async().method(method, entity, clazz).get();
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
 
   private void request(final String method,
-                       final WebResource resource,
-                       final UniformInterface request) throws DockerException,
-                                                              InterruptedException {
+                       final WebTarget resource,
+                       final Invocation.Builder request)
+      throws DockerException, InterruptedException {
     try {
-      request.method(method);
-    } catch (ClientHandlerException e) {
-      throw propagate(method, resource, e);
-    } catch (UniformInterfaceException e) {
+      request.async().method(method).get();
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
 
-  private DockerRequestException propagate(final String method, final WebResource resource,
-                                           final UniformInterfaceException e) {
-    return new DockerRequestException(method, resource.getURI(),
-                                      e.getResponse().getStatus(), message(e.getResponse()),
-                                      e);
+  private void request(final String method,
+                       final WebTarget resource,
+                       final Invocation.Builder request,
+                       final Entity<?> entity)
+      throws DockerException, InterruptedException {
+    try {
+      request.async().method(method, entity).get();
+    } catch (ExecutionException e) {
+      throw propagate(method, resource, e);
+    }
   }
 
-  private RuntimeException propagate(final String method, final WebResource resource,
-                                     final ClientHandlerException e)
+  private RuntimeException propagate(final String method, final WebTarget resource,
+                                     final Exception e)
       throws DockerException, InterruptedException {
-    final Throwable cause = e.getCause();
-    if ((cause instanceof SocketTimeoutException) || (cause instanceof ConnectTimeoutException)) {
-      throw new DockerTimeoutException(method, resource.getURI(), e);
+    Throwable cause = e.getCause();
+
+    Response response = null;
+    if (cause instanceof ResponseProcessingException) {
+      response = ((ResponseProcessingException) cause).getResponse();
+    } else if (cause instanceof WebApplicationException) {
+      response = ((WebApplicationException) cause).getResponse();
+    } else if ((cause instanceof ProcessingException) && (cause.getCause() != null)) {
+      // For a ProcessingException, The exception message or nested Throwable cause SHOULD contain
+      // additional information about the reason of the processing failure.
+      cause = cause.getCause();
+    }
+
+    if (response != null) {
+      throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
+                                       message(response), cause);
+    } else if ((cause instanceof SocketTimeoutException) ||
+               (cause instanceof ConnectTimeoutException)) {
+      throw new DockerTimeoutException(method, resource.getUri(), e);
     } else if (cause instanceof InterruptedIOException) {
       throw new InterruptedException("Interrupted: " + method + " " + resource);
     } else {
@@ -720,24 +744,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private String message(final ClientResponse response) {
-    final Readable reader = new InputStreamReader(response.getEntityInputStream(), UTF_8);
+  private String message(final Response response) {
+    final Readable reader = new InputStreamReader(response.readEntity(InputStream.class), UTF_8);
     try {
       return CharStreams.toString(reader);
     } catch (IOException ignore) {
       return null;
     }
-  }
-
-  private MultivaluedMap<String, String> multivaluedMap(final Multimap<String, String> map) {
-    final MultivaluedMap<String, String> multivaluedMap = new MultivaluedMapImpl();
-    for (Map.Entry<String, String> e : map.entries()) {
-      final String value = e.getValue();
-      if (value != null) {
-        multivaluedMap.add(e.getKey(), value);
-      }
-    }
-    return multivaluedMap;
   }
 
   /**
