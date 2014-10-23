@@ -1,0 +1,16 @@
+dependencies:
+  override:
+    - ./circle.sh dependencies
+
+test:
+  override:
+    - ./circle.sh test:
+        parallel: true
+
+machine:
+  pre:
+    - docker-client/circle.sh pre_machine
+  services:
+    - docker
+  environment:
+    MAVEN_OPTS: -Xmx512m

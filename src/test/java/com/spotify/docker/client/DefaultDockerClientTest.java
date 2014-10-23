@@ -22,6 +22,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SettableFuture;
@@ -60,6 +61,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -73,6 +75,7 @@ import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
+import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
@@ -82,11 +85,12 @@ import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.both;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -217,19 +221,32 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testRemoveImage() throws Exception {
-    sut.pull("busybox");
-    final String image = "busybox:buildroot-2013.08.1";
-    final List<RemovedImage> removedImages = sut.removeImage(image);
-    assertThat(removedImages, contains(
-        new RemovedImage(UNTAGGED, image),
+    sut.pull("cirros");
+    final String imageLatest = "cirros:latest";
+    final String imageVersion = "cirros:0.3.0";
+
+    final Set<RemovedImage> removedImages = Sets.newHashSet();
+    removedImages.addAll(sut.removeImage(imageLatest));
+    removedImages.addAll(sut.removeImage(imageVersion));
+
+    assertThat(removedImages, containsInAnyOrder(
+        new RemovedImage(UNTAGGED, imageLatest),
+        new RemovedImage(UNTAGGED, imageVersion),
         new RemovedImage(DELETED,
-                         "4b2909447dbef01f71ca476725c2dbb3af12de41aa2d7491d62c66678ede2294"),
+                         "d20c88c95b28c21fff7e3d2d98a9ab85daebad04d6185ff572068167c20d7374"),
         new RemovedImage(DELETED,
-                         "ad8766e8635d2ae9ddd77d32b8f0fa091fb88fffed77b3a8a240bdcdc6f5aa05")));
+                         "47595debf9e9440a28b20af6e9b2f83ca4d0ce4902bcea5e506c2ad42374bf33"),
+        new RemovedImage(DELETED,
+                         "f8184986c5454e9486bb32155cf0eb69b477893cc0717a29f1ff504f44e026d8"),
+        new RemovedImage(DELETED,
+                         "5dd62fd3b727a250becfbb341e80fa7047a9fb5812f7ee184973d2e74d6bfd4d"),
+        new RemovedImage(DELETED,
+                         "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb")
+    ));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
     try {
-      sut.inspectImage(image);
+      sut.inspectImage(imageLatest);
       fail("inspectImage should have thrown ImageNotFoundException");
     } catch (ImageNotFoundException e) {
       // we should get exception because we deleted image
@@ -354,17 +371,17 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String removingContainers = "Removing intermediate container";
 
-    // Test that intermediate containers are removed by default by parsing output. We must
+    // Test that intermediate containers are removed with FORCE_RM by parsing output. We must
     // set NO_CACHE so that docker will generate some containers to remove.
     final AtomicBoolean removedContainer = new AtomicBoolean(false);
     sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
-        if (message.stream().contains(removingContainers)) {
+        if (containsIgnoreCase(message.stream(), removingContainers)) {
           removedContainer.set(true);
         }
       }
-    }, NO_CACHE);
+    }, NO_CACHE, FORCE_RM);
     assertTrue(removedContainer.get());
 
     // Set NO_RM and verify we don't get message that containers were removed.

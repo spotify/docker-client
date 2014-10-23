@@ -1,4 +1,4 @@
-Docker Client [![Build Status](https://travis-ci.org/spotify/docker-client.svg)](https://travis-ci.org/spotify/docker-client)
+Docker Client [![Circle CI](https://circleci.com/gh/spotify/docker-client.png?style=badge)](https://circleci.com/gh/spotify/docker-client)
 =============
 
 This is a simple [Docker](https://github.com/dotcloud/docker) client written in Java.
