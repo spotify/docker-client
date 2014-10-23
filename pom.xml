@@ -131,6 +131,11 @@
       <artifactId>unix-socket-factory</artifactId>
       <version>2014-09-26T18-52-33</version>
     </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <version>1.51</version>
+    </dependency>
 
     <!--test deps-->
     <dependency>

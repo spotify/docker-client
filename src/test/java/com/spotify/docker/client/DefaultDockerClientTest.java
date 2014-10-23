@@ -21,7 +21,6 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.common.net.HostAndPort;
@@ -33,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
@@ -43,6 +43,7 @@ import com.spotify.docker.client.messages.Version;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -69,6 +70,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
@@ -108,10 +110,14 @@ public class DefaultDockerClientTest {
 
   public static final String DOCKER_ENDPOINT;
 
+  public static final String DOCKER_CERT_PATH;
+
   @Rule public ExpectedException exception = ExpectedException.none();
 
   static {
     // Parse DOCKER_HOST
+    DOCKER_CERT_PATH = env("DOCKER_CERT_PATH", "");
+
     int dockerPort = Integer.valueOf(env("DOCKER_PORT", "2375"));
     String dockerHost;
     if (System.getProperty("os.name").toLowerCase().equals("linux")) {
@@ -124,8 +130,16 @@ public class DefaultDockerClientTest {
       final String stripped = dockerHost.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
       final String host = hostAndPort.getHostText();
-      final String dockerAddress = Strings.isNullOrEmpty(host) ? "localhost" : host;
-      DOCKER_ENDPOINT = format("http://%s:%d", dockerAddress,
+      final String dockerAddress = isNullOrEmpty(host) ? "localhost" : host;
+
+      String scheme;
+      if (!isNullOrEmpty(DOCKER_CERT_PATH)) {
+        scheme = "https";
+      } else {
+        scheme = "http";
+      }
+
+      DOCKER_ENDPOINT = format("%s://%s:%d", scheme, dockerAddress,
                                hostAndPort.getPortOrDefault(dockerPort));
     } else {
       DOCKER_ENDPOINT = dockerHost;
@@ -136,9 +150,21 @@ public class DefaultDockerClientTest {
     return fromNullable(getenv(key)).or(defaultValue);
   }
 
-  private final DefaultDockerClient sut = new DefaultDockerClient(URI.create(DOCKER_ENDPOINT));
-
   private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
+
+  private DefaultDockerClient sut;
+
+  @Before
+  public void setup() throws Exception {
+    final DefaultDockerClient.Builder builder = DefaultDockerClient.builder()
+        .uri(DOCKER_ENDPOINT);
+
+    if (!isNullOrEmpty(DOCKER_CERT_PATH)) {
+      builder.dockerCertificates(new DockerCertificates(Paths.get(DOCKER_CERT_PATH)));
+    }
+
+    sut = builder.build();
+  }
 
   @After
   public void tearDown() throws Exception {
@@ -694,6 +720,49 @@ public class DefaultDockerClientTest {
     sut.pull("busybox");
     final ImageInfo imageInfo = sut.inspectImage("busybox");
     assertThat(imageInfo.created(), equalTo(expected));
+  }
+
+  @Test
+  public void testSsl() throws Exception {
+    // Build a run a container that contains a Docker instance configured with our SSL cert/key
+    final String imageName = "test-docker-ssl";
+    final String expose = "2376/tcp";
+
+    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    sut.build(Paths.get(dockerDirectory), imageName);
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image(imageName)
+        .exposedPorts(expose)
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .privileged(true)
+        .publishAllPorts(true)
+        .build();
+    sut.startContainer(containerId, hostConfig);
+
+    // Determine where the Docker instance inside the container we just started is exposed
+    final String host;
+    if (DOCKER_ENDPOINT.startsWith("unix://")) {
+      host = "localhost";
+    } else {
+      host = URI.create(DOCKER_ENDPOINT).getHost();
+    }
+
+    final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+    assertThat(containerInfo.state().running(), equalTo(true));
+
+    final String port = containerInfo.networkSettings().ports().get(expose).get(0).hostPort();
+
+    // Try to connect using SSL and our known cert/key
+    final DockerCertificates certs = new DockerCertificates(Paths.get(dockerDirectory));
+    final DockerClient c = new DefaultDockerClient(URI.create(format("https://%s:%s", host, port)),
+                                                   certs);
+    assertThat(c.ping(), equalTo("OK"));
   }
 
   private String randomName() {

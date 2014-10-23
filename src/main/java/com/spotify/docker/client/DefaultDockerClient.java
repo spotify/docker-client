@@ -147,7 +147,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     this(URI.create(uri.replaceAll("^unix:///", "unix://localhost/")));
   }
 
-
   /**
    * Create a new client with default configuration.
    * @param uri The docker rest api uri.
@@ -157,33 +156,54 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   /**
+   * Create a new client with default configuration.
+   * @param uri The docker rest api uri.
+   * @param dockerCertificates The certificates to use for HTTPS.
+   */
+  public DefaultDockerClient(final URI uri, final DockerCertificates dockerCertificates) {
+    this(new Builder().uri(uri).dockerCertificates(dockerCertificates));
+  }
+
+  /**
    * Create a new client using the configuration of the builder.
    */
   private DefaultDockerClient(final Builder builder) {
     URI originalUri = checkNotNull(builder.uri, "uri");
 
-    final ClientConfig config = DEFAULT_CONFIG
-        .connectorProvider(new ApacheConnectorProvider())
-        .property(ClientProperties.CONNECT_TIMEOUT, (int) builder.connectTimeoutMillis)
-        .property(ClientProperties.READ_TIMEOUT, (int) builder.readTimeoutMillis)
-        .property(ApacheClientProperties.CONNECTION_MANAGER,
-                  new PoolingHttpClientConnectionManager(getSchemeRegistry(originalUri)));
-
-    this.client = ClientBuilder.newClient(config);
+    if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
+      throw new IllegalArgumentException("https URI must be provided to use certificates");
+    }
 
     if (originalUri.getScheme().equals("unix")) {
       this.uri = UnixConnectionSocketFactory.sanitizeUri(originalUri);
     } else {
       this.uri = originalUri;
     }
+
+    final ClientConfig config = DEFAULT_CONFIG
+        .connectorProvider(new ApacheConnectorProvider())
+        .property(ClientProperties.CONNECT_TIMEOUT, (int) builder.connectTimeoutMillis)
+        .property(ClientProperties.READ_TIMEOUT, (int) builder.readTimeoutMillis)
+        .property(ApacheClientProperties.CONNECTION_MANAGER,
+                  new PoolingHttpClientConnectionManager(getSchemeRegistry(builder)));
+
+    this.client = ClientBuilder.newClient(config);
   }
 
-  private Registry<ConnectionSocketFactory> getSchemeRegistry(final URI originalUri) {
+  private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {
+    final SSLConnectionSocketFactory https;
+    if (builder.dockerCertificates == null) {
+      https = SSLConnectionSocketFactory.getSocketFactory();
+    } else {
+      https = new SSLConnectionSocketFactory(builder.dockerCertificates.sslContext(),
+                                             builder.dockerCertificates.hostnameVerifier());
+    }
+
     return RegistryBuilder
         .<ConnectionSocketFactory>create()
+        .register("https", https)
         .register("http", PlainConnectionSocketFactory.getSocketFactory())
-        .register("https", SSLConnectionSocketFactory.getSocketFactory())
-        .register("unix", new UnixConnectionSocketFactory(originalUri))
+        .register("unix", new UnixConnectionSocketFactory(builder.uri))
         .build();
   }
 
@@ -768,6 +788,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private URI uri;
     private long connectTimeoutMillis = DEFAULT_CONNECT_TIMEOUT_MILLIS;
     private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
+    private DockerCertificates dockerCertificates;
 
     public URI uri() {
       return uri;
@@ -797,6 +818,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     public Builder readTimeoutMillis(final long readTimeoutMillis) {
       this.readTimeoutMillis = readTimeoutMillis;
+      return this;
+    }
+
+    public DockerCertificates dockerCertificates() {
+      return dockerCertificates;
+    }
+
+    public Builder dockerCertificates(final DockerCertificates dockerCertificates) {
+      this.dockerCertificates = dockerCertificates;
       return this;
     }
 
