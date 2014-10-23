@@ -54,6 +54,8 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
@@ -103,6 +105,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final String VERSION = "v1.12";
+  private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
   public static final long NO_TIMEOUT = 0;
 
@@ -303,6 +306,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam("name", name);
     }
 
+    log.info("Creating container with ContainerConfig: {}", config);
+
     try {
       return request(POST, ContainerCreation.class, resource, resource
           .request(APPLICATION_JSON_TYPE), Entity.json(config));
@@ -327,6 +332,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
     checkNotNull(hostConfig, "hostConfig");
+
+    log.info("Starting container with HostConfig: {}", hostConfig);
+
     try {
       final WebTarget resource = resource()
           .path("containers").path(containerId).path("start");
