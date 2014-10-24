@@ -625,6 +625,35 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testContainerWithHostConfig() throws Exception {
+    sut.pull("busybox");
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    final boolean privileged = true;
+    final boolean publishAllPorts = true;
+    final String dns = "1.2.3.4";
+
+    final HostConfig expected = HostConfig.builder()
+        .privileged(privileged)
+        .publishAllPorts(publishAllPorts)
+        .dns(dns)
+        .build();
+    sut.startContainer(id, expected);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.privileged(), equalTo(expected.privileged()));
+    assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
+    assertThat(actual.dns(), equalTo(expected.dns()));
+  }
+
+  @Test
   public void testListImages() throws Exception {
     sut.pull("busybox");
     final List<Image> images = sut.listImages();

@@ -52,6 +52,7 @@ import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import java.io.Closeable;
@@ -310,7 +311,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final WebTarget resource = resource()
           .path("containers").path(containerId).path("start");
       request(POST, resource, resource
-                  .request(APPLICATION_JSON_TYPE),
+                  .request(APPLICATION_JSON_TYPE)
+                  .property(ClientProperties.REQUEST_ENTITY_PROCESSING,
+                            RequestEntityProcessing.BUFFERED),
               Entity.json(hostConfig));
     } catch (DockerRequestException e) {
       switch (e.status()) {
