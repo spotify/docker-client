@@ -5,4 +5,10 @@
     <Bug pattern="SE_BAD_FIELD"/>
   </Match>
 
+  <Match>
+    <Class name="com.spotify.docker.client.DockerDateFormat" />
+    <Method name="clone" />
+    <Bug pattern="CN_IDIOM_NO_SUPER_CALL" />
+  </Match>
+
 </FindBugsFilter>
