@@ -780,6 +780,8 @@ public class DefaultDockerClientTest {
     final DockerClient c = new DefaultDockerClient(URI.create(format("https://%s:%s", host, port)),
                                                    certs);
     assertThat(c.ping(), equalTo("OK"));
+
+    sut.stopContainer(containerId, 10);
   }
 
   private String randomName() {
