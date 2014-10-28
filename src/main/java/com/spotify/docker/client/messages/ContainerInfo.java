@@ -43,6 +43,7 @@ public class ContainerInfo {
   @JsonProperty("Path") private String path;
   @JsonProperty("Args") private ImmutableList<String> args;
   @JsonProperty("Config") private ContainerConfig config;
+  @JsonProperty("HostConfig") private HostConfig hostConfig;
   @JsonProperty("State") private ContainerState state;
   @JsonProperty("Image") private String image;
   @JsonProperty("NetworkSettings") private NetworkSettings networkSettings;
@@ -75,6 +76,10 @@ public class ContainerInfo {
 
   public ContainerConfig config() {
     return config;
+  }
+
+  public HostConfig hostConfig() {
+    return hostConfig;
   }
 
   public ContainerState state() {
@@ -146,6 +151,9 @@ public class ContainerInfo {
     if (config != null ? !config.equals(that.config) : that.config != null) {
       return false;
     }
+    if (hostConfig != null ? !hostConfig.equals(that.hostConfig) : that.hostConfig != null) {
+      return false;
+    }
     if (created != null ? !created.equals(that.created) : that.created != null) {
       return false;
     }
@@ -209,6 +217,7 @@ public class ContainerInfo {
     result = 31 * result + (path != null ? path.hashCode() : 0);
     result = 31 * result + (args != null ? args.hashCode() : 0);
     result = 31 * result + (config != null ? config.hashCode() : 0);
+    result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
     result = 31 * result + (state != null ? state.hashCode() : 0);
     result = 31 * result + (image != null ? image.hashCode() : 0);
     result = 31 * result + (networkSettings != null ? networkSettings.hashCode() : 0);
@@ -233,6 +242,7 @@ public class ContainerInfo {
         .add("path", path)
         .add("args", args)
         .add("config", config)
+        .add("hostConfig", hostConfig)
         .add("state", state)
         .add("image", image)
         .add("networkSettings", networkSettings)
