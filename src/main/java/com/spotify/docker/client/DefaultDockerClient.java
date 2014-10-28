@@ -36,6 +36,9 @@ import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
+import com.google.common.base.Strings;
+import com.google.common.io.CharStreams;
+
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -52,6 +55,7 @@ import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -64,7 +68,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 
 import org.apache.commons.compress.utils.IOUtils;
@@ -741,6 +744,32 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return request(POST, InputStream.class, resource,
           resource.request(APPLICATION_OCTET_STREAM_TYPE),
           Entity.json(params));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+
+  @Override
+  public TopResults topContainer(final String containerId)
+      throws DockerException, InterruptedException {
+    return topContainer(containerId, null);
+  }
+
+  @Override
+  public TopResults topContainer(final String containerId, final String psArgs)
+      throws DockerException, InterruptedException {
+    try {
+      WebTarget resource = resource().path("containers").path(containerId).path("top");
+      if (!Strings.isNullOrEmpty(psArgs)) {
+        resource = resource.queryParam("ps_args", psArgs);
+      }
+      return request(GET, TopResults.class, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
