@@ -48,6 +48,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -709,7 +710,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       return request.async().method(method, type).get();
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -719,7 +720,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       return request.async().method(method, clazz).get();
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -730,7 +731,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       return request.async().method(method, entity, clazz).get();
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -741,7 +742,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       request.async().method(method).get();
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -753,7 +754,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       request.async().method(method, entity).get();
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -762,6 +763,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                      final Exception e)
       throws DockerException, InterruptedException {
     Throwable cause = e.getCause();
+
+    // Sometimes e is a org.glassfish.hk2.api.MultiException
+    // which contains the cause we're actually interested in.
+    // So we unpack it here.
+    if (e instanceof MultiException) {
+      cause = cause.getCause();
+    }
 
     Response response = null;
     if (cause instanceof ResponseProcessingException) {
@@ -780,7 +788,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else if ((cause instanceof SocketTimeoutException) ||
                (cause instanceof ConnectTimeoutException)) {
       throw new DockerTimeoutException(method, resource.getUri(), e);
-    } else if (cause instanceof InterruptedIOException) {
+    } else if ((cause instanceof InterruptedIOException)
+               || (cause instanceof InterruptedException)) {
       throw new InterruptedException("Interrupted: " + method + " " + resource);
     } else {
       throw new DockerException(e);
