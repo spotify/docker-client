@@ -197,7 +197,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     // and use it for waitContainer and stopContainer.
     this.noTimeoutClient = ClientBuilder.newBuilder()
         .withConfig(config)
-        .property(ClientProperties.READ_TIMEOUT, NO_TIMEOUT)
+        .property(ClientProperties.READ_TIMEOUT, (int) NO_TIMEOUT)
         .build();
   }
 
