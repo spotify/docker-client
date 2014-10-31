@@ -655,6 +655,39 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testWaitContainer() throws Exception {
+    sut.pull("busybox");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    // Start the container
+    sut.startContainer(id);
+
+    // Wait for container on a thread
+    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    final Future<ContainerExit> exitFuture = executorService.submit(new Callable<ContainerExit>() {
+      @Override
+      public ContainerExit call() throws Exception {
+        return sut.waitContainer(id);
+      }
+    });
+
+    // Wait for 40 seconds, then kill the container
+    Thread.sleep(40000);
+    sut.killContainer(id);
+
+    // Ensure that waiting on the container worked without exception
+    exitFuture.get();
+  }
+
+  @Test
   public void testInspectContainerWithExposedPorts() throws Exception {
     sut.pull("rohan/memcached-mini");
     final ContainerConfig config = ContainerConfig.builder()

@@ -139,6 +139,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
 
   private final Client client;
+  private final Client noTimeoutClient;
 
   private final URI uri;
 
@@ -191,6 +192,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                   new PoolingHttpClientConnectionManager(getSchemeRegistry(builder)));
 
     this.client = ClientBuilder.newClient(config);
+    // ApacheConnector doesn't respect per-request timeout settings.
+    // Workaround: create this client with infinite read timeout,
+    // and use it for waitContainer and stopContainer.
+    this.noTimeoutClient = ClientBuilder.newBuilder()
+        .withConfig(config)
+        .property(ClientProperties.READ_TIMEOUT, NO_TIMEOUT)
+        .build();
   }
 
   private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {
@@ -398,7 +406,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void stopContainer(final String containerId, final int secondsToWaitBeforeKilling)
       throws DockerException, InterruptedException {
     try {
-      final WebTarget resource = resource().path("containers").path(containerId).path("stop")
+      final WebTarget resource = noTimeoutResource()
+          .path("containers").path(containerId).path("stop")
           .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
       request(POST, resource, resource.request());
     } catch (WebApplicationException e) {
@@ -417,12 +426,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public ContainerExit waitContainer(final String containerId)
       throws DockerException, InterruptedException {
     try {
-      final WebTarget resource = resource()
+      final WebTarget resource = noTimeoutResource()
           .path("containers").path(containerId).path("wait");
       // Wait forever
       return request(POST, ContainerExit.class, resource,
-                     resource.request(APPLICATION_JSON_TYPE)
-                             .property(ClientProperties.READ_TIMEOUT, 0));
+                     resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -690,6 +698,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private WebTarget resource() {
     return client.target(uri).path(VERSION);
+  }
+
+  private WebTarget noTimeoutResource() {
+    return noTimeoutClient.target(uri).path(VERSION);
   }
 
   private <T> T request(final String method, final GenericType<T> type,
