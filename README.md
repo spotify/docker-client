@@ -61,7 +61,7 @@ Maven
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.6.1</version>
+  <version>2.6.3</version>
 </dependency>
 ```
 
