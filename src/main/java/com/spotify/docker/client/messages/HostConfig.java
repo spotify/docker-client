@@ -24,10 +24,12 @@ package com.spotify.docker.client.messages;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +43,7 @@ public class HostConfig {
   @JsonProperty("ContainerIDFile") private String containerIDFile;
   @JsonProperty("LxcConf") private ImmutableList<LxcConfParameter> lxcConf;
   @JsonProperty("Privileged") private Boolean privileged;
-  @JsonProperty("PortBindings") private ImmutableMap<String, List<PortBinding>> portBindings;
+  @JsonProperty("PortBindings") private Map<String, List<PortBinding>> portBindings;
   @JsonProperty("Links") private ImmutableList<String> links;
   @JsonProperty("PublishAllPorts") private Boolean publishAllPorts;
   @JsonProperty("Dns") private ImmutableList<String> dns;
@@ -83,7 +85,7 @@ public class HostConfig {
   }
 
   public Map<String, List<PortBinding>> portBindings() {
-    return portBindings;
+    return (portBindings == null) ? null : Collections.unmodifiableMap(portBindings);
   }
 
   public List<String> links() {
@@ -263,7 +265,7 @@ public class HostConfig {
     private String containerIDFile;
     private ImmutableList<LxcConfParameter> lxcConf;
     private Boolean privileged;
-    private ImmutableMap<String, List<PortBinding>> portBindings;
+    private Map<String, List<PortBinding>> portBindings;
     private ImmutableList<String> links;
     private Boolean publishAllPorts;
     private ImmutableList<String> dns;
@@ -335,11 +337,7 @@ public class HostConfig {
     }
 
     public Builder portBindings(final Map<String, List<PortBinding>> portBindings) {
-      final ImmutableMap.Builder<String, List<PortBinding>> builder = ImmutableMap.builder();
-      for (Map.Entry<String, List<PortBinding>> entry : portBindings.entrySet()) {
-        builder.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
-      }
-      this.portBindings = builder.build();
+      this.portBindings = (portBindings == null) ? null : Maps.newHashMap(portBindings);
       return this;
     }
 
