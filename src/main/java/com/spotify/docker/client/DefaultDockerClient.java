@@ -44,6 +44,7 @@ import com.spotify.docker.client.messages.Version;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -185,12 +186,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       this.uri = originalUri;
     }
 
+    PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
+        getSchemeRegistry(builder));
+
+    // Use all available connections instead of artifically limiting ourselves to 2 per server.
+    cm.setDefaultMaxPerRoute(cm.getMaxTotal());
+
     final ClientConfig config = DEFAULT_CONFIG
         .connectorProvider(new ApacheConnectorProvider())
         .property(ClientProperties.CONNECT_TIMEOUT, (int) builder.connectTimeoutMillis)
         .property(ClientProperties.READ_TIMEOUT, (int) builder.readTimeoutMillis)
-        .property(ApacheClientProperties.CONNECTION_MANAGER,
-                  new PoolingHttpClientConnectionManager(getSchemeRegistry(builder)));
+        .property(ApacheClientProperties.CONNECTION_MANAGER, cm);
 
     this.client = ClientBuilder.newClient(config);
     // ApacheConnector doesn't respect per-request timeout settings.
