@@ -105,7 +105,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
-  private static final String VERSION = "v1.12";
+  private static final String VERSION = "v1.15";
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
   public static final long NO_TIMEOUT = 0;
