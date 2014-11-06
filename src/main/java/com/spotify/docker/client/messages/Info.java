@@ -40,6 +40,8 @@ public class Info {
   @JsonProperty("NEventsListener") private int eventsListener;
   @JsonProperty("InitPath") private String initPath;
   @JsonProperty("Sockets") private List<String> sockets;
+  @JsonProperty("MemoryLimit") private Boolean memoryLimit;
+  @JsonProperty("SwapLimit") private Boolean swapLimit;
 
   public int containers() {
     return containers;
@@ -83,6 +85,14 @@ public class Info {
 
   public List<String> sockets() {
     return sockets;
+  }
+
+  public boolean memoryLimit() {
+    return memoryLimit;
+  }
+
+  public boolean swapLimit() {
+    return swapLimit;
   }
 
   @Override
@@ -132,6 +142,14 @@ public class Info {
                               : info.storageDriver != null) {
       return false;
     }
+    if (memoryLimit != null ? !memoryLimit.equals(info.memoryLimit)
+                            : info.memoryLimit != null) {
+      return false;
+    }
+    if (swapLimit != null ? !swapLimit.equals(info.swapLimit)
+                            : info.swapLimit != null) {
+      return false;
+    }
 
     return true;
   }
@@ -149,6 +167,8 @@ public class Info {
     result = 31 * result + eventsListener;
     result = 31 * result + (initPath != null ? initPath.hashCode() : 0);
     result = 31 * result + (sockets != null ? sockets.hashCode() : 0);
+    result = 31 * result + (memoryLimit != null ? memoryLimit.hashCode() : 0);
+    result = 31 * result + (swapLimit != null ? swapLimit.hashCode() : 0);
     return result;
   }
 
@@ -166,6 +186,8 @@ public class Info {
            ", eventsListener=" + eventsListener +
            ", initPath='" + initPath + '\'' +
            ", sockets=" + sockets +
+           ", memoryLimit=" + memoryLimit +
+           ", swapLimit=" + swapLimit +
            '}';
   }
 }
