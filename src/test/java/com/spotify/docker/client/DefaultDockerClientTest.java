@@ -217,6 +217,8 @@ public class DefaultDockerClientTest {
     assertThat(info.kernelVersion(), not(isEmptyOrNullString()));
     assertThat(info.storageDriver(), not(isEmptyOrNullString()));
     assertThat(info.sockets(), not(empty()));
+    assertThat(info.memoryLimit(), not(nullValue()));
+    assertThat(info.swapLimit(), not(nullValue()));
   }
 
   @Test
