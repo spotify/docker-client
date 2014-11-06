@@ -26,7 +26,6 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
-import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +33,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+
+import jnr.unixsocket.UnixSocketAddress;
 
 /**
  * Provides a ConnectionSocketFactory for connecting Apache HTTP clients to Unix sockets.
@@ -74,7 +75,7 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
                               final InetSocketAddress localAddress,
                               final HttpContext context) throws IOException {
     try {
-      socket.connect(new AFUNIXSocketAddress(socketFile), connectTimeout);
+      socket.connect(new UnixSocketAddress(socketFile), connectTimeout);
     } catch (SocketTimeoutException e) {
       throw new ConnectTimeoutException(e, null, remoteAddress.getAddress());
     }

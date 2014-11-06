@@ -21,10 +21,6 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.collect.Queues;
-
-import org.newsclub.net.unix.AFUNIXSocket;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,11 +28,17 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
 import java.util.Queue;
 
+import jnr.unixsocket.UnixSocketAddress;
+import jnr.unixsocket.UnixSocketChannel;
+
+import com.google.common.collect.Queues;
+
 /**
- * Provides a socket that wraps an org.newsclub.net.unix.AFUNIXSocket and delays setting options
+ * Provides a socket that wraps an jnr.unixsocket.UnixSocketChannel and delays setting options
  * until the socket is connected. This is necessary because the Apache HTTP client attempts to
  * set options prior to connecting the socket, which doesn't work for Unix sockets since options
  * are being set on the underlying file descriptor. Until the socket is connected, the file
@@ -47,75 +49,78 @@ import java.util.Queue;
  */
 public class ApacheUnixSocket extends Socket {
 
-  private final AFUNIXSocket inner;
+  private final UnixSocketChannel inner;
 
   private final Queue<SocketOptionSetter> optionsToSet = Queues.newArrayDeque();
 
   public ApacheUnixSocket() throws IOException {
-    this.inner = AFUNIXSocket.newInstance();
+    this.inner = UnixSocketChannel.open();
   }
 
   @Override
   public void connect(final SocketAddress endpoint) throws IOException {
-    inner.connect(endpoint);
-    setAllSocketOptions();
+    if (endpoint instanceof UnixSocketAddress) {
+      inner.connect((UnixSocketAddress) endpoint);
+      setAllSocketOptions();
+    }
   }
 
   @Override
   public void connect(final SocketAddress endpoint, final int timeout) throws IOException {
-    inner.connect(endpoint, timeout);
-    setAllSocketOptions();
+    if (endpoint instanceof UnixSocketAddress) {
+      inner.connect((UnixSocketAddress) endpoint);
+      setAllSocketOptions();
+    }
   }
 
   @Override
   public void bind(final SocketAddress bindpoint) throws IOException {
-    inner.bind(bindpoint);
-    setAllSocketOptions();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public InetAddress getInetAddress() {
-    return inner.getInetAddress();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public InetAddress getLocalAddress() {
-    return inner.getLocalAddress();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public int getPort() {
-    return inner.getPort();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public int getLocalPort() {
-    return inner.getLocalPort();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public SocketAddress getRemoteSocketAddress() {
-    return inner.getRemoteSocketAddress();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public SocketAddress getLocalSocketAddress() {
-    return inner.getLocalSocketAddress();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public SocketChannel getChannel() {
-    return inner.getChannel();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public InputStream getInputStream() throws IOException {
-    return inner.getInputStream();
+    return Channels.newInputStream(inner);
   }
 
   @Override
   public OutputStream getOutputStream() throws IOException {
-    return inner.getOutputStream();
+    return Channels.newOutputStream(inner);
   }
 
   private void setSocketOption(final SocketOptionSetter s) throws SocketException {
@@ -136,52 +141,36 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public void setTcpNoDelay(final boolean on) throws SocketException {
-    setSocketOption(new SocketOptionSetter() {
-      @Override
-      public void run() throws SocketException {
-        inner.setTcpNoDelay(on);
-      }
-    });
   }
 
   @Override
   public boolean getTcpNoDelay() throws SocketException {
-    return inner.getTcpNoDelay();
+    return false;
   }
 
   @Override
   public void setSoLinger(final boolean on, final int linger) throws SocketException {
-    setSocketOption(new SocketOptionSetter() {
-      @Override
-      public void run() throws SocketException {
-        inner.setSoLinger(on, linger);
-      }
-    });
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public int getSoLinger() throws SocketException {
-    return inner.getSoLinger();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public void sendUrgentData(final int data) throws IOException {
-    inner.sendUrgentData(data);
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public void setOOBInline(final boolean on) throws SocketException {
-    setSocketOption(new SocketOptionSetter() {
-      @Override
-      public void run() throws SocketException {
-        inner.setOOBInline(on);
-      }
-    });
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public boolean getOOBInline() throws SocketException {
-    return inner.getOOBInline();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
@@ -201,32 +190,22 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public synchronized void setSendBufferSize(final int size) throws SocketException {
-    setSocketOption(new SocketOptionSetter() {
-      @Override
-      public void run() throws SocketException {
-        inner.setSendBufferSize(size);
-      }
-    });
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public synchronized int getSendBufferSize() throws SocketException {
-    return inner.getSendBufferSize();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public synchronized void setReceiveBufferSize(final int size) throws SocketException {
-    setSocketOption(new SocketOptionSetter() {
-      @Override
-      public void run() throws SocketException {
-        inner.setReceiveBufferSize(size);
-      }
-    });
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public synchronized int getReceiveBufferSize() throws SocketException {
-    return inner.getReceiveBufferSize();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
@@ -246,17 +225,12 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public void setTrafficClass(final int tc) throws SocketException {
-    setSocketOption(new SocketOptionSetter() {
-      @Override
-      public void run() throws SocketException {
-        inner.setTrafficClass(tc);
-      }
-    });
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public int getTrafficClass() throws SocketException {
-    return inner.getTrafficClass();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
@@ -266,7 +240,7 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public boolean getReuseAddress() throws SocketException {
-    return inner.getReuseAddress();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
@@ -286,7 +260,7 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public String toString() {
-    return inner.toString();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
@@ -296,28 +270,28 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public boolean isBound() {
-    return inner.isBound();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public boolean isClosed() {
-    return inner.isClosed();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public boolean isInputShutdown() {
-    return inner.isInputShutdown();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public boolean isOutputShutdown() {
-    return inner.isOutputShutdown();
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override
   public void setPerformancePreferences(final int connectionTime, final int latency,
                                         final int bandwidth) {
-    inner.setPerformancePreferences(connectionTime, latency, bandwidth);
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   interface SocketOptionSetter {
