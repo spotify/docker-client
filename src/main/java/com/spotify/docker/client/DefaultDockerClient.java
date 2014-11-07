@@ -22,6 +22,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -70,6 +71,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,11 +93,15 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
+import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.CompressedDirectory.delete;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.HttpMethod.DELETE;
@@ -105,6 +111,10 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
+
+  public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
+  public static final String DEFAULT_HOST = "localhost";
+  public static final int DEFAULT_PORT = 2375;
 
   private static final String VERSION = "v1.12";
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
@@ -816,6 +826,47 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder builder() {
     return new Builder();
+  }
+
+  /**
+   * Create a new {@link DefaultDockerClient} builder prepopulated with values loaded
+   * from the DOCKER_HOST and DOCKER_CERT_PATH environment variables.
+   * @return Returns a builder that can be used to further customize and then build the client.
+   * @throws DockerCertificateException
+   */
+  public static Builder fromEnv() throws DockerCertificateException {
+    final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
+    final String dockerCertPath = getenv("DOCKER_CERT_PATH");
+
+    final Builder builder = new Builder();
+
+    if (endpoint.startsWith("unix://")) {
+      builder.uri(endpoint);
+    } else {
+      final String stripped = endpoint.replaceAll(".*://", "");
+      final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
+      final String hostText = hostAndPort.getHostText();
+      final String scheme = isNullOrEmpty(dockerCertPath) ? "http" : "https";
+
+      final int port = hostAndPort.getPortOrDefault(DEFAULT_PORT);
+      final String address = isNullOrEmpty(hostText) ? DEFAULT_HOST : hostText;
+
+      builder.uri(scheme + "://" + address + ":" + port);
+    }
+
+    if (!isNullOrEmpty(dockerCertPath)) {
+      builder.dockerCertificates(new DockerCertificates(Paths.get(dockerCertPath)));
+    }
+
+    return builder;
+  }
+
+  private static String defaultEndpoint() {
+    if (getProperty("os.name").equalsIgnoreCase("linux")) {
+      return DEFAULT_UNIX_ENDPOINT;
+    } else {
+      return DEFAULT_HOST + ":" + DEFAULT_PORT;
+    }
   }
 
   public static class Builder {
