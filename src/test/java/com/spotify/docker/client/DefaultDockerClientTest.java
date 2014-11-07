@@ -24,7 +24,6 @@ package com.spotify.docker.client;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
-import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
@@ -72,8 +71,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM;
@@ -113,62 +110,20 @@ import static org.junit.Assert.fail;
 
 public class DefaultDockerClientTest {
 
-  public static final String DOCKER_ENDPOINT;
-
-  public static final String DOCKER_CERT_PATH;
-
-  @Rule public ExpectedException exception = ExpectedException.none();
+  @Rule public final ExpectedException exception = ExpectedException.none();
 
   @Rule public final TestName testName = new TestName();
 
-  static {
-    // Parse DOCKER_HOST
-    DOCKER_CERT_PATH = env("DOCKER_CERT_PATH", "");
-
-    int dockerPort = Integer.valueOf(env("DOCKER_PORT", "2375"));
-    String dockerHost;
-    if (System.getProperty("os.name").toLowerCase().equals("linux")) {
-      dockerHost = env("DOCKER_HOST", "unix:///var/run/docker.sock");
-    } else {
-      dockerHost = env("DOCKER_HOST", ":" + dockerPort);
-    }
-
-    if (!dockerHost.startsWith("unix://")) {
-      final String stripped = dockerHost.replaceAll(".*://", "");
-      final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
-      final String host = hostAndPort.getHostText();
-      final String dockerAddress = isNullOrEmpty(host) ? "localhost" : host;
-
-      String scheme;
-      if (!isNullOrEmpty(DOCKER_CERT_PATH)) {
-        scheme = "https";
-      } else {
-        scheme = "http";
-      }
-
-      DOCKER_ENDPOINT = format("%s://%s:%d", scheme, dockerAddress,
-                               hostAndPort.getPortOrDefault(dockerPort));
-    } else {
-      DOCKER_ENDPOINT = dockerHost;
-    }
-  }
-
-  private static String env(final String key, final String defaultValue) {
-    return fromNullable(getenv(key)).or(defaultValue);
-  }
-
   private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
+
+  private URI dockerEndpoint;
 
   private DefaultDockerClient sut;
 
   @Before
   public void setup() throws Exception {
-    final DefaultDockerClient.Builder builder = DefaultDockerClient.builder()
-        .uri(DOCKER_ENDPOINT);
-
-    if (!isNullOrEmpty(DOCKER_CERT_PATH)) {
-      builder.dockerCertificates(new DockerCertificates(Paths.get(DOCKER_CERT_PATH)));
-    }
+    final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
+    dockerEndpoint = builder.uri();
 
     sut = builder.build();
 
@@ -804,10 +759,10 @@ public class DefaultDockerClientTest {
 
     // Determine where the Docker instance inside the container we just started is exposed
     final String host;
-    if (DOCKER_ENDPOINT.startsWith("unix://")) {
+    if (dockerEndpoint.getScheme().equalsIgnoreCase("unix")) {
       host = "localhost";
     } else {
-      host = URI.create(DOCKER_ENDPOINT).getHost();
+      host = dockerEndpoint.getHost();
     }
 
     final ContainerInfo containerInfo = sut.inspectContainer(containerId);
