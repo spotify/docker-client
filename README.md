@@ -7,7 +7,8 @@ Usage
 -----
 
 ```java
-final DockerClient docker = new DefaultDockerClient("http://localhost:2375");
+// Create a client based on DOCKER_HOST and DOCKER_CERT_PATH env vars
+final DockerClient docker = DefaultDockerClient.fromEnv().build();
 
 // Pull image
 docker.pull("busybox");
@@ -61,7 +62,7 @@ Maven
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.6.3</version>
+  <version>2.7.0</version>
 </dependency>
 ```
 
