@@ -6,6 +6,9 @@ test:
   override:
     - ./circle.sh test:
         parallel: true
+  post:
+    - ./circle.sh post_test:
+        parallel: true
 
 machine:
   pre:
