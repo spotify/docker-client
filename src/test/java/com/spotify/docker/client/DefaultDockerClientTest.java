@@ -48,6 +48,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TestName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -118,6 +119,8 @@ public class DefaultDockerClientTest {
 
   @Rule public ExpectedException exception = ExpectedException.none();
 
+  @Rule public final TestName testName = new TestName();
+
   static {
     // Parse DOCKER_HOST
     DOCKER_CERT_PATH = env("DOCKER_CERT_PATH", "");
@@ -168,6 +171,8 @@ public class DefaultDockerClientTest {
     }
 
     sut = builder.build();
+
+    System.out.printf("- %s\n", testName.getMethodName());
   }
 
   @After
