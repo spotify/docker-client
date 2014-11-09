@@ -267,6 +267,7 @@
               <include>javax.annotation:*</include>
               <include>javax.ws.rs:*</include>
               <include>org.glassfish.**</include>
+              <include>de.gesellix:unix-socket-factory</include>
             </includes>
           </artifactSet>
           <relocations>
