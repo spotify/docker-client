@@ -56,8 +56,9 @@ final DockerClient docker = new DefaultDockerClient.builder()
 ```
 
 Maven
------
+-----   
 
+#### Dependency
 ```xml
 <dependency>
   <groupId>com.spotify</groupId>
@@ -66,6 +67,17 @@ Maven
 </dependency>
 ```
 
+#### Repository
+We rely on a unix socket library that isn't available in Maven Central, so you'll need to include it in your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>jcenter</id>
+        <url>http://jcenter.bintray.com</url>
+    </repository>
+</repositories>
+```
 
 Releasing
 ---------
