@@ -45,7 +45,6 @@ import com.spotify.docker.client.messages.Version;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -115,6 +114,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
   public static final String DEFAULT_HOST = "localhost";
   public static final int DEFAULT_PORT = 2375;
+
+  private static final String UNIX_SCHEME = "unix";
 
   private static final String VERSION = "v1.12";
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
@@ -190,7 +191,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new IllegalArgumentException("https URI must be provided to use certificates");
     }
 
-    if (originalUri.getScheme().equals("unix")) {
+    if (originalUri.getScheme().equals(UNIX_SCHEME)) {
       this.uri = UnixConnectionSocketFactory.sanitizeUri(originalUri);
     } else {
       this.uri = originalUri;
@@ -227,12 +228,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                              builder.dockerCertificates.hostnameVerifier());
     }
 
-    return RegistryBuilder
+    final RegistryBuilder registryBuilder = RegistryBuilder
         .<ConnectionSocketFactory>create()
         .register("https", https)
-        .register("http", PlainConnectionSocketFactory.getSocketFactory())
-        .register("unix", new UnixConnectionSocketFactory(builder.uri))
-        .build();
+        .register("http", PlainConnectionSocketFactory.getSocketFactory());
+
+    if (builder.uri.getScheme().equals(UNIX_SCHEME)) {
+      registryBuilder.register(UNIX_SCHEME, new UnixConnectionSocketFactory(builder.uri));
+    }
+
+    return registryBuilder.build();
   }
 
   @Override
@@ -840,7 +845,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final Builder builder = new Builder();
 
-    if (endpoint.startsWith("unix://")) {
+    if (endpoint.startsWith(UNIX_SCHEME + "://")) {
       builder.uri(endpoint);
     } else {
       final String stripped = endpoint.replaceAll(".*://", "");
