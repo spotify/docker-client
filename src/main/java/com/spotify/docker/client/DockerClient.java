@@ -267,7 +267,34 @@ public interface DockerClient extends Closeable {
   void startContainer(String containerId, HostConfig hostConfig)
       throws DockerException, InterruptedException;
 
+  /**
+   * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the
+   * container doesn't exit gracefully and in a timely manner.
+   *
+   * @param containerId The id of the container to stop.
+   * @param secondsToWaitBeforeKilling Time to wait after SIGTERM before sending SIGKILL.
+   */
   void stopContainer(String containerId, int secondsToWaitBeforeKilling)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Pause a docker container.
+   *
+   * @param containerId The id of the container to pause.
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+
+  void pauseContainer(String containerId)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Unpause a docker container.
+   *
+   * @param containerId The id of the container to pause.
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+
+  void unpauseContainer(String containerId)
       throws DockerException, InterruptedException;
 
   /**
