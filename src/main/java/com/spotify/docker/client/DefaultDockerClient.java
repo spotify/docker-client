@@ -384,6 +384,44 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void pauseContainer(final String containerId)
+      throws DockerException, InterruptedException {
+    checkNotNull(containerId, "containerId");
+
+    try {
+      final WebTarget resource = resource()
+          .path("containers").path(containerId).path("pause");
+      request(POST, resource, resource.request());
+    } catch (WebApplicationException e) {
+      switch (e.getResponse().getStatus()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw new DockerException(e);
+      }
+    }
+  }
+
+  @Override
+  public void unpauseContainer(final String containerId)
+      throws DockerException, InterruptedException {
+    checkNotNull(containerId, "containerId");
+
+    try {
+      final WebTarget resource = resource()
+          .path("containers").path(containerId).path("unpause");
+      request(POST, resource, resource.request());
+    } catch (WebApplicationException e) {
+      switch (e.getResponse().getStatus()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw new DockerException(e);
+      }
+    }
+  }
+
+  @Override
   public void restartContainer(String containerId) throws DockerException, InterruptedException {
     restartContainer(containerId, 10);
   }
