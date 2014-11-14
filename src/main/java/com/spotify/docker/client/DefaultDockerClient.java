@@ -42,6 +42,7 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -124,6 +125,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final long DEFAULT_CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
+  private static final int DEFAULT_CONNECTION_POOL_SIZE = 20;
+
   private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
       ObjectMapperProvider.class,
       JacksonFeature.class,
@@ -200,22 +203,32 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
         getSchemeRegistry(builder));
 
-    // Use all available connections instead of artifically limiting ourselves to 2 per server.
+    // Use all available connections instead of artificially limiting ourselves to 2 per server.
     cm.setDefaultMaxPerRoute(cm.getMaxTotal());
+    cm.setMaxTotal(builder.connectionPoolSize);
+
+    final RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
+        .setConnectTimeout((int) builder.connectTimeoutMillis)
+        .setSocketTimeout((int) builder.readTimeoutMillis)
+        .build();
 
     final ClientConfig config = DEFAULT_CONFIG
         .connectorProvider(new ApacheConnectorProvider())
-        .property(ClientProperties.CONNECT_TIMEOUT, (int) builder.connectTimeoutMillis)
-        .property(ClientProperties.READ_TIMEOUT, (int) builder.readTimeoutMillis)
-        .property(ApacheClientProperties.CONNECTION_MANAGER, cm);
+        .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
+        .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
     this.client = ClientBuilder.newClient(config);
+
     // ApacheConnector doesn't respect per-request timeout settings.
-    // Workaround: create this client with infinite read timeout,
+    // Workaround: instead create a client with infinite read timeout,
     // and use it for waitContainer and stopContainer.
+    final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
+        .setSocketTimeout((int) NO_TIMEOUT)
+        .build();
     this.noTimeoutClient = ClientBuilder.newBuilder()
         .withConfig(config)
-        .property(ClientProperties.READ_TIMEOUT, (int) NO_TIMEOUT)
+        .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
         .build();
   }
 
@@ -917,6 +930,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private URI uri;
     private long connectTimeoutMillis = DEFAULT_CONNECT_TIMEOUT_MILLIS;
     private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
+    private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificates dockerCertificates;
 
     public URI uri() {
@@ -956,6 +970,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     public Builder dockerCertificates(final DockerCertificates dockerCertificates) {
       this.dockerCertificates = dockerCertificates;
+      return this;
+    }
+
+    public int connectionPoolSize() {
+      return connectionPoolSize;
+    }
+
+    public Builder connectionPoolSize(int connectionPoolSize) {
+      this.connectionPoolSize = connectionPoolSize;
       return this;
     }
 

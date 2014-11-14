@@ -21,6 +21,7 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
@@ -82,7 +83,6 @@ import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
-import static java.lang.System.getenv;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
@@ -418,7 +418,8 @@ public class DefaultDockerClientTest {
     final String id = creation.id();
 
     ImmutableSet.Builder<String> files = ImmutableSet.builder();
-    try (TarArchiveInputStream tarStream = new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
+    try (TarArchiveInputStream tarStream =
+             new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
         files.add(entry.getName());
@@ -613,6 +614,46 @@ public class DefaultDockerClientTest {
           .readTimeoutMillis(100)
           .build();
       connectTimeoutClient.version();
+    }
+  }
+
+  @Test(expected = DockerTimeoutException.class)
+  public void testConnectionRequestTimeout() throws Exception {
+    final int connectionPoolSize = 3;
+    final ExecutorService executorService = Executors.newFixedThreadPool(connectionPoolSize);
+
+    // Spawn and wait on many more containers than the connection pool size.
+    // This should cause a timeout once the connection pool is exhausted.
+    final DockerClient dockerClient = DefaultDockerClient.fromEnv()
+        .connectionPoolSize(connectionPoolSize)
+        .build();
+    try {
+      for (int i = 0; i < connectionPoolSize * 3; i++) {
+        // Create container
+        final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .build();
+        final String name = randomName();
+        final ContainerCreation creation = dockerClient.createContainer(config, name);
+        final String id = creation.id();
+
+        // Start the container
+        sut.startContainer(id);
+        executorService.submit(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              dockerClient.waitContainer(id);
+            } catch (DockerException | InterruptedException e) {
+              throw Throwables.propagate(e);
+            }
+          }
+        });
+      }
+    } finally {
+      executorService.shutdown();
+      dockerClient.close();
     }
   }
 
