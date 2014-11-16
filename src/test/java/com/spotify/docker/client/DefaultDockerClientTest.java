@@ -112,9 +112,11 @@ import static org.junit.Assert.fail;
 
 public class DefaultDockerClientTest {
 
-  @Rule public final ExpectedException exception = ExpectedException.none();
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
-  @Rule public final TestName testName = new TestName();
+  @Rule
+  public final TestName testName = new TestName();
 
   private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
 
@@ -135,7 +137,9 @@ public class DefaultDockerClientTest {
   @After
   public void tearDown() throws Exception {
     // Remove containers
-    final List<Container> containers = sut.listContainers(DockerClient.ListContainersParam.allContainers());
+    final List<Container>
+        containers =
+        sut.listContainers(DockerClient.ListContainersParam.allContainers());
     for (Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
       if (info != null && info.name().contains(nameTag)) {
@@ -433,12 +437,38 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCommitContainer() throws Exception {
+    // Pull image
+    sut.pull("busybox");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    String tag = randomName();
+    ContainerCreation
+        dockerClientTest =
+        sut.commitContainer(id, "CommitedByTest-" + tag, "DockerClientTest", tag,
+                            "mosheeshel/busybox", config);
+
+    ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
+    assertThat(imageInfo.author(), is("DockerClientTest"));
+    assertThat(imageInfo.comment(), is("CommitedByTest-" + tag));
+
+  }
+
+
+  @Test
   public void testStopContainer() throws Exception {
     sut.pull("busybox");
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image("busybox")
-        // make sure the container's busy doing something upon startup
+            // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String containerName = randomName();

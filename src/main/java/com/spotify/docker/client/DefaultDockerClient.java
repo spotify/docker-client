@@ -130,13 +130,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile("/?[a-zA-Z0-9_-]+");
 
   private static final GenericType<List<Container>> CONTAINER_LIST =
-      new GenericType<List<Container>>() {};
+      new GenericType<List<Container>>() {
+      };
 
   private static final GenericType<List<Image>> IMAGE_LIST =
-      new GenericType<List<Image>>() {};
+      new GenericType<List<Image>>() {
+      };
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
-      new GenericType<List<RemovedImage>>() {};
+      new GenericType<List<RemovedImage>>() {
+      };
 
   private final Client client;
   private final Client noTimeoutClient;
@@ -145,6 +148,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
+   *
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final String uri) {
@@ -153,6 +157,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
+   *
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final URI uri) {
@@ -161,7 +166,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
-   * @param uri The docker rest api uri.
+   *
+   * @param uri                The docker rest api uri.
    * @param dockerCertificates The certificates to use for HTTPS.
    */
   public DefaultDockerClient(final URI uri, final DockerCertificates dockerCertificates) {
@@ -572,6 +578,46 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public ContainerCreation commitContainer(String containerId, String comment, String author,
+                                           String tag, String repository,
+                                           ContainerConfig containerConfig)
+      throws DockerException, InterruptedException {
+
+    checkNotNull(containerId, "containerId");
+    checkNotNull(comment, "comment");
+    checkNotNull(repository, "repo");
+    checkNotNull(containerConfig, "containerConfig");
+
+    WebTarget resource = resource()
+        .path("commit")
+        .queryParam("container", containerId)
+        .queryParam("repo", repository)
+        .queryParam("comment", comment);
+
+    if (author != null) {
+      resource = resource.queryParam("author", author);
+    }
+    if (tag != null) {
+      resource = resource.queryParam("tag", tag);
+    }
+
+    log.info("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
+             repository, containerConfig);
+
+    try {
+      return request(POST, ContainerCreation.class, resource, resource
+          .request(APPLICATION_JSON_TYPE), Entity.json(containerConfig));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
   }
@@ -676,7 +722,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam(param.queryParam, String.valueOf(param.value));
     }
     if (name != null) {
-     resource = resource.queryParam("t", name);
+      resource = resource.queryParam("t", name);
     }
 
     final File compressedDirectory = CompressedDirectory.create(directory);
@@ -877,10 +923,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   /**
-   * Create a new {@link DefaultDockerClient} builder prepopulated with values loaded
-   * from the DOCKER_HOST and DOCKER_CERT_PATH environment variables.
+   * Create a new {@link DefaultDockerClient} builder prepopulated with values loaded from the
+   * DOCKER_HOST and DOCKER_CERT_PATH environment variables.
+   *
    * @return Returns a builder that can be used to further customize and then build the client.
-   * @throws DockerCertificateException
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
