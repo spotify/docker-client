@@ -11,6 +11,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <autoReleaseAfterClose>true</autoReleaseAfterClose>
   </properties>
 
   <parent>
@@ -33,6 +35,13 @@
     <url>https://github.com/spotify/docker-client</url>
     <tag>HEAD</tag>
   </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <developers>
     <developer>
@@ -297,6 +306,17 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.4</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>${autoReleaseAfterClose}</autoReleaseAfterClose>
+        </configuration>
       </plugin>
     </plugins>
   </build>
