@@ -64,7 +64,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -619,40 +621,52 @@ public class DefaultDockerClientTest {
 
   @Test(expected = DockerTimeoutException.class)
   public void testConnectionRequestTimeout() throws Exception {
-    final int connectionPoolSize = 3;
-    final ExecutorService executorService = Executors.newFixedThreadPool(connectionPoolSize);
+    final int connectionPoolSize = 1;
+    final int callableCount = connectionPoolSize * 100;
+
+    final ExecutorService executor = Executors.newCachedThreadPool();
+    final CompletionService completion = new ExecutorCompletionService(executor);
 
     // Spawn and wait on many more containers than the connection pool size.
     // This should cause a timeout once the connection pool is exhausted.
+
     final DockerClient dockerClient = DefaultDockerClient.fromEnv()
         .connectionPoolSize(connectionPoolSize)
         .build();
     try {
-      for (int i = 0; i < connectionPoolSize * 3; i++) {
-        // Create container
-        final ContainerConfig config = ContainerConfig.builder()
-            .image("busybox")
-            .cmd("sh", "-c", "while :; do sleep 1; done")
-            .build();
-        final String name = randomName();
-        final ContainerCreation creation = dockerClient.createContainer(config, name);
-        final String id = creation.id();
+      // Create container
+      final ContainerConfig config = ContainerConfig.builder()
+          .image("busybox")
+          .cmd("sh", "-c", "while :; do sleep 1; done")
+          .build();
+      final String name = randomName();
+      final ContainerCreation creation = dockerClient.createContainer(config, name);
+      final String id = creation.id();
 
-        // Start the container
-        sut.startContainer(id);
-        executorService.submit(new Runnable() {
+      // Start the container
+      dockerClient.startContainer(id);
+
+      // Submit a bunch of waitContainer requests
+      for (int i = 0; i < callableCount; i++) {
+        completion.submit(new Callable<ContainerExit>() {
           @Override
-          public void run() {
-            try {
-              dockerClient.waitContainer(id);
-            } catch (DockerException | InterruptedException e) {
-              throw Throwables.propagate(e);
-            }
+          public ContainerExit call() throws Exception {
+            return dockerClient.waitContainer(id);
           }
         });
       }
+
+      // Wait for the requests to complete or throw expected exception
+      for (int i = 0; i < callableCount; i++) {
+        try {
+          completion.take().get();
+        } catch (ExecutionException e) {
+          Throwables.propagateIfInstanceOf(e.getCause(), DockerTimeoutException.class);
+          throw e;
+        }
+      }
     } finally {
-      executorService.shutdown();
+      executor.shutdown();
       dockerClient.close();
     }
   }
