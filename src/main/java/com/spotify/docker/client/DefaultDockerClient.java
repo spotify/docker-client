@@ -171,7 +171,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   /**
    * Create a new client using the configuration of the builder.
    */
-  private DefaultDockerClient(final Builder builder) {
+  protected DefaultDockerClient(final Builder builder) {
     URI originalUri = checkNotNull(builder.uri, "uri");
 
     if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
