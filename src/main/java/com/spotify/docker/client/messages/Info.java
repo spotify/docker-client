@@ -21,8 +21,6 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;

@@ -23,8 +23,6 @@ package com.spotify.docker.client;
 
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -76,10 +74,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.ProcessingException;
@@ -144,16 +138,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {};
 
-  private static final AtomicInteger CLIENT_COUNTER = new AtomicInteger();
-
-  private final ExecutorService executor = MoreExecutors.getExitingExecutorService(
-      (ThreadPoolExecutor) Executors.newCachedThreadPool(
-          new ThreadFactoryBuilder()
-              .setDaemon(true)
-              .setNameFormat("docker-client-" + CLIENT_COUNTER.incrementAndGet() + "-%d")
-              .build()));
-
-
   private final Client client;
   private final Client noTimeoutClient;
 
@@ -200,12 +184,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       this.uri = originalUri;
     }
 
-    PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
-        getSchemeRegistry(builder));
-
-    // Use all available connections instead of artificially limiting ourselves to 2 per server.
-    cm.setDefaultMaxPerRoute(cm.getMaxTotal());
-    cm.setMaxTotal(builder.connectionPoolSize);
+    final PoolingHttpClientConnectionManager cm = getConnectionManager(builder);
+    final PoolingHttpClientConnectionManager noTimeoutCm = getConnectionManager(builder);
 
     final RequestConfig requestConfig = RequestConfig.custom()
         .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
@@ -228,8 +208,20 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .build();
     this.noTimeoutClient = ClientBuilder.newBuilder()
         .withConfig(config)
+        .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
         .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
         .build();
+  }
+
+  private PoolingHttpClientConnectionManager getConnectionManager(Builder builder) {
+    final PoolingHttpClientConnectionManager cm =
+        new PoolingHttpClientConnectionManager(getSchemeRegistry(builder));
+
+    // Use all available connections instead of artificially limiting ourselves to 2 per server.
+    cm.setMaxTotal(builder.connectionPoolSize);
+    cm.setDefaultMaxPerRoute(cm.getMaxTotal());
+
+    return cm;
   }
 
   private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {
@@ -255,8 +247,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void close() {
-    executor.shutdownNow();
     client.close();
+    noTimeoutClient.close();
   }
 
   @Override
