@@ -66,6 +66,13 @@ Maven
 </dependency>
 ```
 
+Testing
+-------
+
+If running the tests are slow, like on the order of tens of minutes instead of the expected minutes,
+check how many stopped containers you have with `docker ps -a`. If you have a lot, remove them
+with `docker rm $(docker ps -a -q)`. Your tests should run faster now.
+
 
 Releasing
 ---------
