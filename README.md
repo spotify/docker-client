@@ -55,6 +55,25 @@ final DockerClient docker = new DefaultDockerClient.builder()
     .build();
 ```
 
+### Connection pooling
+
+We use the [Apache HTTP client](https://hc.apache.org/) under the covers, with a shared connection
+pool per instance of the Docker client. The default size of this pool is 100 connections, so each
+instance of the Docker client can only have 100 concurrent requests in flight.
+
+If you plan on waiting on more than 100 containers at a time (`DockerClient.waitContainer`), or
+otherwise need a higher number of concurrent requests, you can modify the connection pool size:
+
+```java
+final DockerClient docker = DefaultDockerClient.fromEnv()
+    .connectionPoolSize(SOME_LARGE_NUMBER)
+    .build()
+```
+
+Note that the connect timeout is also applied to acquiring a connection from the pool. If the pool
+is exhausted and it takes too long to acquire a new connection for a request, we throw a
+`DockerTimeoutException` instead of just waiting forever on a connection becoming available.
+
 Maven
 -----
 

@@ -119,7 +119,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final long DEFAULT_CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
-  private static final int DEFAULT_CONNECTION_POOL_SIZE = 20;
+  private static final int DEFAULT_CONNECTION_POOL_SIZE = 100;
 
   private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
       ObjectMapperProvider.class,
