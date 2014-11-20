@@ -47,8 +47,8 @@ import java.util.List;
 public interface DockerClient extends Closeable {
 
   /**
-   * Ping the docker daemon. Returns "OK" if all is well, though that it simply returns a 200 status
-   * is probably sufficient information.
+   * Ping the docker daemon. Returns "OK" if all is well, though that
+   * it simply returns a 200 status is probably sufficient information.
    */
   String ping() throws DockerException, InterruptedException;
 
@@ -84,16 +84,15 @@ public interface DockerClient extends Closeable {
   ContainerInfo inspectContainer(String containerId)
       throws DockerException, InterruptedException;
 
-
   /**
    * Create a new image from a container's changes.
    *
    * @param containerId The id of the container to commit.
-   * @param comment     commit message.
-   * @param author      image author.
-   * @param tag         image tag.
-   * @param repo        repository to commit to.
-   * @param config      ContainerConfig to commit.
+   * @param comment commit message.
+   * @param author image author.
+   * @param tag image tag.
+   * @param repo repository to commit to.
+   * @param config ContainerConfig to commit.
    */
   ContainerCreation commitContainer(final String containerId, final String comment,
                                     final String author,
@@ -125,8 +124,8 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker image.
    *
-   * @param image   The image to remove.
-   * @param force   Force image removal.
+   * @param image The image to remove.
+   * @param force Force image removal.
    * @param noPrune Do not delete untagged parents.
    * @return A list describing each image which was removed.
    * @throws ImageNotFoundException if the image was not found (404).
@@ -145,7 +144,7 @@ public interface DockerClient extends Closeable {
   /**
    * Pull a docker container image, using a custom ProgressMessageHandler
    *
-   * @param image   The image to pull.
+   * @param image The image to pull.
    * @param handler The handler to use for processing each progress message received from Docker.
    */
   void pull(String image, ProgressHandler handler)
@@ -162,7 +161,7 @@ public interface DockerClient extends Closeable {
   /**
    * Push a docker container image, using a custom ProgressHandler
    *
-   * @param image   The image to push.
+   * @param image The image to push.
    * @param handler The handler to use for processing each progress message received from Docker.
    */
   void push(String image, ProgressHandler handler)
@@ -172,7 +171,7 @@ public interface DockerClient extends Closeable {
    * Tag a docker image.
    *
    * @param image The image to tag.
-   * @param name  The new name that will be applied to the image.
+   * @param name The new name that will be applied to the image.
    */
   void tag(final String image, final String name)
       throws DockerException, InterruptedException;
@@ -181,7 +180,7 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param params    Additional flags to use during build.
+   * @param params Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
    */
   String build(final Path directory, final BuildParameter... params)
@@ -191,8 +190,8 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param name      The repository name and optional tag to apply to the built image.
-   * @param params    Additional flags to use during build.
+   * @param name The repository name and optional tag to apply to the built image.
+   * @param params Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
    */
   String build(final Path directory, final String name, final BuildParameter... params)
@@ -202,8 +201,8 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param handler   The handler to use for processing each progress message received from Docker.
-   * @param params    Additional flags to use during build.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @param params Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
    */
   String build(final Path directory, final ProgressHandler handler, final BuildParameter... params)
@@ -213,9 +212,9 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param name      The repository name and optional tag to apply to the built image.
-   * @param handler   The handler to use for processing each progress message received from Docker.
-   * @param params    Additional flags to use during build.
+   * @param name The repository name and optional tag to apply to the built image.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @param params Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
    */
   String build(final Path directory, final String name, final ProgressHandler handler,
@@ -226,21 +225,13 @@ public interface DockerClient extends Closeable {
    * Flags which can be passed to the <code>build</code> method.
    */
   public static enum BuildParameter {
-    /**
-     * Suppress verbose build output.
-     */
+    /** Suppress verbose build output. */
     QUIET("q", true),
-    /**
-     * Do not use the cache when building the image.
-     */
+    /** Do not use the cache when building the image. */
     NO_CACHE("nocache", true),
-    /**
-     * Do not remove intermediate containers after a successful build.
-     */
+    /** Do not remove intermediate containers after a successful build. */
     NO_RM("rm", false),
-    /**
-     * Always remove intermediate containers.
-     */
+    /** Always remove intermediate containers. */
     FORCE_RM("forcerm", true);
 
     final String queryParam;
@@ -293,10 +284,10 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
-   * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the container
-   * doesn't exit gracefully and in a timely manner.
+   * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the
+   * container doesn't exit gracefully and in a timely manner.
    *
-   * @param containerId                The id of the container to stop.
+   * @param containerId The id of the container to stop.
    * @param secondsToWaitBeforeKilling Time to wait after SIGTERM before sending SIGKILL.
    */
   void stopContainer(String containerId, int secondsToWaitBeforeKilling)
@@ -553,8 +544,8 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Show dangling images only. A dangling image is one which does not have a repository name. By
-     * default both dangling and non-dangling will be shown.
+     * Show dangling images only. A dangling image is one which does not have a repository name.
+     * By default both dangling and non-dangling will be shown.
      */
     public static ListImagesParam danglingImages() {
       return danglingImages(true);
@@ -587,7 +578,6 @@ public interface DockerClient extends Closeable {
    * ListImagesParam only.
    */
   static class ListImagesFilterParam extends ListImagesParam {
-
     public ListImagesFilterParam(String name, String value) {
       super(name, value);
     }
