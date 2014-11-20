@@ -135,12 +135,11 @@ public class DefaultDockerClientTest {
   @After
   public void tearDown() throws Exception {
     // Remove containers
-    final List<Container> containers = sut.listContainers(DockerClient.ListContainersParam.allContainers());
+    final List<Container> containers = sut.listContainers();
     for (Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
       if (info != null && info.name().contains(nameTag)) {
         sut.killContainer(info.id());
-        sut.removeContainer(info.id());
       }
     }
 
