@@ -572,8 +572,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public ContainerCreation commitContainer(final String containerId, final String comment, final String author,
-                                           final String tag, final String repository,
+  public ContainerCreation commitContainer(final String containerId, final String comment,
+                                           final String author, final String tag,
+                                           final String repository,
                                            final ContainerConfig containerConfig)
       throws DockerException, InterruptedException {
 
