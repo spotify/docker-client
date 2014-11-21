@@ -81,6 +81,8 @@ import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
+import static com.spotify.docker.client.DockerClient.LogsParameter.STDERR;
+import static com.spotify.docker.client.DockerClient.LogsParameter.STDOUT;
 import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
@@ -869,6 +871,44 @@ public class DefaultDockerClientTest {
       final ContainerInfo containerInfo = sut.inspectContainer(containerId);
       assertThat(containerInfo.state().paused(), equalTo(false));
     }
+  }
+
+  @Test
+  public void testVolumesFrom() throws Exception {
+    sut.pull("busybox");
+
+    final String volumeContainer = randomName();
+    final String mountContainer = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image("busybox")
+        .volumes("/foo")
+        .cmd("touch", "/foo/bar")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+    sut.waitContainer(volumeContainer);
+
+    final ContainerConfig mountConfig = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("ls", "/foo")
+        .build();
+    final HostConfig mountHostConfig = HostConfig.builder()
+        .volumesFrom(volumeContainer)
+        .build();
+    sut.createContainer(mountConfig, mountContainer);
+    sut.startContainer(mountContainer, mountHostConfig);
+    sut.waitContainer(mountContainer);
+
+    final ContainerInfo info = sut.inspectContainer(mountContainer);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), STDOUT, STDERR)) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("bar"));
   }
 
   private String randomName() {
