@@ -591,6 +591,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try (ProgressStream pull = request(POST, ProgressStream.class, resource,
                                        resource.request(APPLICATION_JSON_TYPE))) {
       pull.tail(handler, POST, resource.getUri());
+    } catch (IOException e) {
+      throw new DockerException(e);
     }
   }
 
@@ -617,6 +619,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
       push.tail(handler, POST, resource.getUri());
+    } catch (IOException e) {
+      throw new DockerException(e);
     }
   }
 
