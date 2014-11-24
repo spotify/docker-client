@@ -39,10 +39,12 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -96,7 +98,9 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -487,6 +491,39 @@ public class DefaultDockerClientTest {
       final ContainerInfo containerInfo = sut.inspectContainer(containerId);
       assertThat(containerInfo.state().running(), equalTo(false));
     }
+  }
+
+  @Test
+  public void testTopProcessesOfContainer() throws Exception {
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+        // make sure the container's busy doing something upon startup
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Ensure that it's running so we can check the active processes
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+    }
+
+    final TopResults topResults = sut.topContainer(containerId, null);
+
+    assertThat(topResults.titles(), not(Matchers.empty()));
+    // there could be one or two processes running, depending on if we happen to catch it in between sleeps
+    assertThat(topResults.processes(), hasSize(greaterThanOrEqualTo(1)));
+
+    assertThat(topResults.titles(), hasItem("CMD"));
+
+    final List<String> firstProcessStatus = topResults.processes().get(0);
+    assertThat("All processes will run as 'root'", firstProcessStatus, hasItem("root"));
   }
 
   @Test

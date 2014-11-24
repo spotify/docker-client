@@ -21,6 +21,7 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 
@@ -38,6 +39,7 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 
 import org.apache.http.client.config.RequestConfig;
@@ -561,6 +563,32 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = resource().path("containers").path(containerId).path("json");
       return request(GET, ContainerInfo.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+
+  @Override
+  public TopResults topContainer(final String containerId)
+      throws DockerException, InterruptedException {
+    return topContainer(containerId, null);
+  }
+
+  @Override
+  public TopResults topContainer(final String containerId, final String psArgs)
+      throws DockerException, InterruptedException {
+    try {
+      WebTarget resource = resource().path("containers").path(containerId).path("top");
+      if (!Strings.isNullOrEmpty(psArgs)) {
+        resource = resource.queryParam("ps_args", psArgs);
+      }
+      return request(GET, TopResults.class, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:

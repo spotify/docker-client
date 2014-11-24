@@ -31,6 +31,7 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 
 import java.io.Closeable;
@@ -133,6 +134,28 @@ public interface DockerClient extends Closeable {
    * @throws ImageNotFoundException if the image was not found (404).
    */
   List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
+      throws DockerException, InterruptedException;
+
+  /**
+   * List processes running inside the container by using <code>ps</code>.
+   *
+   * @param containerId the id of the container to examine
+   * @return the titles and process list for the container
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+  TopResults topContainer(String containerId)
+      throws DockerException, InterruptedException;
+
+  /**
+   * List processes running inside the container using <code>ps</code> and the given arguments.
+   *
+   * @param containerId the id of the container to examine
+   * @param psArgs the arguments to pass to <code>ps</code>
+   *               inside the container, e.g., <code>"-ef"</code>
+   * @return the titles and process list for the container
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+  TopResults topContainer(String containerId, String psArgs)
       throws DockerException, InterruptedException;
 
   /**
