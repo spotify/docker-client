@@ -143,6 +143,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private final URI uri;
 
+  Client getClient() {
+    return client;
+  }
+
+  Client getNoTimeoutClient() {
+    return noTimeoutClient;
+  }
+
   /**
    * Create a new client with default configuration.
    * @param uri The docker rest api uri.

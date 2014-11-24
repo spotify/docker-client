@@ -43,12 +43,17 @@ import com.spotify.docker.client.messages.Version;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -114,6 +119,8 @@ import static org.junit.Assert.fail;
 
 public class DefaultDockerClientTest {
 
+  private static final Logger log = LoggerFactory.getLogger(DefaultDockerClientTest.class);
+
   @Rule public final ExpectedException exception = ExpectedException.none();
 
   @Rule public final TestName testName = new TestName();
@@ -152,6 +159,23 @@ public class DefaultDockerClientTest {
   @Test
   public void testPullWithTag() throws Exception {
     sut.pull("busybox:buildroot-2014.02");
+  }
+
+  @Test
+  public void testFailedPullDoesNotLeakConn() throws Exception {
+    log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
+
+    // Pull a non-existent image 10 times and check that the number of leased connections is still 0
+    // I.e. check that we are not leaking connections.
+    for (int i = 0; i < 10; i++) {
+      try {
+        sut.pull("busybox:" + randomName());
+      } catch (ImagePullFailedException ignored) {
+      }
+      log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
+    }
+
+    assertThat(getClientConnectionPoolStats(sut).getLeased(), equalTo(0));
   }
 
   @Test
@@ -291,6 +315,28 @@ public class DefaultDockerClientTest {
         });
 
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
+  }
+
+  @Test
+  public void testFailedBuildDoesNotLeakConn() throws Exception {
+    final String dockerDirectory =
+        Resources.getResource("dockerDirectoryNonExistentImage").getPath();
+
+    log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
+
+    // Build an image from a bad Dockerfile 10 times and check that the number of
+    // leased connections is still 0.
+    // I.e. check that we are not leaking connections.
+    for (int i = 0; i < 10; i++) {
+      try {
+        sut.build(Paths.get(dockerDirectory), "test");
+      } catch (DockerException ignored) {
+      }
+
+      log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
+    }
+
+    assertThat(getClientConnectionPoolStats(sut).getLeased(), equalTo(0));
   }
 
   @Test
@@ -458,7 +504,6 @@ public class DefaultDockerClientTest {
 
   }
 
-
   @Test
   public void testStopContainer() throws Exception {
     sut.pull("busybox");
@@ -617,6 +662,25 @@ public class DefaultDockerClientTest {
 
     // Verify that the thread was interrupted
     assertThat(interrupted.get(), is(true));
+  }
+
+  @Test
+  public void testFailedPushDoesNotLeakConn() throws Exception {
+    log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
+
+    // Push a non-existent image 10 times and check that the number of
+    // leased connections is still 0.
+    // I.e. check that we are not leaking connections.
+    for (int i = 0; i < 10; i++) {
+      try {
+        sut.push("foobarboooboo" + randomName());
+      } catch (ImagePushFailedException ignored) {
+      }
+
+      log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
+    }
+
+    assertThat(getClientConnectionPoolStats(sut).getLeased(), equalTo(0));
   }
 
   @Test(expected = DockerTimeoutException.class)
@@ -950,5 +1014,15 @@ public class DefaultDockerClientTest {
         Thread.sleep(100);
       }
     }
+  }
+
+  private PoolStats getClientConnectionPoolStats(final DefaultDockerClient client) {
+    return ((PoolingHttpClientConnectionManager) client.getClient().getConfiguration()
+        .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
+  }
+
+  private PoolStats getNoTimeoutClientConnectionPoolStats(final DefaultDockerClient client) {
+    return ((PoolingHttpClientConnectionManager) client.getNoTimeoutClient().getConfiguration()
+        .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
   }
 }
