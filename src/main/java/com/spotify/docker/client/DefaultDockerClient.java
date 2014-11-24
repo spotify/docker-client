@@ -590,13 +590,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("repo", repo)
         .queryParam("comment", comment);
 
-    if (isNullOrEmpty(author)) {
+    if (!isNullOrEmpty(author)) {
       resource = resource.queryParam("author", author);
     }
-    if (isNullOrEmpty(comment)) {
+    if (!isNullOrEmpty(comment)) {
       resource = resource.queryParam("comment", comment);
     }
-    if (isNullOrEmpty(tag)) {
+    if (!isNullOrEmpty(tag)) {
       resource = resource.queryParam("tag", tag);
     }
 
