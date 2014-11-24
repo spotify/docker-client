@@ -572,36 +572,40 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public ContainerCreation commitContainer(final String containerId, final String comment,
-                                           final String author, final String tag,
-                                           final String repository,
-                                           final ContainerConfig containerConfig)
+  public ContainerCreation commitContainer(final String containerId,
+                                           final String repo,
+                                           final String tag,
+                                           final ContainerConfig config,
+                                           final String comment,
+                                           final String author)
       throws DockerException, InterruptedException {
 
     checkNotNull(containerId, "containerId");
-    checkNotNull(comment, "comment");
-    checkNotNull(repository, "repo");
-    checkNotNull(containerConfig, "containerConfig");
+    checkNotNull(repo, "repo");
+    checkNotNull(config, "containerConfig");
 
     WebTarget resource = resource()
         .path("commit")
         .queryParam("container", containerId)
-        .queryParam("repo", repository)
+        .queryParam("repo", repo)
         .queryParam("comment", comment);
 
-    if (author != null) {
+    if (isNullOrEmpty(author)) {
       resource = resource.queryParam("author", author);
     }
-    if (tag != null) {
+    if (isNullOrEmpty(comment)) {
+      resource = resource.queryParam("comment", comment);
+    }
+    if (isNullOrEmpty(tag)) {
       resource = resource.queryParam("tag", tag);
     }
 
     log.info("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
-             repository, containerConfig);
+             repo, config);
 
     try {
       return request(POST, ContainerCreation.class, resource, resource
-          .request(APPLICATION_JSON_TYPE), Entity.json(containerConfig));
+          .request(APPLICATION_JSON_TYPE), Entity.json(config));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:

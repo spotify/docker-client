@@ -448,8 +448,8 @@ public class DefaultDockerClientTest {
     String tag = randomName();
     ContainerCreation
         dockerClientTest =
-        sut.commitContainer(id, "CommitedByTest-" + tag, "DockerClientTest", tag,
-                            "mosheeshel/busybox", config);
+        sut.commitContainer(id,"mosheeshel/busybox",tag, config, "CommitedByTest-" + tag,
+                            "DockerClientTest");
 
     ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
     assertThat(imageInfo.author(), is("DockerClientTest"));

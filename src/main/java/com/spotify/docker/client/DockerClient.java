@@ -94,10 +94,12 @@ public interface DockerClient extends Closeable {
    * @param repo repository to commit to.
    * @param config ContainerConfig to commit.
    */
-  ContainerCreation commitContainer(final String containerId, final String comment,
-                                    final String author,
-                                    final String tag, final String repo,
-                                    final ContainerConfig config)
+  ContainerCreation commitContainer(final String containerId,
+                                    final String repo,
+                                    final String tag,
+                                    final ContainerConfig config,
+                                    final String comment,
+                                    final String author)
       throws DockerException, InterruptedException;
 
   /**
