@@ -434,6 +434,32 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCommitContainer() throws Exception {
+    // Pull image
+    sut.pull("busybox");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    String tag = randomName();
+    ContainerCreation
+        dockerClientTest =
+        sut.commitContainer(id,"mosheeshel/busybox",tag, config, "CommitedByTest-" + tag,
+                            "DockerClientTest");
+
+    ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
+    assertThat(imageInfo.author(), is("DockerClientTest"));
+    assertThat(imageInfo.comment(), is("CommitedByTest-" + tag));
+
+  }
+
+
+  @Test
   public void testStopContainer() throws Exception {
     sut.pull("busybox");
 

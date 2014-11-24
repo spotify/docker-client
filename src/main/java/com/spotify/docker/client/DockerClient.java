@@ -85,6 +85,24 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Create a new image from a container's changes.
+   *
+   * @param containerId The id of the container to commit.
+   * @param comment commit message.
+   * @param author image author.
+   * @param tag image tag.
+   * @param repo repository to commit to.
+   * @param config ContainerConfig to commit.
+   */
+  ContainerCreation commitContainer(final String containerId,
+                                    final String repo,
+                                    final String tag,
+                                    final ContainerConfig config,
+                                    final String comment,
+                                    final String author)
+      throws DockerException, InterruptedException;
+
+  /**
    * Inspect a docker container image.
    *
    * @param image The image to inspect.

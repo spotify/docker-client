@@ -572,6 +572,51 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public ContainerCreation commitContainer(final String containerId,
+                                           final String repo,
+                                           final String tag,
+                                           final ContainerConfig config,
+                                           final String comment,
+                                           final String author)
+      throws DockerException, InterruptedException {
+
+    checkNotNull(containerId, "containerId");
+    checkNotNull(repo, "repo");
+    checkNotNull(config, "containerConfig");
+
+    WebTarget resource = resource()
+        .path("commit")
+        .queryParam("container", containerId)
+        .queryParam("repo", repo)
+        .queryParam("comment", comment);
+
+    if (!isNullOrEmpty(author)) {
+      resource = resource.queryParam("author", author);
+    }
+    if (!isNullOrEmpty(comment)) {
+      resource = resource.queryParam("comment", comment);
+    }
+    if (!isNullOrEmpty(tag)) {
+      resource = resource.queryParam("tag", tag);
+    }
+
+    log.info("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
+             repo, config);
+
+    try {
+      return request(POST, ContainerCreation.class, resource, resource
+          .request(APPLICATION_JSON_TYPE), Entity.json(config));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
   }
