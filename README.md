@@ -34,6 +34,12 @@ docker.killContainer(id);
 docker.removeContainer(id);
 ```
 
+### Configuration
+
+Both `DefaultDockerClient.builder()` and `DefaultDockerClient.fromEnv()` return a
+`DefaultDockerClient.Builder`. The builder can be used to configure and build clients with custom
+timeouts, connection pool sizes, and other parameters.
+
 ### Unix socket support
 
 Unix socket support is available on Linux since v2.5.0:

@@ -979,6 +979,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return this;
     }
 
+    /**
+     * Set the URI for connections to Docker.
+     */
     public Builder uri(final String uri) {
       return uri(URI.create(uri));
     }
@@ -987,6 +990,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return connectTimeoutMillis;
     }
 
+    /**
+     * Set the timeout in milliseconds until a connection to Docker is established.
+     * A timeout value of zero is interpreted as an infinite timeout.
+     */
     public Builder connectTimeoutMillis(final long connectTimeoutMillis) {
       this.connectTimeoutMillis = connectTimeoutMillis;
       return this;
@@ -996,6 +1003,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return readTimeoutMillis;
     }
 
+    /**
+     * Set the SO_TIMEOUT in milliseconds. This is the maximum period of inactivity
+     * between receiving two consecutive data packets from Docker.
+     */
     public Builder readTimeoutMillis(final long readTimeoutMillis) {
       this.readTimeoutMillis = readTimeoutMillis;
       return this;
@@ -1005,6 +1016,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return dockerCertificates;
     }
 
+    /**
+     * Provide certificates to secure the connection to Docker.
+     */
     public Builder dockerCertificates(final DockerCertificates dockerCertificates) {
       this.dockerCertificates = dockerCertificates;
       return this;
@@ -1014,6 +1028,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return connectionPoolSize;
     }
 
+    /**
+     * Set the size of the connection pool for connections to Docker. Note that due to
+     * a known issue, DefaultDockerClient maintains two separate connection pools, each
+     * of which is capped at this size. Therefore, the maximum number of concurrent
+     * connections to Docker may be up to 2 * connectionPoolSize.
+     */
     public Builder connectionPoolSize(int connectionPoolSize) {
       this.connectionPoolSize = connectionPoolSize;
       return this;
