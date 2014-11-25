@@ -134,6 +134,7 @@ public class DefaultDockerClientTest {
   @Before
   public void setup() throws Exception {
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
+    builder.readTimeoutMillis(120000);
     dockerEndpoint = builder.uri();
 
     sut = builder.build();
