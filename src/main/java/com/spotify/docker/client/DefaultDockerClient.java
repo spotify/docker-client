@@ -715,7 +715,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
-    WebTarget resource = resource().path("build");
+    // Some build steps might take a while, don't timeout while waiting for progress
+    WebTarget resource = noTimeoutResource().path("build");
 
     for (final BuildParameter param : params) {
       resource = resource.queryParam(param.queryParam, String.valueOf(param.value));
