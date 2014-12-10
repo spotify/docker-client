@@ -405,12 +405,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final WebTarget resource = resource()
           .path("containers").path(containerId).path("pause");
       request(POST, resource, resource.request());
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 404:
           throw new ContainerNotFoundException(containerId, e);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -424,12 +424,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final WebTarget resource = resource()
           .path("containers").path(containerId).path("unpause");
       request(POST, resource, resource.request());
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 404:
           throw new ContainerNotFoundException(containerId, e);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -449,12 +449,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           .path("restart")
           .queryParam("t", String.valueOf(secondsToWaitBeforeRestart));
       request(POST, resource, resource.request());
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 404:
           throw new ContainerNotFoundException(containerId, e);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -465,12 +465,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = resource().path("containers").path(containerId).path("kill");
       request(POST, resource, resource.request());
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 404:
           throw new ContainerNotFoundException(containerId, e);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -483,14 +483,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           .path("containers").path(containerId).path("stop")
           .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
       request(POST, resource, resource.request());
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 304: // already stopped, so we're cool
           return;
         case 404:
           throw new ContainerNotFoundException(containerId, e);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -529,12 +529,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       request(DELETE, resource, resource
           .queryParam("v", String.valueOf(removeVolumes))
           .request(APPLICATION_JSON_TYPE));
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 404:
-          throw new ContainerNotFoundException(containerId);
+          throw new ContainerNotFoundException(containerId, e);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -785,12 +785,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           .queryParam("force", String.valueOf(force))
           .queryParam("noprune", String.valueOf(noPrune));
       return request(DELETE, REMOVED_IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
-    } catch (WebApplicationException e) {
-      switch (e.getResponse().getStatus()) {
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
         case 404:
           throw new ImageNotFoundException(image);
         default:
-          throw new DockerException(e);
+          throw e;
       }
     }
   }
@@ -862,7 +862,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                        final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      request.async().method(method).get();
+      request.async().method(method, String.class).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -874,7 +874,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                        final Entity<?> entity)
       throws DockerException, InterruptedException {
     try {
-      request.async().method(method, entity).get();
+      request.async().method(method, entity, String.class).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }

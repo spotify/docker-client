@@ -79,6 +79,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM;
@@ -92,6 +93,7 @@ import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
+import static java.lang.System.getenv;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
@@ -116,8 +118,9 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
 public class DefaultDockerClientTest {
+
+  private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClientTest.class);
 
@@ -162,6 +165,11 @@ public class DefaultDockerClientTest {
     sut.pull("busybox:buildroot-2014.02");
   }
 
+  @Test(expected = ImageNotFoundException.class)
+  public void testPullBadImage() throws Exception {
+    sut.pull(randomName());
+  }
+
   @Test
   public void testFailedPullDoesNotLeakConn() throws Exception {
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
@@ -171,7 +179,7 @@ public class DefaultDockerClientTest {
     for (int i = 0; i < 10; i++) {
       try {
         sut.pull("busybox:" + randomName());
-      } catch (ImagePullFailedException ignored) {
+      } catch (ImageNotFoundException ignored) {
       }
       log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
     }
@@ -607,8 +615,17 @@ public class DefaultDockerClientTest {
     // Kill container
     sut.killContainer(id);
 
-    // Remove the container
-    sut.removeContainer(id);
+    try {
+      // Remove the container
+      sut.removeContainer(id);
+    } catch (DockerRequestException e) {
+      if (CIRCLECI) {
+        // yeah, circleci throws an exception whenever you try to RM a container.
+        // fortunately it does actually remove it though.
+      } else {
+        throw e;
+      }
+    }
 
     // Verify that the container is gone
     exception.expect(ContainerNotFoundException.class);
@@ -1000,6 +1017,61 @@ public class DefaultDockerClientTest {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("bar"));
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testStartBadContainer() throws Exception {
+    sut.startContainer(randomName());
+  }
+
+  @Test(expected = ImageNotFoundException.class)
+  public void testCreateContainerWithBadImage() throws Exception {
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(randomName())
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testKillBadContainer() throws Exception {
+    sut.killContainer(randomName());
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testPauseBadContainer() throws Exception {
+    sut.pauseContainer(randomName());
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testRemoveBadContainer() throws Exception {
+    sut.removeContainer(randomName());
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testRestartBadContainer() throws Exception {
+    sut.restartContainer(randomName());
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testStopBadContainer() throws Exception {
+    sut.stopContainer(randomName(), 10);
+  }
+
+  @Test(expected = ImageNotFoundException.class)
+  public void testTagBadImage() throws Exception {
+    sut.tag(randomName(), randomName());
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testUnpauseBadContainer() throws Exception {
+    sut.unpauseContainer(randomName());
+  }
+
+  @Test(expected = ImageNotFoundException.class)
+  public void testRemoveBadImage() throws Exception {
+    sut.removeImage(randomName());
   }
 
   private String randomName() {
