@@ -428,6 +428,28 @@ public interface DockerClient extends Closeable {
   }
 
   /**
+   * Parameters for {@link #attach(String, LogsParameter...)}
+   */
+  public static enum AttachParameter {
+    LOGS,
+    STREAM,
+    STDIN,
+    STDOUT,
+    STDERR
+  }
+
+  /**
+   * Attach to the container id
+   * 
+   * @param containerId  The id of the container to get logs for.
+   * @param params  Params for controlling what streams to get and whether to tail or not.
+   * @throws InterruptedException
+   * @throws DockerException
+   */
+  InputStream attachContainer(String containerId, AttachParameter... params)
+      throws DockerException, InterruptedException;
+
+  /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
   public static class ListContainersParam {
