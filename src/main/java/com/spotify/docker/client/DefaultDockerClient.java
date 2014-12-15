@@ -25,8 +25,10 @@ import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -54,6 +56,7 @@ import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
+import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,6 +145,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private final Client noTimeoutClient;
 
   private final URI uri;
+  private final AuthConfig authConfig;
 
   Client getClient() {
     return client;
@@ -205,6 +209,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
+    
+    this.authConfig = builder.authConfig;
 
     this.client = ClientBuilder.newClient(config);
 
@@ -640,9 +646,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
     }
-
+    
     try (ProgressStream pull = request(POST, ProgressStream.class, resource,
-                                       resource.request(APPLICATION_JSON_TYPE))) {
+                                       resource.request(APPLICATION_JSON_TYPE)
+                                               .header("X-Registry-Auth", authHeader()))) {
       pull.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -670,7 +677,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     // with a non-empty string even if your registry doesn't use authentication
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
-                     resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", "null"))) {
+                     resource.request(APPLICATION_JSON_TYPE)
+                             .header("X-Registry-Auth", authHeader()))) {
       push.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -925,6 +933,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return null;
     }
   }
+  
+  private String authHeader() throws DockerException {
+    if (authConfig == null) {
+      return "null";
+    }
+    try {
+      return Base64.encodeAsString(ObjectMapperProvider
+              .objectMapper()
+              .writeValueAsString(authConfig));
+    } catch (JsonProcessingException ex) {
+      throw new DockerException("Could not encode X-Registry-Auth header", ex);
+    }
+  }
 
   /**
    * Create a new {@link DefaultDockerClient} builder.
@@ -981,6 +1002,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificates dockerCertificates;
+    private AuthConfig authConfig;
 
     public URI uri() {
       return uri;
@@ -1048,6 +1070,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      */
     public Builder connectionPoolSize(int connectionPoolSize) {
       this.connectionPoolSize = connectionPoolSize;
+      return this;
+    }
+    
+    public AuthConfig authConfig() {
+      return authConfig;
+    }
+    
+    /**
+     * Set the auth parameters for pull/push requests from/to private repositories.
+     */
+    public Builder authConfig(AuthConfig authConfig) {
+      this.authConfig = authConfig;
       return this;
     }
 
