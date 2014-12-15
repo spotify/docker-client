@@ -1118,6 +1118,34 @@ public class DefaultDockerClientTest {
     sut.removeImage(randomName());
   }
 
+  @Test
+  public void testExec() throws DockerException, InterruptedException, IOException {
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+            .image("busybox")
+                    // make sure the container's busy doing something upon startup
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
+            DockerClient.ExecParameter.STDOUT,
+            DockerClient.ExecParameter.STDERR);
+
+    log.info("execId = {}", execId);
+
+    try (LogStream stream = sut.execStart(execId)) {
+      final String output = stream.readFully();
+      log.info("Result:\n{}", output);
+      assertThat(output, containsString("total"));
+    }
+  }
+
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());
   }
