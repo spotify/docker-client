@@ -428,7 +428,7 @@ public interface DockerClient extends Closeable {
   }
 
   /**
-   * Parameters for {@link #attach(String, LogsParameter...)}
+   * Parameters for {@link #attach(String, AttachParameter...)}
    */
   public static enum AttachParameter {
     LOGS,

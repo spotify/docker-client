@@ -28,6 +28,7 @@ import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -57,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -67,6 +69,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -1017,6 +1020,36 @@ public class DefaultDockerClientTest {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("bar"));
+  }
+
+  @Test
+  public void testAttachLog() throws Exception {
+    sut.pull("busybox");
+
+    final String volumeContainer = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image("busybox")
+        .volumes("/foo")
+        .cmd("ls", "-la")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+
+    try(
+        InputStream in =
+           sut.attachContainer(volumeContainer,
+                  AttachParameter.LOGS, AttachParameter.STDOUT,
+                  AttachParameter.STDERR, AttachParameter.STREAM);
+        Scanner sc = new Scanner(in);) {
+
+      assertThat(sc.nextLine(), containsString("total"));
+    }
+
+    sut.waitContainer(volumeContainer);
+    final ContainerInfo info = sut.inspectContainer(volumeContainer);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
   }
 
   @Test(expected = ContainerNotFoundException.class)
