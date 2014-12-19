@@ -446,7 +446,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException
    * @throws DockerException
    */
-  InputStream attachContainer(String containerId, AttachParameter... params)
+  LogStream attachContainer(String containerId, AttachParameter... params)
       throws DockerException, InterruptedException;
 
   /**

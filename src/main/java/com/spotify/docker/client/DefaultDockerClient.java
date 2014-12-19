@@ -819,7 +819,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public InputStream attachContainer(final String containerId,
+  public LogStream attachContainer(final String containerId,
       final AttachParameter... params) throws DockerException,
       InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId)
@@ -831,7 +831,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     try {
-      return request(POST, InputStream.class, null, resource.request());
+      return request(POST, LogStream.class, resource,
+          resource.request("application/vnd.docker.raw-stream"));
     } catch (DockerRequestException e) {
       switch (e.status()) {
       case 404:
