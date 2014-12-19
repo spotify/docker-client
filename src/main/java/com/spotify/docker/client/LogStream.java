@@ -30,6 +30,13 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
+import java.util.Scanner;
 
 import static com.google.common.base.Charsets.UTF_8;
 
@@ -84,4 +91,80 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
     }
     return stringBuilder.toString();
   }
+
+  /**
+   * Attach {@link OutputStream OutputStreams} to the {@link LogStream}.
+   *
+   * <p>
+   * <b>Example usage:</b>
+   * </p>
+   *
+   * <pre>
+   * {@code
+   * dockerClient
+   *     .attachContainer(containerId,
+   *         AttachParameter.LOGS, AttachParameter.STDOUT,
+   *         AttachParameter.STDERR, AttachParameter.STREAM)
+   *     .attach(System.out, System.err);
+   * }
+   * </pre>
+   *
+   * <p>
+   * Typically you use {@link PipedOutputStream PipedOutputStreams} connected to a
+   * {@link PipedInputStream} which are read by - for example - an {@link InputStreamReader} or a
+   * {@link Scanner}. For small inputs, the {@link PipedOutputStream} just writes to the buffer of
+   * the {@link PipedInputStream}, but you actually want to read and write from separate threads, as
+   * it may deadlock the thread.
+   * </p>
+   *
+   * <pre>
+   * {@code
+   *   final PipedInputStream stdout = new PipedInputStream();
+   *   final PipedInputStream stderr = new PipedInputStream();
+   *   final PipedOutputStream stdout_pipe = new PipedOutputStream(stdout);
+   *   final PipedOutputStream stderr_pipe = new PipedOutputStream(stderr);
+   *
+   *   executor.submit(new Callable&lt;Void&gt;() {
+   *     &#064;Override
+   *     public Void call() throws Exception {
+   *       dockerClient.attachContainer(containerId,
+   *           AttachParameter.LOGS, AttachParameter.STDOUT,
+   *           AttachParameter.STDERR, AttachParameter.STREAM
+   *         .attach(stdout_pipe, stderr_pipe);
+   *       return null;
+   *     }
+   *   });
+   *
+   *   try (Scanner sc_stdout = new Scanner(stdout); Scanner sc_stderr = new Scanner(stderr)) {
+   *     // ... read here
+   *   }
+   * }
+   * </pre>
+   *
+   * @param stdout OutputStream for the standard out.
+   * @param stderr OutputStream for the standard err
+   * @throws IOException if an I/O error occurs.
+   * @see PipedInputStream
+   * @see PipedOutputStream
+   */
+  public void attach(final OutputStream stdout, final OutputStream stderr) throws IOException {
+    try (WritableByteChannel stdoutChannel = Channels.newChannel(stdout);
+         WritableByteChannel stderrChannel = Channels.newChannel(stderr)) {
+      for (LogMessage message; hasNext(); ) {
+        message = next();
+        switch (message.stream()) {
+          case STDOUT:
+            stdoutChannel.write(message.content());
+            break;
+          case STDERR:
+            stderrChannel.write(message.content());
+            break;
+          case STDIN:
+          default:
+            break;
+        }
+      }
+    }
+  }
+
 }
