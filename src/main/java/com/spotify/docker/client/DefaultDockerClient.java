@@ -820,7 +820,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public LogStream attachContainer(final String containerId,
-      final AttachParameter... params) throws DockerException,
+                                   final AttachParameter... params) throws DockerException,
       InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId)
         .path("attach");
