@@ -26,8 +26,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
-
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -1017,6 +1017,34 @@ public class DefaultDockerClientTest {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("bar"));
+  }
+
+  @Test
+  public void testAttachLog() throws Exception {
+    sut.pull("busybox");
+
+    final String volumeContainer = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image("busybox")
+        .volumes("/foo")
+        .cmd("ls", "-la")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+
+    final String logs;
+    try (LogStream stream = sut.attachContainer(volumeContainer,
+        AttachParameter.LOGS, AttachParameter.STDOUT,
+        AttachParameter.STDERR, AttachParameter.STREAM)) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("total"));
+
+    sut.waitContainer(volumeContainer);
+    final ContainerInfo info = sut.inspectContainer(volumeContainer);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
   }
 
   @Test(expected = ContainerNotFoundException.class)

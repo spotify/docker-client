@@ -826,6 +826,31 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public LogStream attachContainer(final String containerId,
+                                   final AttachParameter... params) throws DockerException,
+      InterruptedException {
+    WebTarget resource = resource().path("containers").path(containerId)
+        .path("attach");
+
+    for (final AttachParameter param : params) {
+      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT),
+          String.valueOf(true));
+    }
+
+    try {
+      return request(POST, LogStream.class, resource,
+          resource.request("application/vnd.docker.raw-stream"));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+      case 404:
+        throw new ContainerNotFoundException(containerId);
+      default:
+        throw e;
+      }
+    }
+  }
+
   private WebTarget resource() {
     return client.target(uri).path(VERSION);
   }
