@@ -136,9 +136,14 @@
       <version>4.3.5</version>
     </dependency>
     <dependency>
-      <groupId>de.gesellix</groupId>
-      <artifactId>unix-socket-factory</artifactId>
-      <version>2014-09-26T18-52-33</version>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jnr-unixsocket</artifactId>
+      <version>0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -282,7 +287,8 @@
               <include>javax.annotation:*</include>
               <include>javax.ws.rs:*</include>
               <include>org.glassfish.**</include>
-              <include>de.gesellix:unix-socket-factory</include>
+              <include>com.github.jnr:*</include>
+              <include>org.ow2.asm:*</include>
             </includes>
           </artifactSet>
           <relocations>
