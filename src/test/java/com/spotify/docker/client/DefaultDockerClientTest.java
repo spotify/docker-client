@@ -76,6 +76,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -219,9 +220,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testRemoveImage() throws Exception {
-    sut.pull("cirros");
-    final String imageLatest = "cirros:latest";
-    final String imageVersion = "cirros:0.3.0";
+    sut.pull("davidxia/cirros");
+    final String imageLatest = "davidxia/cirros:latest";
+    final String imageVersion = "davidxia/cirros:0.3.0";
 
     final Set<RemovedImage> removedImages = Sets.newHashSet();
     removedImages.addAll(sut.removeImage(imageLatest));
@@ -231,13 +232,13 @@ public class DefaultDockerClientTest {
         new RemovedImage(UNTAGGED, imageLatest),
         new RemovedImage(UNTAGGED, imageVersion),
         new RemovedImage(DELETED,
-                         "d20c88c95b28c21fff7e3d2d98a9ab85daebad04d6185ff572068167c20d7374"),
+                         "210f52bd365730ffbc8eb2c4bd658c740f7a5388e27f231a25a2db7d6727ae25"),
         new RemovedImage(DELETED,
-                         "47595debf9e9440a28b20af6e9b2f83ca4d0ce4902bcea5e506c2ad42374bf33"),
+                         "e77cb3fc176bd8ad9665970e86ad165b2e792a85d1851737d2c4dd5548b7087f"),
         new RemovedImage(DELETED,
-                         "f8184986c5454e9486bb32155cf0eb69b477893cc0717a29f1ff504f44e026d8"),
+                         "8d30d81622d4ea7dead047210dc9b26081b3d2a5d0cd6b28d0261bfdfc4f8505"),
         new RemovedImage(DELETED,
-                         "5dd62fd3b727a250becfbb341e80fa7047a9fb5812f7ee184973d2e74d6bfd4d"),
+                         "a070ecd21253011220e4cbffd1639c8ef5b64d6a73ca15d94dfb4b91b5bef347"),
         new RemovedImage(DELETED,
                          "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb")
     ));
@@ -884,13 +885,13 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2014-10-01T20:46:08.914Z");
+    final Date expected = new StdDateFormat().parse("2014-12-31T22:23:56.943Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2014-10-01T20:46:08.914Z");
+    final Date milli = dateFormat.parse("2014-12-31T22:23:56.943Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2014-10-01T20:46:08.914288461Z");
+    final Date nano = dateFormat.parse("2014-12-31T22:23:56.943288461Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
     sut.pull("busybox");
@@ -938,6 +939,21 @@ public class DefaultDockerClientTest {
     final DockerCertificates certs = new DockerCertificates(Paths.get(dockerDirectory));
     final DockerClient c = new DefaultDockerClient(URI.create(format("https://%s:%s", host, port)),
                                                    certs);
+
+    // We need to wait for the docker process inside the docker container to be ready to accept
+    // connections on the port. Otherwise, this test will fail.
+    // Even though we've checked that the container is running, this doesn't mean the process
+    // inside the container is ready.
+    final long deadline =
+        System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TimeUnit.MINUTES.toMillis(1));
+    while (System.nanoTime() < deadline) {
+      try (final Socket ignored = new Socket(host, Integer.parseInt(port))) {
+        break;
+      } catch (IOException ignored) {
+      }
+      Thread.sleep(500);
+    }
+
     assertThat(c.ping(), equalTo("OK"));
 
     sut.stopContainer(containerId, 10);
