@@ -880,8 +880,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     String response;
     try {
-      response = request(POST, String.class, resource, resource
-              .request(APPLICATION_JSON_TYPE),
+      response = request(POST, String.class, resource,
+              resource.request(APPLICATION_JSON_TYPE),
               Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
