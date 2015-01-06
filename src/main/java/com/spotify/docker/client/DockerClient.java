@@ -411,6 +411,65 @@ public interface DockerClient extends Closeable {
   LogStream logs(String containerId, LogsParameter... params)
       throws DockerException, InterruptedException;
 
+
+  /**
+   * Sets up an exec instance in a running container id.
+   *
+   * @param containerId The id of the container
+   * @param cmd shell command
+   * @return exec id
+   * @throws ContainerNotFoundException if the container was not found (404).
+   */
+  String execCreate(String containerId, String[] cmd, ExecParameter... params)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Supported parameters for {@link #execCreate}
+   */
+  public static enum ExecParameter {
+    STDOUT("AttachStdout"),
+    STDERR("AttachStderr");
+
+    private final String name;
+
+    ExecParameter(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+  }
+
+  /**
+   * Starts a previously set up exec instance id.
+   * If detach is true, this API returns after starting the exec command.
+   * Otherwise, this API sets up an interactive session with the exec command.
+   *
+   * @param execId exec id
+   * @return exec output
+   * @throws ExecNotFoundException if the exec was not found (404).
+   */
+  LogStream execStart(String execId, ExecStartParameter... params)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Supported parameters for {@link #execStart}
+   */
+  public static enum ExecStartParameter {
+    DETACH("Detach");
+
+    private final String name;
+
+    ExecStartParameter(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+  }
+
   /**
    * Closes any and all underlying connections to docker, and release resources.
    */

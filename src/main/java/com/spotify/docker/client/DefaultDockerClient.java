@@ -851,6 +851,89 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public String execCreate(String containerId, String[] cmd, ExecParameter... params)
+          throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("containers").path(containerId).path("exec");
+
+    final StringWriter writer = new StringWriter();
+    try {
+      final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+      generator.writeStartObject();
+
+      for (ExecParameter param : params) {
+        generator.writeBooleanField(param.getName(), true);
+      }
+
+      generator.writeArrayFieldStart("Cmd");
+      for (String s : cmd) {
+        generator.writeString(s);
+      }
+      generator.writeEndArray();
+
+      generator.writeEndObject();
+      generator.close();
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+
+
+    String response;
+    try {
+      response = request(POST, String.class, resource,
+              resource.request(APPLICATION_JSON_TYPE),
+              Entity.json(writer.toString()));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId);
+        default:
+          throw e;
+      }
+    }
+
+    try {
+      JsonNode json = objectMapper().readTree(response);
+      return json.findValue("Id").textValue();
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+  }
+
+  @Override
+  public LogStream execStart(String execId, ExecStartParameter... params)
+          throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("exec").path(execId).path("start");
+
+    final StringWriter writer = new StringWriter();
+    try {
+      final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+      generator.writeStartObject();
+
+      for (ExecStartParameter param : params) {
+        generator.writeBooleanField(param.getName(), true);
+      }
+
+      generator.writeEndObject();
+      generator.close();
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+
+    try {
+      return request(POST, LogStream.class, resource,
+              resource.request("application/vnd.docker.raw-stream"),
+              Entity.json(writer.toString()));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ExecNotFoundException(execId);
+        default:
+          throw e;
+      }
+    }
+  }
+
   private WebTarget resource() {
     return client.target(uri).path(VERSION);
   }
