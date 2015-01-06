@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE module PUBLIC
     "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
     "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
@@ -29,15 +28,15 @@ page at http://checkstyle.sourceforge.net/config.html -->
     <!-- Checks that FIXME is not used in comments.  TODO is preferred.
     -->
     <property name="format" value="((//.*)|(\*.*))FIXME" />
-    <property name="message" value='TODO is preferred to FIXME.  e.g. "TODO(johndoe): Refactor when v2 is released."' />
+    <property name="message" value='TODO is preferred to FIXME.  e.g. "TODO (johndoe): Refactor when v2 is released."' />
   </module>
 
   <module name="RegexpSingleline">
     <!-- Checks that TODOs are named.  (Actually, just that they are followed
          by an open paren.)
     -->
-    <property name="format" value="((//.*)|(\*.*))TODO[^(]" />
-    <property name="message" value='All TODOs should be named.  e.g. "TODO(johndoe): Refactor when v2 is released."' />
+    <property name="format" value="((//.*)|(\*.*))TODO [^(]" />
+    <property name="message" value='All TODOs should be named.  e.g. "TODO (johndoe): Refactor when v2 is released."' />
   </module>
 
   <!-- All Java AST specific tests live under TreeWalker module. -->
@@ -53,6 +52,9 @@ page at http://checkstyle.sourceforge.net/config.html -->
       <!-- Checks for redundant import statements. -->
       <property name="severity" value="error"/>
     </module>
+
+    <module name="AvoidStarImport"/>
+    <module name="NoLineWrap"/>
 
     <!--
 
@@ -212,6 +214,7 @@ page at http://checkstyle.sourceforge.net/config.html -->
       <property name="severity" value="error"/>
     </module>
 
+    <module name="ArrayTypeStyle"/>
 
     <!--
 
@@ -235,18 +238,25 @@ page at http://checkstyle.sourceforge.net/config.html -->
     -->
 
     <module name="WhitespaceAround">
-      <!-- Checks that various tokens are surrounded by whitespace.
-           This includes most binary operators and keywords followed
-           by regular or curly braces.
-      -->
-      <property name="tokens" value="ASSIGN, BAND, BAND_ASSIGN, BOR,
-        BOR_ASSIGN, BSR, BSR_ASSIGN, BXOR, BXOR_ASSIGN, COLON, DIV, DIV_ASSIGN,
-        EQUAL, GE, GT, LAND, LE, LITERAL_CATCH, LITERAL_DO, LITERAL_ELSE,
-        LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_RETURN,
-        LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, LOR, LT, MINUS,
-        MINUS_ASSIGN, MOD, MOD_ASSIGN, NOT_EQUAL, PLUS, PLUS_ASSIGN, QUESTION,
-        SL, SL_ASSIGN, SR_ASSIGN, STAR, STAR_ASSIGN"/>
-      <property name="severity" value="error"/>
+      <property name="allowEmptyConstructors" value="true"/>
+      <property name="allowEmptyMethods" value="true"/>
+      <property name="allowEmptyTypes" value="true"/>
+      <property name="allowEmptyLoops" value="true"/>
+      <message key="ws.notFollowed"
+               value="WhitespaceAround: ''{0}'' is not followed by whitespace."/>
+      <message key="ws.notPreceded"
+               value="WhitespaceAround: ''{0}'' is not preceded with whitespace."/>
+    </module>
+
+    <module name="GenericWhitespace">
+      <message key="ws.followed"
+               value="GenericWhitespace ''{0}'' is followed by whitespace."/>
+      <message key="ws.preceded"
+               value="GenericWhitespace ''{0}'' is preceded with whitespace."/>
+      <message key="ws.illegalFollow"
+               value="GenericWhitespace ''{0}'' should followed by whitespace."/>
+      <message key="ws.notPreceded"
+               value="GenericWhitespace ''{0}'' is not preceded with whitespace."/>
     </module>
 
     <module name="WhitespaceAfter">
