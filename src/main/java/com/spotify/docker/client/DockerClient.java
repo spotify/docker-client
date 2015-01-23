@@ -21,6 +21,12 @@
 
 package com.spotify.docker.client;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.List;
+
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -32,12 +38,6 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * A client for interacting with dockerd.
@@ -124,7 +124,26 @@ public interface DockerClient extends Closeable {
    */
   void pull(String image)
       throws DockerException, InterruptedException;
+  
+  /**
+   * Pull a private docker container image.
+   *
+   * @param image The image to pull.
+   * @param authConfig The authentication config needed to pull the image.
+   */
+  void pull(String image, AuthConfig authConfig)
+      throws DockerException, InterruptedException;
 
+  /**
+   * Pull a private docker container image, using a custom ProgressMessageHandler.
+   *
+   * @param image The image to pull.
+   * @param authConfig The authentication config needed to pull the image.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   */
+  void pull(String image, AuthConfig authConfig, ProgressHandler handler)
+      throws DockerException, InterruptedException;
+  
   /**
    * Pull a docker container image, using a custom ProgressMessageHandler
    *

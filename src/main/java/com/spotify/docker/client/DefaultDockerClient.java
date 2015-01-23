@@ -26,7 +26,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -470,7 +469,34 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
   }
+  
+  @Override
+  public void pull(String image, AuthConfig authConfig)
+      throws DockerException, InterruptedException {
+	  pull(image, authConfig, new LoggingPullHandler(image));
+  }
 
+  @Override
+  public void pull(String image, AuthConfig authConfig, ProgressHandler handler)
+	      throws DockerException, InterruptedException {
+	  final ImageRef imageRef = new ImageRef(image);
+
+	  final MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+	  params.add("fromImage", imageRef.getImage());
+	  if (imageRef.getTag() != null) {
+		params.add("tag", imageRef.getTag());
+	  }
+	
+	  final WebResource resource = resource().path("images").path("create").queryParams(params);
+	  
+	  try (ProgressStream pull = request(POST,ProgressStream.class, resource,
+			  resource
+			  	.accept(APPLICATION_JSON_TYPE)
+			  	.header("X-Registry-Auth", authConfig.toHeaderValue()))) {
+		pull.tail(handler, POST, resource.getURI());
+	  }
+  }
+  
   @Override
   public void pull(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
