@@ -489,10 +489,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 	
 	  final WebResource resource = resource().path("images").path("create").queryParams(params);
 	  
-	  try (ProgressStream pull = request(POST,ProgressStream.class, resource,
-			  resource
-			  	.accept(APPLICATION_JSON_TYPE)
-			  	.header("X-Registry-Auth", authConfig.toHeaderValue()))) {
+	  try (ProgressStream pull = request(POST,ProgressStream.class, resource, 
+			  resource.accept(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authConfig.toHeaderValue()))) {
 		pull.tail(handler, POST, resource.getURI());
 	  }
   }
