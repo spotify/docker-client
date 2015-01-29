@@ -21,6 +21,7 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -56,6 +57,11 @@ public interface DockerClient extends Closeable {
    * Get the docker version.
    */
   Version version() throws DockerException, InterruptedException;
+
+  /**
+   * Check auth configuration.
+   */
+  int auth(final AuthConfig authConfig) throws DockerException, InterruptedException;
 
   /**
    * Get docker instance information.
@@ -150,6 +156,24 @@ public interface DockerClient extends Closeable {
    * @param handler The handler to use for processing each progress message received from Docker.
    */
   void pull(String image, ProgressHandler handler)
+      throws DockerException, InterruptedException;
+
+   /**
+   * Pull a private docker container image.
+   *
+   * @param image The image to pull.
+   * @param authConfig The authentication config needed to pull the image.
+   */
+   void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
+
+  /**
+   * Pull a private docker container image, using a custom ProgressMessageHandler.
+   *
+   * @param image The image to pull.
+   * @param authConfig The authentication config needed to pull the image.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   */
+  void pull(String image, AuthConfig authConfig, ProgressHandler handler)
       throws DockerException, InterruptedException;
 
   /**

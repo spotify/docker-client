@@ -33,21 +33,23 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class AuthConfig {
 
-  @JsonProperty("User") private String user;
+  @JsonProperty("Username") private String username;
   @JsonProperty("Password") private String password;
   @JsonProperty("Email") private String email;
+  @JsonProperty("ServerAddress") private String serverAddress;
 
   private AuthConfig() {
   }
 
   private AuthConfig(final Builder builder) {
-    this.user = builder.user;
+    this.username = builder.username;
     this.password = builder.password;
     this.email = builder.email;
+    this.serverAddress = builder.serverAddress;
   }
 
-  public String user() {
-    return user;
+  public String username() {
+    return username;
   }
 
   public String password() {
@@ -56,6 +58,10 @@ public class AuthConfig {
 
   public String email() {
     return email;
+  }
+
+  public String serverAddress() {
+    return serverAddress;
   }
 
   @Override
@@ -68,7 +74,7 @@ public class AuthConfig {
     }
 
     final AuthConfig config = (AuthConfig) o;
-    if (user != null ? !user.equals(config.user) : config.user != null) {
+    if (username != null ? !username.equals(config.username) : config.username != null) {
       return false;
     }
     if (password != null ? !password.equals(config.password) : config.password != null) {
@@ -77,24 +83,30 @@ public class AuthConfig {
     if (email != null ? !email.equals(config.email) : config.email != null) {
       return false;
     }
+    if (serverAddress != null ?
+        !serverAddress.equals(config.serverAddress) : config.serverAddress != null) {
+      return false;
+    }
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = user != null ? user.hashCode() : 0;
+    int result = username != null ? username.hashCode() : 0;
     result = 31 * result + (password != null ? password.hashCode() : 0);
     result = 31 * result + (email != null ? email.hashCode() : 0);
+    result = 31 * result + (serverAddress != null ? serverAddress.hashCode() : 0);
     return result;
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("user", user)
+        .add("username", username)
         .add("password", password)
         .add("email", email)
+        .add("serverAddress", serverAddress)
         .toString();
   }
 
@@ -108,26 +120,29 @@ public class AuthConfig {
 
   public static class Builder {
 
-    private String user;
+    private String username;
     private String password;
     private String email;
+    // Default to the public Docker registry.
+    private String serverAddress = "https://index.docker.io/v1/";
 
     private Builder() {
     }
 
     private Builder(final AuthConfig config) {
-      this.user = config.user;
+      this.username = config.username;
       this.password = config.password;
       this.email = config.email;
+      this.serverAddress = config.serverAddress;
     }
 
-    public Builder user(final String user) {
-      this.user = user;
+    public Builder username(final String username) {
+      this.username = username;
       return this;
     }
 
-    public String user() {
-      return user;
+    public String username() {
+      return username;
     }
 
     public Builder password(final String password) {
@@ -146,6 +161,15 @@ public class AuthConfig {
 
     public String email() {
       return email;
+    }
+
+    public Builder serverAddress(final String serverAddress) {
+      this.serverAddress = serverAddress;
+      return this;
+    }
+
+    public String serverAddress() {
+      return serverAddress;
     }
 
     public AuthConfig build() {

@@ -32,7 +32,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 
 /**
  * The {@link CreateContainer} annotation can be used on any test method to provide the values for
- * the {@link ContainerCreation} object that the {@link DockerContainer} will user for the
+ * the {@link ContainerCreation} object that the {@link DockerContainer} will username for the
  * {@link DockerClient}.
  * 
  * @author Jan-Willem Gmelig Meyling
