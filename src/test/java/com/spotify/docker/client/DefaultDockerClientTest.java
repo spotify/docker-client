@@ -28,6 +28,7 @@ import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -124,6 +125,16 @@ import static org.junit.Assume.assumeTrue;
 public class DefaultDockerClientTest {
 
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
+  // Using a dummy individual's test account because organizations
+  // cannot have private repos on Docker Hub.
+  private static final String AUTH_EMAIL = "dxia@spotify.com";
+  private static final String AUTH_USERNAME = "dxia";
+  private static final String AUTH_PASSWORD = "gRjK8tcQ7q";
+  // Using yet another dummy individual's test account because CircleCI throws a weird error
+  // when trying to pull the same private repo a second time. ¯\_(ツ)_/
+  private static final String AUTH_EMAIL2 = "dxia+2@spotify.com";
+  private static final String AUTH_USERNAME2 = "dxia2";
+  private static final String AUTH_PASSWORD2 = "Tv38KLPd]M";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClientTest.class);
 
@@ -137,8 +148,12 @@ public class DefaultDockerClientTest {
 
   private DefaultDockerClient sut;
 
+  private AuthConfig authConfig;
+
   @Before
   public void setup() throws Exception {
+    authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
+        .password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
     builder.readTimeoutMillis(120000);
     dockerEndpoint = builder.uri();
@@ -171,6 +186,25 @@ public class DefaultDockerClientTest {
   @Test(expected = ImageNotFoundException.class)
   public void testPullBadImage() throws Exception {
     sut.pull(randomName());
+  }
+
+  @Test(expected = ImageNotFoundException.class)
+  public void testPullPrivateRepoWithoutAuth() throws Exception {
+    sut.pull("dxia/cirros-private:latest");
+  }
+
+  @Test
+  public void testPullPrivateRepoWithAuth() throws Exception {
+    AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL2).username(AUTH_USERNAME2)
+        .password(AUTH_PASSWORD2).build();
+    sut.pull("dxia2/scratch-private:latest", authConfig);
+  }
+
+  @Test(expected = ImageNotFoundException.class)
+  public void testPullPrivateRepoWithBadAuth() throws Exception {
+    AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
+        .password("foobar").build();
+    sut.pull("dxia/cirros-private:latest", badAuthConfig);
   }
 
   @Test
@@ -209,6 +243,28 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testAuth() throws Exception {
+    final int statusCode = sut.auth(authConfig);
+    assertThat(statusCode, equalTo(200));
+  }
+
+  @Test
+  public void testBadAuth() throws Exception {
+    AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
+        .password("foobar").build();
+    final int statusCode = sut.auth(badAuthConfig);
+    assertThat(statusCode, equalTo(401));
+  }
+
+  @Test
+  public void testMissingAuthParam() throws Exception {
+    AuthConfig badAuthConfig =
+        AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME).build();
+    final int statusCode = sut.auth(badAuthConfig);
+    assertThat(statusCode, equalTo(500));
+  }
+
+  @Test
   public void testInfo() throws Exception {
     final Info info = sut.info();
     assertThat(info.executionDriver(), not(isEmptyOrNullString()));
@@ -222,9 +278,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testRemoveImage() throws Exception {
-    sut.pull("davidxia/cirros");
-    final String imageLatest = "davidxia/cirros:latest";
-    final String imageVersion = "davidxia/cirros:0.3.0";
+    sut.pull("dxia/cirros");
+    final String imageLatest = "dxia/cirros:latest";
+    final String imageVersion = "dxia/cirros:0.3.0";
 
     final Set<RemovedImage> removedImages = Sets.newHashSet();
     removedImages.addAll(sut.removeImage(imageLatest));

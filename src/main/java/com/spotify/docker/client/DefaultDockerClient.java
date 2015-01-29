@@ -278,6 +278,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public int auth(final AuthConfig authConfig) throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("auth");
+    final Response response =
+        request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+                Entity.json(authConfig));
+    return response.getStatus();
+  }
+
+  @Override
   public Info info() throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("info");
     return request(GET, Info.class, resource, resource.request(APPLICATION_JSON_TYPE));
@@ -650,6 +659,35 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try (ProgressStream pull = request(POST, ProgressStream.class, resource,
                                        resource.request(APPLICATION_JSON_TYPE)
                                                .header("X-Registry-Auth", authHeader()))) {
+      pull.tail(handler, POST, resource.getUri());
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+  }
+
+  @Override
+  public void pull(final String image, final AuthConfig authConfig)
+      throws DockerException, InterruptedException {
+    pull(image, authConfig, new LoggingPullHandler(image));
+  }
+
+  @Override
+  public void pull(final String image, final AuthConfig authConfig, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
+    final ImageRef imageRef = new ImageRef(image);
+
+    WebTarget resource = resource().path("images").path("create");
+
+    resource = resource.queryParam("fromImage", imageRef.getImage());
+    if (imageRef.getTag() != null) {
+      resource = resource.queryParam("tag", imageRef.getTag());
+    }
+
+    try (ProgressStream pull =
+             request(POST, ProgressStream.class, resource,
+                     resource
+                         .request(APPLICATION_JSON_TYPE)
+                         .header("X-Registry-Auth", authHeader(authConfig)))) {
       pull.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -1043,6 +1081,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
   
   private String authHeader() throws DockerException {
+    return authHeader(authConfig);
+  }
+
+  private String authHeader(final AuthConfig authConfig) throws DockerException {
     if (authConfig == null) {
       return "null";
     }

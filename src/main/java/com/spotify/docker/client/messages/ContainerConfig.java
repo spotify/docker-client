@@ -304,7 +304,7 @@ public class ContainerConfig {
     return Objects.toStringHelper(this)
         .add("hostname", hostname)
         .add("domainname", domainname)
-        .add("user", user)
+        .add("username", user)
         .add("memory", memory)
         .add("memorySwap", memorySwap)
         .add("cpuShares", cpuShares)
