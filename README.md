@@ -13,11 +13,22 @@ final DockerClient docker = DefaultDockerClient.fromEnv().build();
 // Pull image
 docker.pull("busybox");
 
-// Create container
+// Create container with exposed ports
+final String[] ports = {"80", "22"};
 final ContainerConfig config = ContainerConfig.builder()
-    .image("busybox")
-    .cmd("sh", "-c", "while :; do sleep 1; done")
+    .image("busybox").exposedPorts(ports)
+    .cmd("sh", "-c", "while :; do sleep 1; done").
     .build();
+
+// bind container ports to host ports
+final Map<String, List<PortBinding>> portBindings = new HashMap<String, List<PortBinding>>();
+for(String port : ports) {
+  List<PortBinding> hostPorts = new ArrayList<PortBinding>();
+  hostPorts.add(PortBinding.of("0.0.0.0", port));
+  portBindings.put(port, hostPorts);
+}
+final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings).build();
+
 final ContainerCreation creation = docker.createContainer(config);
 final String id = creation.id();
 
@@ -25,7 +36,13 @@ final String id = creation.id();
 final ContainerInfo info = docker.inspectContainer(id);
 
 // Start container
-docker.startContainer(id);
+docker.startContainer(id, hostConfig);
+
+// Exec command inside running container with attached STDOUT and STDERR
+final String[] command = {"bash", "-c", "ls"};
+final String execId = docker.execCreate(id, command, DockerClient.ExecParameter.STDOUT, DockerClient.ExecParameter.STDERR);
+final LogStream output = docker.execStart(execId);
+final String execOutput = output.readFully();
 
 // Kill container
 docker.killContainer(id);
@@ -55,9 +72,9 @@ with client-server authentication. The semantics are similar to using [the `DOCK
 environment variable](https://docs.docker.com/articles/https/#client-modes):
 
 ```java
-final DockerClient docker = new DefaultDockerClient.builder()
+final DockerClient docker = DefaultDockerClient.builder()
     .uri(URI.create("https://boot2docker:2376"))
-    .dockerCertificates(new DockerCertificates("/Users/rohan/.docker/boot2docker-vm/"))
+    .dockerCertificates(new DockerCertificates(Paths.get("/Users/rohan/.docker/boot2docker-vm/"))
     .build();
 ```
 
