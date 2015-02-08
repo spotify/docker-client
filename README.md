@@ -17,15 +17,15 @@ docker.pull("busybox");
 final String[] ports = {"80", "22"};
 final ContainerConfig config = ContainerConfig.builder()
     .image("busybox").exposedPorts(ports)
-    .cmd("sh", "-c", "while :; do sleep 1; done").
+    .cmd("sh", "-c", "while :; do sleep 1; done")
     .build();
 
 // bind container ports to host ports
 final Map<String, List<PortBinding>> portBindings = new HashMap<String, List<PortBinding>>();
 for(String port : ports) {
-  List<PortBinding> hostPorts = new ArrayList<PortBinding>();
-  hostPorts.add(PortBinding.of("0.0.0.0", port));
-  portBindings.put(port, hostPorts);
+    List<PortBinding> hostPorts = new ArrayList<PortBinding>();
+    hostPorts.add(PortBinding.of("0.0.0.0", port));
+    portBindings.put(port, hostPorts);
 }
 final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings).build();
 
