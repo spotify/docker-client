@@ -100,11 +100,28 @@ is exhausted and it takes too long to acquire a new connection for a request, we
 Maven
 -----
 
+Please note that in releases 2.7.6 and earlier, the default artifact was the shaded version.  When upgrading
+to version 2.7.7, you will need to include the shaded classifier if you relied on the shaded dependencies in the
+docker-client jar.
+
+Standard:
+
 ```xml
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.7.6</version>
+  <version>2.7.7</version>
+</dependency>
+```
+
+Shaded:
+
+```xml
+<dependency>
+  <groupId>com.spotify</groupId>
+  <artifactId>docker-client</artifactId>
+  <classifier>shaded</classifier>
+  <version>2.7.7</version>
 </dependency>
 ```
 

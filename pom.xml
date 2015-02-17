@@ -316,6 +316,7 @@
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
             </relocation>
           </relocations>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
         </configuration>
         <executions>
           <execution>
