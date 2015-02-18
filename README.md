@@ -100,8 +100,7 @@ is exhausted and it takes too long to acquire a new connection for a request, we
 Maven
 -----
 
-Please note that in releases 2.7.6 and earlier, the default artifact was the shaded version.  When upgrading
-to version 2.7.7, you will need to include the shaded classifier if you relied on the shaded dependencies in the
+Please note that in releases 2.7.6 and earlier, the default artifact was the shaded version.  When upgrading to version 2.7.7, you will need to include the shaded classifier if you relied on the shaded dependencies in the
 docker-client jar.
 
 Standard:
@@ -124,6 +123,8 @@ Shaded:
   <version>2.7.7</version>
 </dependency>
 ```
+
+**This is particularly important if you use Jersey 1.x in your project. To avoid conflicts with docker-client and Jersey 2.x, you will need to explicitly specify the shaded version above.**
 
 Testing
 -------
