@@ -43,6 +43,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
@@ -153,9 +154,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
@@ -1338,6 +1339,76 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
+  }
+
+  @Test
+  public void testEventStream() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    EventStream eventStream = sut.events();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+
+    final Event createEvent = eventStream.next();
+    assertThat(createEvent.status(), equalTo("create"));
+    assertThat(createEvent.id(), equalTo(container.id()));
+    assertThat(createEvent.from(), startsWith("busybox:"));
+    assertThat(createEvent.time(), notNullValue());
+
+    final Event startEvent = eventStream.next();
+    assertThat(startEvent.status(), equalTo("start"));
+    assertThat(startEvent.id(), equalTo(container.id()));
+    assertThat(startEvent.from(), startsWith("busybox:"));
+    assertThat(startEvent.time(), notNullValue());
+
+    eventStream.close();
+  }
+
+  @Test
+  public void testEventStreamWithSinceTime() throws Exception {
+    Thread.sleep(1000); // ensure we push to the next second
+                        // so we don't get events from the last test
+    final Date date = new Date();
+    sut.pull(BUSYBOX_LATEST);
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+
+    EventStream eventStream = sut.events(DockerClient.EventsParam.since(date.getTime() / 1000));
+
+    final Event pullEvent = eventStream.next();
+    assertThat(pullEvent.status(), equalTo("pull"));
+    assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
+
+    final Event createEvent = eventStream.next();
+    assertThat(createEvent.status(), equalTo("create"));
+    assertThat(createEvent.id(), equalTo(container.id()));
+    assertThat(createEvent.from(), startsWith("busybox:"));
+    assertThat(createEvent.time(), notNullValue());
+
+    final Event startEvent = eventStream.next();
+    assertThat(startEvent.status(), equalTo("start"));
+    assertThat(startEvent.id(), equalTo(container.id()));
+    assertThat(startEvent.from(), startsWith("busybox:"));
+    assertThat(startEvent.time(), notNullValue());
+
+    eventStream.close();
+  }
+
+  @Test(timeout = 5000)
+  public void testEventStreamWithUntilTime() throws Exception {
+    EventStream eventStream =
+        sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
+
+    while (eventStream.hasNext()) {
+      eventStream.next();
+    }
+
+    eventStream.close();
   }
 
   @Test
