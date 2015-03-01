@@ -979,6 +979,8 @@ public class DefaultDockerClientTest {
     while (eventStream.hasNext()) {
       eventStream.next();
     }
+
+    eventStream.close();
   }
 
   @Test

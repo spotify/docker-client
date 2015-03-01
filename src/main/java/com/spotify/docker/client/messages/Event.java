@@ -50,7 +50,7 @@ public class Event {
   }
 
   public Date time() {
-    return time;
+    return time == null ? null : new Date(time.getTime());
   }
 
 }
