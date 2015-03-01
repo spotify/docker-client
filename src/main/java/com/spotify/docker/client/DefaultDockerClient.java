@@ -40,9 +40,6 @@ import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -65,16 +62,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -93,17 +80,33 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Optional.*;
-import static com.google.common.base.Preconditions.*;
-import static com.google.common.base.Strings.*;
-import static com.google.common.collect.Maps.*;
-import static com.spotify.docker.client.CompressedDirectory.*;
-import static com.spotify.docker.client.ObjectMapperProvider.*;
-import static java.lang.System.*;
-import static java.nio.charset.StandardCharsets.*;
-import static java.util.concurrent.TimeUnit.*;
-import static javax.ws.rs.HttpMethod.*;
-import static javax.ws.rs.core.MediaType.*;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.CompressedDirectory.delete;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -897,7 +900,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     try {
-      CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider.getHttpClient(noTimeoutClient);
+      CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider
+              .getHttpClient(noTimeoutClient);
       CloseableHttpResponse response = client.execute(new HttpGet(resource.getUri()));
       return new EventStream(response, objectMapper());
     } catch (IOException exception) {
