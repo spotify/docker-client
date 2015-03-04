@@ -74,7 +74,7 @@ environment variable](https://docs.docker.com/articles/https/#client-modes):
 ```java
 final DockerClient docker = DefaultDockerClient.builder()
     .uri(URI.create("https://boot2docker:2376"))
-    .dockerCertificates(new DockerCertificates(Paths.get("/Users/rohan/.docker/boot2docker-vm/"))
+    .dockerCertificates(new DockerCertificates(Paths.get("/Users/rohan/.docker/boot2docker-vm/")))
     .build();
 ```
 
