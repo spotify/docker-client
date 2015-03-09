@@ -136,6 +136,10 @@ after many test runs. You may find it helpful to occassionally issue `docker rm 
 Releasing
 ---------
 
+Commits to the master branch will trigger our continuous integration agent to build the jar and
+release by uploading to Sonatype. If you are a project maintainer with the necessary credentials,
+you can also build and release locally by running the below.
+
 ```sh
 mvn release:clean
 mvn release:prepare
