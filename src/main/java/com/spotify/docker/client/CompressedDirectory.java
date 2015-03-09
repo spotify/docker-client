@@ -122,10 +122,11 @@ class CompressedDirectory {
       return false;
     }
 
-    boolean deleted = false;
+    boolean deleted;
     try {
       deleted = file.delete();
     } catch (Exception ignored) {
+      deleted = false;
     }
 
     if (!deleted) {
