@@ -266,6 +266,7 @@ public class DefaultDockerClientTest {
     assertThat(info.executionDriver(), not(isEmptyOrNullString()));
     assertThat(info.initPath(), not(isEmptyOrNullString()));
     assertThat(info.kernelVersion(), not(isEmptyOrNullString()));
+    assertThat(info.operatingSystem(), not(isEmptyOrNullString()));
     assertThat(info.storageDriver(), not(isEmptyOrNullString()));
     assertThat(info.sockets(), not(empty()));
     assertThat(info.memoryLimit(), not(nullValue()));
