@@ -28,6 +28,7 @@ public class Info {
   @JsonProperty("Driver") private String storageDriver;
   @JsonProperty("ExecutionDriver") private String executionDriver;
   @JsonProperty("KernelVersion") private String kernelVersion;
+  @JsonProperty("OperatingSystem") private String operatingSystem;
   @JsonProperty("Debug") private int debug;
   @JsonProperty("NFd") private int fileDescriptors;
   @JsonProperty("NGoroutines") private int goroutines;
@@ -55,6 +56,10 @@ public class Info {
 
   public String kernelVersion() {
     return kernelVersion;
+  }
+
+  public String operatingSystem() {
+    return operatingSystem;
   }
 
   public boolean debug() {
