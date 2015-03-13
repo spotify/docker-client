@@ -26,6 +26,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -137,6 +138,14 @@ public interface DockerClient extends Closeable {
   List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
       throws DockerException, InterruptedException;
 
+  /**
+   * Search for images on Docker Hub
+   * @param term the search term
+   * @return a list of matches for the given search term
+   * @throws DockerException if a server error occurred (500)
+   */
+  List<ImageSearchResult> searchImages(String term) throws DockerException, InterruptedException;
+  
   /**
    * Pull a docker container image.
    *

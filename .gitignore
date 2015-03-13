@@ -3,5 +3,8 @@ pom.xml.versionsBackup
 *.iml
 *~
 .idea/*
+.settings/*
+.project
+.classpath
 .DS_Store
 dependency-reduced-pom.xml
