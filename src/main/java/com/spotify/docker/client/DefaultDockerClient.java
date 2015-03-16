@@ -223,6 +223,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .build();
   }
 
+  public String getHost() {
+    return fromNullable(uri.getHost()).or("localhost");
+  }
+
   private PoolingHttpClientConnectionManager getConnectionManager(Builder builder) {
     final PoolingHttpClientConnectionManager cm =
         new PoolingHttpClientConnectionManager(getSchemeRegistry(builder));
