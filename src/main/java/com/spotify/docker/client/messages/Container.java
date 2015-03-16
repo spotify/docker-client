@@ -155,6 +155,22 @@ public class Container {
     @JsonProperty("Type") private String type;
     @JsonProperty("IP") private String ip;
 
+    public String getIp() {
+      return ip;
+    }
+    
+    public int getPrivatePort() {
+      return privatePort;
+    }
+    
+    public int getPublicPort() {
+      return publicPort;
+    }
+    
+    public String getType() {
+      return type;
+    }
+    
     @Override
     public boolean equals(final Object o) {
       if (this == o) {
