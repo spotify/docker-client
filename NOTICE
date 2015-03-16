@@ -1,2 +1,14 @@
 Docker Client
-Copyright (c) 2014 Spotify AB
+This software was originally developed by Spotify and the for the
+portions originating from Spotify is copyright Spotify AB. 
+
+Substantial additions this project has been made by the following
+contributions who retain copyright to their contributions. For details
+on the exent of each contribution, see file headers and the git commit
+history.
+
+Jan-Willem Gmelig Meyling
+
+Peter Harman, copyright held by CyDesign Ltd.
+
+Oleg Poleshuk

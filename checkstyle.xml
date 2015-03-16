@@ -9,9 +9,9 @@ page at http://checkstyle.sourceforge.net/config.html -->
 
 <module name="Checker">
 
-  <module name="Header">
+  <module name="RegexpHeader">
     <property name="headerFile" value="java.header"/>
-    <property name="ignoreLines" value="2, 3"/>
+    <property name="multiLines" value="2"/>
     <property name="fileExtensions" value="java"/>
   </module>
 
