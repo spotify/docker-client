@@ -26,17 +26,27 @@ public class Info {
   @JsonProperty("Containers") private int containers;
   @JsonProperty("Images") private int images;
   @JsonProperty("Driver") private String storageDriver;
+  @JsonProperty("DriverStatus") private List<String> driverStatus;
   @JsonProperty("ExecutionDriver") private String executionDriver;
   @JsonProperty("KernelVersion") private String kernelVersion;
+  @JsonProperty("NCPU") private int cpus;
+  @JsonProperty("MemTotal") private long memTotal;
+  @JsonProperty("Name") private String name;
+  @JsonProperty("ID") private String id;
   @JsonProperty("OperatingSystem") private String operatingSystem;
   @JsonProperty("Debug") private int debug;
   @JsonProperty("NFd") private int fileDescriptors;
   @JsonProperty("NGoroutines") private int goroutines;
   @JsonProperty("NEventsListener") private int eventsListener;
   @JsonProperty("InitPath") private String initPath;
+  @JsonProperty("InitSha1") private String initSha1;
+  @JsonProperty("IndexServerAddress") private String indexServerAddress;
   @JsonProperty("Sockets") private List<String> sockets;
   @JsonProperty("MemoryLimit") private Boolean memoryLimit;
   @JsonProperty("SwapLimit") private Boolean swapLimit;
+  @JsonProperty("IPv4Forwarding") private boolean ipv4Forwarding;
+  @JsonProperty("Labels") private List<String> labels;
+  @JsonProperty("DockerRootDir") private String dockerRootDir;
 
   public int containers() {
     return containers;
@@ -93,7 +103,47 @@ public class Info {
   public boolean swapLimit() {
     return swapLimit;
   }
+  
+  public List<String> driverStatus() {
+    return driverStatus;
+  }
 
+  public int cpus() {
+    return cpus;
+  }
+
+  public long memTotal() {
+    return memTotal;
+  }
+
+  public String name() {
+    return name;
+  }
+
+  public String id() {
+    return id;
+  }
+
+  public String initSha1() {
+    return initSha1;
+  }
+
+  public String indexServerAddress() {
+    return indexServerAddress;
+  }
+
+  public boolean ipv4Forwarding() {
+    return ipv4Forwarding;
+  }
+
+  public List<String> labels() {
+    return labels;
+  }
+
+  public String dockerRootDir() {
+    return dockerRootDir;
+  }
+  
   @Override
   public boolean equals(Object o) {
     if (this == o) {
