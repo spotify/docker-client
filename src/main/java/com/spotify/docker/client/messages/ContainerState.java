@@ -37,6 +37,8 @@ public class ContainerState {
   @JsonProperty("ExitCode") private Integer exitCode;
   @JsonProperty("StartedAt") private Date startedAt;
   @JsonProperty("FinishedAt") private Date finishedAt;
+  @JsonProperty("Error") private String error;
+  @JsonProperty("OOMKilled") private Boolean oomKilled;
 
   public Boolean running() {
     return running;
@@ -64,6 +66,14 @@ public class ContainerState {
 
   public Date finishedAt() {
     return finishedAt == null ? null : new Date(finishedAt.getTime());
+  }
+
+  public String error() {
+    return error;
+  }
+
+  public Boolean oomKilled() {
+    return oomKilled;
   }
 
   @Override
@@ -98,6 +108,12 @@ public class ContainerState {
     if (startedAt != null ? !startedAt.equals(that.startedAt) : that.startedAt != null) {
       return false;
     }
+    if (error != null ? !error.equals(that.error) : that.error != null) {
+      return false;
+    }
+    if (oomKilled != null ? !oomKilled.equals(that.oomKilled) : that.oomKilled != null) {
+      return false;
+    }
 
     return true;
   }
@@ -111,6 +127,8 @@ public class ContainerState {
     result = 31 * result + (exitCode != null ? exitCode.hashCode() : 0);
     result = 31 * result + (startedAt != null ? startedAt.hashCode() : 0);
     result = 31 * result + (finishedAt != null ? finishedAt.hashCode() : 0);
+    result = 31 * result + (error != null ? error.hashCode() : 0);
+    result = 31 * result + (oomKilled != null ? oomKilled.hashCode() : 0);
     return result;
   }
 
@@ -124,6 +142,8 @@ public class ContainerState {
         .add("exitCode", exitCode)
         .add("startedAt", startedAt)
         .add("finishedAt", finishedAt)
+        .add("error", error)
+        .add("oomKilled", oomKilled)
         .toString();
   }
 }
