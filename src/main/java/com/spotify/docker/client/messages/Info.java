@@ -26,7 +26,7 @@ public class Info {
   @JsonProperty("Containers") private int containers;
   @JsonProperty("Images") private int images;
   @JsonProperty("Driver") private String storageDriver;
-  @JsonProperty("DriverStatus") private List<String> driverStatus;
+  @JsonProperty("DriverStatus") private List<List<String>> driverStatus;
   @JsonProperty("ExecutionDriver") private String executionDriver;
   @JsonProperty("KernelVersion") private String kernelVersion;
   @JsonProperty("NCPU") private int cpus;
@@ -104,7 +104,7 @@ public class Info {
     return swapLimit;
   }
   
-  public List<String> driverStatus() {
+  public List<List<String>> driverStatus() {
     return driverStatus;
   }
 
