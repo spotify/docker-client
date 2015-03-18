@@ -530,6 +530,12 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Get the Docker host address
+   * @return the docker host name or IP
+   */
+  String getHost();
+  
+  /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
   public static class ListContainersParam {
