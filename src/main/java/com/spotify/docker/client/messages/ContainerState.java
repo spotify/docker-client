@@ -30,6 +30,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerState {
 
+  @JsonProperty("Error") private String error;
+  @JsonProperty("OOMKilled") private boolean oomKilled;
   @JsonProperty("Running") private Boolean running;
   @JsonProperty("Paused") private Boolean paused;
   @JsonProperty("Restarting") private Boolean restarting;
@@ -56,6 +58,14 @@ public class ContainerState {
 
   public Integer exitCode() {
     return exitCode;
+  }
+
+  public String error() {
+    return error;
+  }
+
+  public Boolean oomKilled() {
+    return oomKilled;
   }
 
   public Date startedAt() {
