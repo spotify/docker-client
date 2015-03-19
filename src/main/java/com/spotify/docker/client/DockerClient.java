@@ -431,6 +431,14 @@ public interface DockerClient extends Closeable {
   LogStream logs(String containerId, LogsParameter... params)
       throws DockerException, InterruptedException;
 
+  /**
+   * Watches the docker API for events.
+   *
+   * @param params The parameters to apply to the events request
+   * @return An event stream
+   */
+  EventStream events(EventsParam... params)
+          throws DockerException, InterruptedException;
 
   /**
    * Sets up an exec instance in a running container id.
@@ -692,4 +700,65 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
+
+  /**
+   * Parameters for {@link #events(EventsParam...)}
+   */
+  public static class EventsParam {
+
+    private final String name;
+    private final String value;
+
+    protected EventsParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Filter events until the given timestamp
+     */
+    public static EventsParam until(Long until) {
+      return new EventsParam("until", String.valueOf(until));
+    }
+
+    /**
+     * Filter events since the given timestamp
+     */
+    public static EventsParam since(Long since) {
+      return new EventsParam("since", String.valueOf(since));
+    }
+
+    /**
+     * Apply filters to the returned events
+     */
+    public static EventsParam filter(String name, String value) {
+      return new EventsFilterParam(name, value);
+    }
+
+  }
+
+  /**
+   * Filter parameter for {@link #events(EventsParam...)}. This should be used by
+   * EventsParam only.
+   */
+  static class EventsFilterParam extends EventsParam {
+    public EventsFilterParam(String name, String value) {
+      super(name, value);
+    }
+  }
+
 }

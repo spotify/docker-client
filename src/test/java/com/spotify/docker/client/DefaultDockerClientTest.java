@@ -17,12 +17,12 @@
 
 package com.spotify.docker.client;
 
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
-import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
@@ -30,6 +30,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -37,7 +38,6 @@ import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
-
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -908,6 +908,75 @@ public class DefaultDockerClientTest {
     assertThat(actual.privileged(), equalTo(expected.privileged()));
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
+  }
+
+  @Test
+  public void testEventStream() throws Exception {
+    sut.pull("busybox");
+    EventStream eventStream = sut.events();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+
+    final Event createEvent = eventStream.next();
+    assertThat(createEvent.status(), equalTo("create"));
+    assertThat(createEvent.id(), equalTo(container.id()));
+    assertThat(createEvent.from(), startsWith("busybox:"));
+    assertThat(createEvent.time(), notNullValue());
+
+    final Event startEvent = eventStream.next();
+    assertThat(startEvent.status(), equalTo("start"));
+    assertThat(startEvent.id(), equalTo(container.id()));
+    assertThat(startEvent.from(), startsWith("busybox:"));
+    assertThat(startEvent.time(), notNullValue());
+
+    eventStream.close();
+  }
+
+  @Test
+  public void testEventStreamWithSinceTime() throws Exception {
+    Thread.sleep(1000); // ensure we push to the next second
+                        // so we don't get events from the last test
+    final Date date = new Date();
+    sut.pull("busybox");
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+
+    EventStream eventStream = sut.events(DockerClient.EventsParam.since(date.getTime() / 1000));
+
+    final Event pullEvent = eventStream.next();
+    assertThat(pullEvent.status(), equalTo("pull"));
+    assertThat(pullEvent.id(), equalTo("busybox"));
+
+    final Event createEvent = eventStream.next();
+    assertThat(createEvent.status(), equalTo("create"));
+    assertThat(createEvent.id(), equalTo(container.id()));
+    assertThat(createEvent.from(), startsWith("busybox:"));
+    assertThat(createEvent.time(), notNullValue());
+
+    final Event startEvent = eventStream.next();
+    assertThat(startEvent.status(), equalTo("start"));
+    assertThat(startEvent.id(), equalTo(container.id()));
+    assertThat(startEvent.from(), startsWith("busybox:"));
+    assertThat(startEvent.time(), notNullValue());
+
+    eventStream.close();
+  }
+
+  @Test(timeout = 5000)
+  public void testEventStreamWithUntilTime() throws Exception {
+    EventStream eventStream = sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
+
+    while (eventStream.hasNext()) {
+      eventStream.next();
+    }
+
+    eventStream.close();
   }
 
   @Test
