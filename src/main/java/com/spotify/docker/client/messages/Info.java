@@ -17,6 +17,8 @@
 
 package com.spotify.docker.client.messages;
 
+import com.google.common.base.Joiner;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -60,6 +62,26 @@ public class Info {
     return storageDriver;
   }
 
+  public List<List<String>> driverStatus() {
+    return driverStatus;
+  }
+
+  public int cpus() {
+    return cpus;
+  }
+
+  public long memTotal() {
+    return memTotal;
+  }
+
+  public String name() {
+    return name;
+  }
+
+  public String id() {
+    return id;
+  }
+
   public String executionDriver() {
     return executionDriver;
   }
@@ -92,6 +114,14 @@ public class Info {
     return initPath;
   }
 
+  public String initSha1() {
+    return initSha1;
+  }
+
+  public String indexServerAddress() {
+    return indexServerAddress;
+  }
+
   public List<String> sockets() {
     return sockets;
   }
@@ -104,34 +134,6 @@ public class Info {
     return swapLimit;
   }
   
-  public List<List<String>> driverStatus() {
-    return driverStatus;
-  }
-
-  public int cpus() {
-    return cpus;
-  }
-
-  public long memTotal() {
-    return memTotal;
-  }
-
-  public String name() {
-    return name;
-  }
-
-  public String id() {
-    return id;
-  }
-
-  public String initSha1() {
-    return initSha1;
-  }
-
-  public String indexServerAddress() {
-    return indexServerAddress;
-  }
-
   public boolean ipv4Forwarding() {
     return ipv4Forwarding;
   }
@@ -208,6 +210,10 @@ public class Info {
     int result = containers;
     result = 31 * result + images;
     result = 31 * result + (storageDriver != null ? storageDriver.hashCode() : 0);
+    result = 31 * result + (driverStatus != null ? driverStatus.hashCode() : 0);
+    result = 31 * result + cpus;
+    result = 31 * result + (int) memTotal;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
     result = 31 * result + (executionDriver != null ? executionDriver.hashCode() : 0);
     result = 31 * result + (kernelVersion != null ? kernelVersion.hashCode() : 0);
     result = 31 * result + debug;
@@ -215,6 +221,8 @@ public class Info {
     result = 31 * result + goroutines;
     result = 31 * result + eventsListener;
     result = 31 * result + (initPath != null ? initPath.hashCode() : 0);
+    result = 31 * result + (initSha1 != null ? initSha1.hashCode() : 0);
+    result = 31 * result + (indexServerAddress != null ? indexServerAddress.hashCode() : 0);
     result = 31 * result + (sockets != null ? sockets.hashCode() : 0);
     result = 31 * result + (memoryLimit != null ? memoryLimit.hashCode() : 0);
     result = 31 * result + (swapLimit != null ? swapLimit.hashCode() : 0);
@@ -223,20 +231,15 @@ public class Info {
 
   @Override
   public String toString() {
-    return "Info{" +
-           "containers=" + containers +
-           ", images=" + images +
-           ", storageDriver='" + storageDriver + '\'' +
-           ", executionDriver='" + executionDriver + '\'' +
-           ", kernelVersion='" + kernelVersion + '\'' +
-           ", debug=" + debug +
-           ", fileDescriptors=" + fileDescriptors +
-           ", goroutines=" + goroutines +
-           ", eventsListener=" + eventsListener +
-           ", initPath='" + initPath + '\'' +
-           ", sockets=" + sockets +
-           ", memoryLimit=" + memoryLimit +
-           ", swapLimit=" + swapLimit +
-           '}';
+    return String.format("Info{ containers = %d, images = %d, storageDriver = %s, "
+                         + "driverStatus = %s, cpus = %d, memTotal = %d, name = %s, "
+                         + "executionDriver = %s, kernelVersion = %s, debug = %d, "
+                         + "fileDescriptors = %d, goroutines = %d, eventsListener = %d, "
+                         + "initPath = %s, initSha1 = %s, indexServerAddress = %s, "
+                         + "sockets = %s, memoryLimit = %b, swapLimit = %b",
+                         containers, images, storageDriver, driverStatus, cpus, memTotal, name,
+                         executionDriver, kernelVersion, debug, fileDescriptors, goroutines,
+                         eventsListener, initPath, initSha1, indexServerAddress,
+                         Joiner.on(", ").join(sockets), memoryLimit, swapLimit);
   }
 }
