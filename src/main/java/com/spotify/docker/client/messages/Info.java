@@ -43,7 +43,6 @@ public class Info {
   @JsonProperty("InitPath") private String initPath;
   @JsonProperty("InitSha1") private String initSha1;
   @JsonProperty("IndexServerAddress") private String indexServerAddress;
-  @JsonProperty("Sockets") private List<String> sockets;
   @JsonProperty("MemoryLimit") private Boolean memoryLimit;
   @JsonProperty("SwapLimit") private Boolean swapLimit;
   @JsonProperty("IPv4Forwarding") private boolean ipv4Forwarding;
@@ -122,10 +121,6 @@ public class Info {
     return indexServerAddress;
   }
 
-  public List<String> sockets() {
-    return sockets;
-  }
-
   public boolean memoryLimit() {
     return memoryLimit;
   }
@@ -186,9 +181,6 @@ public class Info {
                               : info.kernelVersion != null) {
       return false;
     }
-    if (sockets != null ? !sockets.equals(info.sockets) : info.sockets != null) {
-      return false;
-    }
     if (storageDriver != null ? !storageDriver.equals(info.storageDriver)
                               : info.storageDriver != null) {
       return false;
@@ -223,7 +215,6 @@ public class Info {
     result = 31 * result + (initPath != null ? initPath.hashCode() : 0);
     result = 31 * result + (initSha1 != null ? initSha1.hashCode() : 0);
     result = 31 * result + (indexServerAddress != null ? indexServerAddress.hashCode() : 0);
-    result = 31 * result + (sockets != null ? sockets.hashCode() : 0);
     result = 31 * result + (memoryLimit != null ? memoryLimit.hashCode() : 0);
     result = 31 * result + (swapLimit != null ? swapLimit.hashCode() : 0);
     return result;
@@ -236,10 +227,10 @@ public class Info {
                          + "executionDriver = %s, kernelVersion = %s, debug = %d, "
                          + "fileDescriptors = %d, goroutines = %d, eventsListener = %d, "
                          + "initPath = %s, initSha1 = %s, indexServerAddress = %s, "
-                         + "sockets = %s, memoryLimit = %b, swapLimit = %b",
+                         + "memoryLimit = %b, swapLimit = %b",
                          containers, images, storageDriver, driverStatus, cpus, memTotal, name,
                          executionDriver, kernelVersion, debug, fileDescriptors, goroutines,
-                         eventsListener, initPath, initSha1, indexServerAddress,
-                         Joiner.on(", ").join(sockets), memoryLimit, swapLimit);
+                         eventsListener, initPath, initSha1, indexServerAddress, memoryLimit,
+                         swapLimit);
   }
 }
