@@ -33,6 +33,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -112,9 +113,11 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -174,6 +177,14 @@ public class DefaultDockerClientTest {
     sut.close();
   }
 
+  @Test
+  public void testSearchImage() throws Exception {
+    // when
+    final List<ImageSearchResult> searchResult = sut.searchImages("busybox");
+    // then
+    assertThat(searchResult.size(), greaterThan(0));
+  }
+  
   @Test
   public void testPullWithTag() throws Exception {
     sut.pull("busybox:buildroot-2014.02");

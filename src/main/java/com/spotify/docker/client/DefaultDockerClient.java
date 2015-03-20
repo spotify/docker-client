@@ -19,7 +19,6 @@ package com.spotify.docker.client;
 
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -133,6 +133,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Image>> IMAGE_LIST =
       new GenericType<List<Image>>() {};
+
+  private static final GenericType<List<ImageSearchResult>> IMAGES_SEARCH_RESULT_LIST =
+      new GenericType<List<ImageSearchResult>>() {};
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {};
@@ -639,6 +642,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public List<ImageSearchResult> searchImages(final String term) 
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("images").path("search")
+        .queryParam("term", term);
+    return request(GET, IMAGES_SEARCH_RESULT_LIST, resource, 
+        resource.request(APPLICATION_JSON_TYPE));
+  }
+  
   @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
