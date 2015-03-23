@@ -17,6 +17,8 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.collect.Queues;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,14 +26,13 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
 import java.util.Queue;
 
 import jnr.unixsocket.UnixSocketAddress;
 import jnr.unixsocket.UnixSocketChannel;
-
-import com.google.common.collect.Queues;
 
 /**
  * Provides a socket that wraps an jnr.unixsocket.UnixSocketChannel and delays setting options
@@ -46,16 +47,19 @@ import com.google.common.collect.Queues;
 public class ApacheUnixSocket extends Socket {
 
   private final UnixSocketChannel inner;
+  private SocketAddress addr;
 
   private final Queue<SocketOptionSetter> optionsToSet = Queues.newArrayDeque();
 
   public ApacheUnixSocket() throws IOException {
     this.inner = UnixSocketChannel.open();
+    this.addr = null;
   }
 
   @Override
   public void connect(final SocketAddress endpoint) throws IOException {
     if (endpoint instanceof UnixSocketAddress) {
+      addr = endpoint;
       inner.connect((UnixSocketAddress) endpoint);
       setAllSocketOptions();
     }
@@ -64,6 +68,7 @@ public class ApacheUnixSocket extends Socket {
   @Override
   public void connect(final SocketAddress endpoint, final int timeout) throws IOException {
     if (endpoint instanceof UnixSocketAddress) {
+      addr = endpoint;
       inner.connect((UnixSocketAddress) endpoint);
       setAllSocketOptions();
     }
@@ -76,32 +81,43 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public InetAddress getInetAddress() {
-    throw new UnsupportedOperationException("Unimplemented");
+    if (inner.isConnected()) {
+      try {
+        return InetAddress.getByName("localhost");
+      } catch (UnknownHostException e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   @Override
   public InetAddress getLocalAddress() {
-    throw new UnsupportedOperationException("Unimplemented");
+    try {
+      return InetAddress.getByAddress(new byte [] {0, 0, 0, 0}); // not bound
+    } catch (UnknownHostException e) {
+      return null;
+    }
   }
 
   @Override
   public int getPort() {
-    throw new UnsupportedOperationException("Unimplemented");
+    return -1; // meaningless for UNIX sockets
   }
 
   @Override
   public int getLocalPort() {
-    throw new UnsupportedOperationException("Unimplemented");
+    return -1; // not bound
   }
 
   @Override
   public SocketAddress getRemoteSocketAddress() {
-    throw new UnsupportedOperationException("Unimplemented");
+    return addr;
   }
 
   @Override
   public SocketAddress getLocalSocketAddress() {
-    throw new UnsupportedOperationException("Unimplemented");
+    return null; // not bound
   }
 
   @Override
@@ -256,7 +272,10 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public String toString() {
-    throw new UnsupportedOperationException("Unimplemented");
+    if (addr != null) {
+      return ((UnixSocketAddress) addr).toString();
+    }
+    return inner.toString();
   }
 
   @Override
@@ -266,12 +285,12 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public boolean isBound() {
-    throw new UnsupportedOperationException("Unimplemented");
+    return false;
   }
 
   @Override
   public boolean isClosed() {
-    throw new UnsupportedOperationException("Unimplemented");
+    return !inner.isOpen();
   }
 
   @Override
