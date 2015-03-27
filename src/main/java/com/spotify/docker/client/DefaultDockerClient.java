@@ -738,6 +738,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void tag(final String image, final String name)
       throws DockerException, InterruptedException {
+    tag(image, name, false);
+  }
+
+  @Override
+  public void tag(final String image, final String name, final boolean force)
+      throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(name);
 
     WebTarget resource =
@@ -746,6 +752,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = resource.queryParam("repo", imageRef.getImage());
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
+    }
+
+    if (force) {
+      resource = resource.queryParam("force", true);
     }
 
     try {
