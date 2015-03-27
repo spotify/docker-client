@@ -331,6 +331,22 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testTagForce() throws Exception {
+    sut.pull("busybox");
+
+    final String name = "testRepo/tagForce:sometag";
+    // Assign name to first image
+    sut.tag("busybox:latest", name);
+
+    // Force-re-assign tag to another image
+    sut.tag("busybox:buildroot-2014.02", name, true);
+
+    // Verify that re-tagging was successful
+    final RemovedImage removedImage = getOnlyElement(sut.removeImage(name));
+    assertThat(removedImage, is(new RemovedImage(UNTAGGED, name)));
+  }
+
+  @Test
   public void testInspectImage() throws Exception {
     sut.pull("busybox");
     final ImageInfo info = sut.inspectImage("busybox");

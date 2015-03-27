@@ -208,6 +208,16 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Tag a docker image.
+   *
+   * @param image The image to tag.
+   * @param name The new name that will be applied to the image.
+   * @param force Whether to force the tagging even if the tag is already assigned to another image.
+   */
+  void tag(final String image, final String name, final boolean force)
+      throws DockerException, InterruptedException;
+
+  /**
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
