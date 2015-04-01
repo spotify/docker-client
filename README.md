@@ -10,8 +10,17 @@ Usage
 // Create a client based on DOCKER_HOST and DOCKER_CERT_PATH env vars
 final DockerClient docker = DefaultDockerClient.fromEnv().build();
 
-// Pull image
+// Pull an image
 docker.pull("busybox");
+
+// Pull an image from a private repository
+// Server address defaults to "https://index.docker.io/v1/"
+AuthConfig authConfig = AuthConfig.builder().email("foo@bar.com").username("foobar")
+  .password("secret-password").serverAddress("https://myprivateregistry.com/v1/").build();
+docker.pull("foobar/busybox-private:latest", authConfig);
+
+// You can also set the AuthConfig for the DockerClient instead of passing everytime you call pull()
+DockerClient docker = DefaultDockerClient.authConfig(authConfig).build();
 
 // Create container with exposed ports
 final String[] ports = {"80", "22"};
@@ -20,7 +29,7 @@ final ContainerConfig config = ContainerConfig.builder()
     .cmd("sh", "-c", "while :; do sleep 1; done")
     .build();
 
-// bind container ports to host ports
+// Bind container ports to host ports
 final Map<String, List<PortBinding>> portBindings = new HashMap<String, List<PortBinding>>();
 for(String port : ports) {
     List<PortBinding> hostPorts = new ArrayList<PortBinding>();
