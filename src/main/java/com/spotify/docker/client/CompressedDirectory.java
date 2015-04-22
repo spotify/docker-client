@@ -18,6 +18,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
@@ -96,6 +98,9 @@ class CompressedDirectory implements Closeable {
   public static CompressedDirectory create(final Path directory) throws IOException {
     final Path file = Files.createTempFile("docker-client-", ".tar.gz");
 
+    final Path dockerIgnorePath = directory.resolve(".dockerignore");
+    final ImmutableSet<PathMatcher> ignoreMatchers = parseDockerIgnore(dockerIgnorePath);
+
     try (final OutputStream fileOut = Files.newOutputStream(file);
          final GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut);
          final TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
@@ -104,7 +109,7 @@ class CompressedDirectory implements Closeable {
       Files.walkFileTree(directory,
                          EnumSet.of(FileVisitOption.FOLLOW_LINKS),
                          Integer.MAX_VALUE,
-                         new Visitor(directory, tarOut));
+                         new Visitor(directory, ignoreMatchers, tarOut));
 
     } catch (Throwable t) {
       // If an error occurs, delete temporary file before rethrowing exception.
@@ -124,6 +129,19 @@ class CompressedDirectory implements Closeable {
   @Override
   public void close() throws IOException {
     Files.delete(file);
+  }
+
+  static ImmutableSet<PathMatcher> parseDockerIgnore(Path dockerIgnorePath)
+      throws IOException {
+    final ImmutableSet.Builder<PathMatcher> matchersBuilder = ImmutableSet.builder();
+
+    if (Files.isReadable(dockerIgnorePath) && Files.isRegularFile(dockerIgnorePath)) {
+      for (final String line : Files.readAllLines(dockerIgnorePath, StandardCharsets.UTF_8)) {
+        matchersBuilder.add(goPathMatcher(dockerIgnorePath.getFileSystem(), line));
+      }
+    }
+
+    return matchersBuilder.build();
   }
 
   @VisibleForTesting
@@ -207,18 +225,26 @@ class CompressedDirectory implements Closeable {
   private static class Visitor extends SimpleFileVisitor<Path> {
 
     private final Path root;
+    private final ImmutableSet<PathMatcher> ignoreMatchers;
     private final TarArchiveOutputStream tarStream;
 
-    private Visitor(final Path root, final TarArchiveOutputStream tarStream) {
+    private Visitor(final Path root, ImmutableSet<PathMatcher> ignoreMatchers,
+                    final TarArchiveOutputStream tarStream) {
       this.root = root;
+      this.ignoreMatchers = ignoreMatchers;
       this.tarStream = tarStream;
     }
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-      final TarArchiveEntry entry = new TarArchiveEntry(file.toFile());
 
       final Path relativePath = root.relativize(file);
+
+      if (anyMatches(ignoreMatchers, relativePath)) {
+        return FileVisitResult.CONTINUE;
+      }
+
+      final TarArchiveEntry entry = new TarArchiveEntry(file.toFile());
       entry.setName(relativePath.toString());
       entry.setMode(getFileMode(file));
       entry.setSize(attrs.size());
@@ -226,6 +252,27 @@ class CompressedDirectory implements Closeable {
       Files.copy(file, tarStream);
       tarStream.closeArchiveEntry();
       return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+        throws IOException {
+      final Path relativePath = root.relativize(dir);
+
+      if (anyMatches(ignoreMatchers, relativePath)) {
+        return FileVisitResult.SKIP_SUBTREE;
+      }
+
+      return super.preVisitDirectory(dir, attrs);
+    }
+
+    private static boolean anyMatches(ImmutableSet<PathMatcher> matchers, Path path) {
+      for (PathMatcher matcher : matchers) {
+        if (matcher.matches(path)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private static int getFileMode(Path file) throws IOException {
