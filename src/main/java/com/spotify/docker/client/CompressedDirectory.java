@@ -17,6 +17,8 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -24,23 +26,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
+import java.text.MessageFormat;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
@@ -120,6 +124,84 @@ class CompressedDirectory implements Closeable {
   @Override
   public void close() throws IOException {
     Files.delete(file);
+  }
+
+  @VisibleForTesting
+  static PathMatcher goPathMatcher(FileSystem fs, String pattern) {
+    // Supposed to work the same way as Go's path.filepath.match.Match:
+    // http://golang.org/src/path/filepath/match.go#L34
+
+    final String notSeparatorPattern = getNotSeparatorPattern(fs.getSeparator());
+
+    final String starPattern = String.format("%s*", notSeparatorPattern);
+
+    final StringBuilder patternBuilder = new StringBuilder();
+
+    boolean inCharRange = false;
+    boolean inEscape = false;
+
+    // This is of course hugely inefficient, but it passes most of the test suite, TDD ftw...
+    for (int i = 0; i < pattern.length(); i++) {
+      final char c = pattern.charAt(i);
+      if (inCharRange) {
+        if (inEscape) {
+          patternBuilder.append(c);
+          inEscape = false;
+        } else {
+          switch (c) {
+            case '\\':
+              patternBuilder.append('\\');
+              inEscape = true;
+              break;
+            case ']':
+              patternBuilder.append(']');
+              inCharRange = false;
+              break;
+            default:
+              patternBuilder.append(c);
+          }
+        }
+      } else {
+        if (inEscape) {
+          patternBuilder.append(Pattern.quote(Character.toString(c)));
+          inEscape = false;
+        } else {
+          switch (c) {
+            case '*':
+              patternBuilder.append(starPattern);
+              break;
+            case '?':
+              patternBuilder.append(notSeparatorPattern);
+              break;
+            case '[':
+              patternBuilder.append("[");
+              inCharRange = true;
+              break;
+            case '\\':
+              inEscape = true;
+              break;
+            default:
+              patternBuilder.append(Pattern.quote(Character.toString(c)));
+          }
+        }
+      }
+    }
+
+    return fs.getPathMatcher("regex:" + patternBuilder.toString());
+  }
+
+  private static String getNotSeparatorPattern(String separator) {
+    switch (separator) {
+      case "/":
+        return "[^/]";
+      case "\\":
+        return "[^\\\\]";
+      default:
+        final String message = MessageFormat.format(
+            "Filepath matching not supported for file system separator {0}",
+            separator);
+        throw new UnsupportedOperationException(message);
+    }
   }
 
   private static class Visitor extends SimpleFileVisitor<Path> {
