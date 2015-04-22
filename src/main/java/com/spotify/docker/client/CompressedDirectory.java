@@ -23,9 +23,10 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -34,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
@@ -47,7 +49,7 @@ import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.L
  * This helper class is used during the docker build command to create a gzip tarball of a directory
  * containing a Dockerfile.
  */
-class CompressedDirectory {
+class CompressedDirectory implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(CompressedDirectory.class);
 
@@ -64,36 +66,35 @@ class CompressedDirectory {
    */
   private static final String POSIX_FILE_VIEW = "posix";
 
+  private final Path file;
+
+  private CompressedDirectory(Path file) {
+    this.file = file;
+  }
+
   /**
-   * This method creates a gzip tarball of the specified directory. File permissions will be
-   * retained. The file will be created in a temporary directory using the
-   * {@link File#createTempFile(String, String)} method. If the method returns successfully, it is
-   * the caller's responsibility to delete the file.
-   *
-   * @param directory the directory to compress
-   * @return a File object representing the compressed directory
-   * @throws IOException
+   * The file for the created compressed directory archive.
    */
-  public static File create(final String directory) throws IOException {
-    return create(Paths.get(directory));
+  public Path file() {
+    return file;
   }
 
   /**
    * This method creates a gzip tarball of the specified directory. File permissions will be
-   * retained. The file will be created in a temporary directory using the
-   * {@link File#createTempFile(String, String)} method. If the method returns successfully, it is
-   * the caller's responsibility to delete the file.
+   * retained. The file will be created in a temporary directory using the {@link
+   * Files#createTempFile(String, String, FileAttribute[])} method. The returned object is
+   * auto-closeable, and upon closing it, the archive file will be deleted.
    *
    * @param directory the directory to compress
-   * @return a File object representing the compressed directory
-   * @throws IOException
+   * @return a Path object representing the compressed directory
+   * @throws IOException if the compressed directory could not be created.
    */
-  public static File create(final Path directory) throws IOException {
-    final File file = File.createTempFile("docker-client-", ".tar.gz");
+  public static CompressedDirectory create(final Path directory) throws IOException {
+    final Path file = Files.createTempFile("docker-client-", ".tar.gz");
 
-    try (FileOutputStream fileOut = new FileOutputStream(file);
-         GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut);
-         TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
+    try (final OutputStream fileOut = Files.newOutputStream(file);
+         final GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut);
+         final TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
       tarOut.setLongFileMode(LONGFILE_POSIX);
       tarOut.setBigNumberMode(BIGNUMBER_POSIX);
       Files.walkFileTree(directory,
@@ -103,37 +104,22 @@ class CompressedDirectory {
 
     } catch (Throwable t) {
       // If an error occurs, delete temporary file before rethrowing exception.
-      delete(file);
+      try {
+        Files.delete(file);
+      } catch (IOException e) {
+        // So we don't lose track of the reason the file was deleted... might be important
+        t.addSuppressed(e);
+      }
+
       throw t;
     }
 
-    return file;
+    return new CompressedDirectory(file);
   }
 
-  /**
-   * Convenience method for deleting files. This method safely handles null values, and will never
-   * throw an exception.
-   *
-   * @param file the file to delete.
-   * @return true if file was deleted successfully, otherwise false.
-   */
-  public static boolean delete(File file) {
-    if (file == null) {
-      return false;
-    }
-
-    boolean deleted;
-    try {
-      deleted = file.delete();
-    } catch (Exception ignored) {
-      deleted = false;
-    }
-
-    if (!deleted) {
-      log.warn("Failed to delete temporary file {}", file.getPath());
-    }
-
-    return deleted;
+  @Override
+  public void close() throws IOException {
+    Files.delete(file);
   }
 
   private static class Visitor extends SimpleFileVisitor<Path> {
