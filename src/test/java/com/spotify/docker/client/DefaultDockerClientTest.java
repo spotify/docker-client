@@ -966,13 +966,13 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2014-12-31T22:23:56.943Z");
+    final Date expected = new StdDateFormat().parse("2015-04-17T22:01:13.062Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2014-12-31T22:23:56.943Z");
+    final Date milli = dateFormat.parse("2015-04-17T22:01:13.062Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2014-12-31T22:23:56.943288461Z");
+    final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
     sut.pull("busybox");
