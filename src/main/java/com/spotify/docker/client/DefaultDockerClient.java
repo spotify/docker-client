@@ -32,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -984,6 +985,22 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return request(POST, LogStream.class, resource,
               resource.request("application/vnd.docker.raw-stream"),
               Entity.json(writer.toString()));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ExecNotFoundException(execId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public ExecState execInspect(final String execId) throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("exec").path(execId).path("json");
+
+    try {
+      return request(GET, ExecState.class, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
