@@ -592,7 +592,7 @@ public interface DockerClient extends Closeable {
      * Show all containers. Only running containers are shown by default
      */
     public static ListContainersParam allContainers(final boolean all) {
-      return create("all", String.valueOf(all));
+      return create("all", all ? "1" : "0");
     }
 
     /**
