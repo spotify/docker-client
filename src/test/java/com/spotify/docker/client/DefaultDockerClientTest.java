@@ -305,7 +305,9 @@ public class DefaultDockerClientTest {
         new RemovedImage(DELETED,
                          "a070ecd21253011220e4cbffd1639c8ef5b64d6a73ca15d94dfb4b91b5bef347"),
         new RemovedImage(DELETED,
-                         "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb")
+                         "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb"),
+        new RemovedImage(DELETED,
+                         "511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158")
     ));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
