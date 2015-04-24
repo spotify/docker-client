@@ -17,28 +17,36 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
+import java.text.MessageFormat;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
@@ -47,7 +55,7 @@ import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.L
  * This helper class is used during the docker build command to create a gzip tarball of a directory
  * containing a Dockerfile.
  */
-class CompressedDirectory {
+class CompressedDirectory implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(CompressedDirectory.class);
 
@@ -64,93 +72,179 @@ class CompressedDirectory {
    */
   private static final String POSIX_FILE_VIEW = "posix";
 
+  private final Path file;
+
+  private CompressedDirectory(Path file) {
+    this.file = file;
+  }
+
   /**
-   * This method creates a gzip tarball of the specified directory. File permissions will be
-   * retained. The file will be created in a temporary directory using the
-   * {@link File#createTempFile(String, String)} method. If the method returns successfully, it is
-   * the caller's responsibility to delete the file.
-   *
-   * @param directory the directory to compress
-   * @return a File object representing the compressed directory
-   * @throws IOException
+   * The file for the created compressed directory archive.
    */
-  public static File create(final String directory) throws IOException {
-    return create(Paths.get(directory));
+  public Path file() {
+    return file;
   }
 
   /**
    * This method creates a gzip tarball of the specified directory. File permissions will be
-   * retained. The file will be created in a temporary directory using the
-   * {@link File#createTempFile(String, String)} method. If the method returns successfully, it is
-   * the caller's responsibility to delete the file.
+   * retained. The file will be created in a temporary directory using the {@link
+   * Files#createTempFile(String, String, FileAttribute[])} method. The returned object is
+   * auto-closeable, and upon closing it, the archive file will be deleted.
    *
    * @param directory the directory to compress
-   * @return a File object representing the compressed directory
-   * @throws IOException
+   * @return a Path object representing the compressed directory
+   * @throws IOException if the compressed directory could not be created.
    */
-  public static File create(final Path directory) throws IOException {
-    final File file = File.createTempFile("docker-client-", ".tar.gz");
+  public static CompressedDirectory create(final Path directory) throws IOException {
+    final Path file = Files.createTempFile("docker-client-", ".tar.gz");
 
-    try (FileOutputStream fileOut = new FileOutputStream(file);
-         GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut);
-         TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
+    final Path dockerIgnorePath = directory.resolve(".dockerignore");
+    final ImmutableSet<PathMatcher> ignoreMatchers = parseDockerIgnore(dockerIgnorePath);
+
+    try (final OutputStream fileOut = Files.newOutputStream(file);
+         final GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut);
+         final TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
       tarOut.setLongFileMode(LONGFILE_POSIX);
       tarOut.setBigNumberMode(BIGNUMBER_POSIX);
       Files.walkFileTree(directory,
                          EnumSet.of(FileVisitOption.FOLLOW_LINKS),
                          Integer.MAX_VALUE,
-                         new Visitor(directory, tarOut));
+                         new Visitor(directory, ignoreMatchers, tarOut));
 
     } catch (Throwable t) {
       // If an error occurs, delete temporary file before rethrowing exception.
-      delete(file);
+      try {
+        Files.delete(file);
+      } catch (IOException e) {
+        // So we don't lose track of the reason the file was deleted... might be important
+        t.addSuppressed(e);
+      }
+
       throw t;
     }
 
-    return file;
+    return new CompressedDirectory(file);
   }
 
-  /**
-   * Convenience method for deleting files. This method safely handles null values, and will never
-   * throw an exception.
-   *
-   * @param file the file to delete.
-   * @return true if file was deleted successfully, otherwise false.
-   */
-  public static boolean delete(File file) {
-    if (file == null) {
-      return false;
+  @Override
+  public void close() throws IOException {
+    Files.delete(file);
+  }
+
+  static ImmutableSet<PathMatcher> parseDockerIgnore(Path dockerIgnorePath)
+      throws IOException {
+    final ImmutableSet.Builder<PathMatcher> matchersBuilder = ImmutableSet.builder();
+
+    if (Files.isReadable(dockerIgnorePath) && Files.isRegularFile(dockerIgnorePath)) {
+      for (final String line : Files.readAllLines(dockerIgnorePath, StandardCharsets.UTF_8)) {
+        matchersBuilder.add(goPathMatcher(dockerIgnorePath.getFileSystem(), line));
+      }
     }
 
-    boolean deleted;
-    try {
-      deleted = file.delete();
-    } catch (Exception ignored) {
-      deleted = false;
+    return matchersBuilder.build();
+  }
+
+  @VisibleForTesting
+  static PathMatcher goPathMatcher(FileSystem fs, String pattern) {
+    // Supposed to work the same way as Go's path.filepath.match.Match:
+    // http://golang.org/src/path/filepath/match.go#L34
+
+    final String notSeparatorPattern = getNotSeparatorPattern(fs.getSeparator());
+
+    final String starPattern = String.format("%s*", notSeparatorPattern);
+
+    final StringBuilder patternBuilder = new StringBuilder();
+
+    boolean inCharRange = false;
+    boolean inEscape = false;
+
+    // This is of course hugely inefficient, but it passes most of the test suite, TDD ftw...
+    for (int i = 0; i < pattern.length(); i++) {
+      final char c = pattern.charAt(i);
+      if (inCharRange) {
+        if (inEscape) {
+          patternBuilder.append(c);
+          inEscape = false;
+        } else {
+          switch (c) {
+            case '\\':
+              patternBuilder.append('\\');
+              inEscape = true;
+              break;
+            case ']':
+              patternBuilder.append(']');
+              inCharRange = false;
+              break;
+            default:
+              patternBuilder.append(c);
+          }
+        }
+      } else {
+        if (inEscape) {
+          patternBuilder.append(Pattern.quote(Character.toString(c)));
+          inEscape = false;
+        } else {
+          switch (c) {
+            case '*':
+              patternBuilder.append(starPattern);
+              break;
+            case '?':
+              patternBuilder.append(notSeparatorPattern);
+              break;
+            case '[':
+              patternBuilder.append("[");
+              inCharRange = true;
+              break;
+            case '\\':
+              inEscape = true;
+              break;
+            default:
+              patternBuilder.append(Pattern.quote(Character.toString(c)));
+          }
+        }
+      }
     }
 
-    if (!deleted) {
-      log.warn("Failed to delete temporary file {}", file.getPath());
-    }
+    return fs.getPathMatcher("regex:" + patternBuilder.toString());
+  }
 
-    return deleted;
+  private static String getNotSeparatorPattern(String separator) {
+    switch (separator) {
+      case "/":
+        return "[^/]";
+      case "\\":
+        return "[^\\\\]";
+      default:
+        final String message = MessageFormat.format(
+            "Filepath matching not supported for file system separator {0}",
+            separator);
+        throw new UnsupportedOperationException(message);
+    }
   }
 
   private static class Visitor extends SimpleFileVisitor<Path> {
 
     private final Path root;
+    private final ImmutableSet<PathMatcher> ignoreMatchers;
     private final TarArchiveOutputStream tarStream;
 
-    private Visitor(final Path root, final TarArchiveOutputStream tarStream) {
+    private Visitor(final Path root, ImmutableSet<PathMatcher> ignoreMatchers,
+                    final TarArchiveOutputStream tarStream) {
       this.root = root;
+      this.ignoreMatchers = ignoreMatchers;
       this.tarStream = tarStream;
     }
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-      final TarArchiveEntry entry = new TarArchiveEntry(file.toFile());
 
       final Path relativePath = root.relativize(file);
+
+      if (anyMatches(ignoreMatchers, relativePath)) {
+        return FileVisitResult.CONTINUE;
+      }
+
+      final TarArchiveEntry entry = new TarArchiveEntry(file.toFile());
       entry.setName(relativePath.toString());
       entry.setMode(getFileMode(file));
       entry.setSize(attrs.size());
@@ -158,6 +252,27 @@ class CompressedDirectory {
       Files.copy(file, tarStream);
       tarStream.closeArchiveEntry();
       return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+        throws IOException {
+      final Path relativePath = root.relativize(dir);
+
+      if (anyMatches(ignoreMatchers, relativePath)) {
+        return FileVisitResult.SKIP_SUBTREE;
+      }
+
+      return super.preVisitDirectory(dir, attrs);
+    }
+
+    private static boolean anyMatches(ImmutableSet<PathMatcher> matchers, Path path) {
+      for (PathMatcher matcher : matchers) {
+        if (matcher.matches(path)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private static int getFileMode(Path file) throws IOException {
