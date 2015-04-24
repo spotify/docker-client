@@ -285,6 +285,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testRemoveImage() throws Exception {
+    assumeThat(System.getenv("CIRCLECI"), is(nullValue()));
+
     sut.pull("dxia/cirros");
     final String imageLatest = "dxia/cirros:latest";
     final String imageVersion = "dxia/cirros:0.3.0";
