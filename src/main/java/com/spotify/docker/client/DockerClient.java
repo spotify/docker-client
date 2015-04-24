@@ -23,6 +23,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -508,6 +509,16 @@ public interface DockerClient extends Closeable {
       return name;
     }
   }
+
+  /**
+   * Inspects a running or previously run exec instance id.
+   *
+   * @param execId exec id
+   * @return state of this exec instance.
+   * @throws ExecNotFoundException if the exec was not found (404).
+   */
+  ExecState execInspect(String execId)
+      throws DockerException, InterruptedException;
 
   /**
    * Closes any and all underlying connections to docker, and release resources.

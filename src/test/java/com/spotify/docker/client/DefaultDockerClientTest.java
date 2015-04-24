@@ -31,6 +31,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -1222,6 +1223,39 @@ public class DefaultDockerClientTest {
       log.info("Result:\n{}", output);
       assertThat(output, containsString("total"));
     }
+  }
+
+  @Test
+  public void testExecInspect() throws DockerException, InterruptedException, IOException {
+    assumeTrue("Docker API should be at least v1.15 to support Exec, got "
+               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.15") >= 0);
+    assumeThat("Only native (libcontainer) driver supports Exec",
+               sut.info().executionDriver(), startsWith("native"));
+
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
+                                   DockerClient.ExecParameter.STDOUT,
+                                   DockerClient.ExecParameter.STDERR);
+
+    log.info("execId = {}", execId);
+    try (LogStream stream = sut.execStart(execId)) {
+      stream.readFully();
+    }
+
+    ExecState state = sut.execInspect(execId);
+    assertThat(state.running(), is(false));
+    assertThat(state.exitCode(), is(2));
   }
 
   /**
