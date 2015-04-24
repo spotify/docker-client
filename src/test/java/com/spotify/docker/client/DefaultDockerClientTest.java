@@ -305,7 +305,9 @@ public class DefaultDockerClientTest {
         new RemovedImage(DELETED,
                          "a070ecd21253011220e4cbffd1639c8ef5b64d6a73ca15d94dfb4b91b5bef347"),
         new RemovedImage(DELETED,
-                         "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb")
+                         "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb"),
+        new RemovedImage(DELETED,
+                         "511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158")
     ));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
@@ -966,13 +968,13 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2014-12-31T22:23:56.943Z");
+    final Date expected = new StdDateFormat().parse("2015-04-17T22:01:13.062Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2014-12-31T22:23:56.943Z");
+    final Date milli = dateFormat.parse("2015-04-17T22:01:13.062Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2014-12-31T22:23:56.943288461Z");
+    final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
     sut.pull("busybox");
