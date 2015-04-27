@@ -180,7 +180,7 @@ public class ContainerConfig {
     return onBuild;
   }
 
-  public HostConfig hostConfig(){
+  public HostConfig hostConfig() {
     return hostConfig;
   }
 
@@ -269,7 +269,7 @@ public class ContainerConfig {
     if (workingDir != null ? !workingDir.equals(config.workingDir) : config.workingDir != null) {
       return false;
     }
-    if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null){
+    if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
       return false;
     }
 
