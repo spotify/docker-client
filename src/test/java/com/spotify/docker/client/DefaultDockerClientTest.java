@@ -413,6 +413,26 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testBuildImageIdWithAuth() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
+
+    final DefaultDockerClient sut2 = sut.builder().uri(dockerEndpoint).authConfig(authConfig).build();
+    final String returnedImageId = sut2.build(
+        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+          @Override
+          public void progress(ProgressMessage message) throws DockerException {
+            final String imageId = message.buildImageId();
+            if (imageId != null) {
+              imageIdFromMessage.set(imageId);
+            }
+          }
+        });
+
+    assertThat(returnedImageId, is(imageIdFromMessage.get()));
+  }
+
+  @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryNonExistentImage").getPath();
@@ -1273,8 +1293,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExecInspect() throws DockerException, InterruptedException, IOException {
-    assumeTrue("Docker API should be at least v1.15 to support Exec, got "
-               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.15") >= 0);
+    assumeTrue("Docker API should be at least v1.16 to support Exec Inspect, got "
+               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.16") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
