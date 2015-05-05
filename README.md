@@ -1,10 +1,13 @@
-Docker Client [![Circle CI](https://circleci.com/gh/spotify/docker-client.png?style=badge)](https://circleci.com/gh/spotify/docker-client)
-=============
+# Docker Client [![Circle CI](https://circleci.com/gh/spotify/docker-client.png?style=badge)](https://circleci.com/gh/spotify/docker-client)
+
 
 This is a simple [Docker](https://github.com/dotcloud/docker) client written in Java.
 
-Usage
------
+**The latest docker-client release has only been tested on Docker API version 1.15. This client
+should work with older and newer versions of the Docker API, but your mileage may vary.**
+
+## Usage
+
 
 ```java
 // Create a client based on DOCKER_HOST and DOCKER_CERT_PATH env vars
@@ -106,8 +109,8 @@ Note that the connect timeout is also applied to acquiring a connection from the
 is exhausted and it takes too long to acquire a new connection for a request, we throw a
 `DockerTimeoutException` instead of just waiting forever on a connection becoming available.
 
-Maven
------
+## Maven
+
 
 Please note that in releases 2.7.6 and earlier, the default artifact was the shaded version.  When upgrading to version 2.7.7, you will need to include the shaded classifier if you relied on the shaded dependencies in the
 docker-client jar.
@@ -135,15 +138,15 @@ Shaded:
 
 **This is particularly important if you use Jersey 1.x in your project. To avoid conflicts with docker-client and Jersey 2.x, you will need to explicitly specify the shaded version above.**
 
-Testing
--------
+## Testing
+
 
 You can run tests on their own with `mvn test`. Note that the tests start and stop a large number of
 containers, so the list of containers you see with `docker ps -a` will start to get pretty long
 after many test runs. You may find it helpful to occassionally issue `docker rm $(docker ps -aq)`.
 
-Releasing
----------
+## Releasing
+
 
 Commits to the master branch will trigger our continuous integration agent to build the jar and
 release by uploading to Sonatype. If you are a project maintainer with the necessary credentials,
