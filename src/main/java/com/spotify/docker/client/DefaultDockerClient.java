@@ -21,6 +21,7 @@ package com.spotify.docker.client;
 
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +32,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -60,7 +62,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -69,6 +70,7 @@ import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -93,7 +95,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.spotify.docker.client.CompressedDirectory.delete;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 import static java.lang.System.getProperty;
 import static java.lang.System.getenv;
@@ -113,7 +114,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final String UNIX_SCHEME = "unix";
 
-  private static final String VERSION = "v1.12";
+  private static final String VERSION = "v1.15";
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
   public static final long NO_TIMEOUT = 0;
@@ -210,7 +211,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
-    
+
     this.authConfig = builder.authConfig;
 
     this.client = ClientBuilder.newClient(config);
@@ -645,14 +646,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public List<ImageSearchResult> searchImages(final String term) 
+  public List<ImageSearchResult> searchImages(final String term)
       throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("images").path("search")
         .queryParam("term", term);
-    return request(GET, IMAGES_SEARCH_RESULT_LIST, resource, 
+    return request(GET, IMAGES_SEARCH_RESULT_LIST, resource,
         resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
@@ -669,7 +670,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
     }
-    
+
     try (ProgressStream pull = request(POST, ProgressStream.class, resource,
                                        resource.request(APPLICATION_JSON_TYPE)
                                                .header("X-Registry-Auth", authHeader()))) {
@@ -806,11 +807,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      resource = resource.queryParam("t", name);
     }
 
-    final File compressedDirectory = CompressedDirectory.create(directory);
-
-    try (ProgressStream build = request(POST, ProgressStream.class, resource,
-                                        resource.request(APPLICATION_JSON_TYPE),
-                                        Entity.entity(compressedDirectory, "application/tar"))) {
+    try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
+         final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
+         final ProgressStream build = request(POST, ProgressStream.class, resource,
+                                              resource.request(APPLICATION_JSON_TYPE),
+                                              Entity.entity(fileStream, "application/tar"))) {
       String imageId = null;
       while (build.hasNextMessage(POST, resource.getUri())) {
         final ProgressMessage message = build.nextMessage(POST, resource.getUri());
@@ -821,8 +822,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         handler.progress(message);
       }
       return imageId;
-    } finally {
-      delete(compressedDirectory);
     }
   }
 
@@ -996,6 +995,22 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public ExecState execInspect(final String execId) throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("exec").path(execId).path("json");
+
+    try {
+      return request(GET, ExecState.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ExecNotFoundException(execId);
+        default:
+          throw e;
+      }
+    }
+  }
+
   private WebTarget resource() {
     return client.target(uri).path(VERSION);
   }
@@ -1103,7 +1118,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return null;
     }
   }
-  
+
   private String authHeader() throws DockerException {
     return authHeader(authConfig);
   }
@@ -1246,11 +1261,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       this.connectionPoolSize = connectionPoolSize;
       return this;
     }
-    
+
     public AuthConfig authConfig() {
       return authConfig;
     }
-    
+
     /**
      * Set the auth parameters for pull/push requests from/to private repositories.
      */

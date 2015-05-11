@@ -3,7 +3,7 @@
 
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.7.21-SNAPSHOT</version>
+  <version>2.7.23-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client</description>
@@ -168,6 +168,12 @@
       <groupId>com.spotify</groupId>
       <artifactId>logging</artifactId>
       <version>2.1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.jimfs</groupId>
+      <artifactId>jimfs</artifactId>
+      <version>1.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

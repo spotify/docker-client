@@ -31,6 +31,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -89,7 +90,6 @@ import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParameter.STDERR;
 import static com.spotify.docker.client.DockerClient.LogsParameter.STDOUT;
-import static com.spotify.docker.client.messages.RemovedImage.Type.DELETED;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -99,11 +99,11 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.both;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -114,11 +114,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
-
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -285,6 +283,11 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testRemoveImage() throws Exception {
+    // Don't remove images on CircleCI. Their version of Docker causes failures when pulling an
+    // image that shares layers with an image that has been removed. This causes tests after this
+    // one to fail.
+    assumeThat(getenv("CIRCLECI"), isEmptyOrNullString());
+
     sut.pull("dxia/cirros");
     final String imageLatest = "dxia/cirros:latest";
     final String imageVersion = "dxia/cirros:0.3.0";
@@ -293,19 +296,9 @@ public class DefaultDockerClientTest {
     removedImages.addAll(sut.removeImage(imageLatest));
     removedImages.addAll(sut.removeImage(imageVersion));
 
-    assertThat(removedImages, containsInAnyOrder(
+    assertThat(removedImages, hasItems(
         new RemovedImage(UNTAGGED, imageLatest),
-        new RemovedImage(UNTAGGED, imageVersion),
-        new RemovedImage(DELETED,
-                         "210f52bd365730ffbc8eb2c4bd658c740f7a5388e27f231a25a2db7d6727ae25"),
-        new RemovedImage(DELETED,
-                         "e77cb3fc176bd8ad9665970e86ad165b2e792a85d1851737d2c4dd5548b7087f"),
-        new RemovedImage(DELETED,
-                         "8d30d81622d4ea7dead047210dc9b26081b3d2a5d0cd6b28d0261bfdfc4f8505"),
-        new RemovedImage(DELETED,
-                         "a070ecd21253011220e4cbffd1639c8ef5b64d6a73ca15d94dfb4b91b5bef347"),
-        new RemovedImage(DELETED,
-                         "16a464be5494a73be34a3055b77ae00d072a4f9389897d1a786de0079219aaeb")
+        new RemovedImage(UNTAGGED, imageVersion)
     ));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
@@ -966,13 +959,13 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2014-12-31T22:23:56.943Z");
+    final Date expected = new StdDateFormat().parse("2015-04-17T22:01:13.062Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2014-12-31T22:23:56.943Z");
+    final Date milli = dateFormat.parse("2015-04-17T22:01:13.062Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2014-12-31T22:23:56.943288461Z");
+    final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
     sut.pull("busybox");
@@ -1230,6 +1223,39 @@ public class DefaultDockerClientTest {
       log.info("Result:\n{}", output);
       assertThat(output, containsString("total"));
     }
+  }
+
+  @Test
+  public void testExecInspect() throws DockerException, InterruptedException, IOException {
+    assumeTrue("Docker API should be at least v1.15 to support Exec, got "
+               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.15") >= 0);
+    assumeThat("Only native (libcontainer) driver supports Exec",
+               sut.info().executionDriver(), startsWith("native"));
+
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
+                                   DockerClient.ExecParameter.STDOUT,
+                                   DockerClient.ExecParameter.STDERR);
+
+    log.info("execId = {}", execId);
+    try (LogStream stream = sut.execStart(execId)) {
+      stream.readFully();
+    }
+
+    ExecState state = sut.execInspect(execId);
+    assertThat(state.running(), is(false));
+    assertThat(state.exitCode(), is(2));
   }
 
   /**

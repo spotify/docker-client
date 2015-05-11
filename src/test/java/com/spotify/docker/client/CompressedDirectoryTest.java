@@ -25,14 +25,12 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.junit.Test;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.spotify.docker.client.CompressedDirectory.delete;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
@@ -42,8 +40,8 @@ public class CompressedDirectoryTest {
   public void testFile() throws Exception {
     // note: Paths.get(someURL.toUri()) is the platform-neutral way to convert a URL to a Path
     final URL dockerDirectory = Resources.getResource("dockerDirectory");
-    final File file = CompressedDirectory.create(Paths.get(dockerDirectory.toURI()));
-    try (BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
+    try (CompressedDirectory dir = CompressedDirectory.create(Paths.get(dockerDirectory.toURI()));
+         BufferedInputStream fileIn = new BufferedInputStream(Files.newInputStream(dir.file()));
          GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fileIn);
          TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
 
@@ -54,8 +52,25 @@ public class CompressedDirectoryTest {
         names.add(name);
       }
       assertThat(names, containsInAnyOrder("Dockerfile", "bin/date.sh"));
-    } finally {
-      delete(file);
+    }
+  }
+
+  @Test
+  public void testFileWithIgnore() throws Exception {
+    // note: Paths.get(someURL.toUri()) is the platform-neutral way to convert a URL to a Path
+    final URL dockerDirectory = Resources.getResource("dockerDirectoryWithIgnore");
+    try (CompressedDirectory dir = CompressedDirectory.create(Paths.get(dockerDirectory.toURI()));
+         BufferedInputStream fileIn = new BufferedInputStream(Files.newInputStream(dir.file()));
+         GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fileIn);
+         TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+
+      final List<String> names = new ArrayList<>();
+      TarArchiveEntry entry;
+      while ((entry = tarIn.getNextTarEntry()) != null) {
+        final String name = entry.getName();
+        names.add(name);
+      }
+      assertThat(names, containsInAnyOrder("Dockerfile", "bin/date.sh", "subdir2/keep-me", ".dockerignore"));
     }
   }
 
