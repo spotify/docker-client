@@ -114,7 +114,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final String UNIX_SCHEME = "unix";
 
-  private static final String VERSION = "v1.15";
+  private static final String VERSION = "v1.18";
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
   public static final long NO_TIMEOUT = 0;
