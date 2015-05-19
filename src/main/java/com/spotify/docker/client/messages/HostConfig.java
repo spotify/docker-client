@@ -45,6 +45,7 @@ public class HostConfig {
   @JsonProperty("DnsSearch") private ImmutableList<String> dnsSearch;
   @JsonProperty("VolumesFrom") private ImmutableList<String> volumesFrom;
   @JsonProperty("NetworkMode") private String networkMode;
+  @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
 
   private HostConfig() {
   }
@@ -61,6 +62,7 @@ public class HostConfig {
     this.dnsSearch = builder.dnsSearch;
     this.volumesFrom = builder.volumesFrom;
     this.networkMode = builder.networkMode;
+    this.securityOpt = builder.securityOpt;
   }
 
   public List<String> binds() {
@@ -105,6 +107,10 @@ public class HostConfig {
 
   public String networkMode() {
     return networkMode;
+  }
+
+  public List<String> securityOpt() {
+    return securityOpt;
   }
 
   @Override
@@ -154,6 +160,9 @@ public class HostConfig {
     if (volumesFrom != null ? !volumesFrom.equals(that.volumesFrom) : that.volumesFrom != null) {
       return false;
     }
+    if (securityOpt != null ? !securityOpt.equals(that.securityOpt) : that.securityOpt != null) {
+      return false;
+    }
 
     return true;
   }
@@ -171,6 +180,7 @@ public class HostConfig {
     result = 31 * result + (dnsSearch != null ? dnsSearch.hashCode() : 0);
     result = 31 * result + (volumesFrom != null ? volumesFrom.hashCode() : 0);
     result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
+    result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
     return result;
   }
 
@@ -188,6 +198,7 @@ public class HostConfig {
         .add("dnsSearch", dnsSearch)
         .add("volumesFrom", volumesFrom)
         .add("networkMode", networkMode)
+        .add("securityOpt", securityOpt)
         .toString();
   }
 
@@ -267,6 +278,7 @@ public class HostConfig {
     private ImmutableList<String> dnsSearch;
     private ImmutableList<String> volumesFrom;
     private String networkMode;
+    private ImmutableList<String> securityOpt;
 
     private Builder() {
     }
@@ -283,6 +295,7 @@ public class HostConfig {
       this.dnsSearch = hostConfig.dnsSearch;
       this.volumesFrom = hostConfig.volumesFrom;
       this.networkMode = hostConfig.networkMode;
+      this.securityOpt = hostConfig.securityOpt;
     }
 
     public Builder binds(final List<String> binds) {
@@ -412,6 +425,15 @@ public class HostConfig {
 
     public String networkMode() {
       return networkMode;
+    }
+
+    public Builder securityOpt(final String... securityOpt) {
+      this.securityOpt = ImmutableList.copyOf(securityOpt);
+      return this;
+    }
+
+    public List<String> securityOpt() {
+      return securityOpt;
     }
 
     public HostConfig build() {
