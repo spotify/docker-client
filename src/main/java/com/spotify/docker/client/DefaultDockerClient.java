@@ -114,7 +114,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final String UNIX_SCHEME = "unix";
 
-  private static final String VERSION = "v1.15";
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
   public static final long NO_TIMEOUT = 0;
@@ -147,6 +146,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private final Client noTimeoutClient;
 
   private final URI uri;
+  private final String apiVersion;
   private final AuthConfig authConfig;
 
   Client getClient() {
@@ -187,6 +187,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   protected DefaultDockerClient(final Builder builder) {
     URI originalUri = checkNotNull(builder.uri, "uri");
+    this.apiVersion = builder.apiVersion();
 
     if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
       throw new IllegalArgumentException("https URI must be provided to use certificates");
@@ -1012,11 +1013,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private WebTarget resource() {
-    return client.target(uri).path(VERSION);
+    final WebTarget target = client.target(uri);
+    if (!isNullOrEmpty(apiVersion)) {
+      target.path(apiVersion);
+    }
+    return target;
   }
 
   private WebTarget noTimeoutResource() {
-    return noTimeoutClient.target(uri).path(VERSION);
+    final WebTarget target = noTimeoutClient.target(uri);
+    if (!isNullOrEmpty(apiVersion)) {
+      target.path(apiVersion);
+    }
+    return target;
   }
 
   private <T> T request(final String method, final GenericType<T> type,
@@ -1187,6 +1196,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public static class Builder {
 
     private URI uri;
+    private String apiVersion;
     private long connectTimeoutMillis = DEFAULT_CONNECT_TIMEOUT_MILLIS;
     private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
@@ -1207,6 +1217,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      */
     public Builder uri(final String uri) {
       return uri(URI.create(uri));
+    }
+
+    /**
+     * Set the Docker API version that will be used in the HTTP requests to Docker daemon.
+     */
+    public Builder apiVersion(final String apiVersion) {
+      this.apiVersion = apiVersion;
+      return this;
+    }
+
+    public String apiVersion() {
+      return apiVersion;
     }
 
     public long connectTimeoutMillis() {
