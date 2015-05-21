@@ -29,7 +29,7 @@ public interface ProgressHandler {
    * This method will be called for each progress message received from Docker.
    *
    * @param message the message to process
-   * @throws DockerException
+   * @throws DockerException if a server error occurred (500)
    */
   void progress(ProgressMessage message) throws DockerException;
 

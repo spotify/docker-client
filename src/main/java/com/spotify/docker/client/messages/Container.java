@@ -17,16 +17,16 @@
 
 package com.spotify.docker.client.messages;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-
-import java.util.Iterator;
-import java.util.List;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Container {
@@ -43,12 +43,12 @@ public class Container {
 
   /**
    * This method returns port information the way that <code>docker ps</code> does:
-   * <code>0.0.0.0:5432->5432/tcp</code> or <code>6379/tcp</code>
+   * <code>0.0.0.0:5432-&gt;5432/tcp</code> or <code>6379/tcp</code>
    *
    * It should not be used to extract detailed information of ports. To do so,
-   * please refer to {@link com.spotify.docker.client.PortBinding}
+   * please refer to {@link com.spotify.docker.client.messages.PortBinding}
    *
-   * @see com.spotify.docker.client.PortBinding
+   * @see com.spotify.docker.client.messages.PortBinding
    *
    * @return port information as docker ps does.
    */
