@@ -46,6 +46,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.client.ChunkedInput;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1312,6 +1313,34 @@ public class DefaultDockerClientTest {
         DockerClient.ListContainersParam.exitedContainers());
     assertThat(containers.size(), greaterThan(0));
     assertThat(containers.get(0).command(), containsString(randomLong));
+  }
+
+  @Test
+  public void testStats() throws Exception {
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+            // make sure the container's busy doing something upon startup
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Must be running
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+      final String logs;
+      try (LogStream stream = sut.stats(containerInfo.id())) {
+        logs = stream.readFully();
+      }
+      assertThat(logs, containsString("bar"));
+    }
+
   }
 
   /**

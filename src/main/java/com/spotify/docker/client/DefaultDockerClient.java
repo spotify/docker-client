@@ -891,8 +891,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public LogStream attachContainer(final String containerId,
-                                   final AttachParameter... params) throws DockerException,
-      InterruptedException {
+                                   final AttachParameter... params)
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId)
         .path("attach");
 
@@ -985,8 +985,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       return request(POST, LogStream.class, resource,
-              resource.request("application/vnd.docker.raw-stream"),
-              Entity.json(writer.toString()));
+                     resource.request("application/vnd.docker.raw-stream"),
+                     Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -1011,6 +1011,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw e;
       }
     }
+  }
+
+  @Override
+  public LogStream stats(final String containerId)
+      throws DockerException, InterruptedException, IOException {
+    WebTarget resource = resource().path("containers").path(containerId).path("stats");
+
+//    try {
+    return request(GET, LogStream.class, resource,
+                   resource.request("application/vnd.docker.raw-stream"));
+
+//    } catch (DockerRequestException e) {
+//      switch (e.status()) {
+//        case 404:
+//          throw new ContainerNotFoundException(containerId);
+//        default:
+//          throw e;
+//      }
+//    }
   }
 
   private WebTarget resource() {
