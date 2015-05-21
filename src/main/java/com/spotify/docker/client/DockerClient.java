@@ -35,6 +35,7 @@ import com.spotify.docker.client.messages.Version;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -92,6 +93,18 @@ public interface DockerClient extends Closeable {
    */
   List<Container> listContainers(ListContainersParam... params)
       throws DockerException, InterruptedException;
+
+  /**
+   * Lists docker containers with status of "exited"
+   *
+   * @param params Container listing and filtering options.
+   * @return A list of containers with status=exited
+   * @throws DockerException
+   * @throws InterruptedException
+   * @throws UnsupportedEncodingException
+   */
+  List<Container> listExitedContainers(ListContainersParam... params)
+      throws DockerException, InterruptedException, UnsupportedEncodingException;
 
   /**
    * List docker images.
