@@ -184,6 +184,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client using the configuration of the builder.
+   *
+   * @param builder DefaultDockerClient builder
    */
   protected DefaultDockerClient(final Builder builder) {
     URI originalUri = checkNotNull(builder.uri, "uri");
@@ -1147,6 +1149,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new {@link DefaultDockerClient} builder.
+   * @return Returns a builder that can be used to further customize and then build the client.
    */
   public static Builder builder() {
     return new Builder();
@@ -1156,7 +1159,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * Create a new {@link DefaultDockerClient} builder prepopulated with values loaded
    * from the DOCKER_HOST and DOCKER_CERT_PATH environment variables.
    * @return Returns a builder that can be used to further customize and then build the client.
-   * @throws DockerCertificateException
+   * @throws DockerCertificateException if we could not build a DockerCertificates object
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
@@ -1214,6 +1217,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     /**
      * Set the URI for connections to Docker.
+     *
+     * @param uri URI String for connections to Docker
+     * @return Builder
      */
     public Builder uri(final String uri) {
       return uri(URI.create(uri));
@@ -1221,6 +1227,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     /**
      * Set the Docker API version that will be used in the HTTP requests to Docker daemon.
+     *
+     * @param apiVersion String for Docker API version
+     * @return Builder
      */
     public Builder apiVersion(final String apiVersion) {
       this.apiVersion = apiVersion;
@@ -1238,6 +1247,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     /**
      * Set the timeout in milliseconds until a connection to Docker is established.
      * A timeout value of zero is interpreted as an infinite timeout.
+     *
+     * @param connectTimeoutMillis connection timeout to Docker daemon in milliseconds
+     * @return Builder
      */
     public Builder connectTimeoutMillis(final long connectTimeoutMillis) {
       this.connectTimeoutMillis = connectTimeoutMillis;
@@ -1251,6 +1263,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     /**
      * Set the SO_TIMEOUT in milliseconds. This is the maximum period of inactivity
      * between receiving two consecutive data packets from Docker.
+     *
+     * @param readTimeoutMillis read timeout to Docker daemon in milliseconds
+     * @return Builder
      */
     public Builder readTimeoutMillis(final long readTimeoutMillis) {
       this.readTimeoutMillis = readTimeoutMillis;
@@ -1263,6 +1278,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     /**
      * Provide certificates to secure the connection to Docker.
+     *
+     * @param dockerCertificates DockerCertificates object
+     * @return Builder
      */
     public Builder dockerCertificates(final DockerCertificates dockerCertificates) {
       this.dockerCertificates = dockerCertificates;
@@ -1278,8 +1296,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      * a known issue, DefaultDockerClient maintains two separate connection pools, each
      * of which is capped at this size. Therefore, the maximum number of concurrent
      * connections to Docker may be up to 2 * connectionPoolSize.
+     *
+     * @param connectionPoolSize connection pool size
+     * @return Builder
      */
-    public Builder connectionPoolSize(int connectionPoolSize) {
+    public Builder connectionPoolSize(final int connectionPoolSize) {
       this.connectionPoolSize = connectionPoolSize;
       return this;
     }
@@ -1290,8 +1311,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     /**
      * Set the auth parameters for pull/push requests from/to private repositories.
+     *
+     * @param authConfig AuthConfig object
+     * @return Builder
      */
-    public Builder authConfig(AuthConfig authConfig) {
+    public Builder authConfig(final AuthConfig authConfig) {
       this.authConfig = authConfig;
       return this;
     }

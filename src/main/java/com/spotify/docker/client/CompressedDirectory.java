@@ -80,6 +80,7 @@ class CompressedDirectory implements Closeable {
 
   /**
    * The file for the created compressed directory archive.
+   * @return a Path object representing the compressed directory
    */
   public Path file() {
     return file;
