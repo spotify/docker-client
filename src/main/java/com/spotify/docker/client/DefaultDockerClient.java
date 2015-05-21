@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
+import java.io.UnsupportedEncodingException;
 import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -312,6 +313,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public List<Container> listExitedContainers(final ListContainersParam... params)
+      throws DockerException, InterruptedException, UnsupportedEncodingException {
+    int i = 0;
+    final ListContainersParam[] paramsHolder = new ListContainersParam[params.length + 2];
+
+    for (; i < params.length; ++i) {
+      paramsHolder[i] = params[i];
+    }
+
+    paramsHolder[i++] = ListContainersParam.allContainers();
+    paramsHolder[i] = ListContainersParam.create("filters",
+            URLEncoder.encode("{\"status\":[\"exited\"]}", "UTF-8"));
+
+    return listContainers(paramsHolder);
   }
 
   @Override
