@@ -503,6 +503,7 @@ public class DefaultDockerClientTest {
     assertThat(message3.buildImageId(), nullValue());
   }
 
+  @Test
   public void testAnsiProgressHandler() throws Exception {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     sut.pull("busybox", new AnsiProgressHandler(new PrintStream(out)));
