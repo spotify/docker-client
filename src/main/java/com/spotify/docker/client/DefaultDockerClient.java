@@ -361,8 +361,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public ContainerCreation createContainer(final ContainerConfig config,
-                                           final String name)
+  public ContainerCreation createContainer(final ContainerConfig config, final String name)
       throws DockerException, InterruptedException {
     WebTarget resource = resource()
         .path("containers").path("create");

@@ -903,6 +903,29 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testInspectContainerWithSecurityOpts() throws Exception {
+    final String userLabel = "label:user:dxia";
+    final String roleLabel = "label:role:foo";
+    final String typeLabel = "label:type:bar";
+    final String levelLabel = "label:level:9001";
+
+    sut.pull("rohan/memcached-mini");
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("rohan/memcached-mini")
+        .build();
+    final HostConfig hostConfig = HostConfig.builder()
+        .securityOpt(userLabel, roleLabel, typeLabel, levelLabel)
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id(), hostConfig);
+    final ContainerInfo containerInfo = sut.inspectContainer(container.id());
+    assertThat(containerInfo, notNullValue());
+    assertThat(containerInfo.hostConfig().securityOpt(),
+               hasItems(userLabel, roleLabel, typeLabel, levelLabel));
+  }
+
+  @Test
   public void testContainerWithHostConfig() throws Exception {
     sut.pull("busybox");
 
@@ -1203,10 +1226,10 @@ public class DefaultDockerClientTest {
     sut.pull("busybox");
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-            .image("busybox")
-                    // make sure the container's busy doing something upon startup
-            .cmd("sh", "-c", "while :; do sleep 1; done")
-            .build();
+        .image("busybox")
+        // make sure the container's busy doing something upon startup
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
     final String containerName = randomName();
     final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
     final String containerId = containerCreation.id();
