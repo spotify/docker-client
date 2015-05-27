@@ -42,6 +42,7 @@ public class ImageInfo {
   @JsonProperty("Architecture") private String architecture;
   @JsonProperty("Os") private String os;
   @JsonProperty("Size") private Long size;
+  @JsonProperty("VirtualSize") private Long virtualSize;
 
   public String id() {
     return id;
@@ -89,6 +90,10 @@ public class ImageInfo {
 
   public Long size() {
     return size;
+  }
+  
+  public Long virtualSize() {
+    return virtualSize;
   }
 
   @Override
@@ -141,7 +146,11 @@ public class ImageInfo {
     if (size != null ? !size.equals(imageInfo.size) : imageInfo.size != null) {
       return false;
     }
-
+    if (virtualSize != null ? !virtualSize.equals(imageInfo.virtualSize)
+                            : imageInfo.virtualSize != null) {
+      return false;
+    }
+    
     return true;
   }
 
@@ -159,6 +168,7 @@ public class ImageInfo {
     result = 31 * result + (architecture != null ? architecture.hashCode() : 0);
     result = 31 * result + (os != null ? os.hashCode() : 0);
     result = 31 * result + (size != null ? size.hashCode() : 0);
+    result = 31 * result + (virtualSize != null ? virtualSize.hashCode() : 0);
     return result;
   }
 
@@ -177,6 +187,7 @@ public class ImageInfo {
         .add("architecture", architecture)
         .add("os", os)
         .add("size", size)
+        .add("virtualSize", virtualSize)
         .toString();
   }
 }

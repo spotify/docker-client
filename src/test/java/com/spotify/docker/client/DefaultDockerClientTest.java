@@ -356,6 +356,7 @@ public class DefaultDockerClientTest {
     assertThat(info.os(), equalTo("linux"));
     assertThat(info.parent(), not(isEmptyOrNullString()));
     assertThat(info.size(), notNullValue());
+    assertThat(info.virtualSize(), notNullValue());
   }
 
   @Test
