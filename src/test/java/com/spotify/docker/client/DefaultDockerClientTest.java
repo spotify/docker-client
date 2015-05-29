@@ -168,7 +168,13 @@ public class DefaultDockerClientTest {
     for (Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
       if (info != null && info.name().contains(nameTag)) {
-        sut.killContainer(info.id());
+        try {
+          sut.killContainer(info.id());
+        } catch (DockerRequestException e) {
+          // Docker 1.6 sometimes fails to kill a container because it disappears.
+          // https://github.com/docker/docker/issues/12738
+          log.warn("Failed to kill container {}", info.id(), e);
+        }
       }
     }
 
