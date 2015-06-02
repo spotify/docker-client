@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -1287,6 +1288,30 @@ public class DefaultDockerClientTest {
     ExecState state = sut.execInspect(execId);
     assertThat(state.running(), is(false));
     assertThat(state.exitCode(), is(2));
+  }
+
+  @Test
+  public void testExitedListContainersParam()
+      throws DockerException, InterruptedException, UnsupportedEncodingException {
+    sut.pull("busybox");
+
+    final String randomLong = Long.toString(ThreadLocalRandom.current().nextLong());
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("sh", "-c", "echo " + randomLong)
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+    sut.waitContainer(containerId);
+
+    final List<Container> containers = sut.listContainers(
+        DockerClient.ListContainersParam.allContainers(),
+        DockerClient.ListContainersParam.exitedContainers());
+    assertThat(containers.size(), greaterThan(0));
+    assertThat(containers.get(0).command(), containsString(randomLong));
   }
 
   /**

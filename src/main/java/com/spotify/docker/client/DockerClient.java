@@ -35,6 +35,8 @@ import com.spotify.docker.client.messages.Version;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -678,6 +680,15 @@ public interface DockerClient extends Closeable {
      */
     public static ListContainersParam allContainers(final boolean all) {
       return create("all", all ? "1" : "0");
+    }
+
+    /**
+     * Show exited containers.
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam exitedContainers() throws UnsupportedEncodingException {
+      return create("filters", URLEncoder.encode("{\"status\":[\"exited\"]}", "UTF-8"));
     }
 
     /**
