@@ -60,6 +60,7 @@ public class ContainerConfig {
   @JsonProperty("OnBuild") private ImmutableList<String> onBuild;
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
   @JsonProperty("MacAddress") private String macAddress;
+  @JsonProperty("HostConfig") private HostConfig hostConfig;
 
 
   private ContainerConfig() {
@@ -91,6 +92,7 @@ public class ContainerConfig {
     this.onBuild = builder.onBuild;
     this.labels = builder.labels;
     this.macAddress = builder.macAddress;
+    this.hostConfig = builder.hostConfig;
   }
 
   public String hostname() {
@@ -189,6 +191,8 @@ public class ContainerConfig {
 
   public String macAddress() { return macAddress; }
 
+  public HostConfig hostConfig() { return hostConfig; }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -283,6 +287,10 @@ public class ContainerConfig {
       return false;
     }
 
+    if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -313,6 +321,7 @@ public class ContainerConfig {
     result = 31 * result + (onBuild != null ? onBuild.hashCode() : 0);
     result = 31 * result + (labels != null ? labels.hashCode() : 0);
     result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
+    result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
     return result;
   }
 
@@ -344,6 +353,7 @@ public class ContainerConfig {
         .add("onBuild", onBuild)
         .add("labels", labels)
         .add("macAddress", macAddress)
+        .add("hostConfig", hostConfig)
         .toString();
   }
 
@@ -382,6 +392,7 @@ public class ContainerConfig {
     private ImmutableList<String> onBuild;
     private ImmutableMap<String, String> labels;
     private String macAddress;
+    private HostConfig hostConfig;
 
     private Builder() {
     }
@@ -412,6 +423,7 @@ public class ContainerConfig {
       this.onBuild = config.onBuild;
       this.labels = config.labels;
       this.macAddress = config.macAddress;
+      this.hostConfig = config.hostConfig;
     }
 
     public Builder hostname(final String hostname) {
@@ -672,6 +684,15 @@ public class ContainerConfig {
 
     public String macAddress() {
       return macAddress;
+    }
+
+    public Builder hostConfig(final HostConfig hostConfig) {
+      this.hostConfig = hostConfig;
+      return this;
+    }
+
+    public HostConfig hostConfig() {
+      return hostConfig;
     }
 
     public ContainerConfig build() {
