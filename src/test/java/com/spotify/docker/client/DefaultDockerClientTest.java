@@ -940,25 +940,26 @@ public class DefaultDockerClientTest {
   public void testContainerWithHostConfig() throws Exception {
     sut.pull("busybox");
 
+    final boolean privileged = true;
+    final boolean publishAllPorts = true;
+    final String dns = "1.2.3.4";
+    final HostConfig expected = HostConfig.builder()
+            .privileged(privileged)
+            .publishAllPorts(publishAllPorts)
+            .dns(dns)
+            .cpuShares((long)4096)
+            .build();
+
+
     final ContainerConfig config = ContainerConfig.builder()
         .image("busybox")
+        .hostConfig(expected)
         .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
 
-    final boolean privileged = true;
-    final boolean publishAllPorts = true;
-    final String dns = "1.2.3.4";
-
-    final HostConfig expected = HostConfig.builder()
-        .privileged(privileged)
-        .publishAllPorts(publishAllPorts)
-        .dns(dns)
-        .cpuShares((long)4096)
-        .memory((long)2048)
-        .build();
-    sut.startContainer(id, expected);
+    sut.startContainer(id);
 
     final HostConfig actual = sut.inspectContainer(id).hostConfig();
 
