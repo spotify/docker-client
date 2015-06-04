@@ -955,6 +955,8 @@ public class DefaultDockerClientTest {
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
+        .cpuShares((long)4096)
+        .memory((long)2048)
         .build();
     sut.startContainer(id, expected);
 

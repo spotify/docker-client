@@ -46,6 +46,11 @@ public class HostConfig {
   @JsonProperty("VolumesFrom") private ImmutableList<String> volumesFrom;
   @JsonProperty("NetworkMode") private String networkMode;
   @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
+  @JsonProperty("Memory") private Long memory;
+  @JsonProperty("MemorySwap") private Long memorySwap;
+  @JsonProperty("CpuShares") private Long cpuShares;
+  @JsonProperty("CpusetCpus") private String cpuset;
+  @JsonProperty("CgroupParent") private String cgroupParent;
 
   private HostConfig() {
   }
@@ -63,6 +68,11 @@ public class HostConfig {
     this.volumesFrom = builder.volumesFrom;
     this.networkMode = builder.networkMode;
     this.securityOpt = builder.securityOpt;
+    this.memory = builder.memory;
+    this.memorySwap = builder.memorySwap;
+    this.cpuShares = builder.cpuShares;
+    this.cpuset = builder.cpuset;
+    this.cgroupParent = builder.cgroupParent;
   }
 
   public List<String> binds() {
@@ -112,6 +122,16 @@ public class HostConfig {
   public List<String> securityOpt() {
     return securityOpt;
   }
+
+  public Long memory() { return memory; }
+
+  public Long memorySwap() { return memorySwap; }
+
+  public Long cpuShares() { return cpuShares; }
+
+  public String cpuset() { return cpuset; }
+
+  public String cgroupParent() { return cgroupParent; }
 
   @Override
   public boolean equals(final Object o) {
@@ -164,6 +184,27 @@ public class HostConfig {
       return false;
     }
 
+    if (memory != null ?  !memory.equals(that.memory) : that.memory != null) {
+      return false;
+    }
+
+    if (memorySwap != null ?  !memorySwap.equals(that.memorySwap) : that.memorySwap != null) {
+      return false;
+    }
+
+    if (cpuShares != null ?  !cpuShares.equals(that.cpuShares) : that.cpuShares != null) {
+      return false;
+    }
+
+    if (cpuset != null ?  !cpuset.equals(that.cpuset) : that.cpuset != null) {
+      return false;
+    }
+
+    if (cgroupParent != null ?  !cgroupParent.equals(that.cpuset) : that.cgroupParent != null) {
+      return false;
+    }
+
+
     return true;
   }
 
@@ -181,6 +222,11 @@ public class HostConfig {
     result = 31 * result + (volumesFrom != null ? volumesFrom.hashCode() : 0);
     result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
     result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
+    result = 31 * result + (memory != null ? memory.hashCode() : 0);
+    result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
+    result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
+    result = 31 * result + (cpuset != null ? cpuset.hashCode() : 0);
+    result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
     return result;
   }
 
@@ -199,6 +245,11 @@ public class HostConfig {
         .add("volumesFrom", volumesFrom)
         .add("networkMode", networkMode)
         .add("securityOpt", securityOpt)
+        .add("memory", memory)
+        .add("memorySwap", memorySwap)
+        .add("cpuShares", cpuShares)
+        .add("cpuset", cpuset)
+        .add("cgroupParent", cgroupParent)
         .toString();
   }
 
@@ -279,6 +330,11 @@ public class HostConfig {
     private ImmutableList<String> volumesFrom;
     private String networkMode;
     private ImmutableList<String> securityOpt;
+    public Long memory;
+    public Long memorySwap;
+    public Long cpuShares;
+    public String cpuset;
+    public String cgroupParent;
 
     private Builder() {
     }
@@ -296,6 +352,11 @@ public class HostConfig {
       this.volumesFrom = hostConfig.volumesFrom;
       this.networkMode = hostConfig.networkMode;
       this.securityOpt = hostConfig.securityOpt;
+      this.memory = hostConfig.memory;
+      this.memorySwap = hostConfig.memorySwap;
+      this.cpuShares = hostConfig.cpuShares;
+      this.cpuset = hostConfig.cpuset;
+      this.cgroupParent = hostConfig.cgroupParent;
     }
 
     public Builder binds(final List<String> binds) {
@@ -435,6 +496,52 @@ public class HostConfig {
     public List<String> securityOpt() {
       return securityOpt;
     }
+
+    public Builder memory(final Long memory) {
+      this.memory = memory;
+      return this;
+    }
+
+    public Long memory() {
+      return memory;
+    }
+
+    public Builder memorySwap(final Long memorySwap) {
+      this.memorySwap = memorySwap;
+      return this;
+    }
+
+    public Long memorySwap() {
+      return memorySwap;
+    }
+
+    public Builder cpuShares(final Long cpuShares) {
+      this.cpuShares = cpuShares;
+      return this;
+    }
+
+    public Long cpuShares() {
+      return cpuShares;
+    }
+
+    public Builder cpuset(final String cpuset) {
+      this.cpuset = cpuset;
+      return this;
+    }
+
+    public String cpuset() {
+      return cpuset;
+    }
+
+    public Builder cgroupParent(final String cgroupParent) {
+      this.cgroupParent = cgroupParent;
+      return this;
+    }
+
+    public String cgroupParent() {
+      return cgroupParent;
+    }
+
 
     public HostConfig build() {
       return new HostConfig(this);
