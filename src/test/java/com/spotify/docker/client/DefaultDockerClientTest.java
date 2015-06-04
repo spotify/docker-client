@@ -1329,7 +1329,7 @@ public class DefaultDockerClientTest {
     final ContainerConfig config = ContainerConfig.builder()
             .image("busybox")
             .labels(labels)
-            .cmd("echo", "10")
+            .cmd("sleep", "1000")
             .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
@@ -1342,6 +1342,23 @@ public class DefaultDockerClientTest {
     assertThat(containerInfo.config().labels().keySet(), contains("name", "version"));
     assertThat(containerInfo.config().labels().values(), contains("starship", "1.6.2"));
   }
+
+  @Test
+  public void testMacAddress() throws Exception {
+    sut.pull("rohan/memcached-mini");
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .cmd("sleep", "1000")
+            .macAddress("12:34:56:78:9a:bc")
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+    final ContainerInfo containerInfo = sut.inspectContainer(container.id());
+    assertThat(containerInfo, notNullValue());
+    assertThat(containerInfo.config().macAddress(), equalTo("12:34:56:78:9a:bc"));
+  }
+
+
 
   /**
    * Compares two version strings.

@@ -59,6 +59,7 @@ public class ContainerConfig {
   @JsonProperty("NetworkDisabled") private Boolean networkDisabled;
   @JsonProperty("OnBuild") private ImmutableList<String> onBuild;
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
+  @JsonProperty("MacAddress") private String macAddress;
 
 
   private ContainerConfig() {
@@ -89,6 +90,7 @@ public class ContainerConfig {
     this.networkDisabled = builder.networkDisabled;
     this.onBuild = builder.onBuild;
     this.labels = builder.labels;
+    this.macAddress = builder.macAddress;
   }
 
   public String hostname() {
@@ -185,6 +187,8 @@ public class ContainerConfig {
 
   public Map<String, String> labels() { return labels; }
 
+  public String macAddress() { return macAddress; }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -275,6 +279,10 @@ public class ContainerConfig {
       return false;
     }
 
+    if (macAddress != null ? !macAddress.equals(config.macAddress) : config.macAddress != null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -304,6 +312,7 @@ public class ContainerConfig {
     result = 31 * result + (networkDisabled != null ? networkDisabled.hashCode() : 0);
     result = 31 * result + (onBuild != null ? onBuild.hashCode() : 0);
     result = 31 * result + (labels != null ? labels.hashCode() : 0);
+    result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
     return result;
   }
 
@@ -334,6 +343,7 @@ public class ContainerConfig {
         .add("networkDisabled", networkDisabled)
         .add("onBuild", onBuild)
         .add("labels", labels)
+        .add("macAddress", macAddress)
         .toString();
   }
 
@@ -371,6 +381,7 @@ public class ContainerConfig {
     private Boolean networkDisabled;
     private ImmutableList<String> onBuild;
     private ImmutableMap<String, String> labels;
+    private String macAddress;
 
     private Builder() {
     }
@@ -400,6 +411,7 @@ public class ContainerConfig {
       this.networkDisabled = config.networkDisabled;
       this.onBuild = config.onBuild;
       this.labels = config.labels;
+      this.macAddress = config.macAddress;
     }
 
     public Builder hostname(final String hostname) {
@@ -651,6 +663,15 @@ public class ContainerConfig {
 
     public Map<String, String> labels() {
       return labels;
+    }
+
+    public Builder macAddress(final String macAddress) {
+      this.macAddress = macAddress;
+      return this;
+    }
+
+    public String macAddress() {
+      return macAddress;
     }
 
     public ContainerConfig build() {
