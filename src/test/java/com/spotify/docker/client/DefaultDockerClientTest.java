@@ -938,6 +938,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithHostConfig() throws Exception {
+    assumeTrue("Docker API should be at least v1.18 to support Container Creation with HostConfig, got "
+            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+
     sut.pull("busybox");
 
     final boolean privileged = true;
@@ -947,7 +950,7 @@ public class DefaultDockerClientTest {
             .privileged(privileged)
             .publishAllPorts(publishAllPorts)
             .dns(dns)
-            .cpuShares((long)4096)
+            .cpuShares((long) 4096)
             .build();
 
 
@@ -1322,6 +1325,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLabels() throws DockerException, InterruptedException {
+    assumeTrue("Docker API should be at least v1.18 to support Labels, got "
+            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull("busybox");
 
     Map<String, String> labels = new HashMap<>();
@@ -1348,6 +1353,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMacAddress() throws Exception {
+    assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
+            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull("rohan/memcached-mini");
     final ContainerConfig config = ContainerConfig.builder()
             .image("busybox")
