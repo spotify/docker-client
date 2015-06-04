@@ -69,6 +69,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -113,6 +115,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertThat;
@@ -1312,6 +1315,32 @@ public class DefaultDockerClientTest {
         DockerClient.ListContainersParam.exitedContainers());
     assertThat(containers.size(), greaterThan(0));
     assertThat(containers.get(0).command(), containsString(randomLong));
+  }
+
+  @Test
+  public void testLabels() throws DockerException, InterruptedException {
+    sut.pull("busybox");
+
+    Map<String, String> labels = new HashMap<>();
+    labels.put("name", "starship");
+    labels.put("version", "1.6.2");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .labels(labels)
+            .cmd("echo", "10")
+            .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    // Start the container
+    sut.startContainer(id);
+
+    ContainerInfo containerInfo = sut.inspectContainer(id);
+    assertThat(containerInfo.config().labels().keySet(), contains("name", "version"));
+    assertThat(containerInfo.config().labels().values(), contains("starship", "1.6.2"));
   }
 
   /**

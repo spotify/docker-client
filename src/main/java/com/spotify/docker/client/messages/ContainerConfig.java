@@ -19,12 +19,14 @@ package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -56,6 +58,8 @@ public class ContainerConfig {
   @JsonProperty("Entrypoint") private ImmutableList<String> entrypoint;
   @JsonProperty("NetworkDisabled") private Boolean networkDisabled;
   @JsonProperty("OnBuild") private ImmutableList<String> onBuild;
+  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
+
 
   private ContainerConfig() {
   }
@@ -84,6 +88,7 @@ public class ContainerConfig {
     this.entrypoint = builder.entrypoint;
     this.networkDisabled = builder.networkDisabled;
     this.onBuild = builder.onBuild;
+    this.labels = builder.labels;
   }
 
   public String hostname() {
@@ -178,6 +183,8 @@ public class ContainerConfig {
     return onBuild;
   }
 
+  public Map<String, String> labels() { return labels; }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -264,6 +271,10 @@ public class ContainerConfig {
       return false;
     }
 
+    if (labels != null ? !labels.equals(config.labels) : config.labels != null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -292,6 +303,7 @@ public class ContainerConfig {
     result = 31 * result + (entrypoint != null ? entrypoint.hashCode() : 0);
     result = 31 * result + (networkDisabled != null ? networkDisabled.hashCode() : 0);
     result = 31 * result + (onBuild != null ? onBuild.hashCode() : 0);
+    result = 31 * result + (labels != null ? labels.hashCode() : 0);
     return result;
   }
 
@@ -321,6 +333,7 @@ public class ContainerConfig {
         .add("entrypoint", entrypoint)
         .add("networkDisabled", networkDisabled)
         .add("onBuild", onBuild)
+        .add("labels", labels)
         .toString();
   }
 
@@ -357,6 +370,7 @@ public class ContainerConfig {
     private ImmutableList<String> entrypoint;
     private Boolean networkDisabled;
     private ImmutableList<String> onBuild;
+    private ImmutableMap<String, String> labels;
 
     private Builder() {
     }
@@ -385,6 +399,7 @@ public class ContainerConfig {
       this.entrypoint = config.entrypoint;
       this.networkDisabled = config.networkDisabled;
       this.onBuild = config.onBuild;
+      this.labels = config.labels;
     }
 
     public Builder hostname(final String hostname) {
@@ -627,6 +642,15 @@ public class ContainerConfig {
 
     public List<String> onBuild() {
       return onBuild;
+    }
+
+    public Builder labels(Map<String, String> labels) {
+      this.labels = ImmutableMap.copyOf(labels);
+      return this;
+    }
+
+    public Map<String, String> labels() {
+      return labels;
     }
 
     public ContainerConfig build() {
