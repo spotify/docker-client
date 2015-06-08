@@ -56,6 +56,7 @@ public class ContainerConfig {
   @JsonProperty("Entrypoint") private ImmutableList<String> entrypoint;
   @JsonProperty("NetworkDisabled") private Boolean networkDisabled;
   @JsonProperty("OnBuild") private ImmutableList<String> onBuild;
+  @JsonProperty("HostConfig") private HostConfig hostConfig;
 
   private ContainerConfig() {
   }
@@ -84,6 +85,7 @@ public class ContainerConfig {
     this.entrypoint = builder.entrypoint;
     this.networkDisabled = builder.networkDisabled;
     this.onBuild = builder.onBuild;
+    this.hostConfig = builder.hostConfig;
   }
 
   public String hostname() {
@@ -178,6 +180,10 @@ public class ContainerConfig {
     return onBuild;
   }
 
+  public HostConfig hostConfig() {
+    return hostConfig;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -263,6 +269,9 @@ public class ContainerConfig {
     if (workingDir != null ? !workingDir.equals(config.workingDir) : config.workingDir != null) {
       return false;
     }
+    if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
+      return false;
+    }
 
     return true;
   }
@@ -292,6 +301,7 @@ public class ContainerConfig {
     result = 31 * result + (entrypoint != null ? entrypoint.hashCode() : 0);
     result = 31 * result + (networkDisabled != null ? networkDisabled.hashCode() : 0);
     result = 31 * result + (onBuild != null ? onBuild.hashCode() : 0);
+    result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
     return result;
   }
 
@@ -321,6 +331,7 @@ public class ContainerConfig {
         .add("entrypoint", entrypoint)
         .add("networkDisabled", networkDisabled)
         .add("onBuild", onBuild)
+        .add("hostConfig", hostConfig)
         .toString();
   }
 
@@ -357,6 +368,7 @@ public class ContainerConfig {
     private ImmutableList<String> entrypoint;
     private Boolean networkDisabled;
     private ImmutableList<String> onBuild;
+    private HostConfig hostConfig;
 
     private Builder() {
     }
@@ -385,6 +397,7 @@ public class ContainerConfig {
       this.entrypoint = config.entrypoint;
       this.networkDisabled = config.networkDisabled;
       this.onBuild = config.onBuild;
+      this.hostConfig = config.hostConfig;
     }
 
     public Builder hostname(final String hostname) {
@@ -627,6 +640,15 @@ public class ContainerConfig {
 
     public List<String> onBuild() {
       return onBuild;
+    }
+
+    public Builder hostConfig(final HostConfig hostConfig) {
+      this.hostConfig = hostConfig;
+      return this;
+    }
+
+    public HostConfig hostConfig() {
+      return hostConfig;
     }
 
     public ContainerConfig build() {
