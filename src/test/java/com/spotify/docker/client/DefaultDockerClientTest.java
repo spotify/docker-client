@@ -938,8 +938,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithHostConfig() throws Exception {
-    assumeTrue("Docker API should be at least v1.18 to support Container Creation with HostConfig, got "
-            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+    assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
+               "HostConfig, got " + sut.version().apiVersion(),
+                versionCompare(sut.version().apiVersion(),"1.18") >= 0);
 
     sut.pull("busybox");
 

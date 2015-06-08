@@ -49,7 +49,7 @@ public class HostConfig {
   @JsonProperty("Memory") private Long memory;
   @JsonProperty("MemorySwap") private Long memorySwap;
   @JsonProperty("CpuShares") private Long cpuShares;
-  @JsonProperty("CpusetCpus") private String cpuset;
+  @JsonProperty("CpusetCpus") private String cpusetCpus;
   @JsonProperty("CgroupParent") private String cgroupParent;
 
   private HostConfig() {
@@ -71,7 +71,7 @@ public class HostConfig {
     this.memory = builder.memory;
     this.memorySwap = builder.memorySwap;
     this.cpuShares = builder.cpuShares;
-    this.cpuset = builder.cpuset;
+    this.cpusetCpus = builder.cpusetCpus;
     this.cgroupParent = builder.cgroupParent;
   }
 
@@ -129,7 +129,7 @@ public class HostConfig {
 
   public Long cpuShares() { return cpuShares; }
 
-  public String cpuset() { return cpuset; }
+  public String cpusetCpus() { return cpusetCpus; }
 
   public String cgroupParent() { return cgroupParent; }
 
@@ -196,11 +196,11 @@ public class HostConfig {
       return false;
     }
 
-    if (cpuset != null ?  !cpuset.equals(that.cpuset) : that.cpuset != null) {
+    if (cpusetCpus != null ?  !cpusetCpus.equals(that.cpusetCpus) : that.cpusetCpus != null) {
       return false;
     }
 
-    if (cgroupParent != null ?  !cgroupParent.equals(that.cpuset) : that.cgroupParent != null) {
+    if (cgroupParent != null ?  !cgroupParent.equals(that.cgroupParent) : that.cgroupParent != null) {
       return false;
     }
 
@@ -225,7 +225,7 @@ public class HostConfig {
     result = 31 * result + (memory != null ? memory.hashCode() : 0);
     result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
     result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
-    result = 31 * result + (cpuset != null ? cpuset.hashCode() : 0);
+    result = 31 * result + (cpusetCpus != null ? cpusetCpus.hashCode() : 0);
     result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
     return result;
   }
@@ -248,7 +248,7 @@ public class HostConfig {
         .add("memory", memory)
         .add("memorySwap", memorySwap)
         .add("cpuShares", cpuShares)
-        .add("cpuset", cpuset)
+        .add("cpusetCpus", cpusetCpus)
         .add("cgroupParent", cgroupParent)
         .toString();
   }
@@ -333,7 +333,7 @@ public class HostConfig {
     public Long memory;
     public Long memorySwap;
     public Long cpuShares;
-    public String cpuset;
+    public String cpusetCpus;
     public String cgroupParent;
 
     private Builder() {
@@ -355,7 +355,7 @@ public class HostConfig {
       this.memory = hostConfig.memory;
       this.memorySwap = hostConfig.memorySwap;
       this.cpuShares = hostConfig.cpuShares;
-      this.cpuset = hostConfig.cpuset;
+      this.cpusetCpus = hostConfig.cpusetCpus;
       this.cgroupParent = hostConfig.cgroupParent;
     }
 
@@ -524,13 +524,13 @@ public class HostConfig {
       return cpuShares;
     }
 
-    public Builder cpuset(final String cpuset) {
-      this.cpuset = cpuset;
+    public Builder cpusetCpus(final String cpusetCpus) {
+      this.cpusetCpus = cpusetCpus;
       return this;
     }
 
-    public String cpuset() {
-      return cpuset;
+    public String cpusetCpus() {
+      return cpusetCpus;
     }
 
     public Builder cgroupParent(final String cgroupParent) {

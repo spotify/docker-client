@@ -668,7 +668,7 @@ public class ContainerConfig {
       return onBuild;
     }
 
-    public Builder labels(Map<String, String> labels) {
+    public Builder labels(final Map<String, String> labels) {
       this.labels = ImmutableMap.copyOf(labels);
       return this;
     }
