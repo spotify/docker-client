@@ -627,6 +627,16 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Get container stats based on resource usage
+   * @param containerId The id of the container for which to get stats.
+   * @return A log message stream.
+   * @throws ContainerNotFoundException if the container was not found (404).
+   * @throws InterruptedException
+   * @throws DockerException
+   */
+  LogStream stats(String containerId) throws DockerException, InterruptedException, IOException;
+
+  /**
    * Get the Docker host address
    * @return the docker host name or IP
    */
