@@ -373,17 +373,6 @@ public interface DockerClient extends Closeable {
   void startContainer(String containerId) throws DockerException, InterruptedException;
 
   /**
-   * Start a docker container.
-   *
-   * @param containerId The id of the container to start.
-   * @param hostConfig  The docker host configuration to use when starting the container.
-   * @throws DockerException if a server error occurred (500)
-   * @throws InterruptedException If the thread is interrupted
-   */
-  void startContainer(String containerId, HostConfig hostConfig)
-      throws DockerException, InterruptedException;
-
-  /**
    * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the
    * container doesn't exit gracefully and in a timely manner.
    *

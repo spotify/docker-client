@@ -390,25 +390,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void startContainer(final String containerId)
       throws DockerException, InterruptedException {
-    startContainer(containerId, HostConfig.builder().build());
-  }
-
-  @Override
-  public void startContainer(final String containerId, final HostConfig hostConfig)
-      throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-    checkNotNull(hostConfig, "hostConfig");
 
-    log.info("Starting container with HostConfig: {}", hostConfig);
+    log.info("Starting container with Id: {}", containerId);
 
     try {
       final WebTarget resource = resource()
           .path("containers").path(containerId).path("start");
-      request(POST, resource, resource
-                  .request(APPLICATION_JSON_TYPE)
-                  .property(ClientProperties.REQUEST_ENTITY_PROCESSING,
-                            RequestEntityProcessing.BUFFERED),
-              Entity.json(hostConfig));
+      request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -1066,18 +1055,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       request.async().method(method, String.class).get();
-    } catch (ExecutionException | MultiException e) {
-      throw propagate(method, resource, e);
-    }
-  }
-
-  private void request(final String method,
-                       final WebTarget resource,
-                       final Invocation.Builder request,
-                       final Entity<?> entity)
-      throws DockerException, InterruptedException {
-    try {
-      request.async().method(method, entity, String.class).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }

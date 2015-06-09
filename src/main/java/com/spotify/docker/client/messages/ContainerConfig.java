@@ -19,12 +19,14 @@ package com.spotify.docker.client.messages;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -36,10 +38,6 @@ public class ContainerConfig {
   @JsonProperty("Hostname") private String hostname;
   @JsonProperty("Domainname") private String domainname;
   @JsonProperty("User") private String user;
-  @JsonProperty("Memory") private Long memory;
-  @JsonProperty("MemorySwap") private Long memorySwap;
-  @JsonProperty("CpuShares") private Long cpuShares;
-  @JsonProperty("Cpuset") private String cpuset;
   @JsonProperty("AttachStdin") private Boolean attachStdin;
   @JsonProperty("AttachStdout") private Boolean attachStdout;
   @JsonProperty("AttachStderr") private Boolean attachStderr;
@@ -56,6 +54,10 @@ public class ContainerConfig {
   @JsonProperty("Entrypoint") private ImmutableList<String> entrypoint;
   @JsonProperty("NetworkDisabled") private Boolean networkDisabled;
   @JsonProperty("OnBuild") private ImmutableList<String> onBuild;
+  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
+  @JsonProperty("MacAddress") private String macAddress;
+  @JsonProperty("HostConfig") private HostConfig hostConfig;
+
 
   private ContainerConfig() {
   }
@@ -64,10 +66,6 @@ public class ContainerConfig {
     this.hostname = builder.hostname;
     this.domainname = builder.domainname;
     this.user = builder.user;
-    this.memory = builder.memory;
-    this.memorySwap = builder.memorySwap;
-    this.cpuShares = builder.cpuShares;
-    this.cpuset = builder.cpuset;
     this.attachStdin = builder.attachStdin;
     this.attachStdout = builder.attachStdout;
     this.attachStderr = builder.attachStderr;
@@ -84,6 +82,9 @@ public class ContainerConfig {
     this.entrypoint = builder.entrypoint;
     this.networkDisabled = builder.networkDisabled;
     this.onBuild = builder.onBuild;
+    this.labels = builder.labels;
+    this.macAddress = builder.macAddress;
+    this.hostConfig = builder.hostConfig;
   }
 
   public String hostname() {
@@ -96,22 +97,6 @@ public class ContainerConfig {
 
   public String user() {
     return user;
-  }
-
-  public Long memory() {
-    return memory;
-  }
-
-  public Long memorySwap() {
-    return memorySwap;
-  }
-
-  public Long cpuShares() {
-    return cpuShares;
-  }
-
-  public String cpuset() {
-    return cpuset;
   }
 
   public Boolean attachStdin() {
@@ -178,6 +163,18 @@ public class ContainerConfig {
     return onBuild;
   }
 
+  public Map<String, String> labels() {
+    return labels;
+  }
+
+  public String macAddress() {
+    return macAddress;
+  }
+
+  public HostConfig hostConfig() {
+    return hostConfig;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -204,12 +201,6 @@ public class ContainerConfig {
     if (cmd != null ? !cmd.equals(config.cmd) : config.cmd != null) {
       return false;
     }
-    if (cpuShares != null ? !cpuShares.equals(config.cpuShares) : config.cpuShares != null) {
-      return false;
-    }
-    if (cpuset != null ? !cpuset.equals(config.cpuset) : config.cpuset != null) {
-      return false;
-    }
     if (domainname != null ? !domainname.equals(config.domainname) : config.domainname != null) {
       return false;
     }
@@ -227,12 +218,6 @@ public class ContainerConfig {
       return false;
     }
     if (image != null ? !image.equals(config.image) : config.image != null) {
-      return false;
-    }
-    if (memory != null ? !memory.equals(config.memory) : config.memory != null) {
-      return false;
-    }
-    if (memorySwap != null ? !memorySwap.equals(config.memorySwap) : config.memorySwap != null) {
       return false;
     }
     if (networkDisabled != null ? !networkDisabled.equals(config.networkDisabled)
@@ -264,6 +249,18 @@ public class ContainerConfig {
       return false;
     }
 
+    if (labels != null ? !labels.equals(config.labels) : config.labels != null) {
+      return false;
+    }
+
+    if (macAddress != null ? !macAddress.equals(config.macAddress) : config.macAddress != null) {
+      return false;
+    }
+
+    if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -272,10 +269,6 @@ public class ContainerConfig {
     int result = hostname != null ? hostname.hashCode() : 0;
     result = 31 * result + (domainname != null ? domainname.hashCode() : 0);
     result = 31 * result + (user != null ? user.hashCode() : 0);
-    result = 31 * result + (memory != null ? memory.hashCode() : 0);
-    result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
-    result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
-    result = 31 * result + (cpuset != null ? cpuset.hashCode() : 0);
     result = 31 * result + (attachStdin != null ? attachStdin.hashCode() : 0);
     result = 31 * result + (attachStdout != null ? attachStdout.hashCode() : 0);
     result = 31 * result + (attachStderr != null ? attachStderr.hashCode() : 0);
@@ -292,6 +285,9 @@ public class ContainerConfig {
     result = 31 * result + (entrypoint != null ? entrypoint.hashCode() : 0);
     result = 31 * result + (networkDisabled != null ? networkDisabled.hashCode() : 0);
     result = 31 * result + (onBuild != null ? onBuild.hashCode() : 0);
+    result = 31 * result + (labels != null ? labels.hashCode() : 0);
+    result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
+    result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
     return result;
   }
 
@@ -301,10 +297,6 @@ public class ContainerConfig {
         .add("hostname", hostname)
         .add("domainname", domainname)
         .add("username", user)
-        .add("memory", memory)
-        .add("memorySwap", memorySwap)
-        .add("cpuShares", cpuShares)
-        .add("cpuset", cpuset)
         .add("attachStdin", attachStdin)
         .add("attachStdout", attachStdout)
         .add("attachStderr", attachStderr)
@@ -321,6 +313,9 @@ public class ContainerConfig {
         .add("entrypoint", entrypoint)
         .add("networkDisabled", networkDisabled)
         .add("onBuild", onBuild)
+        .add("labels", labels)
+        .add("macAddress", macAddress)
+        .add("hostConfig", hostConfig)
         .toString();
   }
 
@@ -357,6 +352,9 @@ public class ContainerConfig {
     private ImmutableList<String> entrypoint;
     private Boolean networkDisabled;
     private ImmutableList<String> onBuild;
+    private ImmutableMap<String, String> labels;
+    private String macAddress;
+    private HostConfig hostConfig;
 
     private Builder() {
     }
@@ -365,10 +363,6 @@ public class ContainerConfig {
       this.hostname = config.hostname;
       this.domainname = config.domainname;
       this.user = config.user;
-      this.memory = config.memory;
-      this.memorySwap = config.memorySwap;
-      this.cpuShares = config.cpuShares;
-      this.cpuset = config.cpuset;
       this.attachStdin = config.attachStdin;
       this.attachStdout = config.attachStdout;
       this.attachStderr = config.attachStderr;
@@ -385,6 +379,9 @@ public class ContainerConfig {
       this.entrypoint = config.entrypoint;
       this.networkDisabled = config.networkDisabled;
       this.onBuild = config.onBuild;
+      this.labels = config.labels;
+      this.macAddress = config.macAddress;
+      this.hostConfig = config.hostConfig;
     }
 
     public Builder hostname(final String hostname) {
@@ -627,6 +624,33 @@ public class ContainerConfig {
 
     public List<String> onBuild() {
       return onBuild;
+    }
+
+    public Builder labels(final Map<String, String> labels) {
+      this.labels = ImmutableMap.copyOf(labels);
+      return this;
+    }
+
+    public Map<String, String> labels() {
+      return labels;
+    }
+
+    public Builder macAddress(final String macAddress) {
+      this.macAddress = macAddress;
+      return this;
+    }
+
+    public String macAddress() {
+      return macAddress;
+    }
+
+    public Builder hostConfig(final HostConfig hostConfig) {
+      this.hostConfig = hostConfig;
+      return this;
+    }
+
+    public HostConfig hostConfig() {
+      return hostConfig;
     }
 
     public ContainerConfig build() {

@@ -69,6 +69,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -113,6 +115,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertThat;
@@ -918,15 +921,16 @@ public class DefaultDockerClientTest {
     final String levelLabel = "label:level:9001";
 
     sut.pull("rohan/memcached-mini");
-    final ContainerConfig config = ContainerConfig.builder()
-        .image("rohan/memcached-mini")
-        .build();
     final HostConfig hostConfig = HostConfig.builder()
         .securityOpt(userLabel, roleLabel, typeLabel, levelLabel)
         .build();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("rohan/memcached-mini")
+            .hostConfig(hostConfig)
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
-    sut.startContainer(container.id(), hostConfig);
+    sut.startContainer(container.id());
     final ContainerInfo containerInfo = sut.inspectContainer(container.id());
     assertThat(containerInfo, notNullValue());
     assertThat(containerInfo.hostConfig().securityOpt(),
@@ -935,25 +939,32 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithHostConfig() throws Exception {
+    assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
+               "HostConfig, got " + sut.version().apiVersion(),
+                versionCompare(sut.version().apiVersion(),"1.18") >= 0);
+
     sut.pull("busybox");
+
+    final boolean privileged = true;
+    final boolean publishAllPorts = true;
+    final String dns = "1.2.3.4";
+    final HostConfig expected = HostConfig.builder()
+            .privileged(privileged)
+            .publishAllPorts(publishAllPorts)
+            .dns(dns)
+            .cpuShares((long) 4096)
+            .build();
+
 
     final ContainerConfig config = ContainerConfig.builder()
         .image("busybox")
+        .hostConfig(expected)
         .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
 
-    final boolean privileged = true;
-    final boolean publishAllPorts = true;
-    final String dns = "1.2.3.4";
-
-    final HostConfig expected = HostConfig.builder()
-        .privileged(privileged)
-        .publishAllPorts(publishAllPorts)
-        .dns(dns)
-        .build();
-    sut.startContainer(id, expected);
+    sut.startContainer(id);
 
     final HostConfig actual = sut.inspectContainer(id).hostConfig();
 
@@ -1014,19 +1025,20 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
     sut.build(Paths.get(dockerDirectory), imageName);
 
+    final HostConfig hostConfig = HostConfig.builder()
+            .privileged(true)
+            .publishAllPorts(true)
+            .build();
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(imageName)
         .exposedPorts(expose)
+        .hostConfig(hostConfig)
         .build();
     final String containerName = randomName();
     final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
     final String containerId = containerCreation.id();
 
-    final HostConfig hostConfig = HostConfig.builder()
-        .privileged(true)
-        .publishAllPorts(true)
-        .build();
-    sut.startContainer(containerId, hostConfig);
+    sut.startContainer(containerId);
 
     // Determine where the Docker instance inside the container we just started is exposed
     final String host;
@@ -1119,15 +1131,17 @@ public class DefaultDockerClientTest {
     sut.startContainer(volumeContainer);
     sut.waitContainer(volumeContainer);
 
-    final ContainerConfig mountConfig = ContainerConfig.builder()
-        .image("busybox")
-        .cmd("ls", "/foo")
-        .build();
     final HostConfig mountHostConfig = HostConfig.builder()
         .volumesFrom(volumeContainer)
         .build();
+    final ContainerConfig mountConfig = ContainerConfig.builder()
+            .image("busybox")
+            .hostConfig(mountHostConfig)
+            .cmd("ls", "/foo")
+            .build();
+
     sut.createContainer(mountConfig, mountContainer);
-    sut.startContainer(mountContainer, mountHostConfig);
+    sut.startContainer(mountContainer);
     sut.waitContainer(mountContainer);
 
     final ContainerInfo info = sut.inspectContainer(mountContainer);
@@ -1313,6 +1327,53 @@ public class DefaultDockerClientTest {
     assertThat(containers.size(), greaterThan(0));
     assertThat(containers.get(0).command(), containsString(randomLong));
   }
+
+  @Test
+  public void testLabels() throws DockerException, InterruptedException {
+    assumeTrue("Docker API should be at least v1.18 to support Labels, got "
+            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+    sut.pull("busybox");
+
+    Map<String, String> labels = new HashMap<>();
+    labels.put("name", "starship");
+    labels.put("version", "1.6.2");
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .labels(labels)
+            .cmd("sleep", "1000")
+            .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    // Start the container
+    sut.startContainer(id);
+
+    ContainerInfo containerInfo = sut.inspectContainer(id);
+    assertThat(containerInfo.config().labels().keySet(), contains("name", "version"));
+    assertThat(containerInfo.config().labels().values(), contains("starship", "1.6.2"));
+  }
+
+  @Test
+  public void testMacAddress() throws Exception {
+    assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
+            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+    sut.pull("rohan/memcached-mini");
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("busybox")
+            .cmd("sleep", "1000")
+            .macAddress("12:34:56:78:9a:bc")
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+    final ContainerInfo containerInfo = sut.inspectContainer(container.id());
+    assertThat(containerInfo, notNullValue());
+    assertThat(containerInfo.config().macAddress(), equalTo("12:34:56:78:9a:bc"));
+  }
+
+
 
   /**
    * Compares two version strings.
