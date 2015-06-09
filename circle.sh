@@ -11,7 +11,7 @@ case "$1" in
     fi
 
     # have docker bind to both localhost and unix socket
-    docker_opts='DOCKER_OPTS="$DOCKER_OPTS -D -H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock"'
+    docker_opts='DOCKER_OPTS="$DOCKER_OPTS -D -H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock --registry-mirror=http://localhost:5000"'
     sudo sh -c "echo '$docker_opts' >> /etc/default/docker"
 
     cat /etc/default/docker
@@ -21,9 +21,26 @@ case "$1" in
   dependencies)
     mvn clean install -Dmaven.javadoc.skip=true -DskipTests=true -B -V
 
+    docker pull registry
+
     ;;
 
   test)
+    set +x
+    docker run -d -p 5000:5000 \
+      -e STANDALONE=false \
+      -e MIRROR_SOURCE=https://registry-1.docker.io \
+      -e MIRROR_SOURCE_INDEX=https://index.docker.io \
+      -e STORAGE_PATH=/registry \
+      -e AWS_KEY=$AWS_KEY \
+      -e AWS_SECRET=$AWS_SECRET \
+      -e AWS_REGION=us-east-1 \
+      -e AWS_BUCKET=spotify-docker-images \
+      -e SETTINGS_FLAVOR=s3 \
+      --name=registry \
+      registry
+    set -x
+
     # expected parallelism: 2x. needs to be set in the project settings via CircleCI's UI.
     case $CIRCLE_NODE_INDEX in
       0)
@@ -45,6 +62,8 @@ case "$1" in
     ;;
 
   post_test)
+    docker logs registry &> $CIRCLE_ARTIFACTS/registry.log
+
     cp target/surefire-reports/*.xml $CI_REPORTS
 
     ;;
