@@ -1,4 +1,8 @@
 dependencies:
+  cache_directories:
+    - ~/docker-registry
+  pre:
+    - ./circle.sh pre_dependencies
   override:
     - ./circle.sh dependencies
 
