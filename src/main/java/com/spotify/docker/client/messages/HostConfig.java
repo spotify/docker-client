@@ -194,23 +194,24 @@ public class HostConfig {
       return false;
     }
 
-    if (memory != null ?  !memory.equals(that.memory) : that.memory != null) {
+    if (memory != null ? !memory.equals(that.memory) : that.memory != null) {
       return false;
     }
 
-    if (memorySwap != null ?  !memorySwap.equals(that.memorySwap) : that.memorySwap != null) {
+    if (memorySwap != null ? !memorySwap.equals(that.memorySwap) : that.memorySwap != null) {
       return false;
     }
 
-    if (cpuShares != null ?  !cpuShares.equals(that.cpuShares) : that.cpuShares != null) {
+    if (cpuShares != null ? !cpuShares.equals(that.cpuShares) : that.cpuShares != null) {
       return false;
     }
 
-    if (cpusetCpus != null ?  !cpusetCpus.equals(that.cpusetCpus) : that.cpusetCpus != null) {
+    if (cpusetCpus != null ? !cpusetCpus.equals(that.cpusetCpus) : that.cpusetCpus != null) {
       return false;
     }
 
-    if (cgroupParent != null ?  !cgroupParent.equals(that.cgroupParent) : that.cgroupParent != null) {
+    if (cgroupParent != null ? !cgroupParent.equals(that.cgroupParent)
+            : that.cgroupParent != null) {
       return false;
     }
 
