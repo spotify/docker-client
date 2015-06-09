@@ -1060,18 +1060,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private void request(final String method,
-                       final WebTarget resource,
-                       final Invocation.Builder request,
-                       final Entity<?> entity)
-      throws DockerException, InterruptedException {
-    try {
-      request.async().method(method, entity, String.class).get();
-    } catch (ExecutionException | MultiException e) {
-      throw propagate(method, resource, e);
-    }
-  }
-
   private RuntimeException propagate(final String method, final WebTarget resource,
                                      final Exception e)
       throws DockerException, InterruptedException {
