@@ -1005,6 +1005,12 @@ public class DefaultDockerClientTest {
     assertThat(imageInfo.created(), equalTo(expected));
   }
 
+  @Test(expected = DockerCertificateException.class)
+  public void testBadDockerCertificates() throws Exception {
+    // try building a DockerCertificates without specifying a cert path
+    DockerCertificates.builder().build();
+  }
+
   @Test
   public void testSsl() throws Exception {
     // Build a run a container that contains a Docker instance configured with our SSL cert/key

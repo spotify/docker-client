@@ -60,6 +60,12 @@ public class DockerCertificates {
   }
 
   private DockerCertificates(final Builder builder) throws DockerCertificateException {
+    if ((builder.caCertPath == null) || (builder.clientCertPath == null) ||
+        (builder.clientKeyPath == null)) {
+      throw new DockerCertificateException(
+          "caCertPath, clientCertPath, and clientKeyPath must all be specified");
+    }
+
     try {
       final CertificateFactory cf = CertificateFactory.getInstance("X.509");
       final Certificate caCert = cf.generateCertificate(Files.newInputStream(builder.caCertPath));
