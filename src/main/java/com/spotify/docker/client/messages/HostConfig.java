@@ -123,15 +123,25 @@ public class HostConfig {
     return securityOpt;
   }
 
-  public Long memory() { return memory; }
+  public Long memory() {
+    return memory;
+  }
 
-  public Long memorySwap() { return memorySwap; }
+  public Long memorySwap() {
+    return memorySwap;
+  }
 
-  public Long cpuShares() { return cpuShares; }
+  public Long cpuShares() {
+    return cpuShares;
+  }
 
-  public String cpusetCpus() { return cpusetCpus; }
+  public String cpusetCpus() {
+    return cpusetCpus;
+  }
 
-  public String cgroupParent() { return cgroupParent; }
+  public String cgroupParent() {
+    return cgroupParent;
+  }
 
   @Override
   public boolean equals(final Object o) {

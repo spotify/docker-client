@@ -921,15 +921,16 @@ public class DefaultDockerClientTest {
     final String levelLabel = "label:level:9001";
 
     sut.pull("rohan/memcached-mini");
-    final ContainerConfig config = ContainerConfig.builder()
-        .image("rohan/memcached-mini")
-        .build();
     final HostConfig hostConfig = HostConfig.builder()
         .securityOpt(userLabel, roleLabel, typeLabel, levelLabel)
         .build();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("rohan/memcached-mini")
+            .hostConfig(hostConfig)
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
-    sut.startContainer(container.id(), hostConfig);
+    sut.startContainer(container.id());
     final ContainerInfo containerInfo = sut.inspectContainer(container.id());
     assertThat(containerInfo, notNullValue());
     assertThat(containerInfo.hostConfig().securityOpt(),
@@ -1024,19 +1025,20 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
     sut.build(Paths.get(dockerDirectory), imageName);
 
+    final HostConfig hostConfig = HostConfig.builder()
+            .privileged(true)
+            .publishAllPorts(true)
+            .build();
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(imageName)
         .exposedPorts(expose)
+        .hostConfig(hostConfig)
         .build();
     final String containerName = randomName();
     final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
     final String containerId = containerCreation.id();
 
-    final HostConfig hostConfig = HostConfig.builder()
-        .privileged(true)
-        .publishAllPorts(true)
-        .build();
-    sut.startContainer(containerId, hostConfig);
+    sut.startContainer(containerId);
 
     // Determine where the Docker instance inside the container we just started is exposed
     final String host;
@@ -1129,15 +1131,17 @@ public class DefaultDockerClientTest {
     sut.startContainer(volumeContainer);
     sut.waitContainer(volumeContainer);
 
-    final ContainerConfig mountConfig = ContainerConfig.builder()
-        .image("busybox")
-        .cmd("ls", "/foo")
-        .build();
     final HostConfig mountHostConfig = HostConfig.builder()
         .volumesFrom(volumeContainer)
         .build();
+    final ContainerConfig mountConfig = ContainerConfig.builder()
+            .image("busybox")
+            .hostConfig(mountHostConfig)
+            .cmd("ls", "/foo")
+            .build();
+
     sut.createContainer(mountConfig, mountContainer);
-    sut.startContainer(mountContainer, mountHostConfig);
+    sut.startContainer(mountContainer);
     sut.waitContainer(mountContainer);
 
     final ContainerInfo info = sut.inspectContainer(mountContainer);

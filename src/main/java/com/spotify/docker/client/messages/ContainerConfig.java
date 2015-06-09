@@ -38,10 +38,6 @@ public class ContainerConfig {
   @JsonProperty("Hostname") private String hostname;
   @JsonProperty("Domainname") private String domainname;
   @JsonProperty("User") private String user;
-  @JsonProperty("Memory") private Long memory;
-  @JsonProperty("MemorySwap") private Long memorySwap;
-  @JsonProperty("CpuShares") private Long cpuShares;
-  @JsonProperty("Cpuset") private String cpuset;
   @JsonProperty("AttachStdin") private Boolean attachStdin;
   @JsonProperty("AttachStdout") private Boolean attachStdout;
   @JsonProperty("AttachStderr") private Boolean attachStderr;
@@ -70,10 +66,6 @@ public class ContainerConfig {
     this.hostname = builder.hostname;
     this.domainname = builder.domainname;
     this.user = builder.user;
-    this.memory = builder.memory;
-    this.memorySwap = builder.memorySwap;
-    this.cpuShares = builder.cpuShares;
-    this.cpuset = builder.cpuset;
     this.attachStdin = builder.attachStdin;
     this.attachStdout = builder.attachStdout;
     this.attachStderr = builder.attachStderr;
@@ -105,22 +97,6 @@ public class ContainerConfig {
 
   public String user() {
     return user;
-  }
-
-  public Long memory() {
-    return memory;
-  }
-
-  public Long memorySwap() {
-    return memorySwap;
-  }
-
-  public Long cpuShares() {
-    return cpuShares;
-  }
-
-  public String cpuset() {
-    return cpuset;
   }
 
   public Boolean attachStdin() {
@@ -187,11 +163,17 @@ public class ContainerConfig {
     return onBuild;
   }
 
-  public Map<String, String> labels() { return labels; }
+  public Map<String, String> labels() {
+    return labels;
+  }
 
-  public String macAddress() { return macAddress; }
+  public String macAddress() {
+    return macAddress;
+  }
 
-  public HostConfig hostConfig() { return hostConfig; }
+  public HostConfig hostConfig() {
+    return hostConfig;
+  }
 
   @Override
   public boolean equals(final Object o) {
@@ -219,12 +201,6 @@ public class ContainerConfig {
     if (cmd != null ? !cmd.equals(config.cmd) : config.cmd != null) {
       return false;
     }
-    if (cpuShares != null ? !cpuShares.equals(config.cpuShares) : config.cpuShares != null) {
-      return false;
-    }
-    if (cpuset != null ? !cpuset.equals(config.cpuset) : config.cpuset != null) {
-      return false;
-    }
     if (domainname != null ? !domainname.equals(config.domainname) : config.domainname != null) {
       return false;
     }
@@ -242,12 +218,6 @@ public class ContainerConfig {
       return false;
     }
     if (image != null ? !image.equals(config.image) : config.image != null) {
-      return false;
-    }
-    if (memory != null ? !memory.equals(config.memory) : config.memory != null) {
-      return false;
-    }
-    if (memorySwap != null ? !memorySwap.equals(config.memorySwap) : config.memorySwap != null) {
       return false;
     }
     if (networkDisabled != null ? !networkDisabled.equals(config.networkDisabled)
@@ -299,10 +269,6 @@ public class ContainerConfig {
     int result = hostname != null ? hostname.hashCode() : 0;
     result = 31 * result + (domainname != null ? domainname.hashCode() : 0);
     result = 31 * result + (user != null ? user.hashCode() : 0);
-    result = 31 * result + (memory != null ? memory.hashCode() : 0);
-    result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
-    result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
-    result = 31 * result + (cpuset != null ? cpuset.hashCode() : 0);
     result = 31 * result + (attachStdin != null ? attachStdin.hashCode() : 0);
     result = 31 * result + (attachStdout != null ? attachStdout.hashCode() : 0);
     result = 31 * result + (attachStderr != null ? attachStderr.hashCode() : 0);
@@ -331,10 +297,6 @@ public class ContainerConfig {
         .add("hostname", hostname)
         .add("domainname", domainname)
         .add("username", user)
-        .add("memory", memory)
-        .add("memorySwap", memorySwap)
-        .add("cpuShares", cpuShares)
-        .add("cpuset", cpuset)
         .add("attachStdin", attachStdin)
         .add("attachStdout", attachStdout)
         .add("attachStderr", attachStderr)
@@ -401,10 +363,6 @@ public class ContainerConfig {
       this.hostname = config.hostname;
       this.domainname = config.domainname;
       this.user = config.user;
-      this.memory = config.memory;
-      this.memorySwap = config.memorySwap;
-      this.cpuShares = config.cpuShares;
-      this.cpuset = config.cpuset;
       this.attachStdin = config.attachStdin;
       this.attachStdout = config.attachStdout;
       this.attachStderr = config.attachStderr;

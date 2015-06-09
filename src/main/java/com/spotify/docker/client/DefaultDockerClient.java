@@ -390,25 +390,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void startContainer(final String containerId)
       throws DockerException, InterruptedException {
-    startContainer(containerId, HostConfig.builder().build());
-  }
-
-  @Override
-  public void startContainer(final String containerId, final HostConfig hostConfig)
-      throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-    checkNotNull(hostConfig, "hostConfig");
 
-    log.info("Starting container with HostConfig: {}", hostConfig);
+    log.info("Starting container with Id: {}", containerId);
 
     try {
       final WebTarget resource = resource()
           .path("containers").path(containerId).path("start");
-      request(POST, resource, resource
-                  .request(APPLICATION_JSON_TYPE)
-                  .property(ClientProperties.REQUEST_ENTITY_PROCESSING,
-                            RequestEntityProcessing.BUFFERED),
-              Entity.json(hostConfig));
+      request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
