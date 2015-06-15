@@ -23,6 +23,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
@@ -576,6 +577,16 @@ public interface DockerClient extends Closeable {
    */
   ExecState execInspect(String execId) throws DockerException, InterruptedException;
 
+  /**
+   * Retrieves one-time stats (stream=0) for the container with the specified id.
+   * 
+   * @param containerId The id of the container to retrieve stats for.
+   * @return The container stats
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  ContainerStats stats(String containerId) throws DockerException, InterruptedException;
+  
   /**
    * Closes any and all underlying connections to docker, and release resources.
    */

@@ -31,6 +31,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
@@ -1379,8 +1380,26 @@ public class DefaultDockerClientTest {
     assertThat(containerInfo.config().macAddress(), equalTo("12:34:56:78:9a:bc"));
   }
 
-
-
+  @Test
+  public void testStats() throws DockerException, InterruptedException {
+    assumeTrue("Docker API should be at least v1.19 to support stats without streaming, got "
+            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+    
+    final ContainerConfig config = ContainerConfig.builder()
+        .image("busybox")
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+    
+    ContainerStats stats = sut.stats(container.id());
+    assertThat(stats.read(), notNullValue());
+    assertThat(stats.precpuStats(), notNullValue());
+    assertThat(stats.cpuStats(), notNullValue());
+    assertThat(stats.memoryStats(), notNullValue());
+    assertThat(stats.network(), notNullValue());
+  }
+  
   /**
    * Compares two version strings.
    * <p>
