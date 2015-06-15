@@ -27,6 +27,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.AuthRegistryConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -798,11 +799,29 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      resource = resource.queryParam("t", name);
     }
 
+    log.debug("Auth Config {}", authConfig);
+
+    // Convert auth to X-Registry-Config format
+    AuthRegistryConfig authRegistryConfig = null;
+    if (authConfig == null) {
+      authRegistryConfig = AuthRegistryConfig.EMPTY;
+    } else {
+      authRegistryConfig = new AuthRegistryConfig(authConfig.serverAddress(),
+                                                  authConfig.username(),
+                                                  authConfig.password(),
+                                                  authConfig.email(),
+                                                  authConfig.serverAddress());
+    }
+
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
          final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
-         final ProgressStream build = request(POST, ProgressStream.class, resource,
-                                              resource.request(APPLICATION_JSON_TYPE),
-                                              Entity.entity(fileStream, "application/tar"))) {
+         final ProgressStream build = 
+             request(POST, ProgressStream.class, resource,
+                     resource.request(APPLICATION_JSON_TYPE)
+                              .header("X-Registry-Config", 
+                                      authRegistryHeader(authRegistryConfig)),
+                     Entity.entity(fileStream, "application/tar"))) {
+
       String imageId = null;
       while (build.hasNextMessage(POST, resource.getUri())) {
         final ProgressMessage message = build.nextMessage(POST, resource.getUri());
@@ -1120,6 +1139,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
               .writeValueAsString(authConfig));
     } catch (JsonProcessingException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
+    }
+  }
+
+  private String authRegistryHeader(final AuthRegistryConfig authRegistryConfig)
+    throws DockerException {
+    if (authRegistryConfig == null) {
+      return "null";
+    }
+    try {
+      String authRegistryJson = 
+        ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
+      log.debug("Registry Config Json {}", authRegistryJson);
+      String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);
+      log.debug("Registry Config Encoded {}", authRegistryEncoded);
+      return authRegistryEncoded;
+    } catch (JsonProcessingException ex) {
+      throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
   }
 
