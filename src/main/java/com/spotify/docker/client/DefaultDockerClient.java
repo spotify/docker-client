@@ -1006,7 +1006,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public ContainerStats stats(final String containerId) 
            throws DockerException, InterruptedException {
-    WebTarget resource = resource().path("containers").path(containerId).path("stats")
+    final WebTarget resource = resource().path("containers").path(containerId).path("stats")
         .queryParam("stream", "0");
 
     try {
