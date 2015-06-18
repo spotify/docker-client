@@ -17,15 +17,14 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 public class NetworkSettings {
 
@@ -35,6 +34,7 @@ public class NetworkSettings {
   @JsonProperty("Bridge") private String bridge;
   @JsonProperty("PortMapping") private ImmutableMap<String, Map<String, String>> portMapping;
   @JsonProperty("Ports") private Map<String, List<PortBinding>> ports;
+  @JsonProperty("MacAddress") private String macAddress;
 
   private NetworkSettings() {
   }
@@ -46,6 +46,7 @@ public class NetworkSettings {
     this.bridge = builder.bridge;
     this.portMapping = builder.portMapping;
     this.ports = builder.ports;
+    this.macAddress = builder.macAddress;
   }
 
   public String ipAddress() {
@@ -70,6 +71,10 @@ public class NetworkSettings {
 
   public Map<String, List<PortBinding>> ports() {
     return (ports == null) ? null : Collections.unmodifiableMap(ports);
+  }
+  
+  public String macAddress() {
+    return macAddress;
   }
 
   @Override
@@ -101,6 +106,9 @@ public class NetworkSettings {
     if (ports != null ? !ports.equals(that.ports) : that.ports != null) {
       return false;
     }
+    if (macAddress != null ? !macAddress.equals(that.macAddress) : that.macAddress != null) {
+      return false;
+    }
 
     return true;
   }
@@ -113,6 +121,7 @@ public class NetworkSettings {
     result = 31 * result + (bridge != null ? bridge.hashCode() : 0);
     result = 31 * result + (portMapping != null ? portMapping.hashCode() : 0);
     result = 31 * result + (ports != null ? ports.hashCode() : 0);
+    result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
     return result;
   }
 
@@ -125,6 +134,7 @@ public class NetworkSettings {
         .add("bridge", bridge)
         .add("portMapping", portMapping)
         .add("ports", ports)
+        .add("macAddress", macAddress)
         .toString();
   }
 
@@ -144,6 +154,7 @@ public class NetworkSettings {
     private String bridge;
     private ImmutableMap<String, Map<String, String>> portMapping;
     private Map<String, List<PortBinding>> ports;
+    private String macAddress;
 
     private Builder() {
     }
@@ -155,6 +166,7 @@ public class NetworkSettings {
       this.bridge = networkSettings.bridge;
       this.portMapping = networkSettings.portMapping;
       this.ports = networkSettings.ports;
+      this.macAddress = networkSettings.macAddress;
     }
 
     public Builder ipAddress(final String ipAddress) {
@@ -188,6 +200,11 @@ public class NetworkSettings {
 
     public Builder ports(final Map<String, List<PortBinding>> ports) {
       this.ports = (ports == null) ? null : Maps.newHashMap(ports);
+      return this;
+    }
+    
+    public Builder macAddress(final String macAddress) {
+      this.macAddress = macAddress;
       return this;
     }
 
