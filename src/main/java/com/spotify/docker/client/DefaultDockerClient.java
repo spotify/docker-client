@@ -33,6 +33,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
@@ -1021,6 +1022,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public ContainerStats stats(final String containerId) 
+           throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("containers").path(containerId).path("stats")
+        .queryParam("stream", "0");
+
+    try {
+      return request(GET, ContainerStats.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId);
+        default:
+          throw e;
+      }
+    }
+  }
+  
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
