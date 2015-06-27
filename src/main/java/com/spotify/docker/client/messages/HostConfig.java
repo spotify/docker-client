@@ -371,12 +371,16 @@ public class HostConfig {
     }
 
     public Builder binds(final List<String> binds) {
-      this.binds = ImmutableList.copyOf(binds);
+      if (binds != null && !binds.isEmpty())
+    	this.binds = ImmutableList.copyOf(binds);
+      
       return this;
     }
 
     public Builder binds(final String... binds) {
-      this.binds = ImmutableList.copyOf(binds);
+      if (binds != null && binds.length > 0)
+    	this.binds = ImmutableList.copyOf(binds);
+      
       return this;
     }
 
@@ -394,12 +398,15 @@ public class HostConfig {
     }
 
     public Builder lxcConf(final List<LxcConfParameter> lxcConf) {
-      this.lxcConf = ImmutableList.copyOf(lxcConf);
+      if (lxcConf != null && !lxcConf.isEmpty())
+    	this.lxcConf = ImmutableList.copyOf(lxcConf);
       return this;
     }
 
     public Builder lxcConf(final LxcConfParameter... lxcConf) {
-      this.lxcConf = ImmutableList.copyOf(lxcConf);
+      if (lxcConf != null && lxcConf.length > 0)
+    	this.lxcConf = ImmutableList.copyOf(lxcConf);
+      
       return this;
     }
 
@@ -417,7 +424,8 @@ public class HostConfig {
     }
 
     public Builder portBindings(final Map<String, List<PortBinding>> portBindings) {
-      this.portBindings = (portBindings == null) ? null : Maps.newHashMap(portBindings);
+      if (portBindings != null && !portBindings.isEmpty())
+    	this.portBindings = Maps.newHashMap(portBindings);
       return this;
     }
 
@@ -426,12 +434,16 @@ public class HostConfig {
     }
 
     public Builder links(final List<String> links) {
-      this.links = ImmutableList.copyOf(links);
+      if (links != null && !links.isEmpty())
+    	this.links = ImmutableList.copyOf(links);
+      
       return this;
     }
 
     public Builder links(final String... links) {
-      this.links = ImmutableList.copyOf(links);
+      if (links != null && links.length > 0)
+    	this.links = ImmutableList.copyOf(links);
+      
       return this;
     }
 
@@ -449,12 +461,16 @@ public class HostConfig {
     }
 
     public Builder dns(final List<String> dns) {
-      this.dns = ImmutableList.copyOf(dns);
+      if (dns != null && !dns.isEmpty())
+    	this.dns = ImmutableList.copyOf(dns);
+      
       return this;
     }
 
     public Builder dns(final String... dns) {
-      this.dns = ImmutableList.copyOf(dns);
+      if (dns != null && dns.length > 0)
+    	this.dns = ImmutableList.copyOf(dns);
+      
       return this;
     }
 
@@ -463,12 +479,16 @@ public class HostConfig {
     }
 
     public Builder dnsSearch(final List<String> dnsSearch) {
-      this.dnsSearch = ImmutableList.copyOf(dnsSearch);
+      if (dnsSearch != null && !dnsSearch.isEmpty())
+    	this.dnsSearch = ImmutableList.copyOf(dnsSearch);
+      
       return this;
     }
 
     public Builder dnsSearch(final String... dnsSearch) {
-      this.dnsSearch = ImmutableList.copyOf(dnsSearch);
+      if (dnsSearch != null && dnsSearch.length > 0)
+    	this.dnsSearch = ImmutableList.copyOf(dnsSearch);
+      
       return this;
     }
 
@@ -477,12 +497,16 @@ public class HostConfig {
     }
 
     public Builder volumesFrom(final List<String> volumesFrom) {
-      this.volumesFrom = ImmutableList.copyOf(volumesFrom);
+      if (volumesFrom != null && !volumesFrom.isEmpty())
+    	this.volumesFrom = ImmutableList.copyOf(volumesFrom);
+      
       return this;
     }
 
     public Builder volumesFrom(final String... volumesFrom) {
-      this.volumesFrom = ImmutableList.copyOf(volumesFrom);
+      if (volumesFrom != null && volumesFrom.length > 0)
+    	this.volumesFrom = ImmutableList.copyOf(volumesFrom);
+      
       return this;
     }
 
@@ -499,8 +523,17 @@ public class HostConfig {
       return networkMode;
     }
 
+    public Builder securityOpt(final List<String> securityOpt) {
+      if (securityOpt != null && !securityOpt.isEmpty())
+    	this.securityOpt = ImmutableList.copyOf(securityOpt);
+      
+      return this;
+    }
+    
     public Builder securityOpt(final String... securityOpt) {
-      this.securityOpt = ImmutableList.copyOf(securityOpt);
+      if (securityOpt != null && securityOpt.length > 0)
+    	this.securityOpt = ImmutableList.copyOf(securityOpt);
+      
       return this;
     }
 
