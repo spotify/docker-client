@@ -475,16 +475,18 @@ public class ContainerConfig {
     }
 
     public Builder portSpecs(final List<String> portSpecs) {
-      if (portSpecs != null && !portSpecs.isEmpty())
-    	this.portSpecs = ImmutableList.copyOf(portSpecs);
-      
+      if (portSpecs != null && !portSpecs.isEmpty()) {
+        this.portSpecs = ImmutableList.copyOf(portSpecs);
+      }
+
       return this;
     }
 
     public Builder portSpecs(final String... portSpecs) {
-      if (portSpecs != null && portSpecs.length > 0)
+      if (portSpecs != null && portSpecs.length > 0) {
         this.portSpecs = ImmutableList.copyOf(portSpecs);
-      
+      }
+
       return this;
     }
 
@@ -493,16 +495,18 @@ public class ContainerConfig {
     }
 
     public Builder exposedPorts(final Set<String> exposedPorts) {
-      if (exposedPorts != null && !exposedPorts.isEmpty())
-    	this.exposedPorts = ImmutableSet.copyOf(exposedPorts);
-      
+      if (exposedPorts != null && !exposedPorts.isEmpty()) {
+        this.exposedPorts = ImmutableSet.copyOf(exposedPorts);
+      }
+
       return this;
     }
 
     public Builder exposedPorts(final String... exposedPorts) {
-      if (exposedPorts != null && exposedPorts.length > 0)
-    	this.exposedPorts = ImmutableSet.copyOf(exposedPorts);
-      
+      if (exposedPorts != null && exposedPorts.length > 0) {
+        this.exposedPorts = ImmutableSet.copyOf(exposedPorts);
+      }
+
       return this;
     }
 
@@ -538,16 +542,18 @@ public class ContainerConfig {
     }
 
     public Builder env(final List<String> env) {
-      if (env != null && !env.isEmpty())
+      if (env != null && !env.isEmpty()) {
         this.env = ImmutableList.copyOf(env);
-      
+      }
+
       return this;
     }
 
     public Builder env(final String... env) {
-      if (env != null && env.length > 0)
-    	this.env = ImmutableList.copyOf(env);
-      
+      if (env != null && env.length > 0) {
+        this.env = ImmutableList.copyOf(env);
+      }
+
       return this;
     }
 
@@ -556,16 +562,18 @@ public class ContainerConfig {
     }
 
     public Builder cmd(final List<String> cmd) {
-      if (cmd != null && !cmd.isEmpty())
-    	this.cmd = ImmutableList.copyOf(cmd);
-      
+      if (cmd != null && !cmd.isEmpty()) {
+        this.cmd = ImmutableList.copyOf(cmd);
+      }
+
       return this;
     }
 
     public Builder cmd(final String... cmd) {
-      if (cmd != null && cmd.length > 0)
-    	this.cmd = ImmutableList.copyOf(cmd);
-      
+      if (cmd != null && cmd.length > 0) {
+        this.cmd = ImmutableList.copyOf(cmd);
+      }
+
       return this;
     }
 
@@ -583,16 +591,18 @@ public class ContainerConfig {
     }
 
     public Builder volumes(final Set<String> volumes) {
-      if (volumes != null && !volumes.isEmpty())
-    	this.volumes = ImmutableSet.copyOf(volumes);
-      
+      if (volumes != null && !volumes.isEmpty()) {
+        this.volumes = ImmutableSet.copyOf(volumes);
+      }
+
       return this;
     }
 
     public Builder volumes(final String... volumes) {
-      if (volumes != null && volumes.length > 0)
-    	this.volumes = ImmutableSet.copyOf(volumes);
-      
+      if (volumes != null && volumes.length > 0) {
+        this.volumes = ImmutableSet.copyOf(volumes);
+      }
+
       return this;
     }
 
@@ -610,16 +620,18 @@ public class ContainerConfig {
     }
 
     public Builder entrypoint(final List<String> entrypoint) {
-      if (entrypoint != null && !entrypoint.isEmpty())
-    	this.entrypoint = ImmutableList.copyOf(entrypoint);
-      
+      if (entrypoint != null && !entrypoint.isEmpty()) {
+        this.entrypoint = ImmutableList.copyOf(entrypoint);
+      }
+
       return this;
     }
 
     public Builder entrypoint(final String... entrypoint) {
-      if (entrypoint != null && entrypoint.length > 0)
-    	this.entrypoint = ImmutableList.copyOf(entrypoint);
-      
+      if (entrypoint != null && entrypoint.length > 0) {
+        this.entrypoint = ImmutableList.copyOf(entrypoint);
+      }
+
       return this;
     }
 
@@ -637,16 +649,18 @@ public class ContainerConfig {
     }
 
     public Builder onBuild(final List<String> onBuild) {
-      if (onBuild != null && !onBuild.isEmpty())
-    	this.onBuild = ImmutableList.copyOf(onBuild);
-      
+      if (onBuild != null && !onBuild.isEmpty()) {
+        this.onBuild = ImmutableList.copyOf(onBuild);
+      }
+
       return this;
     }
 
     public Builder onBuild(final String... onBuild) {
-      if (onBuild != null && onBuild.length > 0)
-    	this.onBuild = ImmutableList.copyOf(onBuild);
-      
+      if (onBuild != null && onBuild.length > 0) {
+        this.onBuild = ImmutableList.copyOf(onBuild);
+      }
+
       return this;
     }
 
@@ -655,9 +669,10 @@ public class ContainerConfig {
     }
 
     public Builder labels(final Map<String, String> labels) {
-      if (labels != null && !labels.isEmpty())
-    	this.labels = ImmutableMap.copyOf(labels);
-      
+      if (labels != null && !labels.isEmpty()) {
+        this.labels = ImmutableMap.copyOf(labels);
+      }
+
       return this;
     }
 
