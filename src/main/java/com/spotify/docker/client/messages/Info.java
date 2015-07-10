@@ -17,8 +17,6 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Joiner;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -36,7 +34,7 @@ public class Info {
   @JsonProperty("Name") private String name;
   @JsonProperty("ID") private String id;
   @JsonProperty("OperatingSystem") private String operatingSystem;
-  @JsonProperty("Debug") private int debug;
+  @JsonProperty("Debug") private Boolean debug;
   @JsonProperty("NFd") private int fileDescriptors;
   @JsonProperty("NGoroutines") private int goroutines;
   @JsonProperty("NEventsListener") private int eventsListener;
@@ -94,7 +92,7 @@ public class Info {
   }
 
   public boolean debug() {
-    return debug != 0;
+    return debug;
   }
 
   public int fileDescriptors() {
@@ -155,7 +153,8 @@ public class Info {
     if (containers != info.containers) {
       return false;
     }
-    if (debug != info.debug) {
+    if (debug != null ? !debug.equals(info.debug)
+                      : info.debug != null) {
       return false;
     }
     if (eventsListener != info.eventsListener) {
@@ -208,7 +207,7 @@ public class Info {
     result = 31 * result + (name != null ? name.hashCode() : 0);
     result = 31 * result + (executionDriver != null ? executionDriver.hashCode() : 0);
     result = 31 * result + (kernelVersion != null ? kernelVersion.hashCode() : 0);
-    result = 31 * result + debug;
+    result = 31 * result + (debug != null ? debug.hashCode() : 0);
     result = 31 * result + fileDescriptors;
     result = 31 * result + goroutines;
     result = 31 * result + eventsListener;
@@ -224,7 +223,7 @@ public class Info {
   public String toString() {
     return String.format("Info{ containers = %d, images = %d, storageDriver = %s, "
                          + "driverStatus = %s, cpus = %d, memTotal = %d, name = %s, "
-                         + "executionDriver = %s, kernelVersion = %s, debug = %d, "
+                         + "executionDriver = %s, kernelVersion = %s, debug = %b, "
                          + "fileDescriptors = %d, goroutines = %d, eventsListener = %d, "
                          + "initPath = %s, initSha1 = %s, indexServerAddress = %s, "
                          + "memoryLimit = %b, swapLimit = %b",
