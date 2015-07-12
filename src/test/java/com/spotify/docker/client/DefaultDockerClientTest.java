@@ -809,7 +809,7 @@ public class DefaultDockerClientTest {
     assertThat(getClientConnectionPoolStats(sut).getLeased(), equalTo(0));
   }
 
-  @Test(expected = DockerTimeoutException.class)
+  @Test(expected = DockerException.class)
   public void testConnectTimeout() throws Exception {
     // Attempt to connect to reserved IP -> should timeout
     try (final DefaultDockerClient connectTimeoutClient = DefaultDockerClient.builder()
