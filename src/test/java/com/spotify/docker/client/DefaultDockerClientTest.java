@@ -68,10 +68,10 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -103,6 +103,7 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -116,7 +117,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertThat;
@@ -127,6 +127,10 @@ import static org.junit.Assume.assumeTrue;
 
 public class DefaultDockerClientTest {
 
+  private static final String BUSYBOX = "busybox";
+  private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
+  private static final String MEMCACHED = "rohan/memcached-mini";
+  private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
@@ -190,7 +194,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testSearchImage() throws Exception {
     // when
-    final List<ImageSearchResult> searchResult = sut.searchImages("busybox");
+    final List<ImageSearchResult> searchResult = sut.searchImages(BUSYBOX);
     // then
     assertThat(searchResult.size(), greaterThan(0));
   }
@@ -323,11 +327,11 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testTag() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Tag image
     final String newImageName = "testRepo:testTag";
-    sut.tag("busybox", newImageName);
+    sut.tag(BUSYBOX, newImageName);
 
     // Verify tag was successful by trying to remove it.
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(newImageName));
@@ -336,11 +340,11 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testTagForce() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final String name = "testRepo/tagForce:sometag";
     // Assign name to first image
-    sut.tag("busybox:latest", name);
+    sut.tag(BUSYBOX_LATEST, name);
 
     // Force-re-assign tag to another image
     sut.tag("busybox:buildroot-2014.02", name, true);
@@ -352,8 +356,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectImage() throws Exception {
-    sut.pull("busybox");
-    final ImageInfo info = sut.inspectImage("busybox");
+    sut.pull(BUSYBOX_LATEST);
+    final ImageInfo info = sut.inspectImage(BUSYBOX);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
     assertThat(info.author(), not(isEmptyOrNullString()));
@@ -375,7 +379,7 @@ public class DefaultDockerClientTest {
 
     final List<ProgressMessage> messages = new ArrayList<>();
 
-    sut.pull("busybox", new ProgressHandler() {
+    sut.pull(BUSYBOX_LATEST, new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
         messages.add(message);
@@ -537,22 +541,27 @@ public class DefaultDockerClientTest {
   @Test
   public void testAnsiProgressHandler() throws Exception {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    sut.pull("busybox", new AnsiProgressHandler(new PrintStream(out)));
+    sut.pull(BUSYBOX_LATEST, new AnsiProgressHandler(new PrintStream(out)));
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    assertThat(out.toString(), allOf(containsString("Pulling repository busybox"),
-                                     containsString("Download complete")));
+    if (CIRCLECI) {
+      assertThat(out.toString(),allOf(containsString("Pulling repository busybox"),
+                                      containsString("Image is up to date")));
+    } else {
+      assertThat(out.toString(),allOf(containsString("Pulling from busybox"),
+                                       containsString("Image is up to date")));
+    }
   }
 
   @Test
   public void testExportContainer() throws Exception {
     // Pull image
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
@@ -573,11 +582,11 @@ public class DefaultDockerClientTest {
   @Test
   public void testCopyContainer() throws Exception {
     // Pull image
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
@@ -599,11 +608,11 @@ public class DefaultDockerClientTest {
   @Test
   public void testCommitContainer() throws Exception {
     // Pull image
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
@@ -623,10 +632,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testStopContainer() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
@@ -653,10 +662,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testRestartContainer() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
             // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
@@ -687,13 +696,12 @@ public class DefaultDockerClientTest {
 
   @Test
   public void integrationTest() throws Exception {
-
     // Pull image
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String name = randomName();
@@ -727,28 +735,24 @@ public class DefaultDockerClientTest {
       // Remove the container
       sut.removeContainer(id);
     } catch (DockerRequestException e) {
-      if (CIRCLECI) {
-        // yeah, circleci throws an exception whenever you try to RM a container.
-        // fortunately it does actually remove it though.
-      } else {
-        throw e;
+      // CircleCI doesn't let you remove a container :(
+      if (!CIRCLECI) {
+        // Verify that the container is gone
+        exception.expect(ContainerNotFoundException.class);
+        sut.inspectContainer(id);
       }
     }
-
-    // Verify that the container is gone
-    exception.expect(ContainerNotFoundException.class);
-    sut.inspectContainer(id);
   }
 
   @Test
   public void interruptTest() throws Exception {
 
     // Pull image
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String name = randomName();
@@ -809,7 +813,7 @@ public class DefaultDockerClientTest {
     assertThat(getClientConnectionPoolStats(sut).getLeased(), equalTo(0));
   }
 
-  @Test(expected = DockerTimeoutException.class)
+  @Test(expected = DockerException.class)
   public void testConnectTimeout() throws Exception {
     // Attempt to connect to reserved IP -> should timeout
     try (final DefaultDockerClient connectTimeoutClient = DefaultDockerClient.builder()
@@ -853,7 +857,7 @@ public class DefaultDockerClientTest {
     try {
       // Create container
       final ContainerConfig config = ContainerConfig.builder()
-          .image("busybox")
+          .image(BUSYBOX_LATEST)
           .cmd("sh", "-c", "while :; do sleep 1; done")
           .build();
       final String name = randomName();
@@ -890,11 +894,11 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testWaitContainer() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String name = randomName();
@@ -923,9 +927,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectContainerWithExposedPorts() throws Exception {
-    sut.pull("rohan/memcached-mini");
+    sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
-        .image("rohan/memcached-mini")
+        .image(MEMCACHED_LATEST)
         .build();
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
@@ -941,12 +945,12 @@ public class DefaultDockerClientTest {
     final String typeLabel = "label:type:bar";
     final String levelLabel = "label:level:9001";
 
-    sut.pull("rohan/memcached-mini");
+    sut.pull(MEMCACHED_LATEST);
     final HostConfig hostConfig = HostConfig.builder()
         .securityOpt(userLabel, roleLabel, typeLabel, levelLabel)
         .build();
     final ContainerConfig config = ContainerConfig.builder()
-            .image("rohan/memcached-mini")
+            .image(MEMCACHED_LATEST)
             .hostConfig(hostConfig)
             .build();
 
@@ -964,7 +968,7 @@ public class DefaultDockerClientTest {
                "HostConfig, got " + sut.version().apiVersion(),
                 versionCompare(sut.version().apiVersion(),"1.18") >= 0);
 
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final boolean privileged = true;
     final boolean publishAllPorts = true;
@@ -978,7 +982,7 @@ public class DefaultDockerClientTest {
 
 
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .hostConfig(expected)
         .build();
     final String name = randomName();
@@ -996,7 +1000,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testListImages() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
     final List<Image> images = sut.listImages();
     assertThat(images.size(), greaterThan(0));
 
@@ -1032,8 +1036,8 @@ public class DefaultDockerClientTest {
     final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
-    sut.pull("busybox");
-    final ImageInfo imageInfo = sut.inspectImage("busybox");
+    sut.pull(BUSYBOX_LATEST);
+    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_LATEST);
     assertThat(imageInfo.created(), equalTo(expected));
   }
 
@@ -1106,10 +1110,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPauseContainer() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
             // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
@@ -1144,13 +1148,13 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testVolumesFrom() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final String volumeContainer = randomName();
     final String mountContainer = randomName();
 
     final ContainerConfig volumeConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .volumes("/foo")
         .cmd("touch", "/foo/bar")
         .build();
@@ -1162,7 +1166,7 @@ public class DefaultDockerClientTest {
         .volumesFrom(volumeContainer)
         .build();
     final ContainerConfig mountConfig = ContainerConfig.builder()
-            .image("busybox")
+            .image(BUSYBOX_LATEST)
             .hostConfig(mountHostConfig)
             .cmd("ls", "/foo")
             .build();
@@ -1184,12 +1188,12 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAttachLog() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final String volumeContainer = randomName();
 
     final ContainerConfig volumeConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .volumes("/foo")
         .cmd("ls", "-la")
         .build();
@@ -1272,10 +1276,10 @@ public class DefaultDockerClientTest {
     assumeThat("Only native (libcontainer) driver supports Exec",
             sut.info().executionDriver(), startsWith("native"));
 
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
@@ -1305,10 +1309,10 @@ public class DefaultDockerClientTest {
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String containerName = randomName();
@@ -1334,11 +1338,11 @@ public class DefaultDockerClientTest {
   @Test
   public void testExitedListContainersParam()
       throws DockerException, InterruptedException, UnsupportedEncodingException {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final String randomLong = Long.toString(ThreadLocalRandom.current().nextLong());
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "echo " + randomLong)
         .build();
     final String containerName = randomName();
@@ -1359,7 +1363,7 @@ public class DefaultDockerClientTest {
   public void testLabels() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.18 to support Labels, got "
             + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("name", "starship");
@@ -1367,7 +1371,7 @@ public class DefaultDockerClientTest {
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-            .image("busybox")
+            .image(BUSYBOX_LATEST)
             .labels(labels)
             .cmd("sleep", "1000")
             .build();
@@ -1387,9 +1391,9 @@ public class DefaultDockerClientTest {
   public void testMacAddress() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
             + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
-    sut.pull("rohan/memcached-mini");
+    sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
-            .image("busybox")
+            .image(BUSYBOX_LATEST)
             .cmd("sleep", "1000")
             .macAddress("12:34:56:78:9a:bc")
             .build();
@@ -1406,7 +1410,7 @@ public class DefaultDockerClientTest {
             + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.19") >= 0);
     
     final ContainerConfig config = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final ContainerCreation container = sut.createContainer(config, randomName());
