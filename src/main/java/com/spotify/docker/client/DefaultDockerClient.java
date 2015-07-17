@@ -789,6 +789,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public String build(final Path directory, final String name, final ProgressHandler handler,
                       final BuildParameter... params)
       throws DockerException, InterruptedException, IOException {
+    return build(directory, name, null, handler, params);
+  }
+
+  @Override
+  public String build(final Path directory, final String name, final String dockerfile,
+                      final ProgressHandler handler, final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
     WebTarget resource = resource().path("build");
@@ -797,7 +804,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam(param.queryParam, String.valueOf(param.value));
     }
     if (name != null) {
-     resource = resource.queryParam("t", name);
+      resource = resource.queryParam("t", name);
+    }
+    if (dockerfile != null) {
+      resource = resource.queryParam("dockerfile", dockerfile);
     }
 
     log.debug("Auth Config {}", authConfig);
@@ -816,10 +826,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
          final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
-         final ProgressStream build = 
+         final ProgressStream build =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
-                              .header("X-Registry-Config", 
+                              .header("X-Registry-Config",
                                       authRegistryHeader(authRegistryConfig)),
                      Entity.entity(fileStream, "application/tar"))) {
 
@@ -1023,7 +1033,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public ContainerStats stats(final String containerId) 
+  public ContainerStats stats(final String containerId)
            throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("containers").path(containerId).path("stats")
         .queryParam("stream", "0");
@@ -1039,7 +1049,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
     }
   }
-  
+
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
@@ -1167,7 +1177,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return "null";
     }
     try {
-      String authRegistryJson = 
+      String authRegistryJson =
         ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
       log.debug("Registry Config Json {}", authRegistryJson);
       String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);

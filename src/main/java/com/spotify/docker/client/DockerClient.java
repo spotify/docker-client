@@ -179,7 +179,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   List<ImageSearchResult> searchImages(String term) throws DockerException, InterruptedException;
-  
+
   /**
    * Pull a docker container image.
    *
@@ -317,6 +317,23 @@ public interface DockerClient extends Closeable {
    */
   String build(final Path directory, final String name, final ProgressHandler handler,
                final BuildParameter... params)
+      throws DockerException, InterruptedException, IOException;
+
+  /**
+   * Build a docker image.
+   *
+   * @param directory The directory containing the dockerfile.
+   * @param name The repository name and optional tag to apply to the built image.
+   * @param dockerfile The path within the build context to the Dockerfile
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @param params Additional flags to use during build.
+   * @return The id of the built image if successful, otherwise null.
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @throws IOException If some IO shit happened.
+   */
+  String build(final Path directory, final String name, final String dockerfile,
+               final ProgressHandler handler, final BuildParameter... params)
       throws DockerException, InterruptedException, IOException;
 
   /**
@@ -579,14 +596,14 @@ public interface DockerClient extends Closeable {
 
   /**
    * Retrieves one-time stats (stream=0) for the container with the specified id.
-   * 
+   *
    * @param containerId The id of the container to retrieve stats for.
    * @return The container stats
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerStats stats(String containerId) throws DockerException, InterruptedException;
-  
+
   /**
    * Closes any and all underlying connections to docker, and release resources.
    */
@@ -631,7 +648,7 @@ public interface DockerClient extends Closeable {
    * @return the docker host name or IP
    */
   String getHost();
-  
+
   /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
