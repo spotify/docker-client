@@ -122,6 +122,7 @@ import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -301,7 +302,7 @@ public class DefaultDockerClientTest {
     // Don't remove images on CircleCI. Their version of Docker causes failures when pulling an
     // image that shares layers with an image that has been removed. This causes tests after this
     // one to fail.
-    assumeThat(getenv("CIRCLECI"), isEmptyOrNullString());
+    assumeFalse(CIRCLECI);
 
     sut.pull("dxia/cirros");
     final String imageLatest = "dxia/cirros:latest";
