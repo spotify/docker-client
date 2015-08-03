@@ -35,7 +35,6 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
@@ -56,8 +55,6 @@ import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -194,7 +191,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     this.apiVersion = builder.apiVersion();
 
     if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
-      throw new IllegalArgumentException("https URI must be provided to use certificates");
+      throw new IllegalArgumentException(
+          "An HTTPS URI for DOCKER_HOST must be provided to use Docker client certificates");
     }
 
     if (originalUri.getScheme().equals(UNIX_SCHEME)) {
@@ -803,7 +801,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     log.debug("Auth Config {}", authConfig);
 
     // Convert auth to X-Registry-Config format
-    AuthRegistryConfig authRegistryConfig = null;
+    AuthRegistryConfig authRegistryConfig;
     if (authConfig == null) {
       authRegistryConfig = AuthRegistryConfig.EMPTY;
     } else {
@@ -994,8 +992,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       return request(POST, LogStream.class, resource,
-              resource.request("application/vnd.docker.raw-stream"),
-              Entity.json(writer.toString()));
+                     resource.request("application/vnd.docker.raw-stream"),
+                     Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
