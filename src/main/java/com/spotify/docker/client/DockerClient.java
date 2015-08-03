@@ -321,7 +321,7 @@ public interface DockerClient extends Closeable {
   /**
    * Flags which can be passed to the <code>build</code> method.
    */
-  public static enum BuildParameter {
+  enum BuildParameter {
     /** Suppress verbose build output. */
     QUIET("q", true),
     /** Do not use the cache when building the image. */
@@ -332,7 +332,7 @@ public interface DockerClient extends Closeable {
     NO_RM("rm", false),
     /** Always remove intermediate containers. */
     FORCE_RM("forcerm", true),
-    /** Always attempt to pull a newer version of the image. */
+    /** Always attempt to pull a newer version of the base image even if one exists locally. */
     PULL_NEWER_IMAGE("pull", true);
 
     final String buildParamName;

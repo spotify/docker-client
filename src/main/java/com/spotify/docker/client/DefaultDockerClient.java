@@ -740,8 +740,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(name);
 
-    WebTarget resource =
-        resource().path("images").path(image).path("tag");
+    WebTarget resource = resource().path("images").path(image).path("tag");
 
     resource = resource.queryParam("repo", imageRef.getImage());
     if (imageRef.getTag() != null) {

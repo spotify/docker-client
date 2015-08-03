@@ -90,6 +90,7 @@ import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
 import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
+import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParameter.STDERR;
@@ -423,7 +424,11 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
-    final DefaultDockerClient sut2 = sut.builder().uri(dockerEndpoint).authConfig(authConfig).build();
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
+
     final String returnedImageId = sut2.build(
         Paths.get(dockerDirectory), "test", new ProgressHandler() {
           @Override
@@ -467,6 +472,31 @@ public class DefaultDockerClientTest {
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
     assertThat(info.id(), startsWith(imageId));
+  }
+
+  @Test
+  public void testBuildWithPull() throws Exception {
+    assumeTrue("We need Docker API >= v1.19 to run this test." +
+               "This Docker API is " + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String pullMsg = "Pulling from";
+
+    // Build once to make sure we have cached images.
+    sut.build(Paths.get(dockerDirectory));
+
+    // Build again with PULL set, and verify we pulled the base image
+    final AtomicBoolean pulled = new AtomicBoolean(false);
+    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        if (message.status().contains(pullMsg)) {
+          pulled.set(true);
+        }
+      }
+    }, PULL_NEWER_IMAGE);
+    assertTrue(pulled.get());
   }
 
   @Test
@@ -622,7 +652,7 @@ public class DefaultDockerClientTest {
     String tag = randomName();
     ContainerCreation
         dockerClientTest =
-        sut.commitContainer(id,"mosheeshel/busybox",tag, config, "CommitedByTest-" + tag,
+        sut.commitContainer(id, "mosheeshel/busybox",tag, config, "CommitedByTest-" + tag,
                             "DockerClientTest");
 
     ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
@@ -967,7 +997,7 @@ public class DefaultDockerClientTest {
   public void testContainerWithHostConfig() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
                "HostConfig, got " + sut.version().apiVersion(),
-                versionCompare(sut.version().apiVersion(),"1.18") >= 0);
+                versionCompare(sut.version().apiVersion(), "1.18") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1227,7 +1257,7 @@ public class DefaultDockerClientTest {
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String name = randomName();
-    final ContainerCreation creation = sut.createContainer(config, name);
+    sut.createContainer(config, name);
   }
 
   @Test(expected = ContainerNotFoundException.class)
@@ -1438,7 +1468,7 @@ public class DefaultDockerClientTest {
    * @return The result is a negative integer if str1 is _numerically_ less than str2.
    * The result is a positive integer if str1 is _numerically_ greater than str2.
    * The result is zero if the strings are _numerically_ equal.
-   * @note It does not work if "1.10" is supposed to be equal to "1.10.0".
+   * N.B. It does not work if "1.10" is supposed to be equal to "1.10.0".
    */
   private int versionCompare(String str1, String str2) {
     String[] vals1 = str1.split("\\.");
