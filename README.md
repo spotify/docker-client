@@ -22,6 +22,10 @@ AuthConfig authConfig = AuthConfig.builder().email("foo@bar.com").username("foob
   .password("secret-password").serverAddress("https://myprivateregistry.com/v1/").build();
 docker.pull("foobar/busybox-private:latest", authConfig);
 
+// An authConfig can also be parsed from either ~/.docker/config.json or ~/.dockercfg which 
+// are created by 'docker login'
+AuthConfig authConfig = AuthConfig.builder().fromDockerConfig().build();
+
 // You can also set the AuthConfig for the DockerClient instead of passing everytime you call pull()
 DockerClient docker = DefaultDockerClient.authConfig(authConfig).build();
 
