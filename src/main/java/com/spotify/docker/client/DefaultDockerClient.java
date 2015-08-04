@@ -883,13 +883,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public LogStream logs(final String containerId, final LogsParameter... params)
+  public LogStream logs(final String containerId, final LogsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
         .path("containers").path(containerId).path("logs");
 
-    for (final LogsParameter param : params) {
-      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
+    for (LogsParam param : params) {
+      resource = resource.queryParam(param.name(), param.value());
     }
 
     try {

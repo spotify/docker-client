@@ -95,8 +95,8 @@ import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
-import static com.spotify.docker.client.DockerClient.LogsParameter.STDERR;
-import static com.spotify.docker.client.DockerClient.LogsParameter.STDOUT;
+import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
+import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -1261,7 +1261,7 @@ public class DefaultDockerClientTest {
     assertThat(info.state().exitCode(), is(0));
 
     final String logs;
-    try (LogStream stream = sut.logs(info.id(), STDOUT, STDERR)) {
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("bar"));
