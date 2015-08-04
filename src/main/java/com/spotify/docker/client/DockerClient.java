@@ -25,7 +25,6 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
@@ -327,17 +326,28 @@ public interface DockerClient extends Closeable {
     QUIET("q", true),
     /** Do not use the cache when building the image. */
     NO_CACHE("nocache", true),
+    /** Do remove intermediate containers after a successful build. */
+    RM("rm", true),
     /** Do not remove intermediate containers after a successful build. */
     NO_RM("rm", false),
     /** Always remove intermediate containers. */
-    FORCE_RM("forcerm", true);
+    FORCE_RM("forcerm", true),
+    /** Always attempt to pull a newer version of the image. */
+    PULL_NEWER_IMAGE("pull", true);
 
-    final String queryParam;
-    final boolean value;
+    final String buildParamName;
+    final boolean buildParamValue;
 
-    private BuildParameter(final String queryParam, final boolean value) {
-      this.queryParam = queryParam;
-      this.value = value;
+    private BuildParameter(final String buildParamName, final boolean buildParamValue) {
+      this.buildParamName = buildParamName;
+      this.buildParamValue = buildParamValue;
+    }
+
+    /**
+     * @return the {@link BuildParameter} value
+     */
+    public boolean getParamValue() {
+      return this.buildParamValue;
     }
   }
 
