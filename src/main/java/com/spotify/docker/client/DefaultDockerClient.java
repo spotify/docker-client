@@ -792,7 +792,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("build");
 
     for (final BuildParameter param : params) {
-      resource = resource.queryParam(param.queryParam, String.valueOf(param.value));
+      resource = resource.queryParam(param.buildParamName, String.valueOf(param.buildParamValue));
     }
     if (name != null) {
      resource = resource.queryParam("t", name);
