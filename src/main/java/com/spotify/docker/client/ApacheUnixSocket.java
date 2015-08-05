@@ -48,6 +48,7 @@ public class ApacheUnixSocket extends Socket {
 
   private final UnixSocketChannel inner;
   private SocketAddress addr;
+  private int lingerTime;
 
   private final Queue<SocketOptionSetter> optionsToSet = Queues.newArrayDeque();
 
@@ -162,12 +163,14 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public void setSoLinger(final boolean on, final int linger) throws SocketException {
-    throw new UnsupportedOperationException("Unimplemented");
+    if (on) {
+      lingerTime = linger;
+    }
   }
 
   @Override
   public int getSoLinger() throws SocketException {
-    throw new UnsupportedOperationException("Unimplemented");
+    return lingerTime;
   }
 
   @Override
@@ -257,6 +260,18 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public synchronized void close() throws IOException {
+    if (lingerTime > 0) {
+      boolean sleeping = true;
+      while (sleeping) {
+         try {
+             wait(lingerTime * (long) 1000);
+         } catch (InterruptedException e) {
+         }
+         sleeping = false;
+      }
+    }
+    shutdownInput();
+    shutdownOutput();
     inner.close();
   }
 
