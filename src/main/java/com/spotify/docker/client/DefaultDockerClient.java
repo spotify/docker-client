@@ -221,7 +221,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
-    // and use it for waitContainer and stopContainer.
+    // and use it for waitContainer, stopContainer, attachContainer, logs, and build
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
@@ -795,7 +795,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
-    WebTarget resource = resource().path("build");
+    WebTarget resource = noTimeoutResource().path("build");
 
     for (final BuildParameter param : params) {
       resource = resource.queryParam(param.buildParamName, String.valueOf(param.buildParamValue));
@@ -885,7 +885,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public LogStream logs(final String containerId, final LogsParameter... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = resource()
+    WebTarget resource = noTimeoutResource()
         .path("containers").path(containerId).path("logs");
 
     for (final LogsParameter param : params) {
@@ -909,7 +909,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public LogStream attachContainer(final String containerId,
                                    final AttachParameter... params) throws DockerException,
       InterruptedException {
-    WebTarget resource = resource().path("containers").path(containerId)
+    WebTarget resource = noTimeoutResource().path("containers").path(containerId)
         .path("attach");
 
     for (final AttachParameter param : params) {
