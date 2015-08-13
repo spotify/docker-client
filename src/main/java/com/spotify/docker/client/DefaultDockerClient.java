@@ -1201,7 +1201,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
-    final String dockerCertPath = getenv("DOCKER_CERT_PATH");
+    final String dockerCertPath = fromNullable(getenv("DOCKER_CERT_PATH")).or(defaultCertPath());
 
     final Builder builder = new Builder();
 
@@ -1232,6 +1232,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else {
       return DEFAULT_HOST + ":" + DEFAULT_PORT;
     }
+  }
+
+  private static String defaultCertPath() {
+    return Paths.get(getProperty("user.home"), ".docker").toString();
   }
 
   public static class Builder {
