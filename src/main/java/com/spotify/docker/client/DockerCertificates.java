@@ -154,7 +154,10 @@ public class DockerCertificates {
     }
 
     public Optional<DockerCertificates> build() throws DockerCertificateException {
-      if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath) &&
+      if (this.caCertPath == null || this.clientKeyPath == null || this.clientCertPath == null) {
+        log.debug("caCertPath, clientKeyPath or clientCertPath not specified, not using SSL");
+        return Optional.absent();
+      } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath) &&
               Files.exists(this.clientCertPath)) {
         return Optional.of(new DockerCertificates(this));
       } else {
