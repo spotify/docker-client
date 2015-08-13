@@ -420,6 +420,25 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testBuildImageIdPathToDockerFile() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
+
+    final String returnedImageId = sut.build(
+        Paths.get(dockerDirectory), "test", "innerDir/innerDockerfile", new ProgressHandler() {
+          @Override
+          public void progress(ProgressMessage message) throws DockerException {
+            final String imageId = message.buildImageId();
+            if (imageId != null) {
+              imageIdFromMessage.set(imageId);
+            }
+          }
+        });
+
+    assertThat(returnedImageId, is(imageIdFromMessage.get()));
+  }
+
+  @Test
   public void testBuildImageIdWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
