@@ -579,7 +579,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public Boolean copyToContainer(final Path directory, String containerId, String path) {
+  public void copyToContainer(final Path directory, String containerId, String path)
+      throws DockerException, InterruptedException, IOException {  
       final WebTarget resource = resource() 
                        .path("containers")
                        .path(containerId)
@@ -587,20 +588,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                        .queryParam("noOverwriteDirNonDir", true)
                        .queryParam("path", path);
 
-      try {
-          final CompressedDirectory compressedDirectory = 
-                  CompressedDirectory.create(directory);
-          final InputStream fileStream = 
-                  Files.newInputStream(compressedDirectory.file());
+    
+      CompressedDirectory compressedDirectory 
+          = CompressedDirectory.create(directory);
 
-          request(PUT, String.class, resource,
-                  resource.request(APPLICATION_OCTET_STREAM_TYPE),
-                  Entity.entity(fileStream, "application/tar"));
+      final InputStream fileStream = 
+          Files.newInputStream(compressedDirectory.file());
           
-          return true;
-      } catch (Exception e) {
-          return false;
-      }
+      request(PUT, String.class, resource,
+              resource.request(APPLICATION_OCTET_STREAM_TYPE),
+              Entity.entity(fileStream, "application/tar"));
   }  
 
   @Override

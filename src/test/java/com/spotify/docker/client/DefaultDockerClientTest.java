@@ -667,8 +667,11 @@ public class DefaultDockerClientTest {
     final String containerId = creation.id();
 
     final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
-    Boolean result = sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/usr/bin");
-    assertTrue(result);
+    try {
+    	sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/usr/bin");	
+	} catch (Exception e) {
+		fail("error to copy files to container");
+	}
   }
   
   @Test
@@ -797,8 +800,11 @@ public class DefaultDockerClientTest {
     
     // Copy files to container
     final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
-    Boolean result = sut.copyToContainer(Paths.get(dockerDirectory), id, "/usr/bin");
-    assertTrue(result);
+    try {
+    	sut.copyToContainer(Paths.get(dockerDirectory), id, "/usr/bin");
+	} catch (Exception e) {
+		fail("error to copy files to container");
+	}
     
     // Copy files from container    
     ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
