@@ -530,8 +530,7 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  Boolean copyToContainer(final Path directory, String containerId, String path)
-      throws DockerException, InterruptedException;  
+  Boolean copyToContainer(final Path directory, String containerId, String path);  
 
   /**
    * Get docker container logs.

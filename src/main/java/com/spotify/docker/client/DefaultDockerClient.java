@@ -579,8 +579,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public Boolean copyToContainer(final Path directory, String containerId, String path) 
-          throws DockerException, InterruptedException {
+  public Boolean copyToContainer(final Path directory, String containerId, String path) {
       final WebTarget resource = resource() 
                        .path("containers")
                        .path(containerId)
