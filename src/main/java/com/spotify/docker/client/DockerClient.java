@@ -518,6 +518,20 @@ public interface DockerClient extends Closeable {
    */
   InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
+  
+  /**
+   * Copies some files from host to container.
+   * 
+   * @param directory   The path to sent to container
+   * @param containerId The id of the container to sent files.
+   * @param path        The path inside of the container to put files.
+   *                    
+   * @return Boolean as result
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  Boolean copyToContainer(final Path directory, String containerId, String path)
+      throws DockerException, InterruptedException;  
 
   /**
    * Get docker container logs.
