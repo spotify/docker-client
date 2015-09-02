@@ -1,4 +1,7 @@
 to-be-ignored
-subdir
-*.ignore
+  subdir
+
+*.ignore  
+  
+		
 subdir2/*.ignore
