@@ -138,11 +138,12 @@ class CompressedDirectory implements Closeable {
 
     if (Files.isReadable(dockerIgnorePath) && Files.isRegularFile(dockerIgnorePath)) {
       for (final String line : Files.readAllLines(dockerIgnorePath, StandardCharsets.UTF_8)) {
-        if (line.isEmpty()) {
-          log.debug("Will skip '{}' - cause it's empty", line);
+        final String pattern = line.trim();
+        if (pattern.isEmpty()) {
+          log.debug("Will skip '{}' - cause it's empty after trimming", line);
           continue;
         }
-        matchersBuilder.add(goPathMatcher(dockerIgnorePath.getFileSystem(), line));
+        matchersBuilder.add(goPathMatcher(dockerIgnorePath.getFileSystem(), pattern));
       }
     }
 
