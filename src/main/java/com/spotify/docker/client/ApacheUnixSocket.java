@@ -162,7 +162,7 @@ public class ApacheUnixSocket extends Socket {
 
   @Override
   public void setSoLinger(final boolean on, final int linger) throws SocketException {
-    throw new UnsupportedOperationException("Unimplemented");
+    // not supported: Apache client tries to set it, but we want to just ignore it
   }
 
   @Override
