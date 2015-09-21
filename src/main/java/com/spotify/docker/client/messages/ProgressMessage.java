@@ -23,6 +23,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ProgressMessage {
 
+  // Prefix that appears before the actual image digest in a status message. E.g.:
+  // {"status":"Digest: sha256:ebd39c3e3962f804787f6b0520f8f1e35fbd5a01ab778ac14c8d6c37978e8445"}
+  private static final String STATUS_DIGEST_PREFIX = "Digest: ";
+
   @JsonProperty private String id;
   @JsonProperty private String status;
   @JsonProperty private String stream;
@@ -94,6 +98,12 @@ public class ProgressMessage {
     // stream messages end with new line, so call trim to remove it
     return stream != null && stream.startsWith("Successfully built")
            ? stream.substring(stream.lastIndexOf(' ') + 1).trim()
+           : null;
+  }
+
+  public String digest() {
+    return status != null && status.startsWith(STATUS_DIGEST_PREFIX)
+           ? status.substring(STATUS_DIGEST_PREFIX.length()).trim()
            : null;
   }
 
