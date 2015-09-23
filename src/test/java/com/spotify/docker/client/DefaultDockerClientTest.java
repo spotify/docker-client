@@ -644,7 +644,7 @@ public class DefaultDockerClientTest {
 
     ImmutableSet.Builder<String> files = ImmutableSet.builder();
     try (TarArchiveInputStream tarStream =
-             new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
+             new TarArchiveInputStream(sut.copyContainer(id, "/etc/hostname"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
         files.add(entry.getName());
@@ -652,7 +652,7 @@ public class DefaultDockerClientTest {
     }
 
     // Check that some common files exist
-    assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
+    assertThat(files.build(), both(hasItem("etc/")).and(hasItem("etc/hostname")));
   }
 
   @Test
