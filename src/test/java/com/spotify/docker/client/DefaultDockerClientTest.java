@@ -248,6 +248,14 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testPullByDigest() throws Exception {
+    // The current Docker client on CircleCI does allow you to pull images by digest.
+    assumeFalse(CIRCLECI);
+
+    sut.pull(BUSYBOX + "@sha256:7d3ce4e482101f0c484602dd6687c826bb8bef6295739088c58e84245845912e");
+  }
+
+  @Test
   public void testPingReturnsOk() throws Exception {
     final String pingResponse = sut.ping();
     assertThat(pingResponse, equalTo("OK"));
