@@ -644,7 +644,7 @@ public class DefaultDockerClientTest {
 
     ImmutableSet.Builder<String> files = ImmutableSet.builder();
     try (TarArchiveInputStream tarStream =
-             new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
+             new TarArchiveInputStream(sut.copyContainer(id, "/bin"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
         files.add(entry.getName());
