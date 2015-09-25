@@ -131,6 +131,7 @@ public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
+  private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
@@ -366,8 +367,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectImage() throws Exception {
-    sut.pull(BUSYBOX_LATEST);
-    final ImageInfo info = sut.inspectImage(BUSYBOX);
+    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
+    final ImageInfo info = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
     assertThat(info.author(), not(isEmptyOrNullString()));
@@ -1085,17 +1086,18 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2015-04-17T22:01:13.062Z");
+
+    final Date expected = new StdDateFormat().parse("2015-09-18T17:44:28.145Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2015-04-17T22:01:13.062Z");
+    final Date milli = dateFormat.parse("2015-09-18T17:44:28.145Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
+    final Date nano = dateFormat.parse("2015-09-18T17:44:28.145855389Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
-    sut.pull(BUSYBOX_LATEST);
-    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_LATEST);
+    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
+    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
     assertThat(imageInfo.created(), equalTo(expected));
   }
 
