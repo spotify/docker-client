@@ -131,6 +131,8 @@ public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
+  private static final String BUSYBOX_FIXED =
+      BUSYBOX + "@sha256:7d3ce4e482101f0c484602dd6687c826bb8bef6295739088c58e84245845912e";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
@@ -358,8 +360,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectImage() throws Exception {
-    sut.pull(BUSYBOX_LATEST);
-    final ImageInfo info = sut.inspectImage(BUSYBOX);
+    sut.pull(BUSYBOX_FIXED);
+    final ImageInfo info = sut.inspectImage(BUSYBOX_FIXED);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
     assertThat(info.author(), not(isEmptyOrNullString()));
@@ -1077,17 +1079,18 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2015-04-17T22:01:13.062Z");
+
+    final Date expected = new StdDateFormat().parse("2015-09-18T17:44:53.450Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2015-04-17T22:01:13.062Z");
+    final Date milli = dateFormat.parse("2015-09-18T17:44:53.450Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
+    final Date nano = dateFormat.parse("2015-09-18T17:44:53.450104575Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
-    sut.pull(BUSYBOX_LATEST);
-    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_LATEST);
+    sut.pull(BUSYBOX_FIXED);
+    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_FIXED);
     assertThat(imageInfo.created(), equalTo(expected));
   }
 
