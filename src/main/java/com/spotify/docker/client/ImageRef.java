@@ -26,8 +26,8 @@ public class ImageRef {
     final int lastAt = image.lastIndexOf('@');
     final int lastColon = image.lastIndexOf(':');
     if (lastAt >= 0) {
-      this.image = image;
-      this.tag = null;
+      this.image = image.substring(0, lastAt);
+      this.tag = image.substring(lastAt + 1);
     } else if (lastColon < 0) {
       this.image = image;
       this.tag = null;
