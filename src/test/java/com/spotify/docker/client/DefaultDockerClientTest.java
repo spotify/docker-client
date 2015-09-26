@@ -130,9 +130,10 @@ import static org.junit.Assume.assumeTrue;
 public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";
+  private static final String BUSYBOX_1 = BUSYBOX + ":1";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
   private static final String BUSYBOX_FIXED =
-      BUSYBOX + "@sha256:7d3ce4e482101f0c484602dd6687c826bb8bef6295739088c58e84245845912e";
+      BUSYBOX + "@sha256:693fb215aaa7445de22f242c99bf56449fe658b93700f42ab816e60f5e420f47";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
@@ -360,11 +361,14 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectImage() throws Exception {
-    sut.pull(BUSYBOX_FIXED);
-    final ImageInfo info = sut.inspectImage(BUSYBOX_FIXED);
+    // CircleCI's docker client, which is 1.6.2-circleci as of this writing,
+    // doesn't pull from public registry v2. So we can't use image hashes as tags.
+    final String busyboxImage = CIRCLECI ? BUSYBOX_1 : BUSYBOX_FIXED;
+
+    sut.pull(busyboxImage);
+    final ImageInfo info = sut.inspectImage(busyboxImage);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
-    assertThat(info.author(), not(isEmptyOrNullString()));
     assertThat(info.config(), notNullValue());
     assertThat(info.container(), not(isEmptyOrNullString()));
     assertThat(info.containerConfig(), notNullValue());
@@ -1078,19 +1082,23 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testDockerDateFormat() throws Exception {
+    // CircleCI's docker client, which is 1.6.2-circleci as of this writing,
+    // doesn't pull from public registry v2. So we can't use image hashes as tags.
+    final String busyboxImage = CIRCLECI ? BUSYBOX_1 : BUSYBOX_FIXED;
+
     // This is the created date for busybox converted from nanoseconds to milliseconds
 
-    final Date expected = new StdDateFormat().parse("2015-09-18T17:44:53.450Z");
+    final Date expected = new StdDateFormat().parse("2015-09-21T20:15:47.866Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2015-09-18T17:44:53.450Z");
+    final Date milli = dateFormat.parse("2015-09-21T20:15:47.866Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2015-09-18T17:44:53.450104575Z");
+    final Date nano = dateFormat.parse("2015-09-21T20:15:47.866196515Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
-    sut.pull(BUSYBOX_FIXED);
-    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_FIXED);
+    sut.pull(busyboxImage);
+    final ImageInfo imageInfo = sut.inspectImage(busyboxImage);
     assertThat(imageInfo.created(), equalTo(expected));
   }
 
