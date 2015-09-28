@@ -23,8 +23,12 @@ public class ImageRef {
   private final String tag;
 
   public ImageRef(final String image) {
+    final int lastAt = image.lastIndexOf('@');
     final int lastColon = image.lastIndexOf(':');
-    if (lastColon < 0) {
+    if (lastAt >= 0) {
+      this.image = image;
+      this.tag = null;
+    } else if (lastColon < 0) {
       this.image = image;
       this.tag = null;
     } else {
