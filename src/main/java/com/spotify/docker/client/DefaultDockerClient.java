@@ -1050,7 +1050,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
-      target.path(apiVersion);
+      return target.path(apiVersion);
     }
     return target;
   }
@@ -1058,7 +1058,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private WebTarget noTimeoutResource() {
     final WebTarget target = noTimeoutClient.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
-      target.path(apiVersion);
+      return target.path(apiVersion);
     }
     return target;
   }
