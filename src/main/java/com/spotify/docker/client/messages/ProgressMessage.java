@@ -23,9 +23,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ProgressMessage {
 
-  // Prefix that appears before the actual image digest in a status message. E.g.:
+  // Prefix that appears before the actual image digest in a 1.6 status message. E.g.:
   // {"status":"Digest: sha256:ebd39c3e3962f804787f6b0520f8f1e35fbd5a01ab778ac14c8d6c37978e8445"}
-  private static final String STATUS_DIGEST_PREFIX = "Digest: ";
+  private static final String STATUS_DIGEST_PREFIX_16 = "Digest: ";
+
+  // In 1.8, the message instead looks like
+  // {"status":"<some-tag>: digest: <digest> size: <size>"}
+  private static final String STATUS_DIGEST_PREFIX_18 = "digest: ";
+  private static final String STATUS_SIZE_PREFIX_18 = "size: ";
+
+
 
   @JsonProperty private String id;
   @JsonProperty private String status;
@@ -102,9 +109,27 @@ public class ProgressMessage {
   }
 
   public String digest() {
-    return status != null && status.startsWith(STATUS_DIGEST_PREFIX)
-           ? status.substring(STATUS_DIGEST_PREFIX.length()).trim()
-           : null;
+    if (status == null) {
+      return null;
+    }
+
+    // the 1.6 format:
+    // Digest : <digest ... >
+    if (status.startsWith(STATUS_DIGEST_PREFIX_16)) {
+      return status.substring(STATUS_DIGEST_PREFIX_16.length()).trim();
+    }
+
+    // the 1.8 format:
+    // <image-tag>: digest: <digest...> size: <some count of bytes>
+    final int digestIndex = status.indexOf(STATUS_DIGEST_PREFIX_18);
+    final int sizeIndex = status.indexOf(STATUS_SIZE_PREFIX_18);
+    // make sure both substrings exist and that size comes after digest
+    if (digestIndex > -1 && sizeIndex > digestIndex) {
+      final int start = digestIndex + STATUS_DIGEST_PREFIX_18.length();
+      return status.substring(start, sizeIndex - 1);
+    }
+
+    return null;
   }
 
   @Override
