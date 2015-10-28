@@ -951,8 +951,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         generator.writeBooleanField(param.getName(), true);
       }
       
-      if(user != null)
+       if (user != null) {
           generator.writeStringField("User", user);
+      }
 
       generator.writeArrayFieldStart("Cmd");
       for (String s : cmd) {
