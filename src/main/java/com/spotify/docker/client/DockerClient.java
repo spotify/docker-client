@@ -544,6 +544,9 @@ public interface DockerClient extends Closeable {
    */
   String execCreate(String containerId, String[] cmd, ExecParameter... params)
       throws DockerException, InterruptedException;
+      
+  String execCreate(String containerId, String[] cmd, String user, ExecParameter... params)
+      throws DockerException, InterruptedException;
 
   /**
    * Supported parameters for {@link #execCreate}
