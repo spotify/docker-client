@@ -1015,8 +1015,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+
   @Override
-  public String execCreate(String containerId, String[] cmd, ExecParameter... params)
+  public String execCreate(String containerId, String[] cmd, ExecParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
@@ -1025,10 +1026,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
       generator.writeStartObject();
 
-      for (ExecParameter param : params) {
-        generator.writeBooleanField(param.getName(), true);
-      }
-
+      for (ExecParam param : params) {
+          
+          if(param.value().equals("true") || param.value().equals("false")) generator.writeBooleanField(param.name(), Boolean.valueOf(param.value()));
+          else generator.writeStringField(param.name(), param.value());
+        }
+      
       generator.writeArrayFieldStart("Cmd");
       for (String s : cmd) {
         generator.writeString(s);
@@ -1040,8 +1043,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (IOException e) {
       throw new DockerException(e);
     }
-
-
+    
     String response;
     try {
       response = request(POST, String.class, resource,
@@ -1063,6 +1065,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
   }
+  
 
   @Override
   public LogStream execStart(String execId, ExecStartParameter... params)
