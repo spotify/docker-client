@@ -930,8 +930,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  @Override
+ @Override
   public String execCreate(String containerId, String[] cmd, ExecParameter... params)
+          throws DockerException, InterruptedException {
+      return execCreate(containerId, cmd, null, params);
+  }
+  
+  
+  @Override
+  public String execCreate(String containerId, String[] cmd, String user, ExecParameter... params)
           throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
@@ -943,6 +950,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       for (ExecParameter param : params) {
         generator.writeBooleanField(param.getName(), true);
       }
+      
+      if(user != null)
+          generator.writeStringField("User", user);
 
       generator.writeArrayFieldStart("Cmd");
       for (String s : cmd) {
@@ -955,8 +965,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (IOException e) {
       throw new DockerException(e);
     }
-
-
+    
     String response;
     try {
       response = request(POST, String.class, resource,
@@ -978,6 +987,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
   }
+  
 
   @Override
   public LogStream execStart(String execId, ExecStartParameter... params)
