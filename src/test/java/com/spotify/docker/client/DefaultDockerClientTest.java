@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.DockerClient.LogsParameter;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -84,6 +85,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
@@ -165,7 +167,14 @@ public class DefaultDockerClientTest {
     authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
         .password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
-    builder.readTimeoutMillis(120000);
+    // Make it easier to test no read timeout occurs by using a smaller value
+    // Such test methods should end in 'NoTimeout'
+    if (testName.getMethodName().endsWith("NoTimeout")) {
+      builder.readTimeoutMillis(5000);
+    } else {
+      builder.readTimeoutMillis(120000);
+    }
+
     dockerEndpoint = builder.uri();
 
     sut = builder.build();
@@ -581,6 +590,20 @@ public class DefaultDockerClientTest {
         assertThat(message.stream(), not(containsString(removingContainers)));
       }
     }, NO_CACHE, NO_RM);
+  }
+
+  @Test
+  public void testBuildNoTimeout() throws Exception {
+    // The Dockerfile specifies a sleep of 10s during the build
+    // Returned image id is last piece of output, so this confirms stream did not timeout
+    final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+    final String returnedImageId = sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        log.info(message.stream());
+      }
+    }, NO_CACHE);
+    assert(returnedImageId != null);
   }
 
   @Test
@@ -1274,6 +1297,46 @@ public class DefaultDockerClientTest {
     assertThat(info.state().exitCode(), is(0));
   }
 
+  @Test
+  public void testLogNoTimeout() throws Exception {
+    String volumeContainer = createSleepingContainer();
+    StringBuffer result = new StringBuffer();
+    try (LogStream stream = sut.logs(volumeContainer,
+            LogsParameter.STDOUT, LogsParameter.STDERR,
+            LogsParameter.FOLLOW)) {
+      try {
+        while (stream.hasNext()) {
+          String r = UTF_8.decode(stream.next().content()).toString();
+          log.info(r);
+          result.append(r);
+        }
+      } catch (Exception e) {
+        log.info(e.getMessage());
+      }
+    }
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
+  public void testAttachLogNoTimeout() throws Exception {
+    String volumeContainer = createSleepingContainer();
+    StringBuffer result = new StringBuffer();
+    try (LogStream stream = sut.attachContainer(volumeContainer,
+            AttachParameter.STDOUT, AttachParameter.STDERR,
+            AttachParameter.STREAM, AttachParameter.STDIN)) {
+      try {
+        while (stream.hasNext()) {
+          String r = UTF_8.decode(stream.next().content()).toString();
+          log.info(r);
+          result.append(r);
+        }
+      } catch (Exception e) {
+        log.info(e.getMessage());
+      }
+    }
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
   @Test(expected = ContainerNotFoundException.class)
   public void testStartBadContainer() throws Exception {
     sut.startContainer(randomName());
@@ -1542,5 +1605,30 @@ public class DefaultDockerClientTest {
   private PoolStats getNoTimeoutClientConnectionPoolStats(final DefaultDockerClient client) {
     return ((PoolingHttpClientConnectionManager) client.getNoTimeoutClient().getConfiguration()
         .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
+  }
+
+  private String createSleepingContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    final String volumeContainer = randomName();
+    final ContainerConfig volumeConfig = ContainerConfig.builder().image(BUSYBOX_LATEST)
+      .cmd("sh", "-c",
+        "for i in `seq 1 7`; do "
+        + "sleep ${i} ;"
+        + "echo \"Seen output after ${i} seconds.\" ;"
+        + "done;"
+        + "echo Finished ;")
+     .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+    return volumeContainer;
+  }
+
+  private void verifyNoTimeoutContainer(String volumeContainer, StringBuffer result) throws Exception {
+    log.info("Reading has finished, waiting for program to end.");
+    sut.waitContainer(volumeContainer);
+    final ContainerInfo info = sut.inspectContainer(volumeContainer);
+    assertThat(result.toString().contains("Finished"), is(true));
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
   }
 }
