@@ -17,11 +17,14 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Optional;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -52,6 +55,7 @@ public class DockerCertificates {
   public static final String DEFAULT_CLIENT_KEY_NAME = "key.pem";
 
   private static final char[] KEY_STORE_PASSWORD = "docker!!11!!one!".toCharArray();
+  private static final Logger log = LoggerFactory.getLogger(DockerCertificates.class);
 
   private final SSLContext sslContext;
 
@@ -149,8 +153,18 @@ public class DockerCertificates {
       return this;
     }
 
-    public DockerCertificates build() throws DockerCertificateException {
-      return new DockerCertificates(this);
+    public Optional<DockerCertificates> build() throws DockerCertificateException {
+      if (this.caCertPath == null || this.clientKeyPath == null || this.clientCertPath == null) {
+        log.debug("caCertPath, clientKeyPath or clientCertPath not specified, not using SSL");
+        return Optional.absent();
+      } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath) &&
+              Files.exists(this.clientCertPath)) {
+        return Optional.of(new DockerCertificates(this));
+      } else {
+        log.debug("{}, {} or {} does not exist, not using SSL", this.caCertPath, this.clientKeyPath,
+                this.clientCertPath);
+        return Optional.absent();
+      }
     }
   }
 }
