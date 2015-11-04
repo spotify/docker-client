@@ -533,6 +533,22 @@ public interface DockerClient extends Closeable {
 
 
   /**
+   * Get docker container logs.
+   *
+   * @param containerId The id of the container to get logs for.
+   * @param since       UNIX timestamp (in seconds) to filter logs.
+   *                    Specifying a timestamp will only output log-entries since that timestamp
+   * @param tail        Output specified number of lines at the end of logs
+   * @param params      Params for controlling what streams to get and whether to tail or not.
+   * @return A log message stream.
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  LogStream logs(String containerId, Long since, Integer tail, LogsParameter... params)
+      throws DockerException, InterruptedException;
+
+
+  /**
    * Sets up an exec instance in a running container id.
    *
    * @param containerId The id of the container
