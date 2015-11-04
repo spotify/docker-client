@@ -886,11 +886,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public LogStream logs(final String containerId, final LogsParameter... params)
       throws DockerException, InterruptedException {
+        return logs(containerId, null, null, params);
+    }
+
+    @Override
+  public LogStream logs(final String containerId, final Long since, final Integer tail,
+                        final LogsParameter... params)
+      throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
         .path("containers").path(containerId).path("logs");
 
     for (final LogsParameter param : params) {
       resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
+    }
+    if (since != null) {
+      resource = resource.queryParam("since", since);
+    }
+    if (tail != null) {
+      resource = resource.queryParam("tail", tail);
     }
 
     try {
@@ -905,6 +918,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
     }
   }
+
+
+
 
   @Override
   public LogStream attachContainer(final String containerId,
