@@ -19,6 +19,7 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 
@@ -1201,9 +1202,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
-    final String dockerCertPath = getenv("DOCKER_CERT_PATH");
+    final Path dockerCertPath = Paths.get(fromNullable(getenv("DOCKER_CERT_PATH"))
+            .or(defaultCertPath()));
 
     final Builder builder = new Builder();
+
+    final Optional<DockerCertificates> certs = DockerCertificates.builder()
+            .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
       builder.uri(endpoint);
@@ -1211,7 +1216,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
       final String hostText = hostAndPort.getHostText();
-      final String scheme = isNullOrEmpty(dockerCertPath) ? "http" : "https";
+      final String scheme = certs.isPresent() ? "https" : "http";
 
       final int port = hostAndPort.getPortOrDefault(DEFAULT_PORT);
       final String address = isNullOrEmpty(hostText) ? DEFAULT_HOST : hostText;
@@ -1219,8 +1224,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       builder.uri(scheme + "://" + address + ":" + port);
     }
 
-    if (!isNullOrEmpty(dockerCertPath)) {
-      builder.dockerCertificates(new DockerCertificates(Paths.get(dockerCertPath)));
+    if (certs.isPresent()) {
+      builder.dockerCertificates(certs.get());
     }
 
     return builder;
@@ -1232,6 +1237,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else {
       return DEFAULT_HOST + ":" + DEFAULT_PORT;
     }
+  }
+
+  private static String defaultCertPath() {
+    return Paths.get(getProperty("user.home"), ".docker").toString();
   }
 
   public static class Builder {

@@ -17,6 +17,7 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -66,6 +67,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1124,8 +1126,18 @@ public class DefaultDockerClientTest {
 
   @Test(expected = DockerCertificateException.class)
   public void testBadDockerCertificates() throws Exception {
-    // try building a DockerCertificates without specifying a cert path
-    DockerCertificates.builder().build();
+    // try building a DockerCertificates with specifying a cert path to something that
+    // isn't a cert
+    Path certDir = Paths.get("src", "test", "resources", "dockerInvalidSslDirectory");
+    DockerCertificates.builder().dockerCertPath(certDir).build();
+  }
+  
+  @Test
+  public void testNoDockerCertificatesInDir() throws Exception {
+    Path certDir = Paths.get(System.getProperty("java.io.tmpdir"));
+    Optional<DockerCertificates> result = DockerCertificates.builder()
+      .dockerCertPath(certDir).build();
+    assertThat(result.isPresent(), is(false));
   }
 
   @Test
