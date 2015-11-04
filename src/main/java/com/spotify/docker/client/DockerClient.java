@@ -548,7 +548,7 @@ public interface DockerClient extends Closeable {
   /**
    * Supported parameters for {@link #execCreate}
    */
-  public static enum ExecParameter {
+  enum ExecParameter {
     STDOUT("AttachStdout"),
     STDERR("AttachStderr");
 
@@ -580,7 +580,7 @@ public interface DockerClient extends Closeable {
   /**
    * Supported parameters for {@link #execStart}
    */
-  public static enum ExecStartParameter {
+  enum ExecStartParameter {
     DETACH("Detach");
 
     private final String name;
@@ -623,7 +623,7 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #logs(String, LogsParam...)}
    */
-  public static class LogsParam {
+  class LogsParam {
 
     private final String name;
     private final String value;
@@ -763,7 +763,7 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #attachContainer(String, AttachParameter...)}
    */
-  public static enum AttachParameter {
+  enum AttachParameter {
     LOGS,
     STREAM,
     STDIN,
@@ -792,7 +792,7 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
-  public static class ListContainersParam {
+  class ListContainersParam {
 
     private final String name;
     private final String value;
@@ -903,7 +903,7 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listImages(ListImagesParam...)}
    */
-  public static class ListImagesParam {
+  class ListImagesParam {
 
     private final String name;
     private final String value;
@@ -997,7 +997,7 @@ public interface DockerClient extends Closeable {
    * Filter parameter for {@link #listImages(ListImagesParam...)}. This should be used by
    * ListImagesParam only.
    */
-  static class ListImagesFilterParam extends ListImagesParam {
+  class ListImagesFilterParam extends ListImagesParam {
     public ListImagesFilterParam(String name, String value) {
       super(name, value);
     }
