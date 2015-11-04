@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
-import com.spotify.docker.client.DockerClient.LogsParameter;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -84,6 +83,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -95,8 +95,12 @@ import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
-import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
+import static com.spotify.docker.client.DockerClient.LogsParam.follow;
+import static com.spotify.docker.client.DockerClient.LogsParam.since;
 import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
+import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
+import static com.spotify.docker.client.DockerClient.LogsParam.tail;
+import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -1268,7 +1272,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testAttachLog() throws Exception {
+  public void testAttachContainer() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
     final String volumeContainer = randomName();
@@ -1299,9 +1303,7 @@ public class DefaultDockerClientTest {
   public void testLogNoTimeout() throws Exception {
     String volumeContainer = createSleepingContainer();
     StringBuffer result = new StringBuffer();
-    try (LogStream stream = sut.logs(volumeContainer,
-            LogsParameter.STDOUT, LogsParameter.STDERR,
-            LogsParameter.FOLLOW)) {
+    try (LogStream stream = sut.logs(volumeContainer, stdout(), stderr(), follow())) {
       try {
         while (stream.hasNext()) {
           String r = UTF_8.decode(stream.next().content()).toString();
@@ -1320,8 +1322,8 @@ public class DefaultDockerClientTest {
     String volumeContainer = createSleepingContainer();
     StringBuffer result = new StringBuffer();
     try (LogStream stream = sut.attachContainer(volumeContainer,
-            AttachParameter.STDOUT, AttachParameter.STDERR,
-            AttachParameter.STREAM, AttachParameter.STDIN)) {
+                                                AttachParameter.STDOUT, AttachParameter.STDERR,
+                                                AttachParameter.STREAM, AttachParameter.STDIN)) {
       try {
         while (stream.hasNext()) {
           String r = UTF_8.decode(stream.next().content()).toString();
@@ -1333,6 +1335,153 @@ public class DefaultDockerClientTest {
       }
     }
     verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
+  public void testLogsNoStdOut() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "echo This message goes to stdout && echo This message goes to stderr 1>&2")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(false), stderr())) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("This message goes to stderr"));
+    assertThat(logs, not(containsString("This message goes to stdout")));
+  }
+
+  @Test
+  public void testLogsNoStdErr() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "echo This message goes to stdout && echo This message goes to stderr 1>&2")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(false))) {
+      logs = stream.readFully();
+      System.out.println(logs);
+    }
+    assertThat(logs, containsString("This message goes to stdout"));
+    assertThat(logs, not(containsString("This message goes to stderr")));
+  }
+
+  @Test
+  public void testLogsTimestamps() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("echo", "This message should have a timestamp")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), timestamps())) {
+      logs = stream.readFully();
+    }
+
+    final Pattern timestampPattern = Pattern.compile(
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z.*$", Pattern.DOTALL);
+    assertTrue(timestampPattern.matcher(logs).matches());
+    assertThat(logs, containsString("This message should have a timestamp"));
+  }
+
+  @Test
+  public void testLogsTail() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "echo 1 && echo 2 && echo 3 && echo 4")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), tail(2))) {
+      logs = stream.readFully();
+      System.out.println(logs);
+    }
+
+    assertThat(logs, not(containsString("1")));
+    assertThat(logs, not(containsString("2")));
+    assertThat(logs, containsString("3"));
+    assertThat(logs, containsString("4"));
+  }
+
+  @Test
+  public void testLogsSince() throws Exception {
+    assumeTrue("We need Docker API >= v1.19 to run this test." +
+               "This Docker API is " + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("echo", "This was printed too late")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    // Get logs since the current timestamp. This should return nothing.
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(),
+                                     since((int) (System.currentTimeMillis() / 1000L)))) {
+      logs = stream.readFully();
+      System.out.println(logs);
+    }
+
+    assertThat(logs, not(containsString("This message was printed too late")));
   }
 
   @Test(expected = ContainerNotFoundException.class)
