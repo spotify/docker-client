@@ -710,7 +710,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Filter logs and only output entries since given Unix timestamp.
-     * Only available in Docker API >= 1.19.
+     * Only available in Docker API &gt;= 1.19.
      *
      * @param timestamp Only output entries since timestamp.
      * @return LogsParam
