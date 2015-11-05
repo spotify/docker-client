@@ -17,11 +17,19 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.glassfish.jersey.internal.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+
+import java.io.File;
+import java.io.IOException;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -116,6 +124,8 @@ public class AuthConfig {
 
   public static class Builder {
 
+    private static final Logger log = LoggerFactory.getLogger(Builder.class);
+
     private String username;
     private String password;
     private String email;
@@ -166,6 +176,69 @@ public class AuthConfig {
 
     public String serverAddress() {
       return serverAddress;
+    }
+
+
+    /**
+     * Create a new {@link AuthConfig} builder populated with values from local docker config
+     * @return Returns a builder that can be used to further customize and build the authConfig
+     */
+    public Builder fromDockerConfig() {
+      String home = System.getProperty("user.home");
+      File dockerConfig = new File(new File(home, ".docker"), "config.json");
+      File dockerCfg = new File(home, ".dockercfg");
+
+      if (dockerConfig.isFile()) {
+        log.debug("Using dockerfile: " + dockerConfig);
+        return fromDockerConfig(dockerConfig.getPath());
+      } else if (dockerCfg.isFile()) {
+        log.debug("Using dockerfile: " + dockerCfg);
+        return fromDockerConfig(dockerCfg.getPath());
+      } else {
+        log.error("Could not find a docker config. Please run 'docker login' to create one");
+        return this;
+      }
+
+    }
+
+    public Builder fromDockerConfig(String configFile) {
+      try {
+        JsonNode config = extractDockerJson(configFile);
+
+        if (config.fieldNames().hasNext()) {
+          String server = config.fieldNames().next();
+          this.serverAddress = server;
+          JsonNode serverCredentials = config.get(server);
+
+          if (serverCredentials.has("auth")) {
+            String authString = serverCredentials.get("auth").asText();
+            String[] authParams = Base64.decodeAsString(authString).split(":");
+
+            if (authParams.length == 2) {
+              this.username = authParams[0].trim();
+              this.password = authParams[1].trim();
+            }
+          }
+
+          if (serverCredentials.has("email")) {
+            this.email = serverCredentials.get("email").asText();
+          }
+        }
+
+      } catch (IOException e) {
+        log.error("Failed the access the docker config file: " + configFile, e);
+      }
+      return this;
+    }
+
+    private JsonNode extractDockerJson(String configFile) throws IOException {
+      ObjectMapper mapper = new ObjectMapper();
+      JsonNode config = mapper.readTree(new File(configFile));
+
+      if (config.has("auths")) {
+        return config.get("auths");
+      }
+      return config;
     }
 
     public AuthConfig build() {
