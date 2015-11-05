@@ -142,12 +142,20 @@ public class DefaultDockerClientTest {
   private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
+  private static final String CIRROS_PRIVATE = "dxia/cirros-private";
+  private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
+  private static final String PUSH_PUBLIC_IMAGE =
+      "dxia4/docker-client-test-push-public-image-with-auth";
+  private static final String PUSH_PRIVATE_IMAGE =
+      "dxia4/docker-client-test-push-private-image-with-auth";
+
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
+
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
-  private static final String AUTH_EMAIL = "dxia@spotify.com";
-  private static final String AUTH_USERNAME = "dxia";
-  private static final String AUTH_PASSWORD = "gRjK8tcQ7q";
+  private static final String AUTH_EMAIL = "dxia+4@spotify.com";
+  private static final String AUTH_USERNAME = "dxia4";
+  private static final String AUTH_PASSWORD = "03yDT6Yee4iFaggi";
   // Using yet another dummy individual's test account because CircleCI throws a weird error
   // when trying to pull the same private repo a second time. ¯\_(ツ)_/
   private static final String AUTH_EMAIL2 = "dxia+2@spotify.com";
@@ -231,7 +239,7 @@ public class DefaultDockerClientTest {
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithoutAuth() throws Exception {
-    sut.pull("dxia/cirros-private:latest");
+    sut.pull(CIRROS_PRIVATE_LATEST);
   }
 
   @Test
@@ -245,7 +253,7 @@ public class DefaultDockerClientTest {
   public void testPullPrivateRepoWithBadAuth() throws Exception {
     AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
         .password("foobar").build();
-    sut.pull("dxia/cirros-private:latest", badAuthConfig);
+    sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
 
   @Test
@@ -486,6 +494,32 @@ public class DefaultDockerClientTest {
         });
 
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
+  }
+
+  @Test
+  public void testPushPublicImageWithAuth() throws Exception {
+    // Push an image to a public repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
+
+    sut2.build(Paths.get(dockerDirectory), PUSH_PUBLIC_IMAGE);
+    sut2.push(PUSH_PUBLIC_IMAGE);
+  }
+
+  @Test
+  public void testPushPrivateImageWithAuth() throws Exception {
+    // Push an image to a private repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
+
+    sut2.build(Paths.get(dockerDirectory), PUSH_PRIVATE_IMAGE);
+    sut2.push(PUSH_PRIVATE_IMAGE);
   }
 
   @Test
@@ -956,6 +990,7 @@ public class DefaultDockerClientTest {
 
       // Submit a bunch of waitContainer requests
       for (int i = 0; i < callableCount; i++) {
+        //noinspection unchecked
         completion.submit(new Callable<ContainerExit>() {
           @Override
           public ContainerExit call() throws Exception {
@@ -1398,7 +1433,6 @@ public class DefaultDockerClientTest {
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr(false))) {
       logs = stream.readFully();
-      System.out.println(logs);
     }
     assertThat(logs, containsString("This message goes to stdout"));
     assertThat(logs, not(containsString("This message goes to stderr")));
@@ -1454,7 +1488,6 @@ public class DefaultDockerClientTest {
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), tail(2))) {
       logs = stream.readFully();
-      System.out.println(logs);
     }
 
     assertThat(logs, not(containsString("1")));
@@ -1490,7 +1523,6 @@ public class DefaultDockerClientTest {
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr(),
                                      since((int) (System.currentTimeMillis() / 1000L)))) {
       logs = stream.readFully();
-      System.out.println(logs);
     }
 
     assertThat(logs, not(containsString("This message was printed too late")));
@@ -1759,11 +1791,6 @@ public class DefaultDockerClientTest {
 
   private PoolStats getClientConnectionPoolStats(final DefaultDockerClient client) {
     return ((PoolingHttpClientConnectionManager) client.getClient().getConfiguration()
-        .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
-  }
-
-  private PoolStats getNoTimeoutClientConnectionPoolStats(final DefaultDockerClient client) {
-    return ((PoolingHttpClientConnectionManager) client.getNoTimeoutClient().getConfiguration()
         .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
   }
 
