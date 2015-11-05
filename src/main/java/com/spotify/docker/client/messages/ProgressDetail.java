@@ -17,7 +17,7 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -41,7 +41,7 @@ public class ProgressDetail {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("current", current)
         .add("start", start)
         .add("total", total)
