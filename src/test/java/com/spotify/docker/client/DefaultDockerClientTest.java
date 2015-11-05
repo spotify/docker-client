@@ -339,7 +339,8 @@ public class DefaultDockerClientTest {
     // one to fail.
     assumeFalse(CIRCLECI);
 
-    sut.pull("dxia/cirros");
+    sut.pull("dxia/cirros:latest");
+    sut.pull("dxia/cirros:0.3.0");
     final String imageLatest = "dxia/cirros:latest";
     final String imageVersion = "dxia/cirros:0.3.0";
 
