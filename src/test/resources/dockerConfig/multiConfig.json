@@ -5,7 +5,7 @@
       "email": "dockerman@hub.com"
     },
     "https://narnia.mydock.io/v1/": {
-      "auth": "bWVnYW1hbjpyaWZmcmFmZgo",
+      "auth": "bWVnYW1hbjpyaWZmcmFmZgo=",
       "email": "megaman@mydock.com"
     }
   }
