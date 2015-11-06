@@ -110,11 +110,11 @@ public class AuthConfig {
     return new Builder(this);
   }
 
-  public Builder fromDockerConfig(String serverAddress) {
+  public static Builder fromDockerConfig(String serverAddress) {
     return new AuthConfigParser().getBuilderFor(serverAddress);
   }
 
-  public Builder fromDockerConfig() {
+  public static Builder fromDockerConfig() {
     return new AuthConfigParser().getBuilder();
   }
 
