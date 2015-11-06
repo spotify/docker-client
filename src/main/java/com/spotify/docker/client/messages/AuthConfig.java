@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spotify.docker.client.AuthConfigParser;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -109,6 +110,14 @@ public class AuthConfig {
     return new Builder(this);
   }
 
+  public Builder fromDockerConfig(String serverAddress) {
+    return new AuthConfigParser().getBuilderFor(serverAddress);
+  }
+
+  public Builder fromDockerConfig() {
+    return new AuthConfigParser().getBuilder();
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -166,6 +175,7 @@ public class AuthConfig {
     public String serverAddress() {
       return serverAddress;
     }
+
 
     public AuthConfig build() {
       return new AuthConfig(this);
