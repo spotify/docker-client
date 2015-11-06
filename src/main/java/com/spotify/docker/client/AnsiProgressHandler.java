@@ -59,7 +59,7 @@ public class AnsiProgressHandler implements ProgressHandler {
     String value = message.stream();
     if (value != null) {
       // trim trailing new lines which are present in streams
-      value = value.trim();
+      value = value.replaceFirst("\n$", "");
     } else {
       value = message.status();
     }
@@ -114,4 +114,3 @@ public class AnsiProgressHandler implements ProgressHandler {
   }
 
 }
-
