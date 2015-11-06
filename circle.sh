@@ -18,6 +18,12 @@ case "$1" in
 
     ;;
 
+  post_machine)
+    # fix permissions on docker.log so it can be collected as an artifact
+    sudo chown ubuntu:ubuntu /var/log/upstart/docker.log
+
+    ;;
+
   dependencies)
     mvn clean install -Dmaven.javadoc.skip=true -DskipTests=true -B -V
 
