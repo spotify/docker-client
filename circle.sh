@@ -27,6 +27,9 @@ case "$1" in
 
   test)
     set +x
+    # print version info on the CI machine
+    docker version
+    # run a registry locally
     docker run -d -p 5000:5000 \
       -e STANDALONE=false \
       -e MIRROR_SOURCE=https://registry-1.docker.io \
