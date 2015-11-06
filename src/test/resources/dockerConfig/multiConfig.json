@@ -1,0 +1,12 @@
+{
+  "auths": {
+    "https://index.docker.io/v1/": {
+      "auth": "ZG9ja2VybWFuOnN3NGd5MGxvCg==",
+      "email": "dockerman@hub.com"
+    },
+    "https://narnia.mydock.io/v1/": {
+      "auth": "bWVnYW1hbjpyaWZmcmFmZgo=",
+      "email": "megaman@mydock.com"
+    }
+  }
+}
