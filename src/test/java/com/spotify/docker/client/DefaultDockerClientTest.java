@@ -103,6 +103,7 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 import static com.spotify.docker.client.DockerClient.LogsParam.tail;
 import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -494,6 +495,22 @@ public class DefaultDockerClientTest {
 
 
   @Test
+  public void testBuildPrivateRepoWithAuth() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
+    final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
+            .password(AUTH_PASSWORD).build();
+
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+            .uri(dockerEndpoint)
+            .authConfig(authConfig)
+            .build();
+
+    sut2.build(Paths.get(dockerDirectory),
+            "testauth",
+            DockerClient.BuildParameter.PULL_NEWER_IMAGE);
+  }
+
+  @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryNonExistentImage").getPath();
@@ -528,7 +545,7 @@ public class DefaultDockerClientTest {
   public void testBuildWithPull() throws Exception {
     assumeTrue("We need Docker API >= v1.19 to run this test." +
                "This Docker API is " + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
 
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String pullMsg = "Pulling from";
@@ -642,7 +659,7 @@ public class DefaultDockerClientTest {
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    final String pullingStr = versionCompare(sut.version().apiVersion(), "1.20") >= 0 ?
+    final String pullingStr = compareVersion(sut.version().apiVersion(), "1.20") >= 0 ?
                               "Pulling from library/busybox" : "Pulling from busybox";
     assertThat(out.toString(), allOf(containsString(pullingStr),
                                      containsString("Image is up to date")));
@@ -703,7 +720,7 @@ public class DefaultDockerClientTest {
   public void testCopyToContainer() throws Exception {
     assumeTrue("We need Docker API >= v1.20 to run this test." +
                "This Docker API is " + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.20") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.20") >= 0);
 
     // Pull image
     sut.pull(BUSYBOX_LATEST);
@@ -850,7 +867,7 @@ public class DefaultDockerClientTest {
     // Copy files to container
     // Docker API should be at least v1.20 to support extracting an archive of files or folders
     // to a directory in a container
-    if (versionCompare(sut.version().apiVersion(), "1.20") >= 0) {
+    if (compareVersion(sut.version().apiVersion(), "1.20") >= 0) {
       try {
         sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
       } catch (Exception e) {
@@ -1122,7 +1139,7 @@ public class DefaultDockerClientTest {
   public void testContainerWithHostConfig() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
                "HostConfig, got " + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+                compareVersion(sut.version().apiVersion(), "1.18") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1535,7 +1552,7 @@ public class DefaultDockerClientTest {
   public void testLogsSince() throws Exception {
     assumeTrue("We need Docker API >= v1.19 to run this test." +
                "This Docker API is " + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1622,7 +1639,7 @@ public class DefaultDockerClientTest {
   public void testExec() throws DockerException, InterruptedException, IOException {
     assumeTrue("Docker API should be at least v1.15 to support Exec, got "
                + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.15") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.15") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -1656,7 +1673,7 @@ public class DefaultDockerClientTest {
   public void testExecInspect() throws DockerException, InterruptedException, IOException {
     assumeTrue("Docker API should be at least v1.16 to support Exec Inspect, got "
                + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.16") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.16") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -1714,7 +1731,7 @@ public class DefaultDockerClientTest {
   public void testLabels() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.18 to support Labels, got "
                + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(BUSYBOX_LATEST);
 
     Map<String, String> labels = new HashMap<>();
@@ -1743,7 +1760,7 @@ public class DefaultDockerClientTest {
   public void testMacAddress() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
                + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -1761,7 +1778,7 @@ public class DefaultDockerClientTest {
   public void testStats() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.19 to support stats without streaming, got "
                + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
 
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -1776,40 +1793,6 @@ public class DefaultDockerClientTest {
     assertThat(stats.cpuStats(), notNullValue());
     assertThat(stats.memoryStats(), notNullValue());
     assertThat(stats.network(), notNullValue());
-  }
-
-  /**
-   * Compares two version strings.
-   * <p>
-   * https://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
-   * </p>
-   * Use this instead of String.compareTo() for a non-lexicographical
-   * comparison that works for version strings. e.g. "1.10".compareTo("1.6").
-   *
-   * @param str1 a string of ordinal numbers separated by decimal points.
-   * @param str2 a string of ordinal numbers separated by decimal points.
-   * @return The result is a negative integer if str1 is _numerically_ less than str2.
-   * The result is a positive integer if str1 is _numerically_ greater than str2.
-   * The result is zero if the strings are _numerically_ equal.
-   * N.B. It does not work if "1.10" is supposed to be equal to "1.10.0".
-   */
-  private int versionCompare(String str1, String str2) {
-    String[] vals1 = str1.split("\\.");
-    String[] vals2 = str2.split("\\.");
-    int i = 0;
-    // set index to first non-equal ordinal or length of shortest version string
-    while (i < vals1.length && i < vals2.length && vals1[i].equals(vals2[i])) {
-      i++;
-    }
-    // compare first non-equal ordinal number
-    if (i < vals1.length && i < vals2.length) {
-      int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
-      return Integer.signum(diff);
-    } else {
-      // the strings are equal or one string is a substring of the other
-      // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
-      return Integer.signum(vals1.length - vals2.length);
-    }
   }
 
   private String randomName() {
