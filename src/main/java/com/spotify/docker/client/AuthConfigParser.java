@@ -52,10 +52,10 @@ public class AuthConfigParser {
         File dockerCfg = new File(home, ".dockercfg");
 
         if (dockerConfig.isFile()) {
-            log.debug("Using configfile: " + dockerConfig);
+            log.debug("Using configfile: {}", dockerConfig);
             parseAuthBuilders(dockerConfig);
         } else if (dockerCfg.isFile()) {
-            log.debug("Using configfile: " + dockerCfg);
+            log.debug("Using configfile: {} ", dockerCfg);
             parseAuthBuilders(dockerCfg);
         } else {
             log.error("Could not find a docker config. Please run 'docker login' to create one");
@@ -85,7 +85,7 @@ public class AuthConfigParser {
         if (authBuilders.containsKey(serverAddress)) {
             return authBuilders.get(serverAddress);
         } else {
-            log.error("Could not find auth config for ${serverAddress}, returning empty builder");
+            log.error("Could not find auth config for {}, returning empty builder", serverAddress);
             return AuthConfig.builder().serverAddress(serverAddress);
         }
     }
@@ -110,11 +110,11 @@ public class AuthConfigParser {
                     authBuilder.username(authParams[0].trim());
                     authBuilder.password(authParams[1].trim());
                 } else {
-                    log.error("Failed to parse auth string for ${server} in ${configFile}");
+                    log.error("Failed to parse auth string for {}", server);
                     continue;
                 }
             } else {
-                log.error("Could not find auth value for ${server} in ${configFile}");
+                log.error("Could not find auth value for {}", server);
                 continue;
             }
 
@@ -134,7 +134,7 @@ public class AuthConfigParser {
         try {
             config = mapper.readTree(configFile);
         } catch (IOException e) {
-            log.error("Could not read configfile: ${configFile}");
+            log.error("Could not read configfile: {}", configFile);
             log.error(e.getMessage());
         }
         if (config.has("auths")) {
