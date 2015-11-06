@@ -17,41 +17,34 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.google.common.base.MoreObjects;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-
 /**
   * A formatted string passed in X-Registry-Config request header.
-  * {"configs":{"myrepository":{
+  * {"myrepository":{
   *   "username":"myusername",
   *   "password":"mypassword",
   *   "auth":"",
   *   "email":"myemail",
-  *   "serveraddress":"myserverAddress"}}}
+  *   "serveraddress":"myserverAddress"}}
 */
-@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class AuthRegistryConfig {
 
-  @JsonIgnore
+
   private final Map<String, String> properties = new HashMap<String, String>();
 
-  @JsonProperty("configs") private final Map<String, Map<String, String>> configs = 
+  private final Map<String, Map<String, String>> configs =
                              new HashMap<String, Map<String, String>>();
-  @JsonIgnore private final String repository;
-  @JsonIgnore private final String username;
-  @JsonIgnore private final String password;
-  @JsonIgnore private final String auth;
-  @JsonIgnore private final String email;
-  @JsonIgnore private final String serverAddress;
+  private final String repository;
+  private final String username;
+  private final String password;
+  private final String auth;
+  private final String email;
+  private final String serverAddress;
 
   public static final AuthRegistryConfig EMPTY = new AuthRegistryConfig("", "", "", "", "", "");
 
@@ -98,6 +91,11 @@ public class AuthRegistryConfig {
                             String email, 
                             String serverAddress) {
     this(repository, username, password, "", email, serverAddress);
+  }
+
+  @JsonAnyGetter
+  public Map<String, Map<String, String>> getConfigs() {
+    return configs;
   }
   
   @Override

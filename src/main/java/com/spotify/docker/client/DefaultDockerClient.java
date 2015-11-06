@@ -96,6 +96,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static java.lang.System.getProperty;
 import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -1153,11 +1154,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       String authRegistryJson =
         ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
+
+      final String apiVersion = version().apiVersion();
+      final int versionComparison = compareVersion(apiVersion, "1.19");
+
+      // Version below 1.19
+      if (versionComparison < 0) {
+        authRegistryJson = "{\"configs\":" + authRegistryJson + "}";
+      }
+      // Version equal 1.19
+      else if (versionComparison == 0) {
+        authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
+      }
+
       log.debug("Registry Config Json {}", authRegistryJson);
       String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);
       log.debug("Registry Config Encoded {}", authRegistryEncoded);
       return authRegistryEncoded;
-    } catch (JsonProcessingException ex) {
+    } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
   }
