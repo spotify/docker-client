@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * This helper class is used to build a {@Link AuthConf.Builder} from the docker config json
+ * This helper class is used to build a {@link AuthConfig.Builder} from the docker config json
  * created by running `docker login`
  */
 public class AuthConfigParser {
@@ -63,7 +63,7 @@ public class AuthConfigParser {
     }
 
     /**
-     * @return a {@Link AuthConf.Builder} based on docker config json
+     * @return a {@link AuthConfig.Builder} based on docker config json
      */
     public AuthConfig.Builder getBuilder() {
         if (authBuilders.isEmpty()) {
@@ -78,7 +78,7 @@ public class AuthConfigParser {
 
     /**
      * @param serverAddress
-     * @return a {@Link AuthConf.Builder} based on docker config json for the
+     * @return a {@link AuthConfig.Builder} based on docker config json for the
      * given serverAdress
      */
     public AuthConfig.Builder getBuilderFor(String serverAddress) {
