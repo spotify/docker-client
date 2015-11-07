@@ -930,15 +930,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
- @Override
-  public String execCreate(String containerId, String[] cmd, ExecParameter... params)
-          throws DockerException, InterruptedException {
-      return execCreate(containerId, cmd, null, params);
-  }
-  
   
   @Override
-  public String execCreate(String containerId, String[] cmd, String user, ExecParameter... params)
+  public String execCreate(String containerId, String[] cmd, final ExecParam... params)
           throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
@@ -947,14 +941,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
       generator.writeStartObject();
 
-      for (ExecParameter param : params) {
-        generator.writeBooleanField(param.getName(), true);
-      }
+      for (ExecParam param : params) {
+          
+          if(param.value().equals("true") || param.value().equals("false")) generator.writeBooleanField(param.name(), Boolean.valueOf(param.value()));
+          else generator.writeStringField(param.name(), param.value());
+        }
       
-       if (user != null) {
-          generator.writeStringField("User", user);
-      }
-
       generator.writeArrayFieldStart("Cmd");
       for (String s : cmd) {
         generator.writeString(s);

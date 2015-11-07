@@ -542,10 +542,8 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  String execCreate(String containerId, String[] cmd, ExecParameter... params)
-      throws DockerException, InterruptedException;
       
-  String execCreate(String containerId, String[] cmd, String user, ExecParameter... params)
+  String execCreate(String containerId, String[] cmd, ExecParam... params)
       throws DockerException, InterruptedException;
 
   /**
@@ -622,10 +620,120 @@ public interface DockerClient extends Closeable {
    */
   @Override
   void close();
+  
+  /**
+   * 
+   * @author sfk
+   *  
+   */
+//  type ExecConfig struct {
+//      User         string   // User that will run the command
+//      Privileged+   bool     // Is the container in privileged mode
+//      Tty       +   bool     // Attach standard streams to a tty.
+//      Container  +  string   // Name of the container (to execute in)
+//      AttachStdin + bool     // Attach the standard input, makes possible user interaction
+//      AttachStderr +bool     // Attach the standard output
+//      AttachStdout +bool     // Attach the standard error
+//      Detach       + bool     // Execute in detach mode
+//      Cmd        +  []string // Execution commands and args
+//  }
+  
+  
+  class ExecParam {
+      private final String name;
+      private final String value;
+      
+      public ExecParam(final String name, final String value) {
+          this.name = name;
+          this.value = value;
+      }
+      
+      public String name() {
+        return name;
+      }
+     
+      public String value() {
+        return value;
+      }
+      
+      public static ExecParam create(String name, String value)
+      {
+          return new ExecParam(name, value);
+      }
+      
+      public static ExecParam detach(final boolean detach)
+      {
+          return create("Detach", String.valueOf(detach));
+      }
+      
+      public static ExecParam detach()
+      {
+          return detach(true);
+      }
+      
+      public static ExecParam attachStdin(final boolean attachStdin)
+      {
+          return create("AttachStdin",String.valueOf(attachStdin));
+      }
+      
+      public static ExecParam attachStdin()
+      {
+          return attachStdin(true);
+      }
+      
+      public static ExecParam attachStderr(final boolean attachStderr)
+      {
+          return create("AttachStderr",String.valueOf(attachStderr));
+      }
+      
+      public static ExecParam attachStderr()
+      {
+          return attachStderr(true);
+      }
+      
+      public static ExecParam attachStdout(final boolean attachStdout)
+      {
+          return create("AttachStdout",String.valueOf(attachStdout));
+      }
+      
+      public static ExecParam attachStdout()
+      {
+          return attachStdout(true);
+      }
+      
+      public static ExecParam privileged(final boolean privileged)
+      {
+          return create("Privileged",String.valueOf(privileged));
+      }
+      
+      public static ExecParam privileged()
+      {
+          return privileged(true);
+      }
+      
+      public static ExecParam tty(final boolean tty)
+      {
+          return create("Tty",String.valueOf(tty));
+      }
+      
+      public static ExecParam tty()
+      {
+          return tty(true);
+      }
+      
+      public static ExecParam user(final String user)
+      {
+          return create("User",user);
+      }
+      
+      
+  }
+  
 
   /**
    * Parameters for {@link #logs(String, LogsParam...)}
    */
+  
   class LogsParam {
 
     private final String name;
