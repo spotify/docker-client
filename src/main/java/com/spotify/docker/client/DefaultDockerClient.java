@@ -930,9 +930,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+
   
   @Override
-  public String execCreate(String containerId, String[] cmd, final ExecParam... params)
+  public String execCreate(String containerId, String[] cmd, ExecParam... params)
           throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
@@ -947,6 +948,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           else generator.writeStringField(param.name(), param.value());
         }
       
+
       generator.writeArrayFieldStart("Cmd");
       for (String s : cmd) {
         generator.writeString(s);
