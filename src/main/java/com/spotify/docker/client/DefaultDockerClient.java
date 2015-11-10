@@ -396,9 +396,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     log.info("Starting container with Id: {}", containerId);
 
+    containerAction(containerId, "start");
+  }
+
+  private void containerAction(final String containerId, final String action)
+      throws DockerException, InterruptedException {
     try {
       final WebTarget resource = resource()
-          .path("containers").path(containerId).path("start");
+          .path("containers").path(containerId).path(action);
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -414,38 +419,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void pauseContainer(final String containerId)
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-
-    try {
-      final WebTarget resource = resource()
-          .path("containers").path(containerId).path("pause");
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    containerAction(containerId, "pause");
   }
 
   @Override
   public void unpauseContainer(final String containerId)
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-
-    try {
-      final WebTarget resource = resource()
-          .path("containers").path(containerId).path("unpause");
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    containerAction(containerId, "unpause");
   }
 
   @Override
@@ -476,17 +457,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void killContainer(final String containerId) throws DockerException, InterruptedException {
-    try {
-      final WebTarget resource = resource().path("containers").path(containerId).path("kill");
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    containerAction(containerId, "kill");
   }
 
   @Override
@@ -678,22 +649,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void pull(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    final ImageRef imageRef = new ImageRef(image);
-
-    WebTarget resource = resource().path("images").path("create");
-
-    resource = resource.queryParam("fromImage", imageRef.getImage());
-    if (imageRef.getTag() != null) {
-      resource = resource.queryParam("tag", imageRef.getTag());
-    }
-
-    try (ProgressStream pull = request(POST, ProgressStream.class, resource,
-                                       resource.request(APPLICATION_JSON_TYPE)
-                                               .header("X-Registry-Auth", authHeader()))) {
-      pull.tail(handler, POST, resource.getUri());
-    } catch (IOException e) {
-      throw new DockerException(e);
-    }
+    pull(image, authConfig, handler);
   }
 
   @Override
@@ -910,30 +866,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public LogStream logs(final String containerId, final LogsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
-        .path("containers").path(containerId).path("logs");
+        .path("containers").path(containerId)
+        .path("logs");
 
     for (LogsParam param : params) {
       resource = resource.queryParam(param.name(), param.value());
     }
 
-    try {
-      return request(GET, LogStream.class, resource,
-                     resource.request("application/vnd.docker.raw-stream"));
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId);
-        default:
-          throw e;
-      }
-    }
+    return getLogStream(GET, resource, containerId);
   }
 
   @Override
-  public LogStream attachContainer(final String containerId,
-                                   final AttachParameter... params) throws DockerException,
-      InterruptedException {
-    WebTarget resource = noTimeoutResource().path("containers").path(containerId)
+  public LogStream attachContainer(final String containerId, final AttachParameter... params)
+      throws DockerException, InterruptedException {
+    WebTarget resource = noTimeoutResource()
+        .path("containers").path(containerId)
         .path("attach");
 
     for (final AttachParameter param : params) {
@@ -941,15 +888,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           String.valueOf(true));
     }
 
+    return getLogStream(POST, resource, containerId);
+  }
+
+  private LogStream getLogStream(final String method, final WebTarget resource,
+                                 final String containerId)
+      throws DockerException, InterruptedException {
     try {
-      return request(POST, LogStream.class, resource,
-          resource.request("application/vnd.docker.raw-stream"));
+      final Invocation.Builder request = resource.request("application/vnd.docker.raw-stream");
+      return request(method, LogStream.class, resource, request);
     } catch (DockerRequestException e) {
       switch (e.status()) {
-      case 404:
-        throw new ContainerNotFoundException(containerId);
-      default:
-        throw e;
+        case 404:
+          throw new ContainerNotFoundException(containerId);
+        default:
+          throw e;
       }
     }
   }
