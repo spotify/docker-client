@@ -1,0 +1,7 @@
+{
+  "auths": {
+    "https://different.docker.io/v1/": {
+      "email": "dockerman@hub.com"
+    }
+  }
+}

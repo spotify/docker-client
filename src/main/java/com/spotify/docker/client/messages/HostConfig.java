@@ -17,7 +17,7 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
@@ -243,7 +243,7 @@ public class HostConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("binds", binds)
         .add("containerIDFile", containerIDFile)
         .add("lxcConf", lxcConf)
@@ -312,7 +312,7 @@ public class HostConfig {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("key", key)
           .add("value", value)
           .toString();

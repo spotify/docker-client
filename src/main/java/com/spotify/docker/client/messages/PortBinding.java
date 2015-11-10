@@ -17,7 +17,7 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -88,7 +88,7 @@ public class PortBinding {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("hostIp", hostIp)
         .add("hostPort", hostPort)
         .toString();

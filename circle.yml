@@ -13,7 +13,13 @@ test:
 machine:
   pre:
     - docker-client/circle.sh pre_machine
+  post:
+    - docker-client/circle.sh post_machine
   services:
     - docker
   environment:
     MAVEN_OPTS: -Xmx512m
+
+general:
+  artifacts:
+    - /var/log/upstart/docker.log

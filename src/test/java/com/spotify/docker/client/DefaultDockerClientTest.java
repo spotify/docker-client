@@ -17,6 +17,77 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
+import com.google.common.util.concurrent.SettableFuture;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
+
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
@@ -26,8 +97,12 @@ import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
-import static com.spotify.docker.client.DockerClient.LogsParameter.STDERR;
-import static com.spotify.docker.client.DockerClient.LogsParameter.STDOUT;
+import static com.spotify.docker.client.DockerClient.LogsParam.follow;
+import static com.spotify.docker.client.DockerClient.LogsParam.since;
+import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
+import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
+import static com.spotify.docker.client.DockerClient.LogsParam.tail;
+import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -60,85 +135,27 @@ import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URI;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TestName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
-import com.google.common.util.concurrent.SettableFuture;
-import com.spotify.docker.client.DockerClient.AttachParameter;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
-
 public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
+  private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
+  private static final String CIRROS_PRIVATE = "dxia/cirros-private";
+  private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
+  private static final String PUSH_PUBLIC_IMAGE =
+      "dxia4/docker-client-test-push-public-image-with-auth";
+  private static final String PUSH_PRIVATE_IMAGE =
+      "dxia4/docker-client-test-push-private-image-with-auth";
+
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
+
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
-  private static final String AUTH_EMAIL = "dxia@spotify.com";
-  private static final String AUTH_USERNAME = "dxia";
-  private static final String AUTH_PASSWORD = "gRjK8tcQ7q";
+  private static final String AUTH_EMAIL = "dxia+4@spotify.com";
+  private static final String AUTH_USERNAME = "dxia4";
+  private static final String AUTH_PASSWORD = "03yDT6Yee4iFaggi";
   // Using yet another dummy individual's test account because CircleCI throws a weird error
   // when trying to pull the same private repo a second time. ¯\_(ツ)_/
   private static final String AUTH_EMAIL2 = "dxia+2@spotify.com";
@@ -164,7 +181,14 @@ public class DefaultDockerClientTest {
     authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
         .password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
-    builder.readTimeoutMillis(120000);
+    // Make it easier to test no read timeout occurs by using a smaller value
+    // Such test methods should end in 'NoTimeout'
+    if (testName.getMethodName().endsWith("NoTimeout")) {
+      builder.readTimeoutMillis(5000);
+    } else {
+      builder.readTimeoutMillis(120000);
+    }
+
     dockerEndpoint = builder.uri();
 
     sut = builder.build();
@@ -208,12 +232,14 @@ public class DefaultDockerClientTest {
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullBadImage() throws Exception {
+    // The Docker daemon on CircleCI won't throw ImageNotFoundException for some reason...
+    assumeFalse(CIRCLECI);
     sut.pull(randomName());
   }
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithoutAuth() throws Exception {
-    sut.pull("dxia/cirros-private:latest");
+    sut.pull(CIRROS_PRIVATE_LATEST);
   }
 
   @Test
@@ -227,7 +253,7 @@ public class DefaultDockerClientTest {
   public void testPullPrivateRepoWithBadAuth() throws Exception {
     AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
         .password("foobar").build();
-    sut.pull("dxia/cirros-private:latest", badAuthConfig);
+    sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
 
   @Test
@@ -245,6 +271,14 @@ public class DefaultDockerClientTest {
     }
 
     assertThat(getClientConnectionPoolStats(sut).getLeased(), equalTo(0));
+  }
+
+  @Test
+  public void testPullByDigest() throws Exception {
+    // The current Docker client on CircleCI does allow you to pull images by digest.
+    assumeFalse(CIRCLECI);
+
+    sut.pull(BUSYBOX + "@sha256:7d3ce4e482101f0c484602dd6687c826bb8bef6295739088c58e84245845912e");
   }
 
   @Test
@@ -305,7 +339,8 @@ public class DefaultDockerClientTest {
     // one to fail.
     assumeFalse(CIRCLECI);
 
-    sut.pull("dxia/cirros");
+    sut.pull("dxia/cirros:latest");
+    sut.pull("dxia/cirros:0.3.0");
     final String imageLatest = "dxia/cirros:latest";
     final String imageVersion = "dxia/cirros:0.3.0";
 
@@ -358,8 +393,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectImage() throws Exception {
-    sut.pull(BUSYBOX_LATEST);
-    final ImageInfo info = sut.inspectImage(BUSYBOX);
+    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
+    final ImageInfo info = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
     assertThat(info.author(), not(isEmptyOrNullString()));
@@ -463,6 +498,32 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testPushPublicImageWithAuth() throws Exception {
+    // Push an image to a public repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
+
+    sut2.build(Paths.get(dockerDirectory), PUSH_PUBLIC_IMAGE);
+    sut2.push(PUSH_PUBLIC_IMAGE);
+  }
+
+  @Test
+  public void testPushPrivateImageWithAuth() throws Exception {
+    // Push an image to a private repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
+
+    sut2.build(Paths.get(dockerDirectory), PUSH_PRIVATE_IMAGE);
+    sut2.push(PUSH_PRIVATE_IMAGE);
+  }
+
+  @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryNonExistentImage").getPath();
@@ -510,7 +571,8 @@ public class DefaultDockerClientTest {
     sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
-        if (message.status().contains(pullMsg)) {
+        final String status = message.status();
+        if (!isNullOrEmpty(status) && status.contains(pullMsg)) {
           pulled.set(true);
         }
       }
@@ -575,6 +637,20 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testBuildNoTimeout() throws Exception {
+    // The Dockerfile specifies a sleep of 10s during the build
+    // Returned image id is last piece of output, so this confirms stream did not timeout
+    final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+    final String returnedImageId = sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+      @Override
+      public void progress(ProgressMessage message) throws DockerException {
+        log.info(message.stream());
+      }
+    }, NO_CACHE);
+    assert(returnedImageId != null);
+  }
+
+  @Test
   public void testGetImageIdFromBuild() {
     // Include a new line because that's what docker returns.
     final ProgressMessage message1 = new ProgressMessage()
@@ -595,13 +671,10 @@ public class DefaultDockerClientTest {
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    if (CIRCLECI) {
-      assertThat(out.toString(),allOf(containsString("Pulling repository busybox"),
-                                      containsString("Image is up to date")));
-    } else {
-      assertThat(out.toString(),allOf(containsString("Pulling from busybox"),
-                                       containsString("Image is up to date")));
-    }
+    final String pullingStr = versionCompare(sut.version().apiVersion(), "1.20") >= 0 ?
+                              "Pulling from library/busybox" : "Pulling from busybox";
+    assertThat(out.toString(),allOf(containsString(pullingStr),
+                                    containsString("Image is up to date")));
   }
 
   @Test
@@ -644,7 +717,7 @@ public class DefaultDockerClientTest {
 
     ImmutableSet.Builder<String> files = ImmutableSet.builder();
     try (TarArchiveInputStream tarStream =
-             new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
+             new TarArchiveInputStream(sut.copyContainer(id, "/bin"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
         files.add(entry.getName());
@@ -657,6 +730,10 @@ public class DefaultDockerClientTest {
   
   @Test
   public void testCopyToContainer() throws Exception {
+	  assumeTrue("We need Docker API >= v1.20 to run this test." +
+              "This Docker API is " + sut.version().apiVersion(),
+              versionCompare(sut.version().apiVersion(), "1.20") >= 0);
+	  
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
@@ -668,7 +745,7 @@ public class DefaultDockerClientTest {
 
     final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
     try {
-    	sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/usr/bin");	
+    	sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/tmp");	
 	} catch (Exception e) {
 		fail("error to copy files to container");
 	}
@@ -690,7 +767,7 @@ public class DefaultDockerClientTest {
     String tag = randomName();
     ContainerCreation
         dockerClientTest =
-        sut.commitContainer(id, "mosheeshel/busybox",tag, config, "CommitedByTest-" + tag,
+        sut.commitContainer(id, "mosheeshel/busybox", tag, config, "CommitedByTest-" + tag,
                             "DockerClientTest");
 
     ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
@@ -801,7 +878,7 @@ public class DefaultDockerClientTest {
     // Copy files to container
     final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
     try {
-    	sut.copyToContainer(Paths.get(dockerDirectory), id, "/usr/bin");
+    	sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
 	} catch (Exception e) {
 		fail("error to copy files to container");
 	}
@@ -809,7 +886,7 @@ public class DefaultDockerClientTest {
     // Copy files from container    
     ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
     try (TarArchiveInputStream tarStream =
-             new TarArchiveInputStream(sut.copyContainer(id, "/usr/bin"))) {
+             new TarArchiveInputStream(sut.copyContainer(id, "/tmp"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
     	  filesDownloaded.add(entry.getName());
@@ -952,10 +1029,9 @@ public class DefaultDockerClientTest {
     // Spawn and wait on many more containers than the connection pool size.
     // This should cause a timeout once the connection pool is exhausted.
 
-    final DockerClient dockerClient = DefaultDockerClient.fromEnv()
+    try (final DockerClient dockerClient = DefaultDockerClient.fromEnv()
         .connectionPoolSize(connectionPoolSize)
-        .build();
-    try {
+        .build()) {
       // Create container
       final ContainerConfig config = ContainerConfig.builder()
           .image(BUSYBOX_LATEST)
@@ -970,6 +1046,7 @@ public class DefaultDockerClientTest {
 
       // Submit a bunch of waitContainer requests
       for (int i = 0; i < callableCount; i++) {
+        //noinspection unchecked
         completion.submit(new Callable<ContainerExit>() {
           @Override
           public ContainerExit call() throws Exception {
@@ -989,7 +1066,6 @@ public class DefaultDockerClientTest {
       }
     } finally {
       executor.shutdown();
-      dockerClient.close();
     }
   }
 
@@ -1128,24 +1204,35 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2015-04-17T22:01:13.062Z");
+
+    final Date expected = new StdDateFormat().parse("2015-09-18T17:44:28.145Z");
     final DockerDateFormat dateFormat = new DockerDateFormat();
     // Verify DockerDateFormat handles millisecond precision correctly
-    final Date milli = dateFormat.parse("2015-04-17T22:01:13.062Z");
+    final Date milli = dateFormat.parse("2015-09-18T17:44:28.145Z");
     assertThat(milli, equalTo(expected));
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
-    final Date nano = dateFormat.parse("2015-04-17T22:01:13.062208605Z");
+    final Date nano = dateFormat.parse("2015-09-18T17:44:28.145855389Z");
     assertThat(nano, equalTo(expected));
     // Verify the formatter works when used with the client
-    sut.pull(BUSYBOX_LATEST);
-    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_LATEST);
+    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
+    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
     assertThat(imageInfo.created(), equalTo(expected));
   }
 
   @Test(expected = DockerCertificateException.class)
   public void testBadDockerCertificates() throws Exception {
-    // try building a DockerCertificates without specifying a cert path
-    DockerCertificates.builder().build();
+    // try building a DockerCertificates with specifying a cert path to something that
+    // isn't a cert
+    Path certDir = Paths.get("src", "test", "resources", "dockerInvalidSslDirectory");
+    DockerCertificates.builder().dockerCertPath(certDir).build();
+  }
+  
+  @Test
+  public void testNoDockerCertificatesInDir() throws Exception {
+    Path certDir = Paths.get(System.getProperty("java.io.tmpdir"));
+    Optional<DockerCertificates> result = DockerCertificates.builder()
+      .dockerCertPath(certDir).build();
+    assertThat(result.isPresent(), is(false));
   }
 
   @Test
@@ -1281,14 +1368,14 @@ public class DefaultDockerClientTest {
     assertThat(info.state().exitCode(), is(0));
 
     final String logs;
-    try (LogStream stream = sut.logs(info.id(), STDOUT, STDERR)) {
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("bar"));
   }
 
   @Test
-  public void testAttachLog() throws Exception {
+  public void testAttachContainer() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
     final String volumeContainer = randomName();
@@ -1313,6 +1400,188 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(volumeContainer);
     assertThat(info.state().running(), is(false));
     assertThat(info.state().exitCode(), is(0));
+  }
+
+  @Test
+  public void testLogNoTimeout() throws Exception {
+    String volumeContainer = createSleepingContainer();
+    StringBuffer result = new StringBuffer();
+    try (LogStream stream = sut.logs(volumeContainer, stdout(), stderr(), follow())) {
+      try {
+        while (stream.hasNext()) {
+          String r = UTF_8.decode(stream.next().content()).toString();
+          log.info(r);
+          result.append(r);
+        }
+      } catch (Exception e) {
+        log.info(e.getMessage());
+      }
+    }
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
+  public void testAttachLogNoTimeout() throws Exception {
+    String volumeContainer = createSleepingContainer();
+    StringBuffer result = new StringBuffer();
+    try (LogStream stream = sut.attachContainer(volumeContainer,
+                                                AttachParameter.STDOUT, AttachParameter.STDERR,
+                                                AttachParameter.STREAM, AttachParameter.STDIN)) {
+      try {
+        while (stream.hasNext()) {
+          String r = UTF_8.decode(stream.next().content()).toString();
+          log.info(r);
+          result.append(r);
+        }
+      } catch (Exception e) {
+        log.info(e.getMessage());
+      }
+    }
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
+  public void testLogsNoStdOut() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "echo This message goes to stdout && echo This message goes to stderr 1>&2")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(false), stderr())) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("This message goes to stderr"));
+    assertThat(logs, not(containsString("This message goes to stdout")));
+  }
+
+  @Test
+  public void testLogsNoStdErr() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "echo This message goes to stdout && echo This message goes to stderr 1>&2")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(false))) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("This message goes to stdout"));
+    assertThat(logs, not(containsString("This message goes to stderr")));
+  }
+
+  @Test
+  public void testLogsTimestamps() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("echo", "This message should have a timestamp")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), timestamps())) {
+      logs = stream.readFully();
+    }
+
+    final Pattern timestampPattern = Pattern.compile(
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z.*$", Pattern.DOTALL);
+    assertTrue(timestampPattern.matcher(logs).matches());
+    assertThat(logs, containsString("This message should have a timestamp"));
+  }
+
+  @Test
+  public void testLogsTail() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "echo 1 && echo 2 && echo 3 && echo 4")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), tail(2))) {
+      logs = stream.readFully();
+    }
+
+    assertThat(logs, not(containsString("1")));
+    assertThat(logs, not(containsString("2")));
+    assertThat(logs, containsString("3"));
+    assertThat(logs, containsString("4"));
+  }
+
+  @Test
+  public void testLogsSince() throws Exception {
+    assumeTrue("We need Docker API >= v1.19 to run this test." +
+               "This Docker API is " + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("echo", "This was printed too late")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    // Get logs since the current timestamp. This should return nothing.
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(),
+                                     since((int) (System.currentTimeMillis() / 1000L)))) {
+      logs = stream.readFully();
+    }
+
+    assertThat(logs, not(containsString("This message was printed too late")));
   }
 
   @Test(expected = ContainerNotFoundException.class)
@@ -1491,7 +1760,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testMacAddress() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
-            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
             .image(BUSYBOX_LATEST)
@@ -1580,8 +1850,28 @@ public class DefaultDockerClientTest {
         .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
   }
 
-  private PoolStats getNoTimeoutClientConnectionPoolStats(final DefaultDockerClient client) {
-    return ((PoolingHttpClientConnectionManager) client.getNoTimeoutClient().getConfiguration()
-        .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
+  private String createSleepingContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    final String volumeContainer = randomName();
+    final ContainerConfig volumeConfig = ContainerConfig.builder().image(BUSYBOX_LATEST)
+      .cmd("sh", "-c",
+        "for i in `seq 1 7`; do "
+        + "sleep ${i} ;"
+        + "echo \"Seen output after ${i} seconds.\" ;"
+        + "done;"
+        + "echo Finished ;")
+     .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+    return volumeContainer;
+  }
+
+  private void verifyNoTimeoutContainer(String volumeContainer, StringBuffer result) throws Exception {
+    log.info("Reading has finished, waiting for program to end.");
+    sut.waitContainer(volumeContainer);
+    final ContainerInfo info = sut.inspectContainer(volumeContainer);
+    assertThat(result.toString().contains("Finished"), is(true));
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
   }
 }

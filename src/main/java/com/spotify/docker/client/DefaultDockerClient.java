@@ -19,22 +19,47 @@
 
 package com.spotify.docker.client;
 
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static java.lang.System.getProperty;
-import static java.lang.System.getenv;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import com.google.common.base.Optional;
+import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.AuthRegistryConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
+
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.hk2.api.MultiException;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.internal.util.Base64;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -65,45 +90,22 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.hk2.api.MultiException;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.internal.util.Base64;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.common.io.CharStreams;
-import com.google.common.net.HostAndPort;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.AuthRegistryConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -221,7 +223,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
-    // and use it for waitContainer and stopContainer.
+    // and use it for waitContainer, stopContainer, attachContainer, logs, and build
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
@@ -735,8 +737,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
-    WebTarget resource =
-        resource().path("images").path(imageRef.getImage()).path("push");
+    WebTarget resource = resource().path("images").path(imageRef.getImage()).path("push");
 
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
@@ -820,7 +821,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
-    WebTarget resource = resource().path("build");
+    WebTarget resource = noTimeoutResource().path("build");
 
     for (final BuildParameter param : params) {
       resource = resource.queryParam(param.buildParamName, String.valueOf(param.buildParamValue));
@@ -908,13 +909,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public LogStream logs(final String containerId, final LogsParameter... params)
+  public LogStream logs(final String containerId, final LogsParam... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = resource()
+    WebTarget resource = noTimeoutResource()
         .path("containers").path(containerId).path("logs");
 
-    for (final LogsParameter param : params) {
-      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
+    for (LogsParam param : params) {
+      resource = resource.queryParam(param.name(), param.value());
     }
 
     try {
@@ -934,7 +935,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public LogStream attachContainer(final String containerId,
                                    final AttachParameter... params) throws DockerException,
       InterruptedException {
-    WebTarget resource = resource().path("containers").path(containerId)
+    WebTarget resource = noTimeoutResource().path("containers").path(containerId)
         .path("attach");
 
     for (final AttachParameter param : params) {
@@ -1075,7 +1076,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
-      target.path(apiVersion);
+      return target.path(apiVersion);
     }
     return target;
   }
@@ -1083,7 +1084,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private WebTarget noTimeoutResource() {
     final WebTarget target = noTimeoutClient.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
-      target.path(apiVersion);
+      return target.path(apiVersion);
     }
     return target;
   }
@@ -1226,9 +1227,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
-    final String dockerCertPath = getenv("DOCKER_CERT_PATH");
+    final Path dockerCertPath = Paths.get(fromNullable(getenv("DOCKER_CERT_PATH"))
+            .or(defaultCertPath()));
 
     final Builder builder = new Builder();
+
+    final Optional<DockerCertificates> certs = DockerCertificates.builder()
+            .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
       builder.uri(endpoint);
@@ -1236,7 +1241,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
       final String hostText = hostAndPort.getHostText();
-      final String scheme = isNullOrEmpty(dockerCertPath) ? "http" : "https";
+      final String scheme = certs.isPresent() ? "https" : "http";
 
       final int port = hostAndPort.getPortOrDefault(DEFAULT_PORT);
       final String address = isNullOrEmpty(hostText) ? DEFAULT_HOST : hostText;
@@ -1244,8 +1249,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       builder.uri(scheme + "://" + address + ":" + port);
     }
 
-    if (!isNullOrEmpty(dockerCertPath)) {
-      builder.dockerCertificates(new DockerCertificates(Paths.get(dockerCertPath)));
+    if (certs.isPresent()) {
+      builder.dockerCertificates(certs.get());
     }
 
     return builder;
@@ -1257,6 +1262,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else {
       return DEFAULT_HOST + ":" + DEFAULT_PORT;
     }
+  }
+
+  private static String defaultCertPath() {
+    return Paths.get(getProperty("user.home"), ".docker").toString();
   }
 
   public static class Builder {

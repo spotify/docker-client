@@ -525,8 +525,6 @@ public interface DockerClient extends Closeable {
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
    * @param path        The path inside of the container to put files.
-   *                    
-   * @return Boolean as result
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -542,7 +540,7 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  LogStream logs(String containerId, LogsParameter... params)
+  LogStream logs(String containerId, LogsParam... params)
       throws DockerException, InterruptedException;
 
 
@@ -562,7 +560,7 @@ public interface DockerClient extends Closeable {
   /**
    * Supported parameters for {@link #execCreate}
    */
-  public static enum ExecParameter {
+  enum ExecParameter {
     STDOUT("AttachStdout"),
     STDERR("AttachStderr");
 
@@ -594,7 +592,7 @@ public interface DockerClient extends Closeable {
   /**
    * Supported parameters for {@link #execStart}
    */
-  public static enum ExecStartParameter {
+  enum ExecStartParameter {
     DETACH("Detach");
 
     private final String name;
@@ -635,19 +633,149 @@ public interface DockerClient extends Closeable {
   void close();
 
   /**
-   * Parameters for {@link #logs(String, LogsParameter...)}
+   * Parameters for {@link #logs(String, LogsParam...)}
    */
-  public static enum LogsParameter {
-    FOLLOW,
-    STDOUT,
-    STDERR,
-    TIMESTAMPS,
+  class LogsParam {
+
+    private final String name;
+    private final String value;
+
+    public LogsParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     *
+     * @return name of parameter
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Return stream.
+     *
+     * @return LogsParam
+     */
+    public static LogsParam follow() {
+      return follow(true);
+    }
+
+    /**
+     * Return stream. Default false.
+     *
+     * @param follow Whether to return stream.
+     * @return LogsParam
+     */
+    public static LogsParam follow(final boolean follow) {
+      return create("follow", String.valueOf(follow));
+    }
+
+    /**
+     * Show stdout log.
+     *
+     * @return LogsParam
+     */
+    public static LogsParam stdout() {
+      return stdout(true);
+    }
+
+    /**
+     * Show stdout log. Default false.
+     *
+     * @param stdout Whether to show stdout log.
+     * @return LogsParam
+     */
+    public static LogsParam stdout(final boolean stdout) {
+      return create("stdout", String.valueOf(stdout));
+    }
+
+    /**
+     * Show stderr log.
+     *
+     * @return LogsParam
+     */
+    public static LogsParam stderr() {
+      return stderr(true);
+    }
+
+    /**
+     * Show stderr log. Default false.
+     *
+     * @param stderr Whether to show stderr log.
+     * @return LogsParam
+     */
+    public static LogsParam stderr(final boolean stderr) {
+      return create("stderr", String.valueOf(stderr));
+    }
+
+    /**
+     * Filter logs and only output entries since given Unix timestamp.
+     * Only available in Docker API &gt;= 1.19.
+     *
+     * @param timestamp Only output entries since timestamp.
+     * @return LogsParam
+     */
+    public static LogsParam since(final Integer timestamp) {
+      return create("since", String.valueOf(timestamp));
+    }
+
+    /**
+     * Print timestamp for every log line.
+     *
+     * @return LogsParam
+     */
+    public static LogsParam timestamps() {
+      return timestamps(true);
+    }
+
+    /**
+     * Print timestamp for every log line. Default false.
+     *
+     * @param timestamps Whether to print timestamp for every log line.
+     * @return LogsParam
+     */
+    public static LogsParam timestamps(final boolean timestamps) {
+      return create("timestamps", String.valueOf(timestamps));
+    }
+
+    /**
+     * Output specified number of lines at the end of logs.
+     *
+     * @param lines Number of lines to output at the end of logs.
+     * @return LogsParam
+     */
+    public static LogsParam tail(final Integer lines) {
+      return create("tail", String.valueOf(lines));
+    }
+
+    /**
+     * Create a custom parameter.
+     *
+     * @param name custom name
+     * @param value custom value
+     * @return LogsParam
+     */
+    public static LogsParam create(final String name, final String value) {
+      return new LogsParam(name, value);
+    }
   }
 
   /**
    * Parameters for {@link #attachContainer(String, AttachParameter...)}
    */
-  public static enum AttachParameter {
+  enum AttachParameter {
     LOGS,
     STREAM,
     STDIN,
@@ -676,7 +804,7 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
-  public static class ListContainersParam {
+  class ListContainersParam {
 
     private final String name;
     private final String value;
@@ -787,7 +915,7 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listImages(ListImagesParam...)}
    */
-  public static class ListImagesParam {
+  class ListImagesParam {
 
     private final String name;
     private final String value;
@@ -881,7 +1009,7 @@ public interface DockerClient extends Closeable {
    * Filter parameter for {@link #listImages(ListImagesParam...)}. This should be used by
    * ListImagesParam only.
    */
-  static class ListImagesFilterParam extends ListImagesParam {
+  class ListImagesFilterParam extends ListImagesParam {
     public ListImagesFilterParam(String name, String value) {
       super(name, value);
     }
