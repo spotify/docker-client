@@ -562,10 +562,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                    resource.request(APPLICATION_OCTET_STREAM_TYPE));
   }
 
-  /* (non-Javadoc)
- * @see com.spotify.docker.client.DockerClient#copyContainer(java.lang.String, java.lang.String)
- */
-@Override
+  
+  @Override
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
     final WebTarget resource = resource()
