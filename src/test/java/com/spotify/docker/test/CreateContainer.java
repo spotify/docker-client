@@ -17,18 +17,18 @@
 
 package com.spotify.docker.test;
 
+import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.messages.ContainerCreation;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.messages.ContainerCreation;
-
 /**
  * The {@link CreateContainer} annotation can be used on any test method to provide the values for
- * the {@link ContainerCreation} object that the {@link DockerContainer} will username for the
+ * the {@link ContainerCreation} object that the {@link DockerContainer} will use for the
  * {@link DockerClient}.
  * 
  * @author Jan-Willem Gmelig Meyling
@@ -43,20 +43,39 @@ public @interface CreateContainer {
    * @return String value containing the image name to use for the container
    */
   String image();
+
+  /**
+   * @return String value of the name for the container
+   */
+  String name();
   
   /**
    * @return An array of mountpoint mappings (strings) inside the container
    */
   String[] volumes() default {};
-  
+
+  /**
+   * @return An array of volumes to bind-mount
+   */
+  String[] binds() default {};
+
+  /**
+   * @return An array of environment variables
+   */
+  String[] env() default {};
+
   /**
    * @return Command to run specified as an array of strings.
    */
   String[] command() default {};
-  
+
+  /**
+   * @return An array of {@link PortBinding}
+   */
+  PortBinding[] portBindings() default {};
+
   /**
    * Start the container after creation
    */
   boolean start() default false;
-  
 }
