@@ -17,19 +17,21 @@
 
 package com.spotify.docker.test;
 
+import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.messages.ContainerCreation;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.messages.ContainerCreation;
-
 /**
  * The {@link CreateContainer} annotation can be used on any test method to provide the values for
  * the {@link ContainerCreation} object that the {@link DockerContainer} will username for the
  * {@link DockerClient}.
+ *
+ * See https://github.com/spotify/docker-client/pull/109#issue-52484863 for example usage.
  * 
  * @author Jan-Willem Gmelig Meyling
  *
