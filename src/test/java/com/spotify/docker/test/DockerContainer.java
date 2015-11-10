@@ -17,7 +17,16 @@
 
 package com.spotify.docker.test;
 
-import java.lang.reflect.Method;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+
+import com.spotify.docker.client.ContainerNotFoundException;
+import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerException;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.PortBinding;
 
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -25,12 +34,9 @@ import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.spotify.docker.client.ContainerNotFoundException;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.DockerException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The {@link DockerContainer} is a JUnit {@link MethodRule} which automatically creates, starts,
@@ -92,10 +98,9 @@ public class DockerContainer implements MethodRule {
   @Override
   public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
     final Method javaMethod = method.getMethod();
-    final CreateContainer createContainerAnnotation =
-        javaMethod.getAnnotation(CreateContainer.class);
+    final CreateContainer createContainer = javaMethod.getAnnotation(CreateContainer.class);
 
-    if (createContainerAnnotation == null) {
+    if (createContainer == null) {
       return base;
     }
 
@@ -104,10 +109,10 @@ public class DockerContainer implements MethodRule {
       @Override
       public void evaluate() throws Throwable {
         try {
-          ContainerCreation containerCreation = createContainer(createContainerAnnotation);
+          ContainerCreation containerCreation = createContainer(createContainer);
           containerId = containerCreation.id();
-          if(createContainerAnnotation.start()) {
-            startContainer(createContainerAnnotation);
+          if (createContainer.start()) {
+            startContainer(createContainer);
           }
           base.evaluate();
         } finally {
@@ -119,23 +124,40 @@ public class DockerContainer implements MethodRule {
   
   /**
    * Create a new Docker container based on the {@link CreateContainer} annotation
-   * @param createContainerAnnotation
+   * @param createContainer CreateContainer annotation
    * @return {@link ContainerCreation} response
    * @throws DockerException
    * @throws InterruptedException
    */
-  protected ContainerCreation createContainer(CreateContainer createContainerAnnotation)
+  protected ContainerCreation createContainer(final CreateContainer createContainer)
       throws DockerException, InterruptedException {
-    Preconditions.checkNotNull(createContainerAnnotation);
-    
-    ContainerConfig.Builder configBuilder = ContainerConfig.builder()
-        .image(createContainerAnnotation.image())
-        .volumes(createContainerAnnotation.volumes())
-        .cmd(createContainerAnnotation.command());
-    ContainerConfig createContainerConfig = configBuilder.build();
+    Preconditions.checkNotNull(createContainer);
+
+    final com.spotify.docker.test.PortBinding[] portBindings =
+        createContainer.portBindings();
+
+    final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
+    final ImmutableMap.Builder<String, List<PortBinding>> ports = ImmutableMap.builder();
+    for (com.spotify.docker.test.PortBinding portBinding : portBindings) {
+      ports.put(String.valueOf(portBinding.containerPort()) + "/" + portBinding.protocol(),
+                Collections.singletonList(PortBinding.of(null, portBinding.hostPort())));
+    }
+    final HostConfig hostConfig = hostConfigBuilder
+        .portBindings(ports.build())
+        .binds(createContainer.binds())
+        .build();
+
+    final ContainerConfig.Builder configBuilder = ContainerConfig.builder()
+        .image(createContainer.image())
+        .env(createContainer.env())
+        .volumes(createContainer.volumes())
+        .hostConfig(hostConfig)
+        .cmd(createContainer.command());
+    final ContainerConfig createContainerConfig = configBuilder.build();
 
     log.debug("Creating Docker container using config {}", createContainerConfig);
-    ContainerCreation creation = dockerClient.createContainer(createContainerConfig);
+    final ContainerCreation creation = dockerClient.createContainer(
+        createContainerConfig, createContainer.name());
     containerId = creation.id();
     log.debug("Created Docker container {}", containerId);
     return creation;
@@ -143,13 +165,13 @@ public class DockerContainer implements MethodRule {
 
   /**
    * Start a created container
-   * @param startContainerAnnotation
+   * @param createContainer CreateContainer annotation
    * @throws DockerException
    * @throws InterruptedException
    */
-  protected void startContainer(CreateContainer createContainerAnnotation)
+  protected void startContainer(CreateContainer createContainer)
       throws DockerException, InterruptedException {
-    Preconditions.checkNotNull(createContainerAnnotation);
+    Preconditions.checkNotNull(createContainer);
     Preconditions.checkNotNull(containerId);
     
     log.debug("Starting Docker container {}", containerId);
@@ -163,7 +185,7 @@ public class DockerContainer implements MethodRule {
    * @throws DockerException
    */
   protected void cleanup() throws InterruptedException, DockerException {
-    if(containerId == null) {
+    if (containerId == null) {
       // The container was never created
       return;
     }
@@ -201,13 +223,14 @@ public class DockerContainer implements MethodRule {
     }
     
     // Fail the test if clean up failed
-    if(interuptedException != null) {
+    if (interuptedException != null) {
       throw interuptedException;
-    } else if(dockerException != null) {
+    } else if (dockerException != null) {
       throw dockerException;
     }
   }
   
+  @SuppressWarnings("unused")
   public DockerClient getDockerClient() {
     return dockerClient;
   }

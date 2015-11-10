@@ -501,8 +501,7 @@ public class DefaultDockerClientTest {
   public void testPushPublicImageWithAuth() throws Exception {
     // Push an image to a public repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-        .uri(dockerEndpoint)
+    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
         .authConfig(authConfig)
         .build();
 
@@ -514,8 +513,7 @@ public class DefaultDockerClientTest {
   public void testPushPrivateImageWithAuth() throws Exception {
     // Push an image to a private repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-        .uri(dockerEndpoint)
+    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
         .authConfig(authConfig)
         .build();
 
