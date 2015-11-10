@@ -29,6 +29,8 @@ case "$1" in
 
     docker pull registry
 
+    pip install --user codecov
+
     ;;
 
   test)
@@ -74,6 +76,8 @@ case "$1" in
     docker logs registry &> $CIRCLE_ARTIFACTS/registry.log
 
     cp target/surefire-reports/*.xml $CI_REPORTS
+
+    codecov
 
     ;;
 
