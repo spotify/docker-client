@@ -520,7 +520,7 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
   
   /**
-   * Copies some files from host to container.
+   * Copies some files from host to container. (API version 1.20+)
    * 
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
