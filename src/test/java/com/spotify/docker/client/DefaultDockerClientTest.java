@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
-
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.messages.AuthConfig;
@@ -58,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -727,7 +727,30 @@ public class DefaultDockerClientTest {
     // Check that some common files exist
     assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
   }
+  
+  @Test
+  public void testCopyToContainer() throws Exception {
+	  assumeTrue("We need Docker API >= v1.20 to run this test." +
+              "This Docker API is " + sut.version().apiVersion(),
+              versionCompare(sut.version().apiVersion(), "1.20") >= 0);
+	  
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
 
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder().image(BUSYBOX_LATEST).build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String containerId = creation.id();
+
+    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    try {
+    	sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/tmp");	
+	} catch (Exception e) {
+		fail("error to copy files to container");
+	}
+  }
+  
   @Test
   public void testCommitContainer() throws Exception {
     // Pull image
@@ -850,7 +873,39 @@ public class DefaultDockerClientTest {
 
     // Start container
     sut.startContainer(id);
-
+    
+    
+    // Copy files to container
+    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    try {
+    	sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
+	} catch (Exception e) {
+		fail("error to copy files to container");
+	}
+    
+    // Copy files from container    
+    ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
+    try (TarArchiveInputStream tarStream =
+             new TarArchiveInputStream(sut.copyContainer(id, "/tmp"))) {
+      TarArchiveEntry entry;
+      while ((entry = tarStream.getNextTarEntry()) != null) {
+    	  filesDownloaded.add(entry.getName());
+      }
+    }
+    
+    File folder = new File(dockerDirectory);
+    for (File file : folder.listFiles()) {
+        if (!file.isDirectory()) {
+        	Boolean found = false;
+            for (String fileDownloaded : filesDownloaded.build()) {
+				if (fileDownloaded.contains(file.getName())) {
+					found = true;
+				}
+			}   	
+        	assertTrue(found);
+        }
+    }
+    
     // Kill container
     sut.killContainer(id);
 

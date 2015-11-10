@@ -103,6 +103,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
@@ -561,6 +562,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                    resource.request(APPLICATION_OCTET_STREAM_TYPE));
   }
 
+  
   @Override
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
@@ -575,6 +577,28 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                    resource.request(APPLICATION_OCTET_STREAM_TYPE),
                    Entity.json(params));
   }
+
+  @Override
+  public void copyToContainer(final Path directory, String containerId, String path)
+      throws DockerException, InterruptedException, IOException {  
+      final WebTarget resource = resource() 
+                       .path("containers")
+                       .path(containerId)
+                       .path("archive")
+                       .queryParam("noOverwriteDirNonDir", true)
+                       .queryParam("path", path);
+
+    
+      CompressedDirectory compressedDirectory 
+          = CompressedDirectory.create(directory);
+
+      final InputStream fileStream = 
+          Files.newInputStream(compressedDirectory.file());
+          
+      request(PUT, String.class, resource,
+              resource.request(APPLICATION_OCTET_STREAM_TYPE),
+              Entity.entity(fileStream, "application/tar"));
+  }  
 
   @Override
   public ContainerInfo inspectContainer(final String containerId)
@@ -1370,4 +1394,5 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
   }
+
 }
