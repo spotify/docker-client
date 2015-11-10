@@ -382,4 +382,15 @@
       </plugin>
     </plugins>
   </reporting>
+
+  <profiles>
+    <profile>
+      <id>test-pushes</id>
+      <activation>
+        <property>
+          <name>env.TEST_PUSHES</name>
+        </property>
+      </activation>
+    </profile>
+  </profiles>
 </project>

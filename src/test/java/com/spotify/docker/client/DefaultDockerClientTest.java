@@ -150,6 +150,7 @@ public class DefaultDockerClientTest {
       "dxia4/docker-client-test-push-private-image-with-auth";
 
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
+  private static final boolean TEST_PUSHES = !isNullOrEmpty(getenv("TEST_PUSHES"));
 
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
@@ -499,6 +500,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPushPublicImageWithAuth() throws Exception {
+    // Docker Hub rate limits pushes. So we only test if the maven profile "test-pushes" is
+    // explicitly enabled.
+    assumeTrue(TEST_PUSHES);
+
     // Push an image to a public repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final DefaultDockerClient sut2 = DefaultDockerClient.builder()
@@ -512,6 +517,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPushPrivateImageWithAuth() throws Exception {
+    // Docker Hub rate limits pushes. So we only test if the maven profile "test-pushes" is
+    // explicitly enabled.
+    assumeTrue(TEST_PUSHES);
+
     // Push an image to a private repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final DefaultDockerClient sut2 = DefaultDockerClient.builder()
