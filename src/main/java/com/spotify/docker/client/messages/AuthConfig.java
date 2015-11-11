@@ -138,7 +138,7 @@ public class AuthConfig {
    * credential in the config file. These files are created from running `docker login`.
    *
    * @return a {@link Builder}
-   * @throws IOException
+   * @throws IOException when we can't parse the docker config file
    */
   @SuppressWarnings("unused")
   public static Builder fromDockerConfig() throws IOException {
@@ -152,7 +152,7 @@ public class AuthConfig {
    *
    * @param serverAddress A string representing the server address
    * @return a {@link Builder}
-   * @throws IOException
+   * @throws IOException when we can't parse the docker config file
    */
   @SuppressWarnings("unused")
   public static Builder fromDockerConfig(final String serverAddress) throws IOException {
@@ -162,8 +162,9 @@ public class AuthConfig {
   /**
    * Returns the first credential from the specified path to the docker file.
    * This method is package-local so we can test it.
+   * @param configPath The path to the config file
    * @return a {@link Builder}
-   * @throws IOException
+   * @throws IOException when we can't parse the docker config file
    */
   @VisibleForTesting
   static Builder fromDockerConfig(final Path configPath) throws IOException {
@@ -173,6 +174,8 @@ public class AuthConfig {
   /**
    * Returns the specified credential from the specified path to the docker file.
    * This method is package-local so we can test it.
+   * @param configPath The path to the config file
+   * @param serverAddress A string representing the server address
    * @return a {@link Builder}
    * @throws IOException
    */

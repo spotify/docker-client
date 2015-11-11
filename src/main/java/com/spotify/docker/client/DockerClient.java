@@ -17,6 +17,8 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Throwables;
+
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -856,8 +858,13 @@ public interface DockerClient extends Closeable {
      *
      * @return ListContainersParam
      */
-    public static ListContainersParam exitedContainers() throws UnsupportedEncodingException {
-      return create("filters", URLEncoder.encode("{\"status\":[\"exited\"]}", "UTF-8"));
+    public static ListContainersParam exitedContainers() {
+      try {
+        return create("filters", URLEncoder.encode("{\"status\":[\"exited\"]}", "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        // Should never happen
+        throw Throwables.propagate(e);
+      }
     }
 
     /**
