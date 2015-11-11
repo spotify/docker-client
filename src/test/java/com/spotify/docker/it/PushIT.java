@@ -47,6 +47,11 @@ import java.util.concurrent.Callable;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * These integration tests check we can push images to and from a private registry running as a
+ * local container. Some tests in this class also check we can push to Docker Hub. N.B. Docker Hub
+ * rate limits pushes, so they might fail if you run them too often :)
+ */
 public class PushIT {
 
   private static final int LONG_WAIT_SECONDS = 400;
@@ -55,10 +60,20 @@ public class PushIT {
   private static final String REGISTRY_IMAGE = "registry:2";
   private static final String REGISTRY_NAME = "registry";
 
-  private static final String AUTH_EMAIL = "test@example.com";
-  private static final String AUTH_USERNAME = "testuser";
-  private static final String AUTH_PASSWORD = "testpassword";
-  private static final String IMAGE = "localhost:5000/testuser/test-image";
+  private static final String LOCAL_AUTH_EMAIL = "test@example.com";
+  private static final String LOCAL_AUTH_USERNAME = "testuser";
+  private static final String LOCAL_AUTH_PASSWORD = "testpassword";
+  private static final String LOCAL_IMAGE = "localhost:5000/testuser/test-image";
+
+  // Using a dummy individual's test account because organizations
+  // cannot have private repos on Docker Hub.
+  private static final String HUB_AUTH_EMAIL = "dxia+4@spotify.com";
+  private static final String HUB_AUTH_USERNAME = "dxia4";
+  private static final String HUB_AUTH_PASSWORD = "03yDT6Yee4iFaggi";
+  private static final String HUB_PUBLIC_IMAGE =
+      "dxia4/docker-client-test-push-public-image-with-auth";
+  private static final String HUB_PRIVATE_IMAGE =
+      "dxia4/docker-client-test-push-private-image-with-auth";
 
   private DockerClient client;
 
@@ -74,9 +89,9 @@ public class PushIT {
   @Before
   public void setup() throws Exception {
     final AuthConfig authConfig = AuthConfig.builder()
-        .email(AUTH_EMAIL)
-        .username(AUTH_USERNAME)
-        .password(AUTH_PASSWORD)
+        .email(LOCAL_AUTH_EMAIL)
+        .username(LOCAL_AUTH_USERNAME)
+        .password(LOCAL_AUTH_PASSWORD)
         .build();
     client = DefaultDockerClient
         .fromEnv()
@@ -95,14 +110,14 @@ public class PushIT {
 
     // Push an image to the private registry and check it fails
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    client.build(Paths.get(dockerDirectory), IMAGE);
+    client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
 
     // A bit ugly, but we can't use an @Rule Exception here because we
     // want to do customized cleanup after the exception is thrown.
     // We can't just do @Test(expected = ...) because we want to check the exception message.
     boolean correctExceptionThrown = false;
     try {
-      client.push(IMAGE);
+      client.push(LOCAL_IMAGE);
     } catch (ImagePushFailedException e) {
       if (e.getMessage().contains("no basic auth credentials")) {
         correctExceptionThrown = true;
@@ -119,10 +134,10 @@ public class PushIT {
 
     // Push an image to the private registry and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    client.build(Paths.get(dockerDirectory), IMAGE);
-    client.push(IMAGE);
+    client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
+    client.push(LOCAL_IMAGE);
     // We should be able to pull it again
-    client.pull(IMAGE);
+    client.pull(LOCAL_IMAGE);
 
     stopAndRemoveContainer(client, containerId);
   }
@@ -136,10 +151,10 @@ public class PushIT {
 
     // Push an image to the private registry and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    client.build(Paths.get(dockerDirectory), IMAGE);
-    client.push(IMAGE);
+    client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
+    client.push(LOCAL_IMAGE);
     // We should be able to pull it again
-    client.pull(IMAGE);
+    client.pull(LOCAL_IMAGE);
 
     stopAndRemoveContainer(client, containerId);
   }
@@ -150,10 +165,10 @@ public class PushIT {
 
     // Push an image to the private registry and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    client.build(Paths.get(dockerDirectory), IMAGE);
-    client.push(IMAGE);
+    client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
+    client.push(LOCAL_IMAGE);
     // We should be able to pull it again
-    client.pull(IMAGE);
+    client.pull(LOCAL_IMAGE);
 
     stopAndRemoveContainer(client, containerId);
   }
@@ -170,6 +185,40 @@ public class PushIT {
         .build();
 
     return startAndAwaitContainer(client, containerConfig, REGISTRY_NAME);
+  }
+
+  @Test
+  public void testPushHubPublicImageWithAuth() throws Exception {
+    // Push an image to a public repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DockerClient client = DefaultDockerClient
+        .fromEnv()
+        .authConfig(AuthConfig.builder()
+                        .email(HUB_AUTH_EMAIL)
+                        .username(HUB_AUTH_USERNAME)
+                        .password(HUB_AUTH_PASSWORD)
+                        .build())
+        .build();
+
+    client.build(Paths.get(dockerDirectory), HUB_PUBLIC_IMAGE);
+    client.push(HUB_PUBLIC_IMAGE);
+  }
+
+  @Test
+  public void testPushHubPrivateImageWithAuth() throws Exception {
+    // Push an image to a private repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DockerClient client = DefaultDockerClient
+        .fromEnv()
+        .authConfig(AuthConfig.builder()
+                        .email(HUB_AUTH_EMAIL)
+                        .username(HUB_AUTH_USERNAME)
+                        .password(HUB_AUTH_PASSWORD)
+                        .build())
+        .build();
+
+    client.build(Paths.get(dockerDirectory), HUB_PRIVATE_IMAGE);
+    client.push(HUB_PRIVATE_IMAGE);
   }
 
   private static String startAuthedRegistry(final DockerClient client) throws Exception {
