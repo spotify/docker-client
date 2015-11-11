@@ -32,10 +32,12 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 
 import java.nio.file.Paths;
@@ -44,8 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.Assert.assertTrue;
 
 /**
  * These integration tests check we can push images to and from a private registry running as a
@@ -76,9 +78,13 @@ public class PushIT {
       "dxia4/docker-client-test-push-private-image-with-auth";
 
   private DockerClient client;
+  private String registryContainerId;
 
   @Rule
   public final TestName testName = new TestName();
+
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
   @BeforeClass
   public static void before() throws Exception {
@@ -101,9 +107,18 @@ public class PushIT {
     System.out.printf("- %s\n", testName.getMethodName());
   }
 
+  @After
+  public void tearDown() throws Exception {
+    if (!isNullOrEmpty(registryContainerId)) {
+      client.stopContainer(registryContainerId, SECONDS_TO_WAIT_BEFORE_KILL);
+      client.removeContainer(registryContainerId, true);
+      awaitStopped(client, registryContainerId);
+    }
+  }
+
   @Test
   public void testPushImageToPrivateAuthedRegistryWithoutAuth() throws Exception {
-    final String containerId = startAuthedRegistry(client);
+    registryContainerId = startAuthedRegistry(client);
 
     // Make a DockerClient without AuthConfig
     final DefaultDockerClient client = DefaultDockerClient.fromEnv().build();
@@ -112,25 +127,14 @@ public class PushIT {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
 
-    // A bit ugly, but we can't use an @Rule Exception here because we
-    // want to do customized cleanup after the exception is thrown.
-    // We can't just do @Test(expected = ...) because we want to check the exception message.
-    boolean correctExceptionThrown = false;
-    try {
-      client.push(LOCAL_IMAGE);
-    } catch (ImagePushFailedException e) {
-      if (e.getMessage().contains("no basic auth credentials")) {
-        correctExceptionThrown = true;
-      }
-    }
-    assertTrue(correctExceptionThrown);
-
-    stopAndRemoveContainer(client, containerId);
+    exception.expect(ImagePushFailedException.class);
+    exception.expectMessage("no basic auth credentials");
+    client.push(LOCAL_IMAGE);
   }
 
   @Test
   public void testPushImageToPrivateAuthedRegistryWithAuth() throws Exception {
-    final String containerId = startAuthedRegistry(client);
+    registryContainerId = startAuthedRegistry(client);
 
     // Push an image to the private registry and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
@@ -138,13 +142,11 @@ public class PushIT {
     client.push(LOCAL_IMAGE);
     // We should be able to pull it again
     client.pull(LOCAL_IMAGE);
-
-    stopAndRemoveContainer(client, containerId);
   }
 
   @Test
   public void testPushImageToPrivateUnauthedRegistryWithoutAuth() throws Exception {
-    final String containerId = startUnauthedRegistry(client);
+    registryContainerId = startUnauthedRegistry(client);
 
     // Make a DockerClient without AuthConfig
     final DefaultDockerClient client = DefaultDockerClient.fromEnv().build();
@@ -155,13 +157,11 @@ public class PushIT {
     client.push(LOCAL_IMAGE);
     // We should be able to pull it again
     client.pull(LOCAL_IMAGE);
-
-    stopAndRemoveContainer(client, containerId);
   }
 
   @Test
   public void testPushImageToPrivateUnauthedRegistryWithAuth() throws Exception {
-    final String containerId = startUnauthedRegistry(client);
+    registryContainerId = startUnauthedRegistry(client);
 
     // Push an image to the private registry and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
@@ -169,8 +169,6 @@ public class PushIT {
     client.push(LOCAL_IMAGE);
     // We should be able to pull it again
     client.pull(LOCAL_IMAGE);
-
-    stopAndRemoveContainer(client, containerId);
   }
 
   private static String startUnauthedRegistry(final DockerClient client) throws Exception {
@@ -266,14 +264,6 @@ public class PushIT {
         return containerInfo.state().running() ? true : null;
       }
     });
-  }
-
-  private static void stopAndRemoveContainer(final DockerClient client,
-                                             final String containerId)
-      throws Exception {
-    client.stopContainer(containerId, SECONDS_TO_WAIT_BEFORE_KILL);
-    client.removeContainer(containerId, true);
-    awaitStopped(client, containerId);
   }
 
   private static void awaitStopped(final DockerClient client,
