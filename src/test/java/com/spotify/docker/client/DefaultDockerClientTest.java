@@ -144,23 +144,12 @@ public class DefaultDockerClientTest {
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
   private static final String CIRROS_PRIVATE = "dxia/cirros-private";
   private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
-  private static final String PUSH_PUBLIC_IMAGE =
-      "dxia4/docker-client-test-push-public-image-with-auth";
-  private static final String PUSH_PRIVATE_IMAGE =
-      "dxia4/docker-client-test-push-private-image-with-auth";
 
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
 
-  // Using a dummy individual's test account because organizations
-  // cannot have private repos on Docker Hub.
-  private static final String AUTH_EMAIL = "dxia+4@spotify.com";
-  private static final String AUTH_USERNAME = "dxia4";
-  private static final String AUTH_PASSWORD = "03yDT6Yee4iFaggi";
-  // Using yet another dummy individual's test account because CircleCI throws a weird error
-  // when trying to pull the same private repo a second time. ¯\_(ツ)_/
-  private static final String AUTH_EMAIL2 = "dxia+2@spotify.com";
-  private static final String AUTH_USERNAME2 = "dxia2";
-  private static final String AUTH_PASSWORD2 = "Tv38KLPd]M";
+  private static final String AUTH_EMAIL = "dxia+2@spotify.com";
+  private static final String AUTH_USERNAME = "dxia2";
+  private static final String AUTH_PASSWORD = "Tv38KLPd]M";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClientTest.class);
 
@@ -244,15 +233,21 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPullPrivateRepoWithAuth() throws Exception {
-    AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL2).username(AUTH_USERNAME2)
-        .password(AUTH_PASSWORD2).build();
+    final AuthConfig authConfig = AuthConfig.builder()
+        .email(AUTH_EMAIL)
+        .username(AUTH_USERNAME)
+        .password(AUTH_PASSWORD)
+        .build();
     sut.pull("dxia2/scratch-private:latest", authConfig);
   }
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithBadAuth() throws Exception {
-    AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-        .password("foobar").build();
+    final AuthConfig badAuthConfig = AuthConfig.builder()
+        .email(AUTH_EMAIL)
+        .username(AUTH_USERNAME)
+        .password("foobar")
+        .build();
     sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
 
@@ -497,31 +492,6 @@ public class DefaultDockerClientTest {
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
   }
 
-  @Test
-  public void testPushPublicImageWithAuth() throws Exception {
-    // Push an image to a public repo on Docker Hub and check it succeeds
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-        .uri(dockerEndpoint)
-        .authConfig(authConfig)
-        .build();
-
-    sut2.build(Paths.get(dockerDirectory), PUSH_PUBLIC_IMAGE);
-    sut2.push(PUSH_PUBLIC_IMAGE);
-  }
-
-  @Test
-  public void testPushPrivateImageWithAuth() throws Exception {
-    // Push an image to a private repo on Docker Hub and check it succeeds
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-        .uri(dockerEndpoint)
-        .authConfig(authConfig)
-        .build();
-
-    sut2.build(Paths.get(dockerDirectory), PUSH_PRIVATE_IMAGE);
-    sut2.push(PUSH_PRIVATE_IMAGE);
-  }
 
   @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
