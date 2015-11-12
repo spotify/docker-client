@@ -71,7 +71,7 @@ public class CompressedDirectoryTest {
         final String name = entry.getName();
         names.add(name);
       }
-      assertThat(names,containsInAnyOrder("Dockerfile", "bin/date.sh", "subdir2/keep-me",
+      assertThat(names, containsInAnyOrder("Dockerfile", "bin/date.sh", "subdir2/keep-me",
                                            ".dockerignore"));
     }
   }
