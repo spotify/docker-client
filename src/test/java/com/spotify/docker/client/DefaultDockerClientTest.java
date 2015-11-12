@@ -845,35 +845,43 @@ public class DefaultDockerClientTest {
     // Start container
     sut.startContainer(id);
 
+    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
 
     // Copy files to container
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
-    try {
-      sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
-    } catch (Exception e) {
-      fail("error to copy files to container");
-    }
-
-    // Copy files from container    
-    ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
-    try (TarArchiveInputStream tarStream =
-             new TarArchiveInputStream(sut.copyContainer(id, "/tmp"))) {
-      TarArchiveEntry entry;
-      while ((entry = tarStream.getNextTarEntry()) != null) {
-        filesDownloaded.add(entry.getName());
+    // Docker API should be at least v1.20 to support extracting an archive of files or folders
+    // to a directory in a container
+    if (versionCompare(sut.version().apiVersion(), "1.20") >= 0) {
+      try {
+        sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
+      } catch (Exception e) {
+        fail("error copying files to container");
       }
-    }
 
-    File folder = new File(dockerDirectory);
-    for (File file : folder.listFiles()) {
-      if (!file.isDirectory()) {
-        Boolean found = false;
-        for (String fileDownloaded : filesDownloaded.build()) {
-          if (fileDownloaded.contains(file.getName())) {
-            found = true;
+      // Copy the same files from container
+      final ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
+      try (TarArchiveInputStream tarStream =
+               new TarArchiveInputStream(sut.copyContainer(id, "/tmp"))) {
+        TarArchiveEntry entry;
+        while ((entry = tarStream.getNextTarEntry()) != null) {
+          filesDownloaded.add(entry.getName());
+        }
+      }
+
+      // Check that we got back what we put in
+      final File folder = new File(dockerDirectory);
+      final File[] files = folder.listFiles();
+      if (files != null) {
+        for (File file : files) {
+          if (!file.isDirectory()) {
+            Boolean found = false;
+            for (String fileDownloaded : filesDownloaded.build()) {
+              if (fileDownloaded.contains(file.getName())) {
+                found = true;
+              }
+            }
+            assertTrue(found);
           }
         }
-        assertTrue(found);
       }
     }
 
