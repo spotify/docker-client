@@ -25,6 +25,7 @@ import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.DockerClient.ExecParam;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -1630,8 +1631,8 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerId);
 
     String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-            DockerClient.ExecParameter.STDOUT,
-            DockerClient.ExecParameter.STDERR);
+            ExecParam.attachStdout(),
+            ExecParam.attachStderr());
 
     log.info("execId = {}", execId);
 
@@ -1662,8 +1663,10 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerId);
 
     String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
-                                   DockerClient.ExecParameter.STDOUT,
-                                   DockerClient.ExecParameter.STDERR);
+                                   ExecParam.attachStdout(),
+                                   ExecParam.attachStderr(),
+                                   ExecParam.tty(),
+                                   ExecParam.user("1000"));
 
     log.info("execId = {}", execId);
     try (LogStream stream = sut.execStart(execId)) {
