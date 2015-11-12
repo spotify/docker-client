@@ -611,13 +611,14 @@ public class DefaultDockerClientTest {
     // The Dockerfile specifies a sleep of 10s during the build
     // Returned image id is last piece of output, so this confirms stream did not timeout
     final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
-    final String returnedImageId = sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
-      @Override
-      public void progress(ProgressMessage message) throws DockerException {
-        log.info(message.stream());
-      }
-    }, NO_CACHE);
-    assert(returnedImageId != null);
+    final String returnedImageId = sut.build(
+        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+          @Override
+          public void progress(ProgressMessage message) throws DockerException {
+            log.info(message.stream());
+          }
+        }, NO_CACHE);
+    assertTrue(returnedImageId != null);
   }
 
   @Test
@@ -643,8 +644,8 @@ public class DefaultDockerClientTest {
     // contains some expected phrases.
     final String pullingStr = versionCompare(sut.version().apiVersion(), "1.20") >= 0 ?
                               "Pulling from library/busybox" : "Pulling from busybox";
-    assertThat(out.toString(),allOf(containsString(pullingStr),
-                                    containsString("Image is up to date")));
+    assertThat(out.toString(), allOf(containsString(pullingStr),
+                                     containsString("Image is up to date")));
   }
 
   @Test
@@ -1612,7 +1613,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testExec() throws DockerException, InterruptedException, IOException {
     assumeTrue("Docker API should be at least v1.15 to support Exec, got "
-               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.15") >= 0);
+               + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.15") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -1645,7 +1647,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testExecInspect() throws DockerException, InterruptedException, IOException {
     assumeTrue("Docker API should be at least v1.16 to support Exec Inspect, got "
-               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.16") >= 0);
+               + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.16") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -1702,7 +1705,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testLabels() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.18 to support Labels, got "
-               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(BUSYBOX_LATEST);
 
     Map<String, String> labels = new HashMap<>();
@@ -1748,7 +1752,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testStats() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.19 to support stats without streaming, got "
-               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+               + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
 
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -1792,10 +1797,9 @@ public class DefaultDockerClientTest {
     if (i < vals1.length && i < vals2.length) {
       int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
       return Integer.signum(diff);
-    }
-    // the strings are equal or one string is a substring of the other
-    // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
-    else {
+    } else {
+      // the strings are equal or one string is a substring of the other
+      // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
       return Integer.signum(vals1.length - vals2.length);
     }
   }
@@ -1836,7 +1840,8 @@ public class DefaultDockerClientTest {
     return volumeContainer;
   }
 
-  private void verifyNoTimeoutContainer(String volumeContainer, StringBuffer result) throws Exception {
+  private void verifyNoTimeoutContainer(final String volumeContainer, final StringBuffer result)
+      throws Exception {
     log.info("Reading has finished, waiting for program to end.");
     sut.waitContainer(volumeContainer);
     final ContainerInfo info = sut.inspectContainer(volumeContainer);
