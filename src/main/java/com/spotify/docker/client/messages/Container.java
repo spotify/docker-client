@@ -19,11 +19,12 @@ package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-
+import com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -38,6 +39,7 @@ public class Container {
   @JsonProperty("Created") private Long created;
   @JsonProperty("Status") private String status;
   @JsonProperty("Ports") private ImmutableList<PortMapping> ports;
+  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
   @JsonProperty("SizeRw") private Long sizeRw;
   @JsonProperty("SizeRootFs") private Long sizeRootFs;
 
@@ -102,6 +104,10 @@ public class Container {
   public List<PortMapping> ports() {
     return ports;
   }
+  
+  public Map<String, String> labels() {
+    return labels;
+  }
 
   public Long sizeRw() {
     return sizeRw;
@@ -140,6 +146,9 @@ public class Container {
     if (ports != null ? !ports.equals(container.ports) : container.ports != null) {
       return false;
     }
+    if (labels != null ? !labels.equals(container.labels) : container.labels != null) {
+      return false;
+    }
     if (sizeRootFs != null ? !sizeRootFs.equals(container.sizeRootFs)
                            : container.sizeRootFs != null) {
       return false;
@@ -163,6 +172,7 @@ public class Container {
     result = 31 * result + (created != null ? created.hashCode() : 0);
     result = 31 * result + (status != null ? status.hashCode() : 0);
     result = 31 * result + (ports != null ? ports.hashCode() : 0);
+    result = 31 * result + (labels != null ? labels.hashCode() : 0);
     result = 31 * result + (sizeRw != null ? sizeRw.hashCode() : 0);
     result = 31 * result + (sizeRootFs != null ? sizeRootFs.hashCode() : 0);
     return result;
@@ -177,6 +187,7 @@ public class Container {
         .add("created", created)
         .add("status", status)
         .add("ports", ports)
+        .add("labels", labels)
         .add("sizeRw", sizeRw)
         .add("sizeRootFs", sizeRootFs)
         .toString();

@@ -906,6 +906,35 @@ public interface DockerClient extends Closeable {
     public static ListContainersParam withContainerSizes(final Boolean size) {
       return create("size", String.valueOf(size));
     }
+    
+    /**
+     * Show containers with a label value
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withLabel(String key, String value) {
+      try {
+        return create("filters", 
+          URLEncoder.encode("{\"label\":[\"" + key + '=' + value + "\"]}", "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        // Should never happen
+        throw Throwables.propagate(e);
+      }
+    }
+    
+    /**
+     * Show containers with a label
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withLabel(String key) {
+      try {
+        return create("filters", URLEncoder.encode("{\"label\":[\"" + key + "\"]}", "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        // Should never happen
+        throw Throwables.propagate(e);
+      }
+    }
 
     /**
      * Create a custom parameter.
