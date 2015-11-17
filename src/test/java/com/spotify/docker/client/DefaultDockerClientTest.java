@@ -1134,6 +1134,7 @@ public class DefaultDockerClientTest {
         .publishAllPorts(publishAllPorts)
         .dns(dns)
         .cpuShares((long) 4096)
+        .cpuQuota((long) 50000)
         .build();
 
 
