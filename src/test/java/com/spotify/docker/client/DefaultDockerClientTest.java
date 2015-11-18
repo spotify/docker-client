@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
+
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.messages.AuthConfig;
@@ -1379,7 +1380,9 @@ public class DefaultDockerClientTest {
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .volumes("/foo")
-        .cmd("ls", "-la")
+        // TODO (mbrown): remove sleep - added to make sure container is still alive when attaching
+        //.cmd("ls", "-la")
+        .cmd("sh", "-c", "ls -la; sleep 3")
         .build();
     sut.createContainer(volumeConfig, volumeContainer);
     sut.startContainer(volumeContainer);
