@@ -1153,6 +1153,8 @@ public class DefaultDockerClientTest {
     assertThat(actual.privileged(), equalTo(expected.privileged()));
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
+    assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+    assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
   }
 
   @Test
