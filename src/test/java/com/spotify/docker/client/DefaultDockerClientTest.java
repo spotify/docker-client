@@ -1134,7 +1134,6 @@ public class DefaultDockerClientTest {
         .publishAllPorts(publishAllPorts)
         .dns(dns)
         .cpuShares((long) 4096)
-        .cpuQuota((long) 50000)
         .build();
 
 
@@ -1154,6 +1153,43 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+  }
+
+  @Test
+  public void testContainerWithCpuQuota() throws Exception {
+    assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
+               "HostConfig, got " + sut.version().apiVersion(),
+               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+    assumeFalse(CIRCLECI);
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final boolean privileged = true;
+    final boolean publishAllPorts = true;
+    final String dns = "1.2.3.4";
+    final HostConfig expected = HostConfig.builder()
+        .privileged( privileged )
+        .publishAllPorts( publishAllPorts )
+        .dns( dns )
+        .cpuQuota((long) 50000)
+        .build();
+
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.privileged(), equalTo(expected.privileged()));
+    assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
+    assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
   }
 
