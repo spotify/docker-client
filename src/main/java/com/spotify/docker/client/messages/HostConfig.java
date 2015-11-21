@@ -43,6 +43,7 @@ public class HostConfig {
   @JsonProperty("PublishAllPorts") private Boolean publishAllPorts;
   @JsonProperty("Dns") private ImmutableList<String> dns;
   @JsonProperty("DnsSearch") private ImmutableList<String> dnsSearch;
+  @JsonProperty("ExtraHosts") private ImmutableList<String> extraHosts;
   @JsonProperty("VolumesFrom") private ImmutableList<String> volumesFrom;
   @JsonProperty("NetworkMode") private String networkMode;
   @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
@@ -65,6 +66,7 @@ public class HostConfig {
     this.publishAllPorts = builder.publishAllPorts;
     this.dns = builder.dns;
     this.dnsSearch = builder.dnsSearch;
+    this.extraHosts = builder.extraHosts;
     this.volumesFrom = builder.volumesFrom;
     this.networkMode = builder.networkMode;
     this.securityOpt = builder.securityOpt;
@@ -109,6 +111,10 @@ public class HostConfig {
 
   public List<String> dnsSearch() {
     return dnsSearch;
+  }
+
+  public List<String> extraHosts() {
+    return extraHosts;
   }
 
   public List<String> volumesFrom() {
@@ -167,6 +173,9 @@ public class HostConfig {
     if (dnsSearch != null ? !dnsSearch.equals(that.dnsSearch) : that.dnsSearch != null) {
       return false;
     }
+    if (extraHosts != null ? !extraHosts.equals(that.extraHosts) : that.extraHosts != null) {
+        return false;
+      }
     if (links != null ? !links.equals(that.links) : that.links != null) {
       return false;
     }
@@ -230,6 +239,7 @@ public class HostConfig {
     result = 31 * result + (publishAllPorts != null ? publishAllPorts.hashCode() : 0);
     result = 31 * result + (dns != null ? dns.hashCode() : 0);
     result = 31 * result + (dnsSearch != null ? dnsSearch.hashCode() : 0);
+    result = 31 * result + (extraHosts != null ? extraHosts.hashCode() : 0);
     result = 31 * result + (volumesFrom != null ? volumesFrom.hashCode() : 0);
     result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
     result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
@@ -253,6 +263,7 @@ public class HostConfig {
         .add("publishAllPorts", publishAllPorts)
         .add("dns", dns)
         .add("dnsSearch", dnsSearch)
+        .add("extraHosts", extraHosts)
         .add("volumesFrom", volumesFrom)
         .add("networkMode", networkMode)
         .add("securityOpt", securityOpt)
@@ -338,6 +349,7 @@ public class HostConfig {
     private Boolean publishAllPorts;
     private ImmutableList<String> dns;
     private ImmutableList<String> dnsSearch;
+    private ImmutableList<String> extraHosts;
     private ImmutableList<String> volumesFrom;
     private String networkMode;
     private ImmutableList<String> securityOpt;
@@ -360,6 +372,7 @@ public class HostConfig {
       this.publishAllPorts = hostConfig.publishAllPorts;
       this.dns = hostConfig.dns;
       this.dnsSearch = hostConfig.dnsSearch;
+      this.extraHosts = hostConfig.extraHosts;
       this.volumesFrom = hostConfig.volumesFrom;
       this.networkMode = hostConfig.networkMode;
       this.securityOpt = hostConfig.securityOpt;
@@ -505,6 +518,26 @@ public class HostConfig {
 
     public List<String> dnsSearch() {
       return dnsSearch;
+    }
+
+    public Builder extraHosts(final List<String> extraHosts) {
+        if (extraHosts != null && !extraHosts.isEmpty()) {
+            this.extraHosts = ImmutableList.copyOf(extraHosts);
+        }
+
+        return this;
+    }
+
+    public Builder extraHosts(final String... extraHosts) {
+        if (extraHosts != null && extraHosts.length > 0) {
+            this.extraHosts = ImmutableList.copyOf(extraHosts);
+        }
+
+        return this;
+    }
+
+    public List<String> extraHosts() {
+        return extraHosts;
     }
 
     public Builder volumesFrom(final List<String> volumesFrom) {
