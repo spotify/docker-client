@@ -18,9 +18,9 @@
 package com.spotify.docker.client;
 
 import com.google.common.base.Optional;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.slf4j.Logger;
@@ -43,6 +43,7 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 /**
@@ -116,8 +117,8 @@ public class DockerCertificates {
     return this.sslContext;
   }
 
-  public X509HostnameVerifier hostnameVerifier() {
-    return SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+  public HostnameVerifier hostnameVerifier() {
+    return NoopHostnameVerifier.INSTANCE;
   }
 
   public static Builder builder() {

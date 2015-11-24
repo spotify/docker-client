@@ -259,7 +259,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                              builder.dockerCertificates.hostnameVerifier());
     }
 
-    final RegistryBuilder registryBuilder = RegistryBuilder
+    final RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder
         .<ConnectionSocketFactory>create()
         .register("https", https)
         .register("http", PlainConnectionSocketFactory.getSocketFactory());
@@ -1161,9 +1161,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       // Version below 1.19
       if (versionComparison < 0) {
         authRegistryJson = "{\"configs\":" + authRegistryJson + "}";
-      }
-      // Version equal 1.19
-      else if (versionComparison == 0) {
+      } else if (versionComparison == 0) {
+        // Version equal 1.19
         authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
       }
 
