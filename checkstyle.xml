@@ -71,7 +71,6 @@ page at http://checkstyle.sourceforge.net/config.html -->
         seven characters, this is not in line with common practice at Google.
       -->
       <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]{1,})*$"/>
-      <property name="severity" value="warning"/>
     </module>
 
     <module name="TypeNameCheck">
@@ -122,25 +121,21 @@ page at http://checkstyle.sourceforge.net/config.html -->
       <!-- Validates identifiers for method names. -->
       <metadata name="altname" value="MethodName"/>
       <property name="format" value="^[a-z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$"/>
-      <property name="severity" value="warning"/>
     </module>
 
     <module name="ParameterName">
       <!-- Validates identifiers for method parameters against the
         expression "^[a-z][a-zA-Z0-9]*$". -->
-      <property name="severity" value="warning"/>
     </module>
 
     <module name="LocalFinalVariableName">
       <!-- Validates identifiers for local final variables against the
         expression "^[a-z][a-zA-Z0-9]*$". -->
-      <property name="severity" value="warning"/>
     </module>
 
     <module name="LocalVariableName">
       <!-- Validates identifiers for local variables against the
         expression "^[a-z][a-zA-Z0-9]*$". -->
-      <property name="severity" value="warning"/>
     </module>
 
 
@@ -168,7 +163,6 @@ page at http://checkstyle.sourceforge.net/config.html -->
 
     <module name="LeftCurly">
       <!-- Checks for placement of the left curly brace ('{'). -->
-      <property name="severity" value="warning"/>
     </module>
 
     <module name="RightCurly">
@@ -189,12 +183,10 @@ page at http://checkstyle.sourceforge.net/config.html -->
       </pre>
       -->
       <property name="option" value="same"/>
-      <property name="severity" value="warning"/>
     </module>
 
     <!-- Checks for braces around if and else blocks -->
     <module name="NeedBraces">
-      <property name="severity" value="warning"/>
       <property name="tokens" value="LITERAL_IF, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
     </module>
 
@@ -289,7 +281,6 @@ page at http://checkstyle.sourceforge.net/config.html -->
       <!-- Checks that there is no whitespace before close parens or after
            open parens.
       -->
-      <property name="severity" value="warning"/>
     </module>
 
   </module>
