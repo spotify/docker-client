@@ -1371,43 +1371,79 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testVolumesFrom() throws Exception {
+  public void testExtraHosts() throws Exception {
+
+    assumeTrue("Docker API should be at least v1.15 to support Container Creation with " +
+        "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
+         compareVersion(sut.version().apiVersion(), "1.15") >= 0);
+
     sut.pull(BUSYBOX_LATEST);
 
-    final String volumeContainer = randomName();
-    final String mountContainer = randomName();
+    final HostConfig expected = HostConfig.builder()
+     .extraHosts("extrahost:1.2.3.4")
+     .build();
 
-    final ContainerConfig volumeConfig = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .volumes("/foo")
-        .cmd("touch", "/foo/bar")
-        .build();
-    sut.createContainer(volumeConfig, volumeContainer);
-    sut.startContainer(volumeContainer);
-    sut.waitContainer(volumeContainer);
+    final ContainerConfig config = ContainerConfig.builder()
+     .image(BUSYBOX_LATEST)
+     .hostConfig(expected)
+     .cmd("sh", "-c", "cat /etc/hosts | grep extrahost")
+     .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
 
-    final HostConfig mountHostConfig = HostConfig.builder()
-        .volumesFrom(volumeContainer)
-        .build();
-    final ContainerConfig mountConfig = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .hostConfig(mountHostConfig)
-        .cmd("ls", "/foo")
-        .build();
+    sut.startContainer(id);
 
-    sut.createContainer(mountConfig, mountContainer);
-    sut.startContainer(mountContainer);
-    sut.waitContainer(mountContainer);
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
 
-    final ContainerInfo info = sut.inspectContainer(mountContainer);
-    assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(actual.extraHosts(), equalTo(expected.extraHosts()));
 
     final String logs;
-    try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
-      logs = stream.readFully();
+    try (LogStream stream = sut.logs(id, stdout(), stderr())) {
+        logs = stream.readFully();
     }
-    assertThat(logs, containsString("bar"));
+    assertThat(logs, containsString("1.2.3.4"));
+
+  }
+
+  @Test
+  public void testVolumesFrom() throws Exception {
+      sut.pull(BUSYBOX_LATEST);
+
+      final String volumeContainer = randomName();
+      final String mountContainer = randomName();
+
+      final ContainerConfig volumeConfig = ContainerConfig.builder()
+              .image(BUSYBOX_LATEST)
+              .volumes("/foo")
+              .cmd("touch", "/foo/bar")
+              .build();
+      sut.createContainer(volumeConfig, volumeContainer);
+      sut.startContainer(volumeContainer);
+      sut.waitContainer(volumeContainer);
+
+      final HostConfig mountHostConfig = HostConfig.builder()
+              .volumesFrom(volumeContainer)
+              .build();
+      final ContainerConfig mountConfig = ContainerConfig.builder()
+              .image(BUSYBOX_LATEST)
+              .hostConfig(mountHostConfig)
+              .cmd("ls", "/foo")
+              .build();
+
+      sut.createContainer(mountConfig, mountContainer);
+      sut.startContainer(mountContainer);
+      sut.waitContainer(mountContainer);
+
+      final ContainerInfo info = sut.inspectContainer(mountContainer);
+      assertThat(info.state().running(), is(false));
+      assertThat(info.state().exitCode(), is(0));
+
+      final String logs;
+      try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
+          logs = stream.readFully();
+      }
+      assertThat(logs, containsString("bar"));
   }
 
   @Test
