@@ -1177,7 +1177,7 @@ public class DefaultDockerClientTest {
   public void testContainerWithCpuQuota() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
                "HostConfig, got " + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
     assumeFalse(CIRCLECI);
 
     sut.pull(BUSYBOX_LATEST);
@@ -1186,9 +1186,9 @@ public class DefaultDockerClientTest {
     final boolean publishAllPorts = true;
     final String dns = "1.2.3.4";
     final HostConfig expected = HostConfig.builder()
-        .privileged( privileged )
-        .publishAllPorts( publishAllPorts )
-        .dns( dns )
+        .privileged(privileged)
+        .publishAllPorts(publishAllPorts)
+        .dns(dns)
         .cpuQuota((long) 50000)
         .build();
 
