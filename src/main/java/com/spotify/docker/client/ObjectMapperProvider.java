@@ -46,7 +46,7 @@ import javax.ws.rs.ext.Provider;
 @Produces(MediaType.APPLICATION_JSON)
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
-  private static final Function<? super Object, ? extends Object> VOID_VALUE =
+  private static final Function<? super Object, ?> VOID_VALUE =
       new Function<Object, Object>() {
         @Override
         public Object apply(final Object input) {
