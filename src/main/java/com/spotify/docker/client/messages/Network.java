@@ -77,7 +77,6 @@ public class Network {
 
     return Objects.equal(this.name, that.name) &&
         Objects.equal(this.id, that.id) &&
-        Objects.equal(this.id, that.id) &&
         Objects.equal(this.scope, that.scope) &&
         Objects.equal(this.driver, that.driver) &&
         Objects.equal(this.options, that.options);
