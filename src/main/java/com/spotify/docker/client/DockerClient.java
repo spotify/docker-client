@@ -31,6 +31,8 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
 
@@ -627,6 +629,45 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerStats stats(String containerId) throws DockerException, InterruptedException;
+
+
+  /**
+   * List all networks
+   *
+   * @return networks
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<Network> listNetworks() throws DockerException, InterruptedException;
+
+  /**
+   * Inspect a specific network
+   *
+   * @param networkId The id of the network
+   * @return network information
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  Network inspectNetwork(final String networkId) throws DockerException, InterruptedException;
+
+  /**
+   * Create a new network
+   *
+   * @param network
+   * @return
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  NetworkCreation createNetwork(final Network network) throws DockerException, InterruptedException;
+
+  /**
+   * Remove a docker network.
+   *
+   * @param networkId The id of the network to remove.
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void removeNetwork(String networkId) throws DockerException, InterruptedException;
 
   /**
    * Closes any and all underlying connections to docker, and release resources.

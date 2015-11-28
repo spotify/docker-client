@@ -40,6 +40,8 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -137,6 +139,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Image>> IMAGE_LIST =
       new GenericType<List<Image>>() {};
+
+  private static final GenericType<List<Network>> NETWORK_LIST =
+      new GenericType<List<Network>>() {};
 
   private static final GenericType<List<ImageSearchResult>> IMAGES_SEARCH_RESULT_LIST =
       new GenericType<List<ImageSearchResult>>() {};
@@ -1019,6 +1024,54 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       switch (e.status()) {
         case 404:
           throw new ContainerNotFoundException(containerId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public List<Network> listNetworks()
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks");
+    return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId);
+    try {
+      return request(GET, Network.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NetworkNotFoundException(networkId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public NetworkCreation createNetwork(Network network)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path("create");
+
+    return request(POST, NetworkCreation.class, resource,
+        resource.request(APPLICATION_JSON_TYPE), Entity.json(network));
+  }
+
+  @Override
+  public void removeNetwork(String networkId) throws DockerException, InterruptedException {
+    try {
+      final WebTarget resource = resource()
+          .path("networks").path(networkId);
+      request(DELETE, resource, resource
+          .request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NetworkNotFoundException(networkId, e);
         default:
           throw e;
       }

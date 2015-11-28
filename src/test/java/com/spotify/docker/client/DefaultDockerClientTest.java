@@ -39,6 +39,8 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -120,6 +122,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -1871,6 +1874,49 @@ public class DefaultDockerClientTest {
     assertThat(stats.cpuStats(), notNullValue());
     assertThat(stats.memoryStats(), notNullValue());
     assertThat(stats.network(), notNullValue());
+  }
+
+  @Test
+  public void testNetworks() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+            "HostConfig, got " + sut.version().apiVersion(),
+        compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    final String networkName = "testnetwork";
+    final Network network = Network.builder()
+        .name(networkName)
+        .build();
+
+    final NetworkCreation networkCreation = sut.createNetwork(network);
+    assertThat(networkCreation.id(), is(notNullValue()));
+    assertThat(networkCreation.getWarnings(), is(nullValue()));
+
+    final List<Network> networks = sut.listNetworks();
+    assertTrue(networks.size() > 0);
+
+    String networkId = null;
+    for (Network n : networks) {
+      if (n.name().equals(networkName)) {
+        networkId = n.id();
+      }
+    }
+    assertThat(networkId, is(notNullValue()));
+    assertThat(sut.inspectNetwork(networkId).name(), is(networkName));
+
+    sut.removeNetwork(networkId);
+
+    try {
+      sut.inspectNetwork(networkId);
+      fail();
+    } catch (NetworkNotFoundException e) {
+    } catch (Exception e) {
+      fail();
+    }
+
+//    for (Network network : networks) {
+//      System.out.println("--->" + sut.inspectNetwork(network.id()));
+//    }
+//    assertThat(networks, hasSize(0));
   }
 
   private String randomName() {
