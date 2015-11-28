@@ -1882,6 +1882,8 @@ public class DefaultDockerClientTest {
             "HostConfig, got " + sut.version().apiVersion(),
         compareVersion(sut.version().apiVersion(), "1.21") >= 0);
 
+    assumeFalse(CIRCLECI);
+
     final String networkName = "testnetwork";
     final Network network = Network.builder()
         .name(networkName)
