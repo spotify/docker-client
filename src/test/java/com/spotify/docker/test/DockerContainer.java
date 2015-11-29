@@ -55,7 +55,8 @@ import com.spotify.docker.client.messages.ContainerCreation;
  *     }
  * 
  *     &#064;Test
- *     &#064;CreateContainer(image = &quot;busybox&quot;, command = {&quot;sh&quot;, &quot;-c&quot;, &quot;echo \&quot;test\&quot;&quot;}, start = true)
+ *     &#064;CreateContainer(image = &quot;busybox&quot;, command =
+ *       {&quot;sh&quot;, &quot;-c&quot;, &quot;echo \&quot;test\&quot;&quot;}, start = true)
  *     public void testIt() throws IOException, DockerException, InterruptedException {
  * 
  *       String containerId = dockerContainer.getContainerId();
@@ -106,7 +107,7 @@ public class DockerContainer implements MethodRule {
         try {
           ContainerCreation containerCreation = createContainer(createContainerAnnotation);
           containerId = containerCreation.id();
-          if(createContainerAnnotation.start()) {
+          if (createContainerAnnotation.start()) {
             startContainer(createContainerAnnotation);
           }
           base.evaluate();
@@ -163,7 +164,7 @@ public class DockerContainer implements MethodRule {
    * @throws DockerException
    */
   protected void cleanup() throws InterruptedException, DockerException {
-    if(containerId == null) {
+    if (containerId == null) {
       // The container was never created
       return;
     }
@@ -201,9 +202,9 @@ public class DockerContainer implements MethodRule {
     }
     
     // Fail the test if clean up failed
-    if(interuptedException != null) {
+    if (interuptedException != null) {
       throw interuptedException;
-    } else if(dockerException != null) {
+    } else if (dockerException != null) {
       throw dockerException;
     }
   }

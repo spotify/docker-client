@@ -18,15 +18,26 @@ case "$1" in
 
     ;;
 
+  post_machine)
+    # fix permissions on docker.log so it can be collected as an artifact
+    sudo chown ubuntu:ubuntu /var/log/upstart/docker.log
+
+    ;;
+
   dependencies)
     mvn clean install -Dmaven.javadoc.skip=true -DskipTests=true -B -V
 
     docker pull registry
 
+    pip install --user codecov
+
     ;;
 
   test)
     set +x
+    # print version info on the CI machine
+    docker version
+    # run a registry locally
     docker run -d -p 5000:5000 \
       -e STANDALONE=false \
       -e MIRROR_SOURCE=https://registry-1.docker.io \
@@ -65,6 +76,8 @@ case "$1" in
     docker logs registry &> $CIRCLE_ARTIFACTS/registry.log
 
     cp target/surefire-reports/*.xml $CI_REPORTS
+
+    codecov
 
     ;;
 

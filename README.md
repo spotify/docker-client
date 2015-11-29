@@ -1,7 +1,7 @@
-# Docker Client [![Circle CI](https://circleci.com/gh/spotify/docker-client.png?style=badge)](https://circleci.com/gh/spotify/docker-client)
+# Docker Client [![Circle CI](https://circleci.com/gh/spotify/docker-client.png?style=badge)](https://circleci.com/gh/spotify/docker-client) [![codecov.io](https://codecov.io/github/spotify/docker-client/coverage.svg?branch=master)](https://codecov.io/github/spotify/docker-client?branch=master)
 
 
-This is a simple [Docker](https://github.com/dotcloud/docker) client written in Java.
+This is a simple [Docker](https://github.com/docker/docker) client written in Java.
 
 **The latest docker-client release has only been tested on Docker API version 1.18. This client
 should work with Docker API versions > 1.15, but your mileage may vary.**
@@ -37,6 +37,7 @@ final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings).bu
 
 // Create container with exposed ports
 final ContainerConfig containerConfig = ContainerConfig.builder()
+    .hostConfig(hostConfig)
     .image("busybox").exposedPorts(ports)
     .cmd("sh", "-c", "while :; do sleep 1; done")
     .build();
@@ -48,7 +49,7 @@ final String id = creation.id();
 final ContainerInfo info = docker.inspectContainer(id);
 
 // Start container
-docker.startContainer(id, hostConfig);
+docker.startContainer(id);
 
 // Exec command inside running container with attached STDOUT and STDERR
 final String[] command = {"bash", "-c", "ls"};

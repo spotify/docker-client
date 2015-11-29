@@ -17,7 +17,7 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -293,7 +293,7 @@ public class ContainerConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("hostname", hostname)
         .add("domainname", domainname)
         .add("username", user)
@@ -336,6 +336,7 @@ public class ContainerConfig {
     private Long memorySwap;
     private Long cpuShares;
     private String cpuset;
+    private Long cpuQuota;
     private Boolean attachStdin;
     private Boolean attachStdout;
     private Boolean attachStderr;
@@ -445,6 +446,15 @@ public class ContainerConfig {
 
     public String cpuset() {
       return cpuset;
+    }
+
+    public Builder cpuQuota(final Long cpuQuota) {
+      this.cpuQuota = cpuQuota;
+      return this;
+    }
+
+    public Long cpuQuota() {
+      return cpuQuota;
     }
 
     public Builder attachStdin(final Boolean attachStdin) {

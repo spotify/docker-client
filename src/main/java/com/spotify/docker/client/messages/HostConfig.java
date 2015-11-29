@@ -17,7 +17,7 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
@@ -43,6 +43,7 @@ public class HostConfig {
   @JsonProperty("PublishAllPorts") private Boolean publishAllPorts;
   @JsonProperty("Dns") private ImmutableList<String> dns;
   @JsonProperty("DnsSearch") private ImmutableList<String> dnsSearch;
+  @JsonProperty("ExtraHosts") private ImmutableList<String> extraHosts;
   @JsonProperty("VolumesFrom") private ImmutableList<String> volumesFrom;
   @JsonProperty("NetworkMode") private String networkMode;
   @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
@@ -50,6 +51,7 @@ public class HostConfig {
   @JsonProperty("MemorySwap") private Long memorySwap;
   @JsonProperty("CpuShares") private Long cpuShares;
   @JsonProperty("CpusetCpus") private String cpusetCpus;
+  @JsonProperty("CpuQuota") private Long cpuQuota;
   @JsonProperty("CgroupParent") private String cgroupParent;
 
   private HostConfig() {
@@ -65,6 +67,7 @@ public class HostConfig {
     this.publishAllPorts = builder.publishAllPorts;
     this.dns = builder.dns;
     this.dnsSearch = builder.dnsSearch;
+    this.extraHosts = builder.extraHosts;
     this.volumesFrom = builder.volumesFrom;
     this.networkMode = builder.networkMode;
     this.securityOpt = builder.securityOpt;
@@ -72,6 +75,7 @@ public class HostConfig {
     this.memorySwap = builder.memorySwap;
     this.cpuShares = builder.cpuShares;
     this.cpusetCpus = builder.cpusetCpus;
+    this.cpuQuota = builder.cpuQuota;
     this.cgroupParent = builder.cgroupParent;
   }
 
@@ -111,6 +115,10 @@ public class HostConfig {
     return dnsSearch;
   }
 
+  public List<String> extraHosts() {
+    return extraHosts;
+  }
+
   public List<String> volumesFrom() {
     return volumesFrom;
   }
@@ -137,6 +145,10 @@ public class HostConfig {
 
   public String cpusetCpus() {
     return cpusetCpus;
+  }
+
+  public Long cpuQuota() {
+    return cpuQuota;
   }
 
   public String cgroupParent() {
@@ -167,6 +179,9 @@ public class HostConfig {
     if (dnsSearch != null ? !dnsSearch.equals(that.dnsSearch) : that.dnsSearch != null) {
       return false;
     }
+    if (extraHosts != null ? !extraHosts.equals(that.extraHosts) : that.extraHosts != null) {
+        return false;
+      }
     if (links != null ? !links.equals(that.links) : that.links != null) {
       return false;
     }
@@ -210,6 +225,10 @@ public class HostConfig {
       return false;
     }
 
+    if (cpuQuota != null ? !cpuQuota.equals(that.cpuQuota) : that.cpuQuota != null) {
+      return false;
+    }
+
     if (cgroupParent != null ? !cgroupParent.equals(that.cgroupParent)
             : that.cgroupParent != null) {
       return false;
@@ -230,6 +249,7 @@ public class HostConfig {
     result = 31 * result + (publishAllPorts != null ? publishAllPorts.hashCode() : 0);
     result = 31 * result + (dns != null ? dns.hashCode() : 0);
     result = 31 * result + (dnsSearch != null ? dnsSearch.hashCode() : 0);
+    result = 31 * result + (extraHosts != null ? extraHosts.hashCode() : 0);
     result = 31 * result + (volumesFrom != null ? volumesFrom.hashCode() : 0);
     result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
     result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
@@ -237,13 +257,14 @@ public class HostConfig {
     result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
     result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
     result = 31 * result + (cpusetCpus != null ? cpusetCpus.hashCode() : 0);
+    result = 31 * result + (cpuQuota != null ? cpuQuota.hashCode() : 0);
     result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
     return result;
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("binds", binds)
         .add("containerIDFile", containerIDFile)
         .add("lxcConf", lxcConf)
@@ -253,6 +274,7 @@ public class HostConfig {
         .add("publishAllPorts", publishAllPorts)
         .add("dns", dns)
         .add("dnsSearch", dnsSearch)
+        .add("extraHosts", extraHosts)
         .add("volumesFrom", volumesFrom)
         .add("networkMode", networkMode)
         .add("securityOpt", securityOpt)
@@ -260,6 +282,7 @@ public class HostConfig {
         .add("memorySwap", memorySwap)
         .add("cpuShares", cpuShares)
         .add("cpusetCpus", cpusetCpus)
+        .add("cpuQuota", cpuQuota)
         .add("cgroupParent", cgroupParent)
         .toString();
   }
@@ -312,7 +335,7 @@ public class HostConfig {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("key", key)
           .add("value", value)
           .toString();
@@ -338,6 +361,7 @@ public class HostConfig {
     private Boolean publishAllPorts;
     private ImmutableList<String> dns;
     private ImmutableList<String> dnsSearch;
+    private ImmutableList<String> extraHosts;
     private ImmutableList<String> volumesFrom;
     private String networkMode;
     private ImmutableList<String> securityOpt;
@@ -345,6 +369,7 @@ public class HostConfig {
     public Long memorySwap;
     public Long cpuShares;
     public String cpusetCpus;
+    public Long cpuQuota;
     public String cgroupParent;
 
     private Builder() {
@@ -360,6 +385,7 @@ public class HostConfig {
       this.publishAllPorts = hostConfig.publishAllPorts;
       this.dns = hostConfig.dns;
       this.dnsSearch = hostConfig.dnsSearch;
+      this.extraHosts = hostConfig.extraHosts;
       this.volumesFrom = hostConfig.volumesFrom;
       this.networkMode = hostConfig.networkMode;
       this.securityOpt = hostConfig.securityOpt;
@@ -367,6 +393,7 @@ public class HostConfig {
       this.memorySwap = hostConfig.memorySwap;
       this.cpuShares = hostConfig.cpuShares;
       this.cpusetCpus = hostConfig.cpusetCpus;
+      this.cpuQuota = hostConfig.cpuQuota;
       this.cgroupParent = hostConfig.cgroupParent;
     }
 
@@ -507,6 +534,26 @@ public class HostConfig {
       return dnsSearch;
     }
 
+    public Builder extraHosts(final List<String> extraHosts) {
+        if (extraHosts != null && !extraHosts.isEmpty()) {
+            this.extraHosts = ImmutableList.copyOf(extraHosts);
+        }
+
+        return this;
+    }
+
+    public Builder extraHosts(final String... extraHosts) {
+        if (extraHosts != null && extraHosts.length > 0) {
+            this.extraHosts = ImmutableList.copyOf(extraHosts);
+        }
+
+        return this;
+    }
+
+    public List<String> extraHosts() {
+        return extraHosts;
+    }
+
     public Builder volumesFrom(final List<String> volumesFrom) {
       if (volumesFrom != null && !volumesFrom.isEmpty()) {
         this.volumesFrom = ImmutableList.copyOf(volumesFrom);
@@ -590,6 +637,15 @@ public class HostConfig {
 
     public String cpusetCpus() {
       return cpusetCpus;
+    }
+
+    public Builder cpuQuota(final Long cpuQuota) {
+      this.cpuQuota = cpuQuota;
+      return this;
+    }
+
+    public Long cpuQuota() {
+      return cpuQuota;
     }
 
     public Builder cgroupParent(final String cgroupParent) {

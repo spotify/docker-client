@@ -25,6 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static java.lang.System.getProperty;
 import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -32,6 +33,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
@@ -89,6 +91,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 import com.spotify.docker.client.messages.AuthConfig;
@@ -262,7 +265,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
-    // and use it for waitContainer and stopContainer.
+    // and use it for waitContainer, stopContainer, attachContainer, logs, and build
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
@@ -297,7 +300,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                              builder.dockerCertificates.hostnameVerifier());
     }
 
-    final RegistryBuilder registryBuilder = RegistryBuilder
+    final RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder
         .<ConnectionSocketFactory>create()
         .register("https", https)
         .register("http", PlainConnectionSocketFactory.getSocketFactory());
@@ -435,9 +438,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     log.info("Starting container with Id: {}", containerId);
 
+    containerAction(containerId, "start");
+  }
+
+  private void containerAction(final String containerId, final String action)
+      throws DockerException, InterruptedException {
     try {
       final WebTarget resource = resource()
-          .path("containers").path(containerId).path("start");
+          .path("containers").path(containerId).path(action);
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -453,38 +461,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void pauseContainer(final String containerId)
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-
-    try {
-      final WebTarget resource = resource()
-          .path("containers").path(containerId).path("pause");
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    containerAction(containerId, "pause");
   }
 
   @Override
   public void unpauseContainer(final String containerId)
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-
-    try {
-      final WebTarget resource = resource()
-          .path("containers").path(containerId).path("unpause");
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    containerAction(containerId, "unpause");
   }
 
   @Override
@@ -515,17 +499,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void killContainer(final String containerId) throws DockerException, InterruptedException {
-    try {
-      final WebTarget resource = resource().path("containers").path(containerId).path("kill");
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    containerAction(containerId, "kill");
   }
 
   @Override
@@ -601,6 +575,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                    resource.request(APPLICATION_OCTET_STREAM_TYPE));
   }
 
+  
   @Override
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
@@ -615,6 +590,28 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                    resource.request(APPLICATION_OCTET_STREAM_TYPE),
                    Entity.json(params));
   }
+
+  @Override
+  public void copyToContainer(final Path directory, String containerId, String path)
+      throws DockerException, InterruptedException, IOException {  
+      final WebTarget resource = resource() 
+                       .path("containers")
+                       .path(containerId)
+                       .path("archive")
+                       .queryParam("noOverwriteDirNonDir", true)
+                       .queryParam("path", path);
+
+    
+      CompressedDirectory compressedDirectory 
+          = CompressedDirectory.create(directory);
+
+      final InputStream fileStream = 
+          Files.newInputStream(compressedDirectory.file());
+          
+      request(PUT, String.class, resource,
+              resource.request(APPLICATION_OCTET_STREAM_TYPE),
+              Entity.entity(fileStream, "application/tar"));
+  }  
 
   @Override
   public ContainerInfo inspectContainer(final String containerId)
@@ -758,22 +755,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void pull(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    final ImageRef imageRef = new ImageRef(image);
-
-    WebTarget resource = resource().path("images").path("create");
-
-    resource = resource.queryParam("fromImage", imageRef.getImage());
-    if (imageRef.getTag() != null) {
-      resource = resource.queryParam("tag", imageRef.getTag());
-    }
-
-    try (ProgressStream pull = request(POST, ProgressStream.class, resource,
-                                       resource.request(APPLICATION_JSON_TYPE)
-                                               .header("X-Registry-Auth", authHeader()))) {
-      pull.tail(handler, POST, resource.getUri());
-    } catch (IOException e) {
-      throw new DockerException(e);
-    }
+    pull(image, authConfig, handler);
   }
 
   @Override
@@ -815,8 +797,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
-    WebTarget resource =
-        resource().path("images").path(imageRef.getImage()).path("push");
+    WebTarget resource = resource().path("images").path(imageRef.getImage()).path("push");
 
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
@@ -900,7 +881,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
-    WebTarget resource = resource().path("build");
+    WebTarget resource = noTimeoutResource().path("build");
 
     for (final BuildParameter param : params) {
       resource = resource.queryParam(param.buildParamName, String.valueOf(param.buildParamValue));
@@ -988,33 +969,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public LogStream logs(final String containerId, final LogsParameter... params)
+  public LogStream logs(final String containerId, final LogsParam... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = resource()
-        .path("containers").path(containerId).path("logs");
+    WebTarget resource = noTimeoutResource()
+        .path("containers").path(containerId)
+        .path("logs");
 
-    for (final LogsParameter param : params) {
-      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
+    for (LogsParam param : params) {
+      resource = resource.queryParam(param.name(), param.value());
     }
 
-    try {
-      return request(GET, LogStream.class, resource,
-                     resource.request("application/vnd.docker.raw-stream"));
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId);
-        default:
-          throw e;
-      }
-    }
+    return getLogStream(GET, resource, containerId);
   }
 
   @Override
-  public LogStream attachContainer(final String containerId,
-                                   final AttachParameter... params) throws DockerException,
-      InterruptedException {
-    WebTarget resource = resource().path("containers").path(containerId)
+  public LogStream attachContainer(final String containerId, final AttachParameter... params)
+      throws DockerException, InterruptedException {
+    WebTarget resource = noTimeoutResource()
+        .path("containers").path(containerId)
         .path("attach");
 
     for (final AttachParameter param : params) {
@@ -1022,15 +994,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           String.valueOf(true));
     }
 
+    return getLogStream(POST, resource, containerId);
+  }
+
+  private LogStream getLogStream(final String method, final WebTarget resource,
+                                 final String containerId)
+      throws DockerException, InterruptedException {
     try {
-      return request(POST, LogStream.class, resource,
-          resource.request("application/vnd.docker.raw-stream"));
+      final Invocation.Builder request = resource.request("application/vnd.docker.raw-stream");
+      return request(method, LogStream.class, resource, request);
     } catch (DockerRequestException e) {
       switch (e.status()) {
-      case 404:
-        throw new ContainerNotFoundException(containerId);
-      default:
-        throw e;
+        case 404:
+          throw new ContainerNotFoundException(containerId);
+        default:
+          throw e;
       }
     }
   }
@@ -1281,11 +1259,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       String authRegistryJson =
         ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
+
+      final String apiVersion = version().apiVersion();
+      final int versionComparison = compareVersion(apiVersion, "1.19");
+
+      // Version below 1.19
+      if (versionComparison < 0) {
+        authRegistryJson = "{\"configs\":" + authRegistryJson + "}";
+      } else if (versionComparison == 0) {
+        // Version equal 1.19
+        authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
+      }
+
       log.debug("Registry Config Json {}", authRegistryJson);
       String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);
       log.debug("Registry Config Encoded {}", authRegistryEncoded);
       return authRegistryEncoded;
-    } catch (JsonProcessingException ex) {
+    } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
   }
@@ -1306,9 +1296,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
-    final String dockerCertPath = getenv("DOCKER_CERT_PATH");
+    final Path dockerCertPath = Paths.get(fromNullable(getenv("DOCKER_CERT_PATH"))
+            .or(defaultCertPath()));
 
     final Builder builder = new Builder();
+
+    final Optional<DockerCertificates> certs = DockerCertificates.builder()
+            .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
       builder.uri(endpoint);
@@ -1316,7 +1310,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
       final String hostText = hostAndPort.getHostText();
-      final String scheme = isNullOrEmpty(dockerCertPath) ? "http" : "https";
+      final String scheme = certs.isPresent() ? "https" : "http";
 
       final int port = hostAndPort.getPortOrDefault(DEFAULT_PORT);
       final String address = isNullOrEmpty(hostText) ? DEFAULT_HOST : hostText;
@@ -1324,8 +1318,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       builder.uri(scheme + "://" + address + ":" + port);
     }
 
-    if (!isNullOrEmpty(dockerCertPath)) {
-      builder.dockerCertificates(new DockerCertificates(Paths.get(dockerCertPath)));
+    if (certs.isPresent()) {
+      builder.dockerCertificates(certs.get());
     }
 
     return builder;
@@ -1337,6 +1331,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else {
       return DEFAULT_HOST + ":" + DEFAULT_PORT;
     }
+  }
+
+  private static String defaultCertPath() {
+    return Paths.get(getProperty("user.home"), ".docker").toString();
   }
 
   public static class Builder {
@@ -1467,4 +1465,5 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
   }
+
 }

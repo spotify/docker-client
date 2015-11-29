@@ -17,6 +17,7 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
@@ -26,8 +27,13 @@ import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
 import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
-import static com.spotify.docker.client.DockerClient.LogsParameter.STDERR;
-import static com.spotify.docker.client.DockerClient.LogsParameter.STDOUT;
+import static com.spotify.docker.client.DockerClient.LogsParam.follow;
+import static com.spotify.docker.client.DockerClient.LogsParam.since;
+import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
+import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
+import static com.spotify.docker.client.DockerClient.LogsParam.tail;
+import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -48,8 +54,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.either;
-
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -78,6 +82,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -97,6 +102,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import jersey.repackaged.com.google.common.base.Predicate;
 import jersey.repackaged.com.google.common.collect.Collections2;
@@ -116,6 +122,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -146,17 +153,14 @@ public class DefaultDockerClientTest {
   private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
+  private static final String CIRROS_PRIVATE = "dxia/cirros-private";
+  private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
+
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
-  // Using a dummy individual's test account because organizations
-  // cannot have private repos on Docker Hub.
-  private static final String AUTH_EMAIL = "dxia@spotify.com";
-  private static final String AUTH_USERNAME = "dxia";
-  private static final String AUTH_PASSWORD = "gRjK8tcQ7q";
-  // Using yet another dummy individual's test account because CircleCI throws a weird error
-  // when trying to pull the same private repo a second time. ¯\_(ツ)_/
-  private static final String AUTH_EMAIL2 = "dxia+2@spotify.com";
-  private static final String AUTH_USERNAME2 = "dxia2";
-  private static final String AUTH_PASSWORD2 = "Tv38KLPd]M";
+
+  private static final String AUTH_EMAIL = "dxia+2@spotify.com";
+  private static final String AUTH_USERNAME = "dxia2";
+  private static final String AUTH_PASSWORD = "Tv38KLPd]M";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClientTest.class);
 
@@ -177,7 +181,14 @@ public class DefaultDockerClientTest {
     authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
         .password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
-    builder.readTimeoutMillis(120000);
+    // Make it easier to test no read timeout occurs by using a smaller value
+    // Such test methods should end in 'NoTimeout'
+    if (testName.getMethodName().endsWith("NoTimeout")) {
+      builder.readTimeoutMillis(5000);
+    } else {
+      builder.readTimeoutMillis(120000);
+    }
+
     dockerEndpoint = builder.uri();
 
     sut = builder.build();
@@ -213,7 +224,7 @@ public class DefaultDockerClientTest {
     // then
     assertThat(searchResult.size(), greaterThan(0));
   }
-  
+
   @Test
   public void testPullWithTag() throws Exception {
     sut.pull("busybox:buildroot-2014.02");
@@ -221,26 +232,34 @@ public class DefaultDockerClientTest {
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullBadImage() throws Exception {
+    // The Docker daemon on CircleCI won't throw ImageNotFoundException for some reason...
+    assumeFalse(CIRCLECI);
     sut.pull(randomName());
   }
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithoutAuth() throws Exception {
-    sut.pull("dxia/cirros-private:latest");
+    sut.pull(CIRROS_PRIVATE_LATEST);
   }
 
   @Test
   public void testPullPrivateRepoWithAuth() throws Exception {
-    AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL2).username(AUTH_USERNAME2)
-        .password(AUTH_PASSWORD2).build();
+    final AuthConfig authConfig = AuthConfig.builder()
+        .email(AUTH_EMAIL)
+        .username(AUTH_USERNAME)
+        .password(AUTH_PASSWORD)
+        .build();
     sut.pull("dxia2/scratch-private:latest", authConfig);
   }
 
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithBadAuth() throws Exception {
-    AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-        .password("foobar").build();
-    sut.pull("dxia/cirros-private:latest", badAuthConfig);
+    final AuthConfig badAuthConfig = AuthConfig.builder()
+        .email(AUTH_EMAIL)
+        .username(AUTH_USERNAME)
+        .password("foobar")
+        .build();
+    sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
   
   @Test
@@ -377,7 +396,8 @@ public class DefaultDockerClientTest {
     // one to fail.
     assumeFalse(CIRCLECI);
 
-    sut.pull("dxia/cirros");
+    sut.pull("dxia/cirros:latest");
+    sut.pull("dxia/cirros:0.3.0");
     final String imageLatest = "dxia/cirros:latest";
     final String imageVersion = "dxia/cirros:0.3.0";
 
@@ -534,6 +554,23 @@ public class DefaultDockerClientTest {
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
   }
 
+
+  @Test
+  public void testBuildPrivateRepoWithAuth() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
+    final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
+            .password(AUTH_PASSWORD).build();
+
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+            .uri(dockerEndpoint)
+            .authConfig(authConfig)
+            .build();
+
+    sut2.build(Paths.get(dockerDirectory),
+            "testauth",
+            DockerClient.BuildParameter.PULL_NEWER_IMAGE);
+  }
+
   @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
     final String dockerDirectory =
@@ -569,7 +606,7 @@ public class DefaultDockerClientTest {
   public void testBuildWithPull() throws Exception {
     assumeTrue("We need Docker API >= v1.19 to run this test." +
                "This Docker API is " + sut.version().apiVersion(),
-               versionCompare(sut.version().apiVersion(), "1.19") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
 
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String pullMsg = "Pulling from";
@@ -582,7 +619,7 @@ public class DefaultDockerClientTest {
     sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
-        if (message.status() != null && message.status().contains(pullMsg)) {
+        if (!isNullOrEmpty(message.status()) && message.status().contains(pullMsg)) {
           pulled.set(true);
         }
       }
@@ -647,6 +684,21 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testBuildNoTimeout() throws Exception {
+    // The Dockerfile specifies a sleep of 10s during the build
+    // Returned image id is last piece of output, so this confirms stream did not timeout
+    final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+    final String returnedImageId = sut.build(
+        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+          @Override
+          public void progress(ProgressMessage message) throws DockerException {
+            log.info(message.stream());
+          }
+        }, NO_CACHE);
+    assertTrue(returnedImageId != null);
+  }
+
+  @Test
   public void testGetImageIdFromBuild() {
     // Include a new line because that's what docker returns.
     final ProgressMessage message1 = new ProgressMessage()
@@ -667,14 +719,10 @@ public class DefaultDockerClientTest {
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    if (CIRCLECI) {
-      assertThat(out.toString(), anyOf(containsString("Pulling from library/busybox"),
-                                       containsString("Pulling repository busybox"),
-                                       containsString("Image is up to date")));
-    } else {
-      assertThat(out.toString(),allOf(containsString("Pulling from busybox"),
-                                      containsString("Image is up to date")));
-    }
+    final String pullingStr = compareVersion(sut.version().apiVersion(), "1.20") >= 0 ?
+                              "Pulling from library/busybox" : "Pulling from busybox";
+    assertThat(out.toString(), allOf(containsString(pullingStr),
+                                     containsString("Image is up to date")));
   }
 
   @Test
@@ -729,6 +777,29 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCopyToContainer() throws Exception {
+    assumeTrue("We need Docker API >= v1.20 to run this test." +
+               "This Docker API is " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.20") >= 0);
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder().image(BUSYBOX_LATEST).build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String containerId = creation.id();
+
+    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    try {
+      sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/tmp");
+    } catch (Exception e) {
+      fail("error to copy files to container");
+    }
+  }
+
+  @Test
   public void testCommitContainer() throws Exception {
     // Pull image
     sut.pull(BUSYBOX_LATEST);
@@ -744,7 +815,7 @@ public class DefaultDockerClientTest {
     String tag = randomName();
     ContainerCreation
         dockerClientTest =
-        sut.commitContainer(id, "mosheeshel/busybox",tag, config, "CommitedByTest-" + tag,
+        sut.commitContainer(id, "mosheeshel/busybox", tag, config, "CommitedByTest-" + tag,
                             "DockerClientTest");
 
     ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
@@ -789,7 +860,7 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-            // make sure the container's busy doing something upon startup
+        // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String containerName = randomName();
@@ -850,6 +921,46 @@ public class DefaultDockerClientTest {
 
     // Start container
     sut.startContainer(id);
+
+    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+
+    // Copy files to container
+    // Docker API should be at least v1.20 to support extracting an archive of files or folders
+    // to a directory in a container
+    if (compareVersion(sut.version().apiVersion(), "1.20") >= 0) {
+      try {
+        sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
+      } catch (Exception e) {
+        fail("error copying files to container");
+      }
+
+      // Copy the same files from container
+      final ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
+      try (TarArchiveInputStream tarStream =
+               new TarArchiveInputStream(sut.copyContainer(id, "/tmp"))) {
+        TarArchiveEntry entry;
+        while ((entry = tarStream.getNextTarEntry()) != null) {
+          filesDownloaded.add(entry.getName());
+        }
+      }
+
+      // Check that we got back what we put in
+      final File folder = new File(dockerDirectory);
+      final File[] files = folder.listFiles();
+      if (files != null) {
+        for (File file : files) {
+          if (!file.isDirectory()) {
+            Boolean found = false;
+            for (String fileDownloaded : filesDownloaded.build()) {
+              if (fileDownloaded.contains(file.getName())) {
+                found = true;
+              }
+            }
+            assertTrue(found);
+          }
+        }
+      }
+    }
 
     // Kill container
     sut.killContainer(id);
@@ -974,10 +1085,9 @@ public class DefaultDockerClientTest {
     // Spawn and wait on many more containers than the connection pool size.
     // This should cause a timeout once the connection pool is exhausted.
 
-    final DockerClient dockerClient = DefaultDockerClient.fromEnv()
+    try (final DockerClient dockerClient = DefaultDockerClient.fromEnv()
         .connectionPoolSize(connectionPoolSize)
-        .build();
-    try {
+        .build()) {
       // Create container
       final ContainerConfig config = ContainerConfig.builder()
           .image(BUSYBOX_LATEST)
@@ -992,6 +1102,7 @@ public class DefaultDockerClientTest {
 
       // Submit a bunch of waitContainer requests
       for (int i = 0; i < callableCount; i++) {
+        //noinspection unchecked
         completion.submit(new Callable<ContainerExit>() {
           @Override
           public ContainerExit call() throws Exception {
@@ -1011,7 +1122,6 @@ public class DefaultDockerClientTest {
       }
     } finally {
       executor.shutdown();
-      dockerClient.close();
     }
   }
 
@@ -1073,9 +1183,9 @@ public class DefaultDockerClientTest {
         .securityOpt(userLabel, roleLabel, typeLabel, levelLabel)
         .build();
     final ContainerConfig config = ContainerConfig.builder()
-            .image(MEMCACHED_LATEST)
-            .hostConfig(hostConfig)
-            .build();
+        .image(MEMCACHED_LATEST)
+        .hostConfig(hostConfig)
+        .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
@@ -1089,7 +1199,7 @@ public class DefaultDockerClientTest {
   public void testContainerWithHostConfig() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
                "HostConfig, got " + sut.version().apiVersion(),
-                versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+                compareVersion(sut.version().apiVersion(), "1.18") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1097,11 +1207,11 @@ public class DefaultDockerClientTest {
     final boolean publishAllPorts = true;
     final String dns = "1.2.3.4";
     final HostConfig expected = HostConfig.builder()
-            .privileged(privileged)
-            .publishAllPorts(publishAllPorts)
-            .dns(dns)
-            .cpuShares((long) 4096)
-            .build();
+        .privileged(privileged)
+        .publishAllPorts(publishAllPorts)
+        .dns(dns)
+        .cpuShares((long) 4096)
+        .build();
 
 
     final ContainerConfig config = ContainerConfig.builder()
@@ -1119,6 +1229,45 @@ public class DefaultDockerClientTest {
     assertThat(actual.privileged(), equalTo(expected.privileged()));
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
+    assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+  }
+
+  @Test
+  public void testContainerWithCpuQuota() throws Exception {
+    assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
+               "HostConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+    assumeFalse(CIRCLECI);
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final boolean privileged = true;
+    final boolean publishAllPorts = true;
+    final String dns = "1.2.3.4";
+    final HostConfig expected = HostConfig.builder()
+        .privileged(privileged)
+        .publishAllPorts(publishAllPorts)
+        .dns(dns)
+        .cpuQuota((long) 50000)
+        .build();
+
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.privileged(), equalTo(expected.privileged()));
+    assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
+    assertThat(actual.dns(), equalTo(expected.dns()));
+    assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
   }
 
   @Test
@@ -1167,8 +1316,18 @@ public class DefaultDockerClientTest {
 
   @Test(expected = DockerCertificateException.class)
   public void testBadDockerCertificates() throws Exception {
-    // try building a DockerCertificates without specifying a cert path
-    DockerCertificates.builder().build();
+    // try building a DockerCertificates with specifying a cert path to something that
+    // isn't a cert
+    Path certDir = Paths.get("src", "test", "resources", "dockerInvalidSslDirectory");
+    DockerCertificates.builder().dockerCertPath(certDir).build();
+  }
+
+  @Test
+  public void testNoDockerCertificatesInDir() throws Exception {
+    Path certDir = Paths.get(System.getProperty("java.io.tmpdir"));
+    Optional<DockerCertificates> result = DockerCertificates.builder()
+        .dockerCertPath(certDir).build();
+    assertThat(result.isPresent(), is(false));
   }
 
   @Test
@@ -1181,9 +1340,9 @@ public class DefaultDockerClientTest {
     sut.build(Paths.get(dockerDirectory), imageName);
 
     final HostConfig hostConfig = HostConfig.builder()
-            .privileged(true)
-            .publishAllPorts(true)
-            .build();
+        .privileged(true)
+        .publishAllPorts(true)
+        .build();
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(imageName)
         .exposedPorts(expose)
@@ -1238,7 +1397,7 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-            // make sure the container's busy doing something upon startup
+        // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final String containerName = randomName();
@@ -1271,47 +1430,83 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testVolumesFrom() throws Exception {
+  public void testExtraHosts() throws Exception {
+
+    assumeTrue("Docker API should be at least v1.15 to support Container Creation with " +
+        "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
+         compareVersion(sut.version().apiVersion(), "1.15") >= 0);
+
     sut.pull(BUSYBOX_LATEST);
 
-    final String volumeContainer = randomName();
-    final String mountContainer = randomName();
+    final HostConfig expected = HostConfig.builder()
+     .extraHosts("extrahost:1.2.3.4")
+     .build();
 
-    final ContainerConfig volumeConfig = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .volumes("/foo")
-        .cmd("touch", "/foo/bar")
-        .build();
-    sut.createContainer(volumeConfig, volumeContainer);
-    sut.startContainer(volumeContainer);
-    sut.waitContainer(volumeContainer);
+    final ContainerConfig config = ContainerConfig.builder()
+     .image(BUSYBOX_LATEST)
+     .hostConfig(expected)
+     .cmd("sh", "-c", "cat /etc/hosts | grep extrahost")
+     .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
 
-    final HostConfig mountHostConfig = HostConfig.builder()
-        .volumesFrom(volumeContainer)
-        .build();
-    final ContainerConfig mountConfig = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .hostConfig(mountHostConfig)
-            .cmd("ls", "/foo")
-            .build();
+    sut.startContainer(id);
 
-    sut.createContainer(mountConfig, mountContainer);
-    sut.startContainer(mountContainer);
-    sut.waitContainer(mountContainer);
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
 
-    final ContainerInfo info = sut.inspectContainer(mountContainer);
-    assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(actual.extraHosts(), equalTo(expected.extraHosts()));
 
     final String logs;
-    try (LogStream stream = sut.logs(info.id(), STDOUT, STDERR)) {
-      logs = stream.readFully();
+    try (LogStream stream = sut.logs(id, stdout(), stderr())) {
+        logs = stream.readFully();
     }
-    assertThat(logs, containsString("bar"));
+    assertThat(logs, containsString("1.2.3.4"));
+
   }
 
   @Test
-  public void testAttachLog() throws Exception {
+  public void testVolumesFrom() throws Exception {
+      sut.pull(BUSYBOX_LATEST);
+
+      final String volumeContainer = randomName();
+      final String mountContainer = randomName();
+
+      final ContainerConfig volumeConfig = ContainerConfig.builder()
+              .image(BUSYBOX_LATEST)
+              .volumes("/foo")
+              .cmd("touch", "/foo/bar")
+              .build();
+      sut.createContainer(volumeConfig, volumeContainer);
+      sut.startContainer(volumeContainer);
+      sut.waitContainer(volumeContainer);
+
+      final HostConfig mountHostConfig = HostConfig.builder()
+              .volumesFrom(volumeContainer)
+              .build();
+      final ContainerConfig mountConfig = ContainerConfig.builder()
+              .image(BUSYBOX_LATEST)
+              .hostConfig(mountHostConfig)
+              .cmd("ls", "/foo")
+              .build();
+
+      sut.createContainer(mountConfig, mountContainer);
+      sut.startContainer(mountContainer);
+      sut.waitContainer(mountContainer);
+
+      final ContainerInfo info = sut.inspectContainer(mountContainer);
+      assertThat(info.state().running(), is(false));
+      assertThat(info.state().exitCode(), is(0));
+
+      final String logs;
+      try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
+          logs = stream.readFully();
+      }
+      assertThat(logs, containsString("bar"));
+  }
+
+  @Test
+  public void testAttachContainer() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
     final String volumeContainer = randomName();
@@ -1319,15 +1514,17 @@ public class DefaultDockerClientTest {
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .volumes("/foo")
-        .cmd("ls", "-la")
+        // TODO (mbrown): remove sleep - added to make sure container is still alive when attaching
+        //.cmd("ls", "-la")
+        .cmd("sh", "-c", "ls -la; sleep 3")
         .build();
     sut.createContainer(volumeConfig, volumeContainer);
     sut.startContainer(volumeContainer);
 
     final String logs;
     try (LogStream stream = sut.attachContainer(volumeContainer,
-        AttachParameter.LOGS, AttachParameter.STDOUT,
-        AttachParameter.STDERR, AttachParameter.STREAM)) {
+                                                AttachParameter.LOGS, AttachParameter.STDOUT,
+                                                AttachParameter.STDERR, AttachParameter.STREAM)) {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("total"));
@@ -1336,6 +1533,188 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(volumeContainer);
     assertThat(info.state().running(), is(false));
     assertThat(info.state().exitCode(), is(0));
+  }
+
+  @Test
+  public void testLogNoTimeout() throws Exception {
+    String volumeContainer = createSleepingContainer();
+    StringBuffer result = new StringBuffer();
+    try (LogStream stream = sut.logs(volumeContainer, stdout(), stderr(), follow())) {
+      try {
+        while (stream.hasNext()) {
+          String r = UTF_8.decode(stream.next().content()).toString();
+          log.info(r);
+          result.append(r);
+        }
+      } catch (Exception e) {
+        log.info(e.getMessage());
+      }
+    }
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
+  public void testAttachLogNoTimeout() throws Exception {
+    String volumeContainer = createSleepingContainer();
+    StringBuffer result = new StringBuffer();
+    try (LogStream stream = sut.attachContainer(volumeContainer,
+                                                AttachParameter.STDOUT, AttachParameter.STDERR,
+                                                AttachParameter.STREAM, AttachParameter.STDIN)) {
+      try {
+        while (stream.hasNext()) {
+          String r = UTF_8.decode(stream.next().content()).toString();
+          log.info(r);
+          result.append(r);
+        }
+      } catch (Exception e) {
+        log.info(e.getMessage());
+      }
+    }
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
+  public void testLogsNoStdOut() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "echo This message goes to stdout && echo This message goes to stderr 1>&2")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(false), stderr())) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("This message goes to stderr"));
+    assertThat(logs, not(containsString("This message goes to stdout")));
+  }
+
+  @Test
+  public void testLogsNoStdErr() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "echo This message goes to stdout && echo This message goes to stderr 1>&2")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(false))) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("This message goes to stdout"));
+    assertThat(logs, not(containsString("This message goes to stderr")));
+  }
+
+  @Test
+  public void testLogsTimestamps() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("echo", "This message should have a timestamp")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), timestamps())) {
+      logs = stream.readFully();
+    }
+
+    final Pattern timestampPattern = Pattern.compile(
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z.*$", Pattern.DOTALL);
+    assertTrue(timestampPattern.matcher(logs).matches());
+    assertThat(logs, containsString("This message should have a timestamp"));
+  }
+
+  @Test
+  public void testLogsTail() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "echo 1 && echo 2 && echo 3 && echo 4")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), tail(2))) {
+      logs = stream.readFully();
+    }
+
+    assertThat(logs, not(containsString("1")));
+    assertThat(logs, not(containsString("2")));
+    assertThat(logs, containsString("3"));
+    assertThat(logs, containsString("4"));
+  }
+
+  @Test
+  public void testLogsSince() throws Exception {
+    assumeTrue("We need Docker API >= v1.19 to run this test." +
+               "This Docker API is " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final String container = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("echo", "This was printed too late")
+        .build();
+    sut.createContainer(volumeConfig, container);
+    sut.startContainer(container);
+    sut.waitContainer(container);
+
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+
+    final String logs;
+    // Get logs since the current timestamp. This should return nothing.
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr(),
+                                     since((int) (System.currentTimeMillis() / 1000L)))) {
+      logs = stream.readFully();
+    }
+
+    assertThat(logs, not(containsString("This message was printed too late")));
   }
 
   @Test(expected = ContainerNotFoundException.class)
@@ -1396,9 +1775,10 @@ public class DefaultDockerClientTest {
   @Test
   public void testExec() throws DockerException, InterruptedException, IOException {
     assumeTrue("Docker API should be at least v1.15 to support Exec, got "
-            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.15") >= 0);
+               + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.15") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
-            sut.info().executionDriver(), startsWith("native"));
+               sut.info().executionDriver(), startsWith("native"));
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1414,8 +1794,8 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerId);
 
     String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-            DockerClient.ExecParameter.STDOUT,
-            DockerClient.ExecParameter.STDERR);
+                                   DockerClient.ExecParameter.STDOUT,
+                                   DockerClient.ExecParameter.STDERR);
 
     log.info("execId = {}", execId);
 
@@ -1429,7 +1809,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testExecInspect() throws DockerException, InterruptedException, IOException {
     assumeTrue("Docker API should be at least v1.16 to support Exec Inspect, got "
-               + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.16") >= 0);
+               + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.16") >= 0);
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -1486,7 +1867,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testLabels() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.18 to support Labels, got "
-            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(BUSYBOX_LATEST);
 
     Map<String, String> labels = new HashMap<>();
@@ -1495,10 +1877,10 @@ public class DefaultDockerClientTest {
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .labels(labels)
-            .cmd("sleep", "1000")
-            .build();
+        .image(BUSYBOX_LATEST)
+        .labels(labels)
+        .cmd("sleep", "1000")
+        .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
@@ -1514,13 +1896,14 @@ public class DefaultDockerClientTest {
   @Test
   public void testMacAddress() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
-            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.18") >= 0);
+               + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .cmd("sleep", "1000")
-            .macAddress("12:34:56:78:9a:bc")
-            .build();
+        .image(BUSYBOX_LATEST)
+        .cmd("sleep", "1000")
+        .macAddress("12:34:56:78:9a:bc")
+        .build();
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
     final ContainerInfo containerInfo = sut.inspectContainer(container.id());
@@ -1531,56 +1914,22 @@ public class DefaultDockerClientTest {
   @Test
   public void testStats() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.19 to support stats without streaming, got "
-            + sut.version().apiVersion(), versionCompare(sut.version().apiVersion(), "1.19") >= 0);
-    
+               + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
+
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
-    
+
     ContainerStats stats = sut.stats(container.id());
     assertThat(stats.read(), notNullValue());
     assertThat(stats.precpuStats(), notNullValue());
     assertThat(stats.cpuStats(), notNullValue());
     assertThat(stats.memoryStats(), notNullValue());
     assertThat(stats.network(), notNullValue());
-  }
-  
-  /**
-   * Compares two version strings.
-   * <p>
-   * https://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
-   * </p>
-   * Use this instead of String.compareTo() for a non-lexicographical
-   * comparison that works for version strings. e.g. "1.10".compareTo("1.6").
-   *
-   * @param str1 a string of ordinal numbers separated by decimal points.
-   * @param str2 a string of ordinal numbers separated by decimal points.
-   * @return The result is a negative integer if str1 is _numerically_ less than str2.
-   * The result is a positive integer if str1 is _numerically_ greater than str2.
-   * The result is zero if the strings are _numerically_ equal.
-   * N.B. It does not work if "1.10" is supposed to be equal to "1.10.0".
-   */
-  private int versionCompare(String str1, String str2) {
-    String[] vals1 = str1.split("\\.");
-    String[] vals2 = str2.split("\\.");
-    int i = 0;
-    // set index to first non-equal ordinal or length of shortest version string
-    while (i < vals1.length && i < vals2.length && vals1[i].equals(vals2[i])) {
-      i++;
-    }
-    // compare first non-equal ordinal number
-    if (i < vals1.length && i < vals2.length) {
-      int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
-      return Integer.signum(diff);
-    }
-    // the strings are equal or one string is a substring of the other
-    // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
-    else {
-      return Integer.signum(vals1.length - vals2.length);
-    }
   }
 
   private String randomName() {
@@ -1603,8 +1952,29 @@ public class DefaultDockerClientTest {
         .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
   }
 
-  private PoolStats getNoTimeoutClientConnectionPoolStats(final DefaultDockerClient client) {
-    return ((PoolingHttpClientConnectionManager) client.getNoTimeoutClient().getConfiguration()
-        .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
+  private String createSleepingContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    final String volumeContainer = randomName();
+    final ContainerConfig volumeConfig = ContainerConfig.builder().image(BUSYBOX_LATEST)
+        .cmd("sh", "-c",
+             "for i in `seq 1 7`; do "
+             + "sleep ${i} ;"
+             + "echo \"Seen output after ${i} seconds.\" ;"
+             + "done;"
+             + "echo Finished ;")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+    return volumeContainer;
+  }
+
+  private void verifyNoTimeoutContainer(final String volumeContainer, final StringBuffer result)
+      throws Exception {
+    log.info("Reading has finished, waiting for program to end.");
+    sut.waitContainer(volumeContainer);
+    final ContainerInfo info = sut.inspectContainer(volumeContainer);
+    assertThat(result.toString().contains("Finished"), is(true));
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
   }
 }
