@@ -336,7 +336,7 @@ public class DefaultDockerClientTest {
   public void testAuth() throws Exception {
     if (CIRCLECI) {
       final int statusCode = sut.auth(authConfig);
-      assertThat(statusCode, either(200, 401));
+      assertThat(statusCode, anyOf(equalTo(200), equalTo(401)));
     } else {
       final int statusCode = sut.auth(authConfig);
       assertThat(statusCode, equalTo(200));
