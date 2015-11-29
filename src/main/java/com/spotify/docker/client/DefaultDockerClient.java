@@ -19,46 +19,21 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.io.CharStreams;
-import com.google.common.net.HostAndPort;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.AuthRegistryConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
-
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.hk2.api.MultiException;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.internal.util.Base64;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -87,26 +62,92 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static java.lang.System.getProperty;
-import static java.lang.System.getenv;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import jersey.repackaged.com.google.common.base.Preconditions;
+
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.hk2.api.MultiException;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.internal.util.Base64;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.AuthRegistryConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
+  /**
+   * Hack: this {@link ProgressHandler} is meant to capture the image ID of an
+   * image being loaded. Weirdly enough, Docker returns the ID of a newly created image
+   * in the status of a progress message.
+   * <p>
+   * The image ID is required to tag the just loaded image since, also weirdly enough,
+   * the pull operation with the <code>fromSrc</code> parameter does not suppor the <code>tag</code>
+   * parameter. By retrieving the ID, the image can be tagged with its image name, given its ID.
+   */
+  private class LoadProgressHandler implements ProgressHandler {
+    
+    private static final int EXPECTED_CHARACTER_NUM = 64;
+    
+    private final ProgressHandler delegate;
+    
+    private String imageId;
+    
+    private LoadProgressHandler(ProgressHandler delegate) {
+      this.delegate = delegate;
+    }
+    
+    private String getImageId() {
+      Preconditions.checkState(imageId != null, "Could not acquire image ID following load");
+      return imageId;
+    }
+    
+    @Override
+    public void progress(ProgressMessage message) throws DockerException {
+      delegate.progress(message);
+      if (message.status() != null && message.status().length() == EXPECTED_CHARACTER_NUM) {
+        imageId = message.status();
+      }
+    }
+    
+  }
+  
+  // ==========================================================================
+  
   public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
   public static final String DEFAULT_HOST = "localhost";
   public static final int DEFAULT_PORT = 2375;
@@ -644,7 +685,71 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return request(GET, IMAGES_SEARCH_RESULT_LIST, resource,
         resource.request(APPLICATION_JSON_TYPE));
   }
+  
+  @Override
+  public void load(String image, InputStream imagePayload)
+      throws DockerException, InterruptedException {
+    load(image, imagePayload, new LoggingPullHandler("image stream"));
+  }
+  
+  @Override
+  public void load(String image, InputStream imagePayload,
+      AuthConfig authConfig, ProgressHandler handler) throws DockerException,
+      InterruptedException {
+    load(image, imagePayload, handler);
+  }
+  
+  @Override
+  public void load(final String image, final InputStream imagePayload, 
+      final AuthConfig authConfig) throws DockerException, InterruptedException {
+    load(image, imagePayload, authConfig, new LoggingPullHandler("image stream"));
+  }
+  
+  @Override
+  public void load(final String image, final InputStream imagePayload, 
+      final ProgressHandler handler) throws DockerException, InterruptedException {
+  
+    WebTarget resource = resource().path("images").path("create");
 
+    resource = resource
+        .queryParam("fromSrc", "-")
+        .queryParam("tag", image);
+    
+    LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
+    Entity<InputStream> entity = Entity.entity(imagePayload, MediaType.APPLICATION_OCTET_STREAM);
+    try (ProgressStream load =
+             request(POST, ProgressStream.class, resource,
+                     resource
+                         .request(APPLICATION_JSON_TYPE)
+                         .header("X-Registry-Auth", authHeader(authConfig)), entity)) {
+      load.tail(loadProgressHandler, POST, resource.getUri());
+      tag(loadProgressHandler.getImageId(), image, true);
+    } catch (IOException e) {
+      throw new DockerException(e);
+    } finally {
+      IOUtils.closeQuietly(imagePayload);
+    }
+  }
+  
+  @Override
+  public InputStream save(String image) throws DockerException, IOException,
+      InterruptedException {
+    return save(image, authConfig);
+  }
+  
+  @Override
+  public InputStream save(String image, AuthConfig authConfig) throws DockerException, IOException,
+      InterruptedException {
+    WebTarget resource = resource().path("images").path(image).path("get");
+    
+    return request(
+        GET, 
+        InputStream.class, 
+        resource,
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
+    );
+  }
+  
   @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
@@ -842,7 +947,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return imageId;
     }
   }
-
+  
   @Override
   public ImageInfo inspectImage(final String image) throws DockerException, InterruptedException {
     try {
@@ -1082,7 +1187,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw propagate(method, resource, e);
     }
   }
-
+  
   private <T> T request(final String method, final Class<T> clazz,
                         final WebTarget resource, final Invocation.Builder request,
                         final Entity<?> entity)

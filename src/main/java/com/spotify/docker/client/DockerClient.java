@@ -17,6 +17,16 @@
 
 package com.spotify.docker.client;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.file.Path;
+import java.util.List;
+
+import jersey.repackaged.com.google.common.base.Optional;
+
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -31,14 +41,6 @@ import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * A client for interacting with dockerd.
@@ -179,6 +181,90 @@ public interface DockerClient extends Closeable {
    */
   List<ImageSearchResult> searchImages(String term) throws DockerException, InterruptedException;
 
+  
+  /**
+   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * image with the given image name upon loading completion.
+   *  
+   * @param image the name to assign to the image.
+   * @param imagePayload the image's payload 
+   *        (i.e.: the stream corresponding to the image's .tar file).
+   * @param repo the optional repo to which to load the image.
+   * @throws DockerException if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void load(String image, InputStream imagePayload) 
+      throws DockerException, InterruptedException;
+  
+  
+  /**
+   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * image with the given image name upon loading completion.
+   * 
+   * @param image the name to assign to the image.
+   * @param imagePayload the image's payload 
+   *        (i.e.: the stream corresponding to the image's .tar file).
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @throws DockerException if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void load(String image, InputStream imagePayload, ProgressHandler handler) 
+      throws DockerException, InterruptedException;
+  
+  
+  /**
+   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * image with the given image name upon loading completion.
+   *  
+   * @param image the name to assign to the image.
+   * @param imagePayload the image's payload 
+   *        (i.e.: the stream corresponding to the image's .tar file).
+   * @param authConfig The authentication config needed to pull the image.
+   * @throws DockerException if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void load(String image, InputStream imagePayload, AuthConfig authConfig) 
+      throws DockerException, InterruptedException;
+  
+  
+  /**
+   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * image with the given image name upon loading completion.
+   *  
+   * @param image the name to assign to the image.
+   * @param imagePayload the image's payload 
+   *        (i.e.: the stream corresponding to the image's .tar file).
+   * @param authConfig The authentication config needed to pull the image.
+   * @param handler The handler to use for processing each progress message received from Docker.
+   * @throws DockerException if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void load(String image, InputStream imagePayload, AuthConfig authConfig, 
+      ProgressHandler handler) throws DockerException, InterruptedException;
+
+  
+  /**
+   * @param image the name of the image to save.
+   * @return the image's .tar stream.
+   * @throws DockerException if a server error occurred (500).
+   * @throws IOException if the server started returning, but an I/O error occurred 
+   *                     in the context of processing it on the client-side.
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  InputStream save(String image) throws DockerException, IOException, InterruptedException;
+
+  /**
+   * @param image the name of the image to save.
+   * @param authConfig The authentication config needed to pull the image.
+   * @return the image's .tar stream.
+   * @throws DockerException if a server error occurred (500).
+   * @throws IOException if the server started returning, but an I/O error occurred 
+   *                     in the context of processing it on the client-side.
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  InputStream save(String image, AuthConfig authConfig) 
+      throws DockerException, IOException, InterruptedException;
+  
   /**
    * Pull a docker container image.
    *
