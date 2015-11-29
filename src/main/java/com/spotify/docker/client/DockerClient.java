@@ -189,7 +189,6 @@ public interface DockerClient extends Closeable {
    * @param image the name to assign to the image.
    * @param imagePayload the image's payload 
    *        (i.e.: the stream corresponding to the image's .tar file).
-   * @param repo the optional repo to which to load the image.
    * @throws DockerException if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
@@ -240,7 +239,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(String image, InputStream imagePayload, AuthConfig authConfig, 
-      ProgressHandler handler) throws DockerException, InterruptedException;
+            ProgressHandler handler) throws DockerException, InterruptedException;
 
   
   /**
