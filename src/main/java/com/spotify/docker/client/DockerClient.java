@@ -240,7 +240,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(String image, InputStream imagePayload, AuthConfig authConfig, 
-      ProgressHandler handler) throws DockerException, InterruptedException;
+            ProgressHandler handler) throws DockerException, InterruptedException;
 
   
   /**

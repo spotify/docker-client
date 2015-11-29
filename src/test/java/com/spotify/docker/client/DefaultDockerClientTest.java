@@ -54,6 +54,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.either;
+
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -353,13 +355,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAuth() throws Exception {
-    if (CIRCLECI) {
-      final int statusCode = sut.auth(authConfig);
-      assertThat(statusCode, anyOf(equalTo(200), equalTo(401)));
-    } else {
-      final int statusCode = sut.auth(authConfig);
-      assertThat(statusCode, equalTo(200));
-    }
+    assumeFalse(CIRCLECI);
+    final int statusCode = sut.auth(authConfig);
+    assertThat(statusCode, equalTo(200));
   }
 
   @Test
