@@ -17,77 +17,6 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
-import com.google.common.util.concurrent.SettableFuture;
-
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.spotify.docker.client.DockerClient.AttachParameter;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TestName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
-
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -125,6 +54,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.either;
+
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -136,6 +67,86 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
+
+import jersey.repackaged.com.google.common.base.Predicate;
+import jersey.repackaged.com.google.common.collect.Collections2;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
+import com.google.common.util.concurrent.SettableFuture;
+import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
 
 public class DefaultDockerClientTest {
 
@@ -252,7 +263,7 @@ public class DefaultDockerClientTest {
         .build();
     sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
-
+  
   @Test
   public void testFailedPullDoesNotLeakConn() throws Exception {
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
@@ -277,6 +288,52 @@ public class DefaultDockerClientTest {
 
     sut.pull(BUSYBOX + "@sha256:7d3ce4e482101f0c484602dd6687c826bb8bef6295739088c58e84245845912e");
   }
+  
+  @Test
+  public void testSave() throws Exception {
+    File imageFile = save(BUSYBOX);
+    assertTrue(imageFile.length() > 0);
+  }
+  
+  private File save(String image) throws Exception {
+    final File tmpDir    = new File(System.getProperty("java.io.tmpdir"));
+    assertTrue("Temp directory " + tmpDir.getAbsolutePath() + " does not exist", tmpDir.exists());
+    final File imageFile = new File(tmpDir, "busybox-" + System.nanoTime() + ".tar");
+    imageFile.createNewFile();
+    imageFile.deleteOnExit();
+    final byte[] buffer = new byte[2048];
+    int read;
+    try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(imageFile))) {
+      try (InputStream imageInput = sut.save(image, authConfig)) {
+        while ((read = imageInput.read(buffer)) > -1) {
+          imageOutput.write(buffer, 0, read);
+        }
+      } 
+    }
+    return imageFile;
+  }
+  
+  @Test
+  public void testLoad() throws Exception {
+    final File imageFile = save(BUSYBOX);
+    final String image = BUSYBOX + "test" + System.nanoTime();
+    try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
+      
+      sut.load(image, imagePayload, authConfig);
+    }
+    final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
+      @Override
+      public boolean apply(Image img) {
+        return img.repoTags().contains(image + ":latest");
+      }
+    });
+    
+    assertThat(images.size(), greaterThan(0));
+    
+    for (Image img : images) {
+      sut.removeImage(img.id());
+    }
+  }
 
   @Test
   public void testPingReturnsOk() throws Exception {
@@ -298,6 +355,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAuth() throws Exception {
+    assumeFalse(CIRCLECI);
     final int statusCode = sut.auth(authConfig);
     assertThat(statusCode, equalTo(200));
   }
@@ -559,8 +617,7 @@ public class DefaultDockerClientTest {
     sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
-        final String status = message.status();
-        if (!isNullOrEmpty(status) && status.contains(pullMsg)) {
+        if (!isNullOrEmpty(message.status()) && message.status().contains(pullMsg)) {
           pulled.set(true);
         }
       }
