@@ -353,6 +353,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAuth() throws Exception {
+    assumeFalse(CIRCLECI);
     final int statusCode = sut.auth(authConfig);
     assertThat(statusCode, equalTo(200));
   }
