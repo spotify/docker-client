@@ -33,6 +33,12 @@ for (String port : ports) {
     hostPorts.add(PortBinding.of("0.0.0.0", port));
     portBindings.put(port, hostPorts);
 }
+
+// Bind container port 443 to an automatically allocated available host port.
+List<PortBinding> randomPort = new ArrayList<PortBinding>();
+randomPort.add(PortBinding.of("0.0.0.0", PortBinding.RANDOM_AVAILABLE_PORT);
+portBindings.put("443", randomPort);
+
 final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings).build();
 
 // Create container with exposed ports
