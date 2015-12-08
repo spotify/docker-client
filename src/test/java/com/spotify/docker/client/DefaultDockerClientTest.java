@@ -261,7 +261,7 @@ public class DefaultDockerClientTest {
         .build();
     sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
-  
+
   @Test
   public void testFailedPullDoesNotLeakConn() throws Exception {
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
@@ -286,13 +286,13 @@ public class DefaultDockerClientTest {
 
     sut.pull(BUSYBOX + "@sha256:7d3ce4e482101f0c484602dd6687c826bb8bef6295739088c58e84245845912e");
   }
-  
+
   @Test
   public void testSave() throws Exception {
     File imageFile = save(BUSYBOX);
     assertTrue(imageFile.length() > 0);
   }
-  
+
   private File save(String image) throws Exception {
     final File tmpDir    = new File(System.getProperty("java.io.tmpdir"));
     assertTrue("Temp directory " + tmpDir.getAbsolutePath() + " does not exist", tmpDir.exists());
@@ -306,17 +306,17 @@ public class DefaultDockerClientTest {
         while ((read = imageInput.read(buffer)) > -1) {
           imageOutput.write(buffer, 0, read);
         }
-      } 
+      }
     }
     return imageFile;
   }
-  
+
   @Test
   public void testLoad() throws Exception {
     final File imageFile = save(BUSYBOX);
     final String image = BUSYBOX + "test" + System.nanoTime();
     try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
-      
+
       sut.load(image, imagePayload, authConfig);
     }
     final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
@@ -325,9 +325,9 @@ public class DefaultDockerClientTest {
         return img.repoTags().contains(image + ":latest");
       }
     });
-    
+
     assertThat(images.size(), greaterThan(0));
-    
+
     for (Image img : images) {
       sut.removeImage(img.id());
     }
@@ -554,16 +554,16 @@ public class DefaultDockerClientTest {
   public void testBuildPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
     final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-            .password(AUTH_PASSWORD).build();
+        .password(AUTH_PASSWORD).build();
 
     final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-            .uri(dockerEndpoint)
-            .authConfig(authConfig)
-            .build();
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
 
     sut2.build(Paths.get(dockerDirectory),
-            "testauth",
-            DockerClient.BuildParameter.PULL_NEWER_IMAGE);
+               "testauth",
+               DockerClient.BuildParameter.PULL_NEWER_IMAGE);
   }
 
   @Test
@@ -1194,7 +1194,7 @@ public class DefaultDockerClientTest {
   public void testContainerWithHostConfig() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
                "HostConfig, got " + sut.version().apiVersion(),
-                compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1428,20 +1428,20 @@ public class DefaultDockerClientTest {
   public void testExtraHosts() throws Exception {
 
     assumeTrue("Docker API should be at least v1.15 to support Container Creation with " +
-        "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
-         compareVersion(sut.version().apiVersion(), "1.15") >= 0);
+               "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.15") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
     final HostConfig expected = HostConfig.builder()
-     .extraHosts("extrahost:1.2.3.4")
-     .build();
+        .extraHosts("extrahost:1.2.3.4")
+        .build();
 
     final ContainerConfig config = ContainerConfig.builder()
-     .image(BUSYBOX_LATEST)
-     .hostConfig(expected)
-     .cmd("sh", "-c", "cat /etc/hosts | grep extrahost")
-     .build();
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .cmd("sh", "-c", "cat /etc/hosts | grep extrahost")
+        .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
@@ -1454,7 +1454,7 @@ public class DefaultDockerClientTest {
 
     final String logs;
     try (LogStream stream = sut.logs(id, stdout(), stderr())) {
-        logs = stream.readFully();
+      logs = stream.readFully();
     }
     assertThat(logs, containsString("1.2.3.4"));
 
@@ -1462,42 +1462,42 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testVolumesFrom() throws Exception {
-      sut.pull(BUSYBOX_LATEST);
+    sut.pull(BUSYBOX_LATEST);
 
-      final String volumeContainer = randomName();
-      final String mountContainer = randomName();
+    final String volumeContainer = randomName();
+    final String mountContainer = randomName();
 
-      final ContainerConfig volumeConfig = ContainerConfig.builder()
-              .image(BUSYBOX_LATEST)
-              .volumes("/foo")
-              .cmd("touch", "/foo/bar")
-              .build();
-      sut.createContainer(volumeConfig, volumeContainer);
-      sut.startContainer(volumeContainer);
-      sut.waitContainer(volumeContainer);
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .volumes("/foo")
+        .cmd("touch", "/foo/bar")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+    sut.waitContainer(volumeContainer);
 
-      final HostConfig mountHostConfig = HostConfig.builder()
-              .volumesFrom(volumeContainer)
-              .build();
-      final ContainerConfig mountConfig = ContainerConfig.builder()
-              .image(BUSYBOX_LATEST)
-              .hostConfig(mountHostConfig)
-              .cmd("ls", "/foo")
-              .build();
+    final HostConfig mountHostConfig = HostConfig.builder()
+        .volumesFrom(volumeContainer)
+        .build();
+    final ContainerConfig mountConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(mountHostConfig)
+        .cmd("ls", "/foo")
+        .build();
 
-      sut.createContainer(mountConfig, mountContainer);
-      sut.startContainer(mountContainer);
-      sut.waitContainer(mountContainer);
+    sut.createContainer(mountConfig, mountContainer);
+    sut.startContainer(mountContainer);
+    sut.waitContainer(mountContainer);
 
-      final ContainerInfo info = sut.inspectContainer(mountContainer);
-      assertThat(info.state().running(), is(false));
-      assertThat(info.state().exitCode(), is(0));
+    final ContainerInfo info = sut.inspectContainer(mountContainer);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
 
-      final String logs;
-      try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
-          logs = stream.readFully();
-      }
-      assertThat(logs, containsString("bar"));
+    final String logs;
+    try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
+      logs = stream.readFully();
+    }
+    assertThat(logs, containsString("bar"));
   }
 
   @Test
