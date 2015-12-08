@@ -28,6 +28,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class PortBinding {
 
+  public static final String RANDOM_AVAILABLE_PORT = "";
+
   @JsonProperty("HostIp") private String hostIp;
   @JsonProperty("HostPort") private String hostPort;
 
