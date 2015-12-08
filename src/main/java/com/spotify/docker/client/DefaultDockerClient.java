@@ -123,22 +123,22 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * image name, given its ID.
    */
   private static class LoadProgressHandler implements ProgressHandler {
-    
+
     private static final int EXPECTED_CHARACTER_NUM = 64;
-    
+
     private final ProgressHandler delegate;
-    
+
     private String imageId;
-    
+
     private LoadProgressHandler(ProgressHandler delegate) {
       this.delegate = delegate;
     }
-    
+
     private String getImageId() {
       Preconditions.checkState(imageId != null, "Could not acquire image ID following load");
       return imageId;
     }
-    
+
     @Override
     public void progress(ProgressMessage message) throws DockerException {
       delegate.progress(message);
@@ -146,11 +146,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         imageId = message.status();
       }
     }
-    
+
   }
-  
+
   // ==========================================================================
-  
+
   public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
   public static final String DEFAULT_HOST = "localhost";
   public static final int DEFAULT_PORT = 2375;
@@ -575,7 +575,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                    resource.request(APPLICATION_OCTET_STREAM_TYPE));
   }
 
-  
+
   @Override
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
@@ -593,25 +593,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void copyToContainer(final Path directory, String containerId, String path)
-      throws DockerException, InterruptedException, IOException {  
-      final WebTarget resource = resource() 
-                       .path("containers")
-                       .path(containerId)
-                       .path("archive")
-                       .queryParam("noOverwriteDirNonDir", true)
-                       .queryParam("path", path);
+      throws DockerException, InterruptedException, IOException {
+    final WebTarget resource = resource()
+        .path("containers")
+        .path(containerId)
+        .path("archive")
+        .queryParam("noOverwriteDirNonDir", true)
+        .queryParam("path", path);
 
-    
-      CompressedDirectory compressedDirectory 
-          = CompressedDirectory.create(directory);
 
-      final InputStream fileStream = 
-          Files.newInputStream(compressedDirectory.file());
-          
-      request(PUT, String.class, resource,
-              resource.request(APPLICATION_OCTET_STREAM_TYPE),
-              Entity.entity(fileStream, "application/tar"));
-  }  
+    CompressedDirectory compressedDirectory
+        = CompressedDirectory.create(directory);
+
+    final InputStream fileStream =
+        Files.newInputStream(compressedDirectory.file());
+
+    request(PUT, String.class, resource,
+            resource.request(APPLICATION_OCTET_STREAM_TYPE),
+            Entity.entity(fileStream, "application/tar"));
+  }
 
   @Override
   public ContainerInfo inspectContainer(final String containerId)
@@ -680,40 +680,40 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final WebTarget resource = resource().path("images").path("search")
         .queryParam("term", term);
     return request(GET, IMAGES_SEARCH_RESULT_LIST, resource,
-        resource.request(APPLICATION_JSON_TYPE));
+                   resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public void load(final String image, final InputStream imagePayload)
-                   throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     load(image, imagePayload, new LoggingPullHandler("image stream"));
   }
-  
+
   @Override
   public void load(final String image, final InputStream imagePayload,
-                   final AuthConfig authConfig, final ProgressHandler handler) 
-                   throws DockerException, InterruptedException {
+                   final AuthConfig authConfig, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
     load(image, imagePayload, handler);
   }
-  
+
   @Override
-  public void load(final String image, final InputStream imagePayload, 
-                   final AuthConfig authConfig) 
-                   throws DockerException, InterruptedException {
+  public void load(final String image, final InputStream imagePayload,
+                   final AuthConfig authConfig)
+      throws DockerException, InterruptedException {
     load(image, imagePayload, authConfig, new LoggingPullHandler("image stream"));
   }
-  
+
   @Override
-  public void load(final String image, final InputStream imagePayload, 
-                   final ProgressHandler handler) 
-                   throws DockerException, InterruptedException {
-  
+  public void load(final String image, final InputStream imagePayload,
+                   final ProgressHandler handler)
+      throws DockerException, InterruptedException {
+
     WebTarget resource = resource().path("images").path("create");
 
     resource = resource
         .queryParam("fromSrc", "-")
         .queryParam("tag", image);
-    
+
     LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     Entity<InputStream> entity = Entity.entity(imagePayload, MediaType.APPLICATION_OCTET_STREAM);
     try (ProgressStream load =
@@ -729,26 +729,26 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       IOUtils.closeQuietly(imagePayload);
     }
   }
-  
+
   @Override
-  public InputStream save(final String image) 
+  public InputStream save(final String image)
       throws DockerException, IOException, InterruptedException {
     return save(image, authConfig);
   }
-  
+
   @Override
-  public InputStream save(final String image, final AuthConfig authConfig) 
+  public InputStream save(final String image, final AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException {
     WebTarget resource = resource().path("images").path(image).path("get");
-    
+
     return request(
-        GET, 
-        InputStream.class, 
+        GET,
+        InputStream.class,
         resource,
         resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
     );
   }
-  
+
   @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
@@ -810,7 +810,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
-                             .header("X-Registry-Auth", authHeader()))) {
+                         .header("X-Registry-Auth", authHeader()))) {
       push.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -914,8 +914,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
          final ProgressStream build =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
-                              .header("X-Registry-Config",
-                                      authRegistryHeader(authRegistryConfig)),
+                         .header("X-Registry-Config",
+                                 authRegistryHeader(authRegistryConfig)),
                      Entity.entity(fileStream, "application/tar"))) {
 
       String imageId = null;
@@ -930,7 +930,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return imageId;
     }
   }
-  
+
   @Override
   public ImageInfo inspectImage(final String image) throws DockerException, InterruptedException {
     try {
@@ -993,7 +993,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     for (final AttachParameter param : params) {
       resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT),
-          String.valueOf(true));
+                                     String.valueOf(true));
     }
 
     return getLogStream(POST, resource, containerId);
@@ -1017,7 +1017,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public String execCreate(String containerId, String[] cmd, ExecParameter... params)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
     final StringWriter writer = new StringWriter();
@@ -1045,8 +1045,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     String response;
     try {
       response = request(POST, String.class, resource,
-              resource.request(APPLICATION_JSON_TYPE),
-              Entity.json(writer.toString()));
+                         resource.request(APPLICATION_JSON_TYPE),
+                         Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -1066,7 +1066,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public LogStream execStart(String execId, ExecStartParameter... params)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("exec").path(execId).path("start");
 
     final StringWriter writer = new StringWriter();
@@ -1116,7 +1116,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public ContainerStats stats(final String containerId)
-           throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("containers").path(containerId).path("stats")
         .queryParam("stream", "0");
 
@@ -1167,7 +1167,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw propagate(method, resource, e);
     }
   }
-  
+
   private <T> T request(final String method, final Class<T> clazz,
                         final WebTarget resource, final Invocation.Builder request,
                         final Entity<?> entity)
@@ -1246,21 +1246,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
     try {
       return Base64.encodeAsString(ObjectMapperProvider
-              .objectMapper()
-              .writeValueAsString(authConfig));
+                                       .objectMapper()
+                                       .writeValueAsString(authConfig));
     } catch (JsonProcessingException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
     }
   }
 
   private String authRegistryHeader(final AuthRegistryConfig authRegistryConfig)
-    throws DockerException {
+      throws DockerException {
     if (authRegistryConfig == null) {
       return "null";
     }
     try {
       String authRegistryJson =
-        ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
+          ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
 
       final String apiVersion = version().apiVersion();
       final int versionComparison = compareVersion(apiVersion, "1.19");
@@ -1299,12 +1299,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
     final Path dockerCertPath = Paths.get(fromNullable(getenv("DOCKER_CERT_PATH"))
-            .or(defaultCertPath()));
+                                              .or(defaultCertPath()));
 
     final Builder builder = new Builder();
 
     final Optional<DockerCertificates> certs = DockerCertificates.builder()
-            .dockerCertPath(dockerCertPath).build();
+        .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
       builder.uri(endpoint);

@@ -181,25 +181,25 @@ public interface DockerClient extends Closeable {
    */
   List<ImageSearchResult> searchImages(String term) throws DockerException, InterruptedException;
 
-  
+
   /**
    * Loads an image (the given input stream is closed internally). This method also tags the 
    * image with the given image name upon loading completion.
-   *  
+   *
    * @param image the name to assign to the image.
    * @param imagePayload the image's payload 
    *        (i.e.: the stream corresponding to the image's .tar file).
    * @throws DockerException if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
-  void load(String image, InputStream imagePayload) 
+  void load(String image, InputStream imagePayload)
       throws DockerException, InterruptedException;
-  
-  
+
+
   /**
    * Loads an image (the given input stream is closed internally). This method also tags the 
    * image with the given image name upon loading completion.
-   * 
+   *
    * @param image the name to assign to the image.
    * @param imagePayload the image's payload 
    *        (i.e.: the stream corresponding to the image's .tar file).
@@ -207,14 +207,14 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
-  void load(String image, InputStream imagePayload, ProgressHandler handler) 
+  void load(String image, InputStream imagePayload, ProgressHandler handler)
       throws DockerException, InterruptedException;
-  
-  
+
+
   /**
    * Loads an image (the given input stream is closed internally). This method also tags the 
    * image with the given image name upon loading completion.
-   *  
+   *
    * @param image the name to assign to the image.
    * @param imagePayload the image's payload 
    *        (i.e.: the stream corresponding to the image's .tar file).
@@ -222,14 +222,14 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
-  void load(String image, InputStream imagePayload, AuthConfig authConfig) 
+  void load(String image, InputStream imagePayload, AuthConfig authConfig)
       throws DockerException, InterruptedException;
-  
-  
+
+
   /**
    * Loads an image (the given input stream is closed internally). This method also tags the 
    * image with the given image name upon loading completion.
-   *  
+   *
    * @param image the name to assign to the image.
    * @param imagePayload the image's payload 
    *        (i.e.: the stream corresponding to the image's .tar file).
@@ -238,10 +238,10 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
-  void load(String image, InputStream imagePayload, AuthConfig authConfig, 
+  void load(String image, InputStream imagePayload, AuthConfig authConfig,
             ProgressHandler handler) throws DockerException, InterruptedException;
 
-  
+
   /**
    * @param image the name of the image to save.
    * @return the image's .tar stream.
@@ -261,9 +261,9 @@ public interface DockerClient extends Closeable {
    *                     in the context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
-  InputStream save(String image, AuthConfig authConfig) 
+  InputStream save(String image, AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException;
-  
+
   /**
    * Pull a docker container image.
    *
@@ -283,15 +283,15 @@ public interface DockerClient extends Closeable {
    */
   void pull(String image, ProgressHandler handler) throws DockerException, InterruptedException;
 
-   /**
+  /**
    * Pull a private docker container image.
    *
    * @param image The image to pull.
    * @param authConfig The authentication config needed to pull the image.
-    * @throws DockerException if a server error occurred (500)
-    * @throws InterruptedException If the thread is interrupted
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
    */
-   void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
+  void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
 
   /**
    * Pull a private docker container image, using a custom ProgressMessageHandler.
@@ -603,10 +603,10 @@ public interface DockerClient extends Closeable {
    */
   InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
-  
+
   /**
    * Copies some files from host to container. (API version 1.20+)
-   * 
+   *
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
    * @param path        The path inside of the container to put files.
@@ -614,7 +614,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void copyToContainer(final Path directory, String containerId, String path)
-       throws DockerException, InterruptedException, IOException;  
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Get docker container logs.
