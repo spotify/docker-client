@@ -30,69 +30,66 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Network {
+public class NetworkConfig {
 
-  @JsonProperty("Name") private String name;
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Scope") private String scope;
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("IPAM") private Ipam ipam;
-  @JsonProperty("Options") private Map<String, String> options;
+  @JsonProperty("Name")
+  private String name;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("IPAM")
+  private Ipam ipam;
+  @JsonProperty("Options")
+  private Map<String, String> options;
+  @JsonProperty("CheckDuplicate")
+  private boolean checkDuplicate;
 
-  private Network() {
+  private NetworkConfig() {
   }
 
-  private Network(final Builder builder) {
+  private NetworkConfig(final Builder builder) {
     this.name = builder.name;
     this.options = builder.options;
     this.driver = builder.driver;
+    this.checkDuplicate = builder.checkDuplicate;
   }
 
   public String name() {
     return name;
   }
 
-  public String id() {
-    return id;
-  }
-
-  public String scope() {
-    return scope;
-  }
-
   public String driver() {
     return driver;
   }
+
   public Map<String, String> options() {
     return options;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    Network that = (Network) o;
+    NetworkConfig that = (NetworkConfig) o;
 
-    return Objects.equal(this.name, that.name) &&
-        Objects.equal(this.id, that.id) &&
-        Objects.equal(this.scope, that.scope) &&
-        Objects.equal(this.driver, that.driver) &&
-        Objects.equal(this.options, that.options);
+    if (checkDuplicate != that.checkDuplicate) return false;
+    if (!name.equals(that.name)) return false;
+    if (driver != null ? !driver.equals(that.driver) : that.driver != null) return false;
+    if (ipam != null ? !ipam.equals(that.ipam) : that.ipam != null) return false;
+    return !(options != null ? !options.equals(that.options) : that.options != null);
+
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(name, id, scope, driver, options);
+    int result = name.hashCode();
+    result = 31 * result + (driver != null ? driver.hashCode() : 0);
+    result = 31 * result + (ipam != null ? ipam.hashCode() : 0);
+    result = 31 * result + (options != null ? options.hashCode() : 0);
+    result = 31 * result + (checkDuplicate ? 1 : 0);
+    return result;
   }
 
-  public Builder toBuilder() {
-    return new Builder(this);
-  }
 
   public static Builder builder() {
     return new Builder();
@@ -100,13 +97,8 @@ public class Network {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("id", id)
-        .add("scope", scope)
-        .add("driver", driver)
-        .add("options", options)
-        .toString();
+    return MoreObjects.toStringHelper(this).add("name", name).add("driver", driver)
+        .add("options", options).add("checkDuplicate", checkDuplicate).toString();
   }
 
   public static class Builder {
@@ -114,14 +106,10 @@ public class Network {
     private String name;
     private Map<String, String> options = new HashMap<String, String>();
     private String driver;
+    private Ipam ipam;
+    public boolean checkDuplicate;
 
     private Builder() {
-    }
-
-    private Builder(Network network) {
-      this.name = network.name;
-      this.options = network.options;
-      this.driver = network.driver;
     }
 
     public Builder name(final String name) {
@@ -138,6 +126,13 @@ public class Network {
       return this;
     }
 
+    public Builder ipam(final Ipam ipam) {
+      if (ipam != null) {
+        this.ipam = ipam;
+      }
+      return this;
+    }
+
     public Builder driver(final String driver) {
       if (driver != null && !driver.isEmpty()) {
         this.driver = driver;
@@ -145,8 +140,13 @@ public class Network {
       return this;
     }
 
-    public Network build() {
-      return new Network(this);
+    public Builder checkDuplicate(boolean check) {
+      this.checkDuplicate = check;
+      return this;
+    }
+
+    public NetworkConfig build() {
+      return new NetworkConfig(this);
     }
 
   }

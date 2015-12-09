@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -29,6 +30,14 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Ipam {
+
+  public Ipam() {
+  }
+
+  public Ipam(final String driver, final List<Config> config) {
+    this.driver = driver;
+    this.config = config;
+  }
 
   @JsonProperty("Driver") private String driver;
   @JsonProperty("Config") private List<Config> config;
@@ -69,4 +78,32 @@ public class Ipam {
         .toString();
   }
 
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+
+  public static class Builder {
+    private String driver;
+    private List<Config> configs = new ArrayList<Config>();
+
+    public Builder driver(final String driver) {
+      this.driver = driver;
+      return this;
+    }
+
+    public Builder config(final String subnet, final String ipRange, final String gateway ) {
+      Config config = new Config();
+      config.subnet(subnet);
+      config.ipRange(ipRange);
+      config.gateway(gateway);
+      configs.add(config);
+      return this;
+    }
+
+    public Ipam build() {
+      return new Ipam(this.driver, this.configs);
+    }
+  }
 }

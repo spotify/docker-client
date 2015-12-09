@@ -28,20 +28,35 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Config {
 
-  @JsonProperty("Subnet") private String subnet;
-  @JsonProperty("IPRange") private String ipRange;
-  @JsonProperty("Gateway") private String gateway;
+  @JsonProperty("Subnet")
+  private String subnet;
+  @JsonProperty("IPRange")
+  private String ipRange;
+  @JsonProperty("Gateway")
+  private String gateway;
 
   public String subnet() {
     return subnet;
+  }
+
+  public void subnet(final String subnet) {
+    this.subnet = subnet;
   }
 
   public String ipRange() {
     return ipRange;
   }
 
+  public void ipRange(final String ipRange) {
+    this.ipRange = ipRange;
+  }
+
   public String gateway() {
     return gateway;
+  }
+
+  public void gateway(final String gateway) {
+    this.gateway = gateway;
   }
 
   @Override
@@ -67,11 +82,8 @@ public class Config {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("subnet", subnet)
-        .add("ipRange", ipRange)
-        .add("gateway", gateway)
-        .toString();
+    return MoreObjects.toStringHelper(this).add("subnet", subnet).add("ipRange", ipRange)
+        .add("gateway", gateway).toString();
   }
 
 }

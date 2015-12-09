@@ -19,22 +19,7 @@ package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
 
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.Network;
-import com.spotify.docker.client.messages.NetworkCreation;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
+import com.spotify.docker.client.messages.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -653,12 +638,12 @@ public interface DockerClient extends Closeable {
   /**
    * Create a new network
    *
-   * @param network
+   * @param networkConfig The network creation parameters
    * @return
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  NetworkCreation createNetwork(final Network network) throws DockerException, InterruptedException;
+  NetworkCreation createNetwork(final NetworkConfig networkConfig) throws DockerException, InterruptedException;
 
   /**
    * Remove a docker network.

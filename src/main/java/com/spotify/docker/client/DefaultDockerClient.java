@@ -27,24 +27,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.AuthRegistryConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.Network;
-import com.spotify.docker.client.messages.NetworkCreation;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
+import com.spotify.docker.client.messages.*;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
@@ -1053,12 +1036,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public NetworkCreation createNetwork(Network network)
+  public NetworkCreation createNetwork(NetworkConfig networkConfig)
       throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path("create");
 
     return request(POST, NetworkCreation.class, resource,
-        resource.request(APPLICATION_JSON_TYPE), Entity.json(network));
+        resource.request(APPLICATION_JSON_TYPE), Entity.json(networkConfig));
   }
 
   @Override
