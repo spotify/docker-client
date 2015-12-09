@@ -1915,10 +1915,6 @@ public class DefaultDockerClientTest {
       fail();
     }
 
-//    for (Network network : networks) {
-//      System.out.println("--->" + sut.inspectNetwork(network.id()));
-//    }
-//    assertThat(networks, hasSize(0));
   }
 
   private String randomName() {
