@@ -67,15 +67,27 @@ public class NetworkConfig {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     NetworkConfig that = (NetworkConfig) o;
 
-    if (checkDuplicate != that.checkDuplicate) return false;
-    if (!name.equals(that.name)) return false;
-    if (driver != null ? !driver.equals(that.driver) : that.driver != null) return false;
-    if (ipam != null ? !ipam.equals(that.ipam) : that.ipam != null) return false;
+    if (checkDuplicate != that.checkDuplicate) {
+      return false;
+    }
+    if (!name.equals(that.name)) {
+      return false;
+    }
+    if (driver != null ? !driver.equals(that.driver) : that.driver != null) {
+      return false;
+    }
+    if (ipam != null ? !ipam.equals(that.ipam) : that.ipam != null) {
+      return false;
+    }
     return !(options != null ? !options.equals(that.options) : that.options != null);
 
   }

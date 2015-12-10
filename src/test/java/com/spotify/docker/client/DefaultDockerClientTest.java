@@ -17,31 +17,34 @@
 
 package com.spotify.docker.client;
 
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
-
-import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
-import com.spotify.docker.client.messages.*;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TestName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Ipam;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +75,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -105,7 +122,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -1383,7 +1399,8 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig volumeConfig =
         ContainerConfig.builder().image(BUSYBOX_LATEST).volumes("/foo")
-            // TODO (mbrown): remove sleep - added to make sure container is still alive when attaching
+            // TODO (mbrown): remove sleep - added to make sure container is still alive when
+            // attaching
             //.cmd("ls", "-la")
             .cmd("sh", "-c", "ls -la; sleep 3").build();
     sut.createContainer(volumeConfig, volumeContainer);
@@ -1788,8 +1805,15 @@ public class DefaultDockerClientTest {
 
     assumeFalse(CIRCLECI);
 
-    final String networkName = "testnetwork";
-    final NetworkConfig networkConfig = build;
+    final String networkName = randomName();
+    final NetworkConfig networkConfig =
+        NetworkConfig.builder()
+            .name(networkName).driver("bridge").checkDuplicate(true)
+            //.ipam(
+            //Ipam.builder().driver("default").config("192.168.0.0", "192.168.0.2-255", "192.168
+            // .0.1")
+    //        .build())
+    .build();
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
     assertThat(networkCreation.id(), is(notNullValue()));

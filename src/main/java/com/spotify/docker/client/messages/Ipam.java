@@ -39,8 +39,10 @@ public class Ipam {
     this.config = config;
   }
 
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("Config") private List<Config> config;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("Config")
+  private List<Config> config;
 
   public String driver() {
     return driver;
@@ -61,8 +63,7 @@ public class Ipam {
 
     Ipam that = (Ipam) o;
 
-    return Objects.equal(this.driver, that.driver) &&
-        Objects.equal(this.config, that.config);
+    return Objects.equal(this.driver, that.driver) && Objects.equal(this.config, that.config);
   }
 
   @Override
@@ -72,10 +73,7 @@ public class Ipam {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("driver", driver)
-        .add("config", config)
-        .toString();
+    return MoreObjects.toStringHelper(this).add("driver", driver).add("config", config).toString();
   }
 
 
@@ -93,7 +91,7 @@ public class Ipam {
       return this;
     }
 
-    public Builder config(final String subnet, final String ipRange, final String gateway ) {
+    public Builder config(final String subnet, final String ipRange, final String gateway) {
       Config config = new Config();
       config.subnet(subnet);
       config.ipRange(ipRange);

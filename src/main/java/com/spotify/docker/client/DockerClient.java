@@ -18,9 +18,23 @@
 package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
-
-import com.spotify.docker.client.messages.*;
-
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +45,7 @@ import java.util.List;
 
 /**
  * A client for interacting with dockerd.
- *
+ * <p/>
  * Note: All methods throw DockerException on unexpected docker response status codes.
  */
 public interface DockerClient extends Closeable {
@@ -39,8 +53,9 @@ public interface DockerClient extends Closeable {
   /**
    * Ping the docker daemon. Returns "OK" if all is well, though that
    * it simply returns a 200 status is probably sufficient information.
+   *
    * @return String "OK"
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   String ping() throws DockerException, InterruptedException;
@@ -49,7 +64,7 @@ public interface DockerClient extends Closeable {
    * Get the docker version.
    *
    * @return docker version
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   Version version() throws DockerException, InterruptedException;
@@ -59,7 +74,7 @@ public interface DockerClient extends Closeable {
    *
    * @param authConfig The authentication config needed to pull the image.
    * @return status code of auth request
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   int auth(final AuthConfig authConfig) throws DockerException, InterruptedException;
@@ -68,7 +83,7 @@ public interface DockerClient extends Closeable {
    * Get docker instance information.
    *
    * @return docker info
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   Info info() throws DockerException, InterruptedException;
@@ -78,7 +93,7 @@ public interface DockerClient extends Closeable {
    *
    * @param params Container listing and filtering options.
    * @return A list of containers.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<Container> listContainers(ListContainersParam... params)
@@ -89,7 +104,7 @@ public interface DockerClient extends Closeable {
    *
    * @param params Image listing and filtering options.
    * @return A list of images.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<Image> listImages(ListImagesParam... params) throws DockerException, InterruptedException;
@@ -99,7 +114,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to inspect.
    * @return Info about the container.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerInfo inspectContainer(String containerId) throws DockerException, InterruptedException;
@@ -108,20 +123,17 @@ public interface DockerClient extends Closeable {
    * Create a new image from a container's changes.
    *
    * @param containerId The id of the container to commit.
-   * @param comment commit message.
-   * @param author image author.
-   * @param tag image tag.
-   * @param repo repository to commit to.
-   * @param config ContainerConfig to commit.
+   * @param comment     commit message.
+   * @param author      image author.
+   * @param tag         image tag.
+   * @param repo        repository to commit to.
+   * @param config      ContainerConfig to commit.
    * @return ContainerCreation reply.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  ContainerCreation commitContainer(final String containerId,
-                                    final String repo,
-                                    final String tag,
-                                    final ContainerConfig config,
-                                    final String comment,
+  ContainerCreation commitContainer(final String containerId, final String repo, final String tag,
+                                    final ContainerConfig config, final String comment,
                                     final String author)
       throws DockerException, InterruptedException;
 
@@ -130,7 +142,7 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to inspect.
    * @return Info about the image.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ImageInfo inspectImage(String image) throws DockerException, InterruptedException;
@@ -140,7 +152,7 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to remove.
    * @return A list describing each image which was removed.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<RemovedImage> removeImage(String image) throws DockerException, InterruptedException;
@@ -149,11 +161,11 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker image.
    *
-   * @param image The image to remove.
-   * @param force Force image removal.
+   * @param image   The image to remove.
+   * @param force   Force image removal.
    * @param noPrune Do not delete untagged parents.
    * @return A list describing each image which was removed.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
@@ -161,9 +173,10 @@ public interface DockerClient extends Closeable {
 
   /**
    * Search for images on Docker Hub
+   *
    * @param term the search term
    * @return a list of matches for the given search term
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<ImageSearchResult> searchImages(String term) throws DockerException, InterruptedException;
@@ -172,7 +185,7 @@ public interface DockerClient extends Closeable {
    * Pull a docker container image.
    *
    * @param image The image to pull.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void pull(String image) throws DockerException, InterruptedException;
@@ -180,30 +193,30 @@ public interface DockerClient extends Closeable {
   /**
    * Pull a docker container image, using a custom ProgressMessageHandler
    *
-   * @param image The image to pull.
+   * @param image   The image to pull.
    * @param handler The handler to use for processing each progress message received from Docker.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void pull(String image, ProgressHandler handler) throws DockerException, InterruptedException;
 
-   /**
+  /**
    * Pull a private docker container image.
    *
-   * @param image The image to pull.
+   * @param image      The image to pull.
    * @param authConfig The authentication config needed to pull the image.
-    * @throws DockerException if a server error occurred (500)
-    * @throws InterruptedException If the thread is interrupted
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
    */
-   void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
+  void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
 
   /**
    * Pull a private docker container image, using a custom ProgressMessageHandler.
    *
-   * @param image The image to pull.
+   * @param image      The image to pull.
    * @param authConfig The authentication config needed to pull the image.
-   * @param handler The handler to use for processing each progress message received from Docker.
-   * @throws DockerException if a server error occurred (500)
+   * @param handler    The handler to use for processing each progress message received from Docker.
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void pull(String image, AuthConfig authConfig, ProgressHandler handler)
@@ -213,7 +226,7 @@ public interface DockerClient extends Closeable {
    * Push a docker container image.
    *
    * @param image The image to push.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void push(String image) throws DockerException, InterruptedException;
@@ -221,9 +234,9 @@ public interface DockerClient extends Closeable {
   /**
    * Push a docker container image, using a custom ProgressHandler
    *
-   * @param image The image to push.
+   * @param image   The image to push.
    * @param handler The handler to use for processing each progress message received from Docker.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void push(String image, ProgressHandler handler) throws DockerException, InterruptedException;
@@ -232,8 +245,8 @@ public interface DockerClient extends Closeable {
    * Tag a docker image.
    *
    * @param image The image to tag.
-   * @param name The new name that will be applied to the image.
-   * @throws DockerException if a server error occurred (500)
+   * @param name  The new name that will be applied to the image.
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void tag(final String image, final String name) throws DockerException, InterruptedException;
@@ -242,9 +255,9 @@ public interface DockerClient extends Closeable {
    * Tag a docker image.
    *
    * @param image The image to tag.
-   * @param name The new name that will be applied to the image.
+   * @param name  The new name that will be applied to the image.
    * @param force Whether to force the tagging even if the tag is already assigned to another image.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void tag(final String image, final String name, final boolean force)
@@ -254,11 +267,11 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param params Additional flags to use during build.
+   * @param params    Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @throws IOException If some IO shit happened.
+   * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final BuildParameter... params)
       throws DockerException, InterruptedException, IOException;
@@ -267,12 +280,12 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param name The repository name and optional tag to apply to the built image.
-   * @param params Additional flags to use during build.
+   * @param name      The repository name and optional tag to apply to the built image.
+   * @param params    Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @throws IOException If some IO shit happened.
+   * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final String name, final BuildParameter... params)
       throws DockerException, InterruptedException, IOException;
@@ -281,12 +294,12 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param handler The handler to use for processing each progress message received from Docker.
-   * @param params Additional flags to use during build.
+   * @param handler   The handler to use for processing each progress message received from Docker.
+   * @param params    Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @throws IOException If some IO shit happened.
+   * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final ProgressHandler handler, final BuildParameter... params)
       throws DockerException, InterruptedException, IOException;
@@ -295,13 +308,13 @@ public interface DockerClient extends Closeable {
    * Build a docker image.
    *
    * @param directory The directory containing the dockerfile.
-   * @param name The repository name and optional tag to apply to the built image.
-   * @param handler The handler to use for processing each progress message received from Docker.
-   * @param params Additional flags to use during build.
+   * @param name      The repository name and optional tag to apply to the built image.
+   * @param handler   The handler to use for processing each progress message received from Docker.
+   * @param params    Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @throws IOException If some IO shit happened.
+   * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final String name, final ProgressHandler handler,
                final BuildParameter... params)
@@ -310,15 +323,15 @@ public interface DockerClient extends Closeable {
   /**
    * Build a docker image.
    *
-   * @param directory The directory containing the dockerfile.
-   * @param name The repository name and optional tag to apply to the built image.
+   * @param directory  The directory containing the dockerfile.
+   * @param name       The repository name and optional tag to apply to the built image.
    * @param dockerfile The path within the build context to the Dockerfile
-   * @param handler The handler to use for processing each progress message received from Docker.
-   * @param params Additional flags to use during build.
+   * @param handler    The handler to use for processing each progress message received from Docker.
+   * @param params     Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @throws IOException If some IO shit happened.
+   * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final String name, final String dockerfile,
                final ProgressHandler handler, final BuildParameter... params)
@@ -328,17 +341,29 @@ public interface DockerClient extends Closeable {
    * Flags which can be passed to the <code>build</code> method.
    */
   enum BuildParameter {
-    /** Suppress verbose build output. */
+    /**
+     * Suppress verbose build output.
+     */
     QUIET("q", true),
-    /** Do not use the cache when building the image. */
+    /**
+     * Do not use the cache when building the image.
+     */
     NO_CACHE("nocache", true),
-    /** Do remove intermediate containers after a successful build. */
+    /**
+     * Do remove intermediate containers after a successful build.
+     */
     RM("rm", true),
-    /** Do not remove intermediate containers after a successful build. */
+    /**
+     * Do not remove intermediate containers after a successful build.
+     */
     NO_RM("rm", false),
-    /** Always remove intermediate containers. */
+    /**
+     * Always remove intermediate containers.
+     */
     FORCE_RM("forcerm", true),
-    /** Always attempt to pull a newer version of the base image even if one exists locally. */
+    /**
+     * Always attempt to pull a newer version of the base image even if one exists locally.
+     */
     PULL_NEWER_IMAGE("pull", true);
 
     final String buildParamName;
@@ -362,7 +387,7 @@ public interface DockerClient extends Closeable {
    *
    * @param config The container configuration.
    * @return Container creation result with container id and eventual warnings from docker.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerCreation createContainer(ContainerConfig config)
@@ -374,7 +399,7 @@ public interface DockerClient extends Closeable {
    * @param config The container configuration.
    * @param name   The container name.
    * @return Container creation result with container id and eventual warnings from docker.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerCreation createContainer(ContainerConfig config, String name)
@@ -384,7 +409,7 @@ public interface DockerClient extends Closeable {
    * Start a docker container.
    *
    * @param containerId The id of the container to start.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void startContainer(String containerId) throws DockerException, InterruptedException;
@@ -393,9 +418,9 @@ public interface DockerClient extends Closeable {
    * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the
    * container doesn't exit gracefully and in a timely manner.
    *
-   * @param containerId The id of the container to stop.
+   * @param containerId                The id of the container to stop.
    * @param secondsToWaitBeforeKilling Time to wait after SIGTERM before sending SIGKILL.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void stopContainer(String containerId, int secondsToWaitBeforeKilling)
@@ -405,7 +430,7 @@ public interface DockerClient extends Closeable {
    * Pause a docker container.
    *
    * @param containerId The id of the container to pause.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void pauseContainer(String containerId) throws DockerException, InterruptedException;
@@ -414,7 +439,7 @@ public interface DockerClient extends Closeable {
    * Unpause a docker container.
    *
    * @param containerId The id of the container to pause.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
 
@@ -424,7 +449,7 @@ public interface DockerClient extends Closeable {
    * Restart a docker container. with a 10 second default wait
    *
    * @param containerId The id of the container to restart.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void restartContainer(String containerId) throws DockerException, InterruptedException;
@@ -434,7 +459,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId                The id of the container to restart.
    * @param secondsToWaitBeforeRestart number of seconds to wait before killing the container.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void restartContainer(String containerId, int secondsToWaitBeforeRestart)
@@ -445,7 +470,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to wait for.
    * @return Exit response with status code.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerExit waitContainer(String containerId) throws DockerException, InterruptedException;
@@ -454,7 +479,7 @@ public interface DockerClient extends Closeable {
    * Kill a docker container.
    *
    * @param containerId The id of the container to kill.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void killContainer(String containerId) throws DockerException, InterruptedException;
@@ -463,7 +488,7 @@ public interface DockerClient extends Closeable {
    * Remove a docker container.
    *
    * @param containerId The id of the container to remove.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void removeContainer(String containerId) throws DockerException, InterruptedException;
@@ -473,7 +498,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId   The id of the container to remove.
    * @param removeVolumes Whether to remove volumes as well.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void removeContainer(String containerId, boolean removeVolumes)
@@ -484,7 +509,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to export.
    * @return A stream in tar format that contains the contents of the container file system.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   InputStream exportContainer(String containerId) throws DockerException, InterruptedException;
@@ -502,23 +527,23 @@ public interface DockerClient extends Closeable {
    * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
    * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
    * tar archive containing a single folder named after the container ID.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
-  
+
   /**
    * Copies some files from host to container. (API version 1.20+)
-   * 
+   *
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
    * @param path        The path inside of the container to put files.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void copyToContainer(final Path directory, String containerId, String path)
-       throws DockerException, InterruptedException, IOException;  
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Get docker container logs.
@@ -526,7 +551,7 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   LogStream logs(String containerId, LogsParam... params)
@@ -537,10 +562,10 @@ public interface DockerClient extends Closeable {
    * Sets up an exec instance in a running container id.
    *
    * @param containerId The id of the container
-   * @param cmd shell command
-   * @param params Exec params
+   * @param cmd         shell command
+   * @param params      Exec params
    * @return exec id
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   String execCreate(String containerId, String[] cmd, ExecParameter... params)
@@ -572,7 +597,7 @@ public interface DockerClient extends Closeable {
    * @param execId exec id
    * @param params Exec start params
    * @return exec output
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   LogStream execStart(String execId, ExecStartParameter... params)
@@ -600,7 +625,7 @@ public interface DockerClient extends Closeable {
    *
    * @param execId exec id
    * @return state of this exec instance.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ExecState execInspect(String execId) throws DockerException, InterruptedException;
@@ -610,7 +635,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to retrieve stats for.
    * @return The container stats
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerStats stats(String containerId) throws DockerException, InterruptedException;
@@ -620,7 +645,7 @@ public interface DockerClient extends Closeable {
    * List all networks
    *
    * @return networks
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<Network> listNetworks() throws DockerException, InterruptedException;
@@ -630,7 +655,7 @@ public interface DockerClient extends Closeable {
    *
    * @param networkId The id of the network
    * @return network information
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   Network inspectNetwork(final String networkId) throws DockerException, InterruptedException;
@@ -640,16 +665,17 @@ public interface DockerClient extends Closeable {
    *
    * @param networkConfig The network creation parameters
    * @return
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  NetworkCreation createNetwork(final NetworkConfig networkConfig) throws DockerException, InterruptedException;
+  NetworkCreation createNetwork(final NetworkConfig networkConfig)
+      throws DockerException, InterruptedException;
 
   /**
    * Remove a docker network.
    *
    * @param networkId The id of the network to remove.
-   * @throws DockerException if a server error occurred (500)
+   * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void removeNetwork(String networkId) throws DockerException, InterruptedException;
@@ -791,7 +817,7 @@ public interface DockerClient extends Closeable {
     /**
      * Create a custom parameter.
      *
-     * @param name custom name
+     * @param name  custom name
      * @param value custom value
      * @return LogsParam
      */
@@ -813,18 +839,20 @@ public interface DockerClient extends Closeable {
 
   /**
    * Attach to the container id
+   *
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
    * @throws ContainerNotFoundException if the container was not found (404).
-   * @throws DockerException if a server error occurred (500)
-   * @throws InterruptedException If the thread is interrupted
+   * @throws DockerException            if a server error occurred (500)
+   * @throws InterruptedException       If the thread is interrupted
    */
   LogStream attachContainer(String containerId, AttachParameter... params)
       throws DockerException, InterruptedException;
 
   /**
    * Get the Docker host address
+   *
    * @return the docker host name or IP
    */
   String getHost();
@@ -936,7 +964,7 @@ public interface DockerClient extends Closeable {
     /**
      * Create a custom parameter.
      *
-     * @param name custom name
+     * @param name  custom name
      * @param value custom value
      * @return ListContainersParam
      */
@@ -1018,7 +1046,7 @@ public interface DockerClient extends Closeable {
     /**
      * Create a custom filter.
      *
-     * @param name of filter
+     * @param name  of filter
      * @param value of filter
      * @return ListImagesParam
      */
@@ -1029,7 +1057,7 @@ public interface DockerClient extends Closeable {
     /**
      * Create a custom parameter.
      *
-     * @param name of parameter
+     * @param name  of parameter
      * @param value of parameter
      * @return ListImagesParam
      */
