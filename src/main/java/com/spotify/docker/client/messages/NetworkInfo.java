@@ -75,7 +75,7 @@ public class NetworkInfo {
     if (name != null ? !name.equals(that.name) : that.name != null) {
       return false;
     }
-    if (id != null ? !id.equals(id) : that.id != null) {
+    if (id != null ? !id.equals(that.id) : that.id != null) {
       return false;
     }
     if (scope != null ? !scope.equals(that.scope) : that.scope != null) {
