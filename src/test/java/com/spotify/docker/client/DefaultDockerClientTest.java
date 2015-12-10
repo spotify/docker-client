@@ -19,7 +19,9 @@ package com.spotify.docker.client;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
@@ -45,9 +47,15 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -58,6 +66,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -280,6 +289,52 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testSave() throws Exception {
+    File imageFile = save(BUSYBOX);
+    assertTrue(imageFile.length() > 0);
+  }
+
+  private File save(String image) throws Exception {
+    final File tmpDir    = new File(System.getProperty("java.io.tmpdir"));
+    assertTrue("Temp directory " + tmpDir.getAbsolutePath() + " does not exist", tmpDir.exists());
+    final File imageFile = new File(tmpDir, "busybox-" + System.nanoTime() + ".tar");
+    imageFile.createNewFile();
+    imageFile.deleteOnExit();
+    final byte[] buffer = new byte[2048];
+    int read;
+    try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(imageFile))) {
+      try (InputStream imageInput = sut.save(image, authConfig)) {
+        while ((read = imageInput.read(buffer)) > -1) {
+          imageOutput.write(buffer, 0, read);
+        }
+      }
+    }
+    return imageFile;
+  }
+
+  @Test
+  public void testLoad() throws Exception {
+    final File imageFile = save(BUSYBOX);
+    final String image = BUSYBOX + "test" + System.nanoTime();
+    try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
+
+      sut.load(image, imagePayload, authConfig);
+    }
+    final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
+      @Override
+      public boolean apply(Image img) {
+        return img.repoTags().contains(image + ":latest");
+      }
+    });
+
+    assertThat(images.size(), greaterThan(0));
+
+    for (Image img : images) {
+      sut.removeImage(img.id());
+    }
+  }
+
+  @Test
   public void testPingReturnsOk() throws Exception {
     final String pingResponse = sut.ping();
     assertThat(pingResponse, equalTo("OK"));
@@ -496,14 +551,16 @@ public class DefaultDockerClientTest {
   @Test
   public void testBuildPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-    final AuthConfig authConfig =
-        AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME).password(AUTH_PASSWORD)
-            .build();
+    final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
+        .password(AUTH_PASSWORD).build();
 
-    final DefaultDockerClient sut2 =
-        DefaultDockerClient.builder().uri(dockerEndpoint).authConfig(authConfig).build();
+    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
+        .uri(dockerEndpoint)
+        .authConfig(authConfig)
+        .build();
 
-    sut2.build(Paths.get(dockerDirectory), "testauth",
+    sut2.build(Paths.get(dockerDirectory),
+               "testauth",
                DockerClient.BuildParameter.PULL_NEWER_IMAGE);
   }
 
@@ -555,8 +612,7 @@ public class DefaultDockerClientTest {
     sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
-        final String status = message.status();
-        if (!isNullOrEmpty(status) && status.contains(pullMsg)) {
+        if (!isNullOrEmpty(message.status()) && message.status().contains(pullMsg)) {
           pulled.set(true);
         }
       }
@@ -1110,7 +1166,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testContainerWithHostConfig() throws Exception {
     assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
-                   "HostConfig, got " + sut.version().apiVersion(),
+               "HostConfig, got " + sut.version().apiVersion(),
                compareVersion(sut.version().apiVersion(), "1.18") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
@@ -1329,16 +1385,20 @@ public class DefaultDockerClientTest {
   public void testExtraHosts() throws Exception {
 
     assumeTrue("Docker API should be at least v1.15 to support Container Creation with " +
-                   "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
+               "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
                compareVersion(sut.version().apiVersion(), "1.15") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
-    final HostConfig expected = HostConfig.builder().extraHosts("extrahost:1.2.3.4").build();
+    final HostConfig expected = HostConfig.builder()
+        .extraHosts("extrahost:1.2.3.4")
+        .build();
 
-    final ContainerConfig config =
-        ContainerConfig.builder().image(BUSYBOX_LATEST).hostConfig(expected)
-            .cmd("sh", "-c", "cat /etc/hosts | grep extrahost").build();
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .cmd("sh", "-c", "cat /etc/hosts | grep extrahost")
+        .build();
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
@@ -1364,17 +1424,23 @@ public class DefaultDockerClientTest {
     final String volumeContainer = randomName();
     final String mountContainer = randomName();
 
-    final ContainerConfig volumeConfig =
-        ContainerConfig.builder().image(BUSYBOX_LATEST).volumes("/foo").cmd("touch", "/foo/bar")
-            .build();
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .volumes("/foo")
+        .cmd("touch", "/foo/bar")
+        .build();
     sut.createContainer(volumeConfig, volumeContainer);
     sut.startContainer(volumeContainer);
     sut.waitContainer(volumeContainer);
 
-    final HostConfig mountHostConfig = HostConfig.builder().volumesFrom(volumeContainer).build();
-    final ContainerConfig mountConfig =
-        ContainerConfig.builder().image(BUSYBOX_LATEST).hostConfig(mountHostConfig)
-            .cmd("ls", "/foo").build();
+    final HostConfig mountHostConfig = HostConfig.builder()
+        .volumesFrom(volumeContainer)
+        .build();
+    final ContainerConfig mountConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(mountHostConfig)
+        .cmd("ls", "/foo")
+        .build();
 
     sut.createContainer(mountConfig, mountContainer);
     sut.startContainer(mountContainer);
