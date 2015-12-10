@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -32,6 +33,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Network {
+
+  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+  public static class Container {
+    @JsonProperty("EndpointID")
+    private String endpointId;
+    @JsonProperty("MacAddress")
+    private String macAddress;
+    @JsonProperty("IPv4Address")
+    private String ipv4address;
+    @JsonProperty("IPv6Address")
+    private String ipv6address;
+
+    public String endpointId() {
+      return endpointId;
+    }
+
+    public String macAddress() {
+      return macAddress;
+    }
+
+    public String ipv4address() {
+      return ipv4address;
+    }
+
+    public String ipv6address() {
+      return ipv6address;
+    }
+  }
 
   @JsonProperty("Name")
   private String name;
@@ -43,6 +72,8 @@ public class Network {
   private String driver;
   @JsonProperty("IPAM")
   private Ipam ipam;
+  @JsonProperty("Containers")
+  Map<String, Container> containers;
   @JsonProperty("Options")
   private Map<String, String> options;
 
@@ -67,6 +98,10 @@ public class Network {
 
   public Map<String, String> options() {
     return options;
+  }
+
+  public Map<String, Container> containers() {
+    return containers;
   }
 
   public Ipam ipam() {

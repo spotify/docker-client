@@ -57,6 +57,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1034,6 +1035,35 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public void connectToNetwork(String containerId, String networkId)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId).path("connect");
+    Map<String, String> request = new HashMap<String, String>();
+    request.put("Container", containerId);
+    Response response =
+        request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+                Entity.json(request));
+    switch (response.getStatus()) {
+      case 200:
+        return;
+      case 404:
+        throw new ContainerNotFoundException(containerId);
+      case 500:
+        throw new DockerException(response.readEntity(String.class));
+    }
+    System.out.println(response.getStatus());
+  }
+
+  @Override
+  public void disconnectFromNetwork(String containerId, String networkId)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId).path("disconnect");
+    Response response =
+        request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+                Entity.json(containerId));
+  }
+
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
@@ -1079,6 +1109,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw propagate(method, resource, e);
     }
   }
+
 
   private void request(final String method, final WebTarget resource,
                        final Invocation.Builder request)
