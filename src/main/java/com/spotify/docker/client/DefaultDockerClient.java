@@ -1038,7 +1038,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void connectToNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("networks").path(networkId).path("connect");
+    manageNetworkConnection(containerId, "connect", networkId);
+  }
+
+  @Override
+  public void disconnectFromNetwork(String containerId, String networkId)
+      throws DockerException, InterruptedException {
+    manageNetworkConnection(containerId, "disconnect", networkId);
+  }
+
+  private void manageNetworkConnection(String containerId, String methodname, String networkId)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId).path(methodname);
+
     Map<String, String> request = new HashMap<String, String>();
     request.put("Container", containerId);
     Response response =
@@ -1053,15 +1065,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         throw new DockerException(response.readEntity(String.class));
     }
     System.out.println(response.getStatus());
-  }
-
-  @Override
-  public void disconnectFromNetwork(String containerId, String networkId)
-      throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("networks").path(networkId).path("disconnect");
-    Response response =
-        request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
-                Entity.json(containerId));
   }
 
   private WebTarget resource() {

@@ -1899,6 +1899,40 @@ public class DefaultDockerClientTest {
 
   }
 
+
+  @Test
+  public void testNetworksDisconnectContainer() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+                   "HostConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    assumeFalse(CIRCLECI);
+    final String networkName = randomName();
+    final String containerName = randomName();
+    final NetworkCreation networkCreation =
+        sut.createNetwork(NetworkConfig.builder().name(networkName).build());
+    assertThat(networkCreation.id(), is(notNullValue()));
+    final ContainerConfig containerConfig =
+        ContainerConfig.builder().image(BUSYBOX_LATEST).cmd("sh", "-c", "while :; do sleep 1; done")
+            .build();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    assertThat(containerCreation.id(), is(notNullValue()));
+    sut.startContainer(containerCreation.id());
+    sut.connectToNetwork(containerCreation.id(), networkCreation.id());
+    Network network = sut.inspectNetwork(networkCreation.id());
+
+    assertThat(network.containers().size(), equalTo(1));
+    assertThat(network.containers().get(containerCreation.id()), notNullValue());
+    sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
+    network = sut.inspectNetwork(networkCreation.id());
+    assertThat(network.containers().size(), equalTo(0));
+
+    sut.stopContainer(containerCreation.id(), 1);
+    sut.removeContainer(containerCreation.id());
+    sut.removeNetwork(networkCreation.id());
+
+  }
+
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());
   }
