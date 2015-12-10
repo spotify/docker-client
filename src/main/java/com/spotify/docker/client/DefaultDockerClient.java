@@ -19,48 +19,23 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.io.CharStreams;
-import com.google.common.net.HostAndPort;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.AuthRegistryConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
-
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.hk2.api.MultiException;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.internal.util.Base64;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -92,23 +67,53 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static com.spotify.docker.client.VersionCompare.compareVersion;
-import static java.lang.System.getProperty;
-import static java.lang.System.getenv;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.hk2.api.MultiException;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.internal.util.Base64;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.AuthRegistryConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.NetworkInfo;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -118,8 +123,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * in the status of a progress message.
    * <p>
    * The image ID is required to tag the just loaded image since, also weirdly enough,
-   * the pull operation with the <code>fromSrc</code> parameter does not support the 
-   * <code>tag</code> parameter. By retrieving the ID, the image can be tagged with its 
+   * the pull operation with the <code>fromSrc</code> parameter does not support the
+   * <code>tag</code> parameter. By retrieving the ID, the image can be tagged with its
    * image name, given its ID.
    */
   private static class LoadProgressHandler implements ProgressHandler {
@@ -184,6 +189,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {};
+
+  private static final GenericType<List<NetworkInfo>> NETWORK_LIST =
+      new GenericType<List<NetworkInfo>>() {};
 
   private final Client client;
   private final Client noTimeoutClient;
@@ -966,6 +974,86 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw new ImageNotFoundException(image);
         default:
           throw e;
+      }
+    }
+  }
+
+
+  @Override
+  public List<NetworkInfo> listNetworks(ListNetworksParam... params)
+      throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("networks");
+
+    // If filters were specified, we must put them in a JSON object and pass them using the
+    // 'filters' query param like this: filters={"name":["host"]}
+    if (params.length > 0) {
+      final Multimap<String, String> filters = ArrayListMultimap.create();
+      for (ListNetworksParam param : params) {
+        filters.put(param.name(), param.value());
+      }
+      try {
+        String filtersJson = objectMapper().writeValueAsString(filters);
+        // We must URL encode the string, otherwise Jersey chokes on the
+        // double-quotes in the json.
+        String encodedJson = URLEncoder.encode(filtersJson, UTF_8.name());
+        resource = resource.queryParam("filters", encodedJson);
+      } catch (IOException e) {
+        throw new DockerException(e);
+      }
+    }
+    
+    return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+  
+  @Override
+  public NetworkInfo inspectNetwork(final String id)
+      throws DockerException, InterruptedException {
+    try {
+      final WebTarget resource = resource().path("networks").path(id);
+      return request(GET, NetworkInfo.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NetworkNotFoundException(id, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public NetworkCreation createNetwork(NetworkConfig config)
+      throws DockerException, NetworkDriverNotFoundException, InterruptedException {
+    WebTarget resource = resource()
+        .path("networks").path("create");
+
+    log.info("Creating network with configuration: {}", config);
+
+    try {
+      return request(POST, NetworkCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(config));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NetworkDriverNotFoundException(config.driver(), e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void removeNetwork(String id)
+      throws DockerException, NetworkNotFoundException, InterruptedException {
+    try {
+      final WebTarget resource = resource().path("networks").path(id);
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+      case 404:
+        throw new NetworkNotFoundException(id);
+      default:
+        throw e;
       }
     }
   }

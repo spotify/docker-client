@@ -17,8 +17,15 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Throwables;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.file.Path;
+import java.util.List;
 
+import com.google.common.base.Throwables;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -31,16 +38,11 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.NetworkInfo;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * A client for interacting with dockerd.
@@ -181,13 +183,58 @@ public interface DockerClient extends Closeable {
    */
   List<ImageSearchResult> searchImages(String term) throws DockerException, InterruptedException;
 
+  /**
+   * List docker networks.
+   *
+   * @param params Network filtering options.
+   * @return A list of networks.
+   * @throws DockerException if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<NetworkInfo> listNetworks(ListNetworksParam... params)
+      throws DockerException, InterruptedException;
+  
+  /**
+   * Inspect a network.
+   *
+   * @param id The id of the network to inspect.
+   * @return Info about the network.
+   * @throws DockerException if a server error occurred (500)
+   * @throws NetworkNotFoundException If the network is not found (404).
+   * @throws InterruptedException If the thread is interrupted
+   */
+  NetworkInfo inspectNetwork(String id)
+      throws DockerException, NetworkNotFoundException, InterruptedException;
+  
+  /**
+   * Create a network.
+   *
+   * @param network The network configuration.
+   * @return Container creation result with container id and warnings from docker, if any.
+   * @throws DockerException if a server error occurred (500)
+   * @throws NetworkDriverNotFoundException If the network driver is not found (404).
+   * @throws InterruptedException If the thread is interrupted
+   */
+  NetworkCreation createNetwork(NetworkConfig network)
+      throws DockerException, NetworkDriverNotFoundException, InterruptedException;
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * Remove a network.
+   *
+   * @param id The id of the network to remove.
+   * @throws DockerException if a server error occurred (500)
+   * @throws NetworkNotFoundException If the network is not found (404).
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void removeNetwork(String id)
+      throws DockerException, NetworkNotFoundException, InterruptedException;
+  
+  /**
+   * Loads an image (the given input stream is closed internally). This method also tags the
    * image with the given image name upon loading completion.
    *
    * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
+   * @param imagePayload the image's payload
    *        (i.e.: the stream corresponding to the image's .tar file).
    * @throws DockerException if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
@@ -197,11 +244,11 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * Loads an image (the given input stream is closed internally). This method also tags the
    * image with the given image name upon loading completion.
    *
    * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
+   * @param imagePayload the image's payload
    *        (i.e.: the stream corresponding to the image's .tar file).
    * @param handler The handler to use for processing each progress message received from Docker.
    * @throws DockerException if a server error occurred (500).
@@ -212,11 +259,11 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * Loads an image (the given input stream is closed internally). This method also tags the
    * image with the given image name upon loading completion.
    *
    * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
+   * @param imagePayload the image's payload
    *        (i.e.: the stream corresponding to the image's .tar file).
    * @param authConfig The authentication config needed to pull the image.
    * @throws DockerException if a server error occurred (500).
@@ -227,11 +274,11 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
+   * Loads an image (the given input stream is closed internally). This method also tags the
    * image with the given image name upon loading completion.
    *
    * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
+   * @param imagePayload the image's payload
    *        (i.e.: the stream corresponding to the image's .tar file).
    * @param authConfig The authentication config needed to pull the image.
    * @param handler The handler to use for processing each progress message received from Docker.
@@ -246,7 +293,7 @@ public interface DockerClient extends Closeable {
    * @param image the name of the image to save.
    * @return the image's .tar stream.
    * @throws DockerException if a server error occurred (500).
-   * @throws IOException if the server started returning, but an I/O error occurred 
+   * @throws IOException if the server started returning, but an I/O error occurred
    *                     in the context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
@@ -257,7 +304,7 @@ public interface DockerClient extends Closeable {
    * @param authConfig The authentication config needed to pull the image.
    * @return the image's .tar stream.
    * @throws DockerException if a server error occurred (500).
-   * @throws IOException if the server started returning, but an I/O error occurred 
+   * @throws IOException if the server started returning, but an I/O error occurred
    *                     in the context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
@@ -1104,4 +1151,66 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
+
+  /**
+   * Parameters for {@link #listNetworks(ListNetworksParam...)}
+   */
+  class ListNetworksParam {
+
+    private final String name;
+    private final String value;
+
+    public ListNetworksParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     *
+     * @return name of parameter
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Filter networks by name.
+     *
+     * @param name of the network. 
+     */
+    public static ListNetworksParam withName(final String name) {
+      return create("name", name);
+    }
+    
+    /**
+     * Filter networks by id.
+     *
+     * @param id of the network. 
+     */
+    public static ListNetworksParam withId(final String id) {
+      return create("id", id);
+    }
+
+    /**
+     * Create a custom parameter.
+     *
+     * @param name custom name
+     * @param value custom value
+     */
+    public static ListNetworksParam create(final String name, final String value) {
+      return new ListNetworksParam(name, value);
+    }
+  }
+
+
 }
