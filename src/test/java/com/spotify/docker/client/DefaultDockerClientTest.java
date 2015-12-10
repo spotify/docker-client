@@ -1809,10 +1809,9 @@ public class DefaultDockerClientTest {
     final NetworkConfig networkConfig =
         NetworkConfig.builder()
             .name(networkName).driver("bridge").checkDuplicate(true)
-            //.ipam(
-            //Ipam.builder().driver("default").config("192.168.0.0", "192.168.0.2-255", "192.168
-            // .0.1")
-    //        .build())
+            .ipam(
+            Ipam.builder().driver("default").config("192.168.0.0", "192.168.0.2-255", "192.168.0.1")
+            .build())
     .build();
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
