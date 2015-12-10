@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -50,6 +51,7 @@ public class NetworkConfig {
     this.name = builder.name;
     this.options = builder.options;
     this.driver = builder.driver;
+    this.ipam = builder.ipam;
     this.checkDuplicate = builder.checkDuplicate;
   }
 
@@ -59,6 +61,10 @@ public class NetworkConfig {
 
   public String driver() {
     return driver;
+  }
+
+  public Ipam ipam() {
+    return ipam;
   }
 
   public Map<String, String> options() {

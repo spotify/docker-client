@@ -26,26 +26,27 @@ import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Network {
 
-  @JsonProperty("Name") private String name;
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Scope") private String scope;
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("IPAM") private Ipam ipam;
-  @JsonProperty("Options") private Map<String, String> options;
+  @JsonProperty("Name")
+  private String name;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Scope")
+  private String scope;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("IPAM")
+  private Ipam ipam;
+  @JsonProperty("Options")
+  private Map<String, String> options;
 
   private Network() {
-  }
-
-  private Network(final Builder builder) {
-    this.name = builder.name;
-    this.options = builder.options;
-    this.driver = builder.driver;
   }
 
   public String name() {
@@ -63,8 +64,13 @@ public class Network {
   public String driver() {
     return driver;
   }
+
   public Map<String, String> options() {
     return options;
+  }
+
+  public Ipam ipam() {
+    return ipam;
   }
 
   @Override
@@ -90,65 +96,10 @@ public class Network {
     return Objects.hashCode(name, id, scope, driver, options);
   }
 
-  public Builder toBuilder() {
-    return new Builder(this);
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
-
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("id", id)
-        .add("scope", scope)
-        .add("driver", driver)
-        .add("options", options)
-        .toString();
-  }
-
-  public static class Builder {
-
-    private String name;
-    private Map<String, String> options = new HashMap<String, String>();
-    private String driver;
-
-    private Builder() {
-    }
-
-    private Builder(Network network) {
-      this.name = network.name;
-      this.options = network.options;
-      this.driver = network.driver;
-    }
-
-    public Builder name(final String name) {
-      if (name != null && !name.isEmpty()) {
-        this.name = name;
-      }
-      return this;
-    }
-
-    public Builder option(final String key, final String value) {
-      if (key != null && !key.isEmpty()) {
-        this.options.put(key, value);
-      }
-      return this;
-    }
-
-    public Builder driver(final String driver) {
-      if (driver != null && !driver.isEmpty()) {
-        this.driver = driver;
-      }
-      return this;
-    }
-
-    public Network build() {
-      return new Network(this);
-    }
-
+    return MoreObjects.toStringHelper(this).add("name", name).add("id", id).add("scope", scope)
+        .add("driver", driver).add("options", options).toString();
   }
 
 }

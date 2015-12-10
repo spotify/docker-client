@@ -1806,13 +1806,12 @@ public class DefaultDockerClientTest {
     assumeFalse(CIRCLECI);
 
     final String networkName = randomName();
+    final Ipam ipam =
+        Ipam.builder().driver("default").config("192.168.0.0/24", "192.168.0.0/24", "192.168.0.1")
+            .build();
     final NetworkConfig networkConfig =
-        NetworkConfig.builder()
-            .name(networkName).driver("bridge").checkDuplicate(true)
-            .ipam(
-            Ipam.builder().driver("default").config("192.168.0.0", "192.168.0.2-255", "192.168.0.1")
-            .build())
-    .build();
+        NetworkConfig.builder().name(networkName).driver("bridge").checkDuplicate(true).ipam(ipam)
+            .build();
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
     assertThat(networkCreation.id(), is(notNullValue()));
@@ -1821,19 +1820,21 @@ public class DefaultDockerClientTest {
     final List<Network> networks = sut.listNetworks();
     assertTrue(networks.size() > 0);
 
-    String networkId = null;
+    Network network = null;
     for (Network n : networks) {
       if (n.name().equals(networkName)) {
-        networkId = n.id();
+        network = n;
       }
     }
-    assertThat(networkId, is(notNullValue()));
-    assertThat(sut.inspectNetwork(networkId).name(), is(networkName));
+    assertThat(network, is(notNullValue()));
+    assertThat(network.id(), is(notNullValue()));
+    assertThat(sut.inspectNetwork(network.id()).name(), is(networkName));
+    assertThat(network.ipam(), equalTo(ipam));
 
-    sut.removeNetwork(networkId);
+    sut.removeNetwork(network.id());
 
     try {
-      sut.inspectNetwork(networkId);
+      sut.inspectNetwork(network.id());
       fail();
     } catch (NetworkNotFoundException e) {
     } catch (Exception e) {
