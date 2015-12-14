@@ -116,7 +116,8 @@ public class NetworkConfig {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("name", name).add("driver", driver)
-        .add("options", options).add("checkDuplicate", checkDuplicate).toString();
+        .add("options", options).add("checkDuplicate", checkDuplicate)
+        .add("ipam", ipam).toString();
   }
 
   public static class Builder {
