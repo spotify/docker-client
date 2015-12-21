@@ -950,6 +950,15 @@ public interface DockerClient extends Closeable {
       }
     }
 
+    public static ListContainersParam withLabel(String labelKey) {
+      try {
+        return create("filters", URLEncoder.encode("{\"label\":[\"" + labelKey + "\"]}", "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        // Should never happen
+        throw Throwables.propagate(e);
+      }
+    }
+
     /**
      * Show <code>limit</code> last created containers, include non-running ones.
      *
