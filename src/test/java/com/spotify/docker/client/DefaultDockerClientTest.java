@@ -74,6 +74,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -145,6 +146,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
+
 
 public class DefaultDockerClientTest {
 
@@ -240,6 +242,28 @@ public class DefaultDockerClientTest {
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithoutAuth() throws Exception {
     sut.pull(CIRROS_PRIVATE_LATEST);
+  }
+
+  @Test
+  public void testBuildImageIdWithBuildargs() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
+    final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
+    final String buildargs = "{\"testargument\":\"22-12-2015\"}";
+    final String returnedImageId = sut.build(
+            Paths.get(dockerDirectory), "test-buildargs",
+            "Dockerfile",
+            URLEncoder.encode(buildargs, "UTF-8"),
+            new ProgressHandler() {
+              @Override
+              public void progress(ProgressMessage message) throws DockerException {
+                final String imageId = message.buildImageId();
+                if (imageId != null) {
+                  imageIdFromMessage.set(imageId);
+                }
+              }
+            });
+
+    assertThat(returnedImageId, is(imageIdFromMessage.get()));
   }
 
   @Test

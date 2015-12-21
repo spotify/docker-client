@@ -419,6 +419,24 @@ public interface DockerClient extends Closeable {
   String build(final Path directory, final String name, final String dockerfile,
                final ProgressHandler handler, final BuildParameter... params)
       throws DockerException, InterruptedException, IOException;
+  /**
+  * Build a docker image.
+  *
+  * @param directory The directory containing the dockerfile.
+  * @param name The repository name and optional tag to apply to the built image.
+  * @param dockerfile The path within the build context to the Dockerfile
+  * @param buildargs Build Arguments are env variables during the building of the image.
+  * @param handler The handler to use for processing each progress message received from Docker.
+  * @param params Additional flags to use during build.
+  * @return The id of the built image if successful, otherwise null.
+  * @throws DockerException if a server error occurred (500)
+  * @throws InterruptedException If the thread is interrupted
+  * @throws IOException If some IO shit happened.
+  */
+  String build(final Path directory, final String name,
+               final String dockerfile, final String buildargs,
+               final ProgressHandler handler, final BuildParameter... params)
+       throws DockerException, InterruptedException, IOException;
 
   /**
    * Flags which can be passed to the <code>build</code> method.

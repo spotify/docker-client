@@ -659,7 +659,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     log.info("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
-             repo, config);
+            repo, config);
 
     try {
       return request(POST, ContainerCreation.class, resource, resource
@@ -742,10 +742,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("images").path(image).path("get");
 
     return request(
-        GET,
-        InputStream.class,
-        resource,
-        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
+            GET,
+            InputStream.class,
+            resource,
+            resource.request(APPLICATION_JSON_TYPE)
+                    .header("X-Registry-Auth", authHeader(authConfig))
     );
   }
 
@@ -880,6 +881,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public String build(final Path directory, final String name, final String dockerfile,
                       final ProgressHandler handler, final BuildParameter... params)
+          throws DockerException, InterruptedException, IOException {
+    return build(directory, name, dockerfile, null, handler, params);
+  }
+
+  @Override
+  public String build(final Path directory, final String name,
+                      final String dockerfile, final String buildargs,
+                      final ProgressHandler handler, final BuildParameter... params)
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
@@ -893,6 +902,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
     if (dockerfile != null) {
       resource = resource.queryParam("dockerfile", dockerfile);
+    }
+    if (buildargs != null) {
+      resource = resource.queryParam("buildargs", buildargs);
     }
 
     log.debug("Auth Config {}", authConfig);
