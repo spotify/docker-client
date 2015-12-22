@@ -53,6 +53,10 @@ public class ContainerInfo {
   @JsonProperty("MountLabel") private String mountLabel;
   @JsonProperty("Volumes") private ImmutableMap<String, String> volumes;
   @JsonProperty("VolumesRW") private ImmutableMap<String, Boolean> volumesRW;
+  /**
+   * This field is an extension defined by the Docker Swarm API, therefore it will only be populated when
+   * communicating with a Swarm cluster.
+   */
   @JsonProperty("Node") private Node node;
 
   public String id() {
