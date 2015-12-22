@@ -42,6 +42,8 @@ import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * A client for interacting with dockerd.
  *
@@ -995,10 +997,14 @@ public interface DockerClient extends Closeable {
      *
      * @return ListContainersParam
      */
-    public static ListContainersParam withLabel(String key, String value) {
+    public static ListContainersParam withLabel(final String key, final String value) {
       try {
-        return create("filters", 
-          URLEncoder.encode("{\"label\":[\"" + key + '=' + value + "\"]}", "UTF-8"));
+        if (isNullOrEmpty(value)) {
+          return create("filters", URLEncoder.encode("{\"label\":[\"" + key + "\"]}", "UTF-8"));
+        } else {
+          return create("filters",
+                        URLEncoder.encode("{\"label\":[\"" + key + '=' + value + "\"]}", "UTF-8"));
+        }
       } catch (UnsupportedEncodingException e) {
         // Should never happen
         throw Throwables.propagate(e);
@@ -1010,13 +1016,8 @@ public interface DockerClient extends Closeable {
      *
      * @return ListContainersParam
      */
-    public static ListContainersParam withLabel(String key) {
-      try {
-        return create("filters", URLEncoder.encode("{\"label\":[\"" + key + "\"]}", "UTF-8"));
-      } catch (UnsupportedEncodingException e) {
-        // Should never happen
-        throw Throwables.propagate(e);
-      }
+    public static ListContainersParam withLabel(final String key) {
+      return withLabel(key, null);
     }
 
     /**

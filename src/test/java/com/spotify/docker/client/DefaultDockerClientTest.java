@@ -1886,9 +1886,8 @@ public class DefaultDockerClientTest {
     // Start the container
     sut.startContainer(id);
 
-    ContainerInfo containerInfo = sut.inspectContainer(id);
-    assertThat(containerInfo.config().labels().keySet(), containsInAnyOrder("name", "foo"));
-    assertThat(containerInfo.config().labels().values(), containsInAnyOrder("starship", "bar"));
+    final ContainerInfo containerInfo = sut.inspectContainer(id);
+    assertThat(containerInfo.config().labels(), is(labels));
 
     final Map<String, String> labels2 = ImmutableMap.of(
         "name", "starship", "foo", "baz"
@@ -1908,8 +1907,7 @@ public class DefaultDockerClientTest {
     sut.startContainer(id2);
 
     ContainerInfo containerInfo2 = sut.inspectContainer(id2);
-    assertThat(containerInfo2.config().labels().keySet(), containsInAnyOrder("name", "foo"));
-    assertThat(containerInfo2.config().labels().values(), containsInAnyOrder("starship", "baz"));
+    assertThat(containerInfo2.config().labels(), is(labels2));
 
     // Check that both containers are listed when we filter with a "name" label
     final List<Container> containers =
