@@ -31,7 +31,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
-import com.spotify.docker.client.DockerClient.ExecParam;
+import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -1793,8 +1793,8 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerId);
 
     String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-                                   ExecParam.attachStdout(),
-                                   ExecParam.attachStderr());
+                                   ExecCreateParam.attachStdout(),
+                                   ExecCreateParam.attachStderr());
 
     log.info("execId = {}", execId);
 
@@ -1825,18 +1825,18 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
-                                   ExecParam.attachStdout(),
-                                   ExecParam.attachStderr(),
-                                   ExecParam.tty(),
-                                   ExecParam.user("1000"));
+    final String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
+                                         ExecCreateParam.attachStdout(),
+                                         ExecCreateParam.attachStderr(),
+                                         ExecCreateParam.tty(),
+                                         ExecCreateParam.user("1000"));
 
     log.info("execId = {}", execId);
-    try (LogStream stream = sut.execStart(execId)) {
+    try (final LogStream stream = sut.execStart(execId)) {
       stream.readFully();
     }
 
-    ExecState state = sut.execInspect(execId);
+    final ExecState state = sut.execInspect(execId);
     assertThat(state.running(), is(false));
     assertThat(state.exitCode(), is(2));
   }
