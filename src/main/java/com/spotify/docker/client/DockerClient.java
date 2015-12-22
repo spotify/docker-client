@@ -42,6 +42,8 @@ import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * A client for interacting with dockerd.
  *
@@ -988,6 +990,34 @@ public interface DockerClient extends Closeable {
      */
     public static ListContainersParam withContainerSizes(final Boolean size) {
       return create("size", String.valueOf(size));
+    }
+    
+    /**
+     * Show containers with a label value
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withLabel(final String key, final String value) {
+      try {
+        if (isNullOrEmpty(value)) {
+          return create("filters", URLEncoder.encode("{\"label\":[\"" + key + "\"]}", "UTF-8"));
+        } else {
+          return create("filters",
+                        URLEncoder.encode("{\"label\":[\"" + key + '=' + value + "\"]}", "UTF-8"));
+        }
+      } catch (UnsupportedEncodingException e) {
+        // Should never happen
+        throw Throwables.propagate(e);
+      }
+    }
+    
+    /**
+     * Show containers with a label
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withLabel(final String key) {
+      return withLabel(key, null);
     }
 
     /**
