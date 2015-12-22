@@ -16,6 +16,10 @@ case "$1" in
 
     cat /etc/default/docker
 
+    # Fix CircleCI's docker cp according to https://discuss.circleci.com/t/unable-to-use-docker-cp-but-it-worked-2-days-ago/1137/8
+    sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.8.2-circleci-cp-workaround'
+    sudo chmod 0755 /usr/bin/docker
+
     ;;
 
   post_machine)
