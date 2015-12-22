@@ -17,11 +17,14 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
@@ -80,7 +83,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,6 +126,7 @@ import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -1866,9 +1869,9 @@ public class DefaultDockerClientTest {
                compareVersion(sut.version().apiVersion(), "1.18") >= 0);
     sut.pull(BUSYBOX_LATEST);
 
-    Map<String, String> labels = new HashMap<>();
-    labels.put("name", "starship");
-    labels.put("version", "1.6.2");
+    final Map<String, String> labels = ImmutableMap.of(
+        "name", "starship", "foo", "bar"
+    );
 
     // Create container
     final ContainerConfig config = ContainerConfig.builder()
@@ -1884,8 +1887,55 @@ public class DefaultDockerClientTest {
     sut.startContainer(id);
 
     ContainerInfo containerInfo = sut.inspectContainer(id);
-    assertThat(containerInfo.config().labels().keySet(), contains("name", "version"));
-    assertThat(containerInfo.config().labels().values(), contains("starship", "1.6.2"));
+    assertThat(containerInfo.config().labels().keySet(), containsInAnyOrder("name", "foo"));
+    assertThat(containerInfo.config().labels().values(), containsInAnyOrder("starship", "bar"));
+
+    final Map<String, String> labels2 = ImmutableMap.of(
+        "name", "starship", "foo", "baz"
+    );
+
+    // Create second container with different labels
+    final ContainerConfig config2 = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .labels(labels2)
+        .cmd("sleep", "1000")
+        .build();
+    final String name2 = randomName();
+    final ContainerCreation creation2 = sut.createContainer(config2, name2);
+    final String id2 = creation2.id();
+
+    // Start the second container
+    sut.startContainer(id2);
+
+    ContainerInfo containerInfo2 = sut.inspectContainer(id2);
+    assertThat(containerInfo2.config().labels().keySet(), containsInAnyOrder("name", "foo"));
+    assertThat(containerInfo2.config().labels().values(), containsInAnyOrder("starship", "baz"));
+
+    // Check that both containers are listed when we filter with a "name" label
+    final List<Container> containers =
+        sut.listContainers(DockerClient.ListContainersParam.withLabel("name"));
+    final List<String> ids = containersToIds(containers);
+    assertThat(ids.size(), equalTo(2));
+    assertThat(ids, containsInAnyOrder(id, id2));
+
+    // Check that the first container is listed when we filter with a "foo=bar" label
+    final List<Container> barContainers =
+        sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "bar"));
+    final List<String> barIds = containersToIds(barContainers);
+    assertThat(barIds.size(), equalTo(1));
+    assertThat(barIds, contains(id));
+
+    // Check that the second container is listed when we filter with a "foo=baz" label
+    final List<Container> bazContainers =
+        sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "baz"));
+    final List<String> bazIds = containersToIds(bazContainers);
+    assertThat(bazIds.size(), equalTo(1));
+    assertThat(bazIds, contains(id2));
+
+    // Check that no containers are listed when we filter with a "foo=qux" label
+    final List<Container> quxContainers =
+        sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "qux"));
+    assertThat(quxContainers.size(), equalTo(0));
   }
 
   @Test
@@ -1971,5 +2021,15 @@ public class DefaultDockerClientTest {
     assertThat(result.toString().contains("Finished"), is(true));
     assertThat(info.state().running(), is(false));
     assertThat(info.state().exitCode(), is(0));
+  }
+
+  private List<String> containersToIds(final List<Container> containers) {
+    final Function<Container, String> containerToId = new Function<Container, String>() {
+      @Override
+      public String apply(final Container container) {
+        return container.id();
+      }
+    };
+    return Lists.transform(containers, containerToId);
   }
 }
