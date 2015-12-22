@@ -58,6 +58,10 @@ public class PortBinding {
     return of(ip, String.valueOf(port));
   }
 
+  public static PortBinding randomPort(final String ip) {
+    return of(ip, "");
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
