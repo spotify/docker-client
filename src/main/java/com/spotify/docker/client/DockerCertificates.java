@@ -20,7 +20,7 @@ package com.spotify.docker.client;
 import com.google.common.base.Optional;
 
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.ssl.SSLContexts;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.slf4j.Logger;
@@ -97,9 +97,8 @@ public class DockerCertificates {
       keyStore.setKeyEntry("key", clientKey, KEY_STORE_PASSWORD, new Certificate[]{clientCert});
 
       this.sslContext = SSLContexts.custom()
-          .loadTrustMaterial(trustStore)
+          .loadTrustMaterial(trustStore, null)
           .loadKeyMaterial(keyStore, KEY_STORE_PASSWORD)
-          .useTLS()
           .build();
     } catch (
         CertificateException |
