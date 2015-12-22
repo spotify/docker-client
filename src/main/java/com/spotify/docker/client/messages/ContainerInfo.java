@@ -18,6 +18,7 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -54,8 +55,8 @@ public class ContainerInfo {
   @JsonProperty("Volumes") private ImmutableMap<String, String> volumes;
   @JsonProperty("VolumesRW") private ImmutableMap<String, Boolean> volumesRW;
   /**
-   * This field is an extension defined by the Docker Swarm API, therefore it will only be populated when
-   * communicating with a Swarm cluster.
+   * This field is an extension defined by the Docker Swarm API, therefore it will only
+   * be populated when communicating with a Swarm cluster.
    */
   @JsonProperty("Node") private Node node;
 
@@ -304,15 +305,15 @@ public class ContainerInfo {
         return false;
       }
       Node node = (Node) o;
-      return com.google.common.base.Objects.equal(id, node.id) &&
-              com.google.common.base.Objects.equal(ip, node.ip) &&
-              com.google.common.base.Objects.equal(addr, node.addr) &&
-              com.google.common.base.Objects.equal(name, node.name);
+      return Objects.equal(id, node.id) &&
+              Objects.equal(ip, node.ip) &&
+              Objects.equal(addr, node.addr) &&
+              Objects.equal(name, node.name);
     }
 
     @Override
     public int hashCode() {
-      return com.google.common.base.Objects.hashCode(id, ip, addr, name);
+      return Objects.hashCode(id, ip, addr, name);
     }
 
     @Override
