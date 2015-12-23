@@ -728,7 +728,7 @@ public interface DockerClient extends Closeable {
     /**
      * Execute in detached mode
      * @param detach Whether to detach.
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam detach(final boolean detach) {
       return create("Detach", String.valueOf(detach));
@@ -736,7 +736,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Execute in detached mode
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam detach() {
       return detach(true);
@@ -745,7 +745,7 @@ public interface DockerClient extends Closeable {
     /**
      * Attach stdin
      * @param attachStdin Whether to attach the standard input which allows user interaction.
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam attachStdin(final boolean attachStdin) {
       return create("AttachStdin", String.valueOf(attachStdin));
@@ -753,7 +753,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard input
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam attachStdin() {
       return attachStdin(true);
@@ -762,7 +762,7 @@ public interface DockerClient extends Closeable {
     /**
      * Attach standard error
      * @param attachStderr Whether to attach standout error
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam attachStderr(final boolean attachStderr) {
       return create("AttachStderr", String.valueOf(attachStderr));
@@ -770,7 +770,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard error
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam attachStderr() {
       return attachStderr(true);
@@ -779,7 +779,7 @@ public interface DockerClient extends Closeable {
     /**
      * Attach standard ouput
      * @param attachStdout Whether to attach standard output
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam attachStdout(final boolean attachStdout) {
       return create("AttachStdout", String.valueOf(attachStdout));
@@ -787,7 +787,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard ouput
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam attachStdout() {
       return attachStdout(true);
@@ -796,7 +796,7 @@ public interface DockerClient extends Closeable {
     /**
      * Give extended privileges to the command
      * @param privileged Whether to give extended privileges to the command
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam privileged(final boolean privileged) {
       return create("Privileged", String.valueOf(privileged));
@@ -804,7 +804,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Give extended privileges to the command
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam privileged() {
       return privileged(true);
@@ -813,7 +813,7 @@ public interface DockerClient extends Closeable {
     /**
      * Attach standard streams to a tty.
      * @param tty Whether to attach standard streams to a tty.
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam tty(final boolean tty) {
       return create("Tty", String.valueOf(tty));
@@ -821,7 +821,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard streams to a tty.
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam tty() {
       return tty(true);
@@ -830,7 +830,7 @@ public interface DockerClient extends Closeable {
     /**
      * User that will run the command
      * @param user user
-     * @return ExecStartParam
+     * @return ExecCreateParam
      */
     public static ExecCreateParam user(final String user) {
       return create("User", user);
