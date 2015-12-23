@@ -3,7 +3,7 @@
 
 This is a simple [Docker](https://github.com/docker/docker) client written in Java.
 
-**The latest docker-client release has only been tested on Docker API version 1.18. This client
+**The latest docker-client release has only been tested on Docker API version 1.20. This client
 should work with Docker API versions > 1.15, but your mileage may vary.**
 
 ## Usage
