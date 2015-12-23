@@ -442,7 +442,7 @@ public interface DockerClient extends Closeable {
     final String buildParamName;
     final boolean buildParamValue;
 
-    private BuildParameter(final String buildParamName, final boolean buildParamValue) {
+    BuildParameter(final String buildParamName, final boolean buildParamValue) {
       this.buildParamName = buildParamName;
       this.buildParamValue = buildParamValue;
     }
@@ -641,27 +641,9 @@ public interface DockerClient extends Closeable {
    * @throws DockerException if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  String execCreate(String containerId, String[] cmd, ExecParameter... params)
+  String execCreate(String containerId, String[] cmd, ExecCreateParam... params)
       throws DockerException, InterruptedException;
-
-  /**
-   * Supported parameters for {@link #execCreate}
-   */
-  enum ExecParameter {
-    STDOUT("AttachStdout"),
-    STDERR("AttachStderr");
-
-    private final String name;
-
-    ExecParameter(String name) {
-      this.name = name;
-    }
-
-    public String getName() {
-      return name;
-    }
-  }
-
+      
   /**
    * Starts a previously set up exec instance id.
    * If detach is true, this API returns after starting the exec command.
@@ -718,10 +700,148 @@ public interface DockerClient extends Closeable {
    */
   @Override
   void close();
+  
+  /**
+   * Parameters for {@link #execCreate(String, String[], ExecCreateParam...)}
+   */
+  class ExecCreateParam {
+    private final String name;
+    private final String value;
+
+    private ExecCreateParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    public String name() {
+      return name;
+    }
+
+    public String value() {
+      return value;
+    }
+
+    private static ExecCreateParam create(final String name, final String value) {
+      return new ExecCreateParam(name, value);
+    }
+
+    /**
+     * Execute in detached mode
+     * @param detach Whether to detach.
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam detach(final boolean detach) {
+      return create("Detach", String.valueOf(detach));
+    }
+
+    /**
+     * Execute in detached mode
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam detach() {
+      return detach(true);
+    }
+
+    /**
+     * Attach stdin
+     * @param attachStdin Whether to attach the standard input which allows user interaction.
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam attachStdin(final boolean attachStdin) {
+      return create("AttachStdin", String.valueOf(attachStdin));
+    }
+
+    /**
+     * Attach standard input
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam attachStdin() {
+      return attachStdin(true);
+    }
+
+    /**
+     * Attach standard error
+     * @param attachStderr Whether to attach standout error
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam attachStderr(final boolean attachStderr) {
+      return create("AttachStderr", String.valueOf(attachStderr));
+    }
+
+    /**
+     * Attach standard error
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam attachStderr() {
+      return attachStderr(true);
+    }
+
+    /**
+     * Attach standard ouput
+     * @param attachStdout Whether to attach standard output
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam attachStdout(final boolean attachStdout) {
+      return create("AttachStdout", String.valueOf(attachStdout));
+    }
+
+    /**
+     * Attach standard ouput
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam attachStdout() {
+      return attachStdout(true);
+    }
+
+    /**
+     * Give extended privileges to the command
+     * @param privileged Whether to give extended privileges to the command
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam privileged(final boolean privileged) {
+      return create("Privileged", String.valueOf(privileged));
+    }
+
+    /**
+     * Give extended privileges to the command
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam privileged() {
+      return privileged(true);
+    }
+
+    /**
+     * Attach standard streams to a tty.
+     * @param tty Whether to attach standard streams to a tty.
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam tty(final boolean tty) {
+      return create("Tty", String.valueOf(tty));
+    }
+
+    /**
+     * Attach standard streams to a tty.
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam tty() {
+      return tty(true);
+    }
+
+    /**
+     * User that will run the command
+     * @param user user
+     * @return ExecCreateParam
+     */
+    public static ExecCreateParam user(final String user) {
+      return create("User", user);
+    }
+  }
+  
 
   /**
    * Parameters for {@link #logs(String, LogsParam...)}
    */
+  
   class LogsParam {
 
     private final String name;

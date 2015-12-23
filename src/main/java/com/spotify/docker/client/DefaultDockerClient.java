@@ -1016,8 +1016,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public String execCreate(String containerId, String[] cmd, ExecParameter... params)
-      throws DockerException, InterruptedException {
+  public String execCreate(final String containerId,
+                           final String[] cmd,
+                           final ExecCreateParam... params)
+          throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
     final StringWriter writer = new StringWriter();
@@ -1025,12 +1027,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
       generator.writeStartObject();
 
-      for (ExecParameter param : params) {
-        generator.writeBooleanField(param.getName(), true);
+      for (final ExecCreateParam param : params) {
+        if (param.value().equals("true") || param.value().equals("false")) {
+          generator.writeBooleanField(param.name(), Boolean.valueOf(param.value()));
+        } else {
+          generator.writeStringField(param.name(), param.value());
+        }
       }
 
       generator.writeArrayFieldStart("Cmd");
-      for (String s : cmd) {
+      for (final String s : cmd) {
         generator.writeString(s);
       }
       generator.writeEndArray();
@@ -1041,11 +1047,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
 
-
-    String response;
+    final String response;
     try {
-      response = request(POST, String.class, resource,
-                         resource.request(APPLICATION_JSON_TYPE),
+      response = request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
                          Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -1063,10 +1067,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
   }
+  
 
   @Override
-  public LogStream execStart(String execId, ExecStartParameter... params)
-      throws DockerException, InterruptedException {
+  public LogStream execStart(final String execId, final ExecStartParameter... params)
+          throws DockerException, InterruptedException {
     WebTarget resource = resource().path("exec").path(execId).path("start");
 
     final StringWriter writer = new StringWriter();
