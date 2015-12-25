@@ -104,10 +104,10 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
-import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM;
-import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
-import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
-import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
+import static com.spotify.docker.client.DockerClient.BuildParam.FORCE_RM;
+import static com.spotify.docker.client.DockerClient.BuildParam.NO_CACHE;
+import static com.spotify.docker.client.DockerClient.BuildParam.NO_RM;
+import static com.spotify.docker.client.DockerClient.BuildParam.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
@@ -249,24 +249,18 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdWithBuildargs() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support buildargs while building, got "
+                    + sut.version().apiVersion(),
+            compareVersion(sut.version().apiVersion(), "1.21") >= 0);
     final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
-    final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
-    final String returnedImageId = sut.build(
-            Paths.get(dockerDirectory), "test-buildargs",
-            "Dockerfile",
-            URLEncoder.encode(buildargs, "UTF-8"),
-            new ProgressHandler() {
-              @Override
-              public void progress(ProgressMessage message) throws DockerException {
-                final String imageId = message.buildImageId();
-                if (imageId != null) {
-                  imageIdFromMessage.set(imageId);
-                }
-              }
-            });
-
-    assertThat(returnedImageId, is(imageIdFromMessage.get()));
+    final DockerClient.BuildParam buildParam =
+    DockerClient.BuildParam.create("buildargs", URLEncoder.encode(buildargs, "UTF-8"));
+    sut.build(
+            Paths.get(dockerDirectory),
+            "test-buildargs",
+            buildParam
+    );
   }
 
   @Test
@@ -428,8 +422,8 @@ public class DefaultDockerClientTest {
     removedImages.addAll(sut.removeImage(imageVersion));
 
     assertThat(removedImages, hasItems(
-        new RemovedImage(UNTAGGED, imageLatest),
-        new RemovedImage(UNTAGGED, imageVersion)
+            new RemovedImage(UNTAGGED, imageLatest),
+            new RemovedImage(UNTAGGED, imageVersion)
     ));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
@@ -589,8 +583,8 @@ public class DefaultDockerClientTest {
         .build();
 
     sut2.build(Paths.get(dockerDirectory),
-               "testauth",
-               DockerClient.BuildParameter.PULL_NEWER_IMAGE);
+            "testauth",
+            DockerClient.BuildParam.PULL_NEWER_IMAGE);
   }
 
   @Test
@@ -744,7 +738,7 @@ public class DefaultDockerClientTest {
     final String pullingStr = compareVersion(sut.version().apiVersion(), "1.20") >= 0 ?
                               "Pulling from library/busybox" : "Pulling from busybox";
     assertThat(out.toString(), allOf(containsString(pullingStr),
-                                     containsString("Image is up to date")));
+            containsString("Image is up to date")));
   }
 
   @Test
@@ -838,7 +832,7 @@ public class DefaultDockerClientTest {
     ContainerCreation
         dockerClientTest =
         sut.commitContainer(id, "mosheeshel/busybox", tag, config, "CommitedByTest-" + tag,
-                            "DockerClientTest");
+                "DockerClientTest");
 
     ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
     assertThat(imageInfo.author(), is("DockerClientTest"));
@@ -1455,8 +1449,8 @@ public class DefaultDockerClientTest {
   public void testExtraHosts() throws Exception {
 
     assumeTrue("Docker API should be at least v1.15 to support Container Creation with " +
-               "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.15") >= 0);
+                    "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
+            compareVersion(sut.version().apiVersion(), "1.15") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1580,8 +1574,8 @@ public class DefaultDockerClientTest {
     String volumeContainer = createSleepingContainer();
     StringBuffer result = new StringBuffer();
     try (LogStream stream = sut.attachContainer(volumeContainer,
-                                                AttachParameter.STDOUT, AttachParameter.STDERR,
-                                                AttachParameter.STREAM, AttachParameter.STDIN)) {
+            AttachParameter.STDOUT, AttachParameter.STDERR,
+            AttachParameter.STREAM, AttachParameter.STDIN)) {
       try {
         while (stream.hasNext()) {
           String r = UTF_8.decode(stream.next().content()).toString();
@@ -1710,8 +1704,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testLogsSince() throws Exception {
     assumeTrue("We need Docker API >= v1.19 to run this test." +
-               "This Docker API is " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
+                    "This Docker API is " + sut.version().apiVersion(),
+            compareVersion(sut.version().apiVersion(), "1.19") >= 0);
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1848,9 +1842,9 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
-                                   DockerClient.ExecParameter.STDOUT,
-                                   DockerClient.ExecParameter.STDERR);
+    String execId = sut.execCreate(containerId, new String[]{"sh", "-c", "exit 2"},
+            DockerClient.ExecParameter.STDOUT,
+            DockerClient.ExecParameter.STDERR);
 
     log.info("execId = {}", execId);
     try (LogStream stream = sut.execStart(execId)) {
@@ -1880,8 +1874,8 @@ public class DefaultDockerClientTest {
     sut.waitContainer(containerId);
 
     final List<Container> containers = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.exitedContainers());
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.exitedContainers());
     assertThat(containers.size(), greaterThan(0));
     assertThat(containers.get(0).command(), containsString(randomLong));
   }

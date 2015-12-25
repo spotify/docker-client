@@ -1,4 +1,4 @@
 FROM busybox
 ARG testargument
-RUN echo $testargument > /test.txt
+RUN if [ -z "$testargument" ]; then exit 1; else echo $testargument > /test.txt; fi;
 CMD ["cat","/test.txt"]

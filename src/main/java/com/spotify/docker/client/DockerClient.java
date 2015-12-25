@@ -358,7 +358,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    * @throws IOException If some IO shit happened.
    */
-  String build(final Path directory, final BuildParameter... params)
+  String build(final Path directory, final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
 
   /**
@@ -372,7 +372,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    * @throws IOException If some IO shit happened.
    */
-  String build(final Path directory, final String name, final BuildParameter... params)
+  String build(final Path directory, final String name, final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
 
   /**
@@ -386,7 +386,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    * @throws IOException If some IO shit happened.
    */
-  String build(final Path directory, final ProgressHandler handler, final BuildParameter... params)
+  String build(final Path directory, final ProgressHandler handler, final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
 
   /**
@@ -402,7 +402,7 @@ public interface DockerClient extends Closeable {
    * @throws IOException If some IO shit happened.
    */
   String build(final Path directory, final String name, final ProgressHandler handler,
-               final BuildParameter... params)
+               final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
 
   /**
@@ -419,58 +419,62 @@ public interface DockerClient extends Closeable {
    * @throws IOException If some IO shit happened.
    */
   String build(final Path directory, final String name, final String dockerfile,
-               final ProgressHandler handler, final BuildParameter... params)
+               final ProgressHandler handler, final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
-  /**
-  * Build a docker image.
-  *
-  * @param directory The directory containing the dockerfile.
-  * @param name The repository name and optional tag to apply to the built image.
-  * @param dockerfile The path within the build context to the Dockerfile
-  * @param buildargs Build Arguments are env variables during the building of the image.
-  * @param handler The handler to use for processing each progress message received from Docker.
-  * @param params Additional flags to use during build.
-  * @return The id of the built image if successful, otherwise null.
-  * @throws DockerException if a server error occurred (500)
-  * @throws InterruptedException If the thread is interrupted
-  * @throws IOException If some IO shit happened.
-  */
-  String build(final Path directory, final String name,
-               final String dockerfile, final String buildargs,
-               final ProgressHandler handler, final BuildParameter... params)
-       throws DockerException, InterruptedException, IOException;
 
   /**
    * Flags which can be passed to the <code>build</code> method.
    */
-  enum BuildParameter {
+  class BuildParam {
     /** Suppress verbose build output. */
-    QUIET("q", true),
+    static final BuildParam QUIET = BuildParam.create("q", "true");
     /** Do not use the cache when building the image. */
-    NO_CACHE("nocache", true),
+    static final BuildParam NO_CACHE = BuildParam.create("nocache", "true");
     /** Do remove intermediate containers after a successful build. */
-    RM("rm", true),
+    static final BuildParam RM = BuildParam.create("rm", "true");
     /** Do not remove intermediate containers after a successful build. */
-    NO_RM("rm", false),
+    static final BuildParam NO_RM = BuildParam.create("rm", "false");
     /** Always remove intermediate containers. */
-    FORCE_RM("forcerm", true),
+    static final BuildParam FORCE_RM = BuildParam.create("forcerm", "true");
     /** Always attempt to pull a newer version of the base image even if one exists locally. */
-    PULL_NEWER_IMAGE("pull", true);
+    static final BuildParam PULL_NEWER_IMAGE = BuildParam.create("pull", "true");
 
-    final String buildParamName;
-    final boolean buildParamValue;
+    final String name;
+    final String value;
+    /**
+    * Parameter name.
+    *
+    * @return name of parameter
+    */
+    public String name() {
+          return name;
+      }
 
-    private BuildParameter(final String buildParamName, final boolean buildParamValue) {
-      this.buildParamName = buildParamName;
-      this.buildParamValue = buildParamValue;
+    /**
+    * Parameter value.
+    *
+    * @return value of parameter
+    */
+    public String value() {
+          return value;
+      }
+
+    public BuildParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
     }
 
     /**
-     * @return the {@link BuildParameter} value
-     */
-    public boolean getParamValue() {
-      return this.buildParamValue;
+    * Create a custom parameter.
+    *
+    * @param name custom name
+    * @param value custom value
+    * @return BuildParam
+    */
+    public static BuildParam create(final String name, final String value) {
+        return new BuildParam(name, value);
     }
+
   }
 
   /**
