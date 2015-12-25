@@ -22,6 +22,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -31,6 +32,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -44,6 +46,7 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -53,6 +56,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1810,8 +1814,8 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerId);
 
     String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-                                   DockerClient.ExecParameter.STDOUT,
-                                   DockerClient.ExecParameter.STDERR);
+                                   ExecCreateParam.attachStdout(),
+                                   ExecCreateParam.attachStderr());
 
     log.info("execId = {}", execId);
 
@@ -1842,18 +1846,39 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    String execId = sut.execCreate(containerId, new String[]{"sh", "-c", "exit 2"},
-            DockerClient.ExecParameter.STDOUT,
-            DockerClient.ExecParameter.STDERR);
+    final String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
+                                         ExecCreateParam.attachStdout(),
+                                         ExecCreateParam.attachStderr(),
+                                         ExecCreateParam.attachStdin(),
+                                         ExecCreateParam.tty(),
+                                         ExecCreateParam.user("1000"));
 
     log.info("execId = {}", execId);
-    try (LogStream stream = sut.execStart(execId)) {
+    try (final LogStream stream = sut.execStart(execId)) {
       stream.readFully();
     }
 
-    ExecState state = sut.execInspect(execId);
+    final ExecState state = sut.execInspect(execId);
+    assertThat(state.id(), is(execId));
     assertThat(state.running(), is(false));
     assertThat(state.exitCode(), is(2));
+    assertThat(state.openStdin(), is(true));
+    assertThat(state.openStderr(), is(true));
+    assertThat(state.openStdout(), is(true));
+
+    final ProcessConfig processConfig = state.processConfig();
+    assertThat(processConfig.privileged(), is(false));
+    assertThat(processConfig.user(), is("1000"));
+    assertThat(processConfig.tty(), is(true));
+    assertThat(processConfig.entrypoint(), is("sh"));
+    assertThat(processConfig.arguments(),
+               Matchers.<List<String>>is(ImmutableList.of("-c", "exit 2")));
+
+    final ContainerInfo containerInfo = state.container();
+    assertThat(containerInfo.path(), is("sh"));
+    assertThat(containerInfo.args(),
+               Matchers.<List<String>>is(ImmutableList.of("-c", "while :; do sleep 1; done")));
+    assertThat(containerInfo.config().image(), is(BUSYBOX_LATEST));
   }
 
   @Test

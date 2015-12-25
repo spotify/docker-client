@@ -18,6 +18,7 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -53,6 +54,11 @@ public class ContainerInfo {
   @JsonProperty("MountLabel") private String mountLabel;
   @JsonProperty("Volumes") private ImmutableMap<String, String> volumes;
   @JsonProperty("VolumesRW") private ImmutableMap<String, Boolean> volumesRW;
+  /**
+   * This field is an extension defined by the Docker Swarm API, therefore it will only
+   * be populated when communicating with a Swarm cluster.
+   */
+  @JsonProperty("Node") private Node node;
 
   public String id() {
     return id;
@@ -130,6 +136,10 @@ public class ContainerInfo {
     return volumesRW;
   }
 
+  public Node node() {
+    return node;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -202,6 +212,9 @@ public class ContainerInfo {
     if (volumesRW != null ? !volumesRW.equals(that.volumesRW) : that.volumesRW != null) {
       return false;
     }
+    if (node != null ? !node.equals(that.node) : that.node != null) {
+      return false;
+    }
 
     return true;
   }
@@ -227,6 +240,7 @@ public class ContainerInfo {
     result = 31 * result + (mountLabel != null ? mountLabel.hashCode() : 0);
     result = 31 * result + (volumes != null ? volumes.hashCode() : 0);
     result = 31 * result + (volumesRW != null ? volumesRW.hashCode() : 0);
+    result = 31 * result + (node != null ? node.hashCode() : 0);
     return result;
   }
 
@@ -252,6 +266,64 @@ public class ContainerInfo {
         .add("mountLabel", mountLabel)
         .add("volumes", volumes)
         .add("volumesRW", volumesRW)
+        .add("node", node)
         .toString();
+  }
+
+  public static class Node {
+    @JsonProperty("Id") private String id;
+    @JsonProperty("Ip") private String ip;
+    @JsonProperty("Addr") private String addr;
+    @JsonProperty("Name") private String name;
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getIp() {
+      return ip;
+    }
+
+    public void setIp(String ip) {
+      this.ip = ip;
+    }
+
+    public String getAddr() {
+      return addr;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Node node = (Node) o;
+      return Objects.equal(id, node.id) &&
+              Objects.equal(ip, node.ip) &&
+              Objects.equal(addr, node.addr) &&
+              Objects.equal(name, node.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(id, ip, addr, name);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+              .add("id", id)
+              .add("ip", ip)
+              .add("addr", addr)
+              .add("name", name)
+              .toString();
+    }
   }
 }
