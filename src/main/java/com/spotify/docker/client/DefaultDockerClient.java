@@ -1218,7 +1218,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       case 500:
         throw new DockerException(response.readEntity(String.class));
     }
-    System.out.println(response.getStatus());
   }
 
   private WebTarget resource() {
