@@ -31,9 +31,6 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Ipam {
 
-  public Ipam() {
-  }
-
   public Ipam(final String driver, final List<Config> config) {
     this.driver = driver;
     this.config = config;
