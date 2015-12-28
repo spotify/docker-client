@@ -77,9 +77,6 @@ public class Network {
   @JsonProperty("Options")
   private Map<String, String> options;
 
-  private Network() {
-  }
-
   public String name() {
     return name;
   }

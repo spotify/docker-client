@@ -37,9 +37,6 @@ public class NetworkSettings {
   @JsonProperty("Ports") private Map<String, List<PortBinding>> ports;
   @JsonProperty("MacAddress") private String macAddress;
 
-  private NetworkSettings() {
-  }
-
   private NetworkSettings(final Builder builder) {
     this.ipAddress = builder.ipAddress;
     this.ipPrefixLen = builder.ipPrefixLen;

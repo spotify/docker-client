@@ -31,10 +31,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 public class NetworkCreation {
 
   @JsonProperty("Id") private String id;
-  @JsonProperty("Warnings") private ImmutableList<String> warnings;
-
-  public NetworkCreation() {
-  }
+  @JsonProperty("Warnings") private String warnings;
 
   public NetworkCreation(final String id) {
     this.id = id;
@@ -44,7 +41,7 @@ public class NetworkCreation {
     return id;
   }
 
-  public List<String> getWarnings() {
+  public String getWarnings() {
     return warnings;
   }
 

@@ -44,9 +44,6 @@ public class NetworkConfig {
   @JsonProperty("CheckDuplicate")
   private boolean checkDuplicate;
 
-  private NetworkConfig() {
-  }
-
   private NetworkConfig(final Builder builder) {
     this.name = builder.name;
     this.options = builder.options;
