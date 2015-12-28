@@ -25,11 +25,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+/**
+ * An object that represents the JSON returned by the Docker API for low-level information about
+ * exec commands.
+ */
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ExecState {
 
+  @JsonProperty("ID") private String id;
   @JsonProperty("Running") private Boolean running;
   @JsonProperty("ExitCode") private Integer exitCode;
+  @JsonProperty("ProcessConfig") private ProcessConfig processConfig;
+  @JsonProperty("OpenStdin") private Boolean openStdin;
+  @JsonProperty("OpenStderr") private Boolean openStderr;
+  @JsonProperty("OpenStdout") private Boolean openStdout;
+  @JsonProperty("Container") private ContainerInfo container;
+
+  public String id() {
+    return id;
+  }
 
   public Boolean running() {
     return running;
@@ -37,6 +51,26 @@ public class ExecState {
 
   public Integer exitCode() {
     return exitCode;
+  }
+
+  public ProcessConfig processConfig() {
+    return processConfig;
+  }
+
+  public Boolean openStdin() {
+    return openStdin;
+  }
+
+  public Boolean openStderr() {
+    return openStderr;
+  }
+
+  public Boolean openStdout() {
+    return openStdout;
+  }
+
+  public ContainerInfo container() {
+    return container;
   }
 
   @Override
@@ -50,28 +84,58 @@ public class ExecState {
 
     final ExecState that = (ExecState) o;
 
+    if (id != null ? !id.equals(that.id) : that.id != null) {
+      return false;
+    }
     if (running != null ? !running.equals(that.running) : that.running != null) {
       return false;
     }
     if (exitCode != null ? !exitCode.equals(that.exitCode) : that.exitCode != null) {
       return false;
     }
+    if (processConfig != null ? !processConfig.equals(that.processConfig)
+                              : that.processConfig != null) {
+      return false;
+    }
+    if (openStdin != null ? !openStdin.equals(that.openStdin) : that.openStdin != null) {
+      return false;
+    }
+    if (openStderr != null ? !openStderr.equals(that.openStderr)
+                           : that.openStderr != null) {
+      return false;
+    }
+    if (openStdout != null ? !openStdout.equals(that.openStdout)
+                           : that.openStdout != null) {
+      return false;
+    }
+    return container != null ? container.equals(that.container) : that.container == null;
 
-    return true;
   }
 
   @Override
   public int hashCode() {
-    int result = running != null ? running.hashCode() : 0;
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (running != null ? running.hashCode() : 0);
     result = 31 * result + (exitCode != null ? exitCode.hashCode() : 0);
+    result = 31 * result + (processConfig != null ? processConfig.hashCode() : 0);
+    result = 31 * result + (openStdin != null ? openStdin.hashCode() : 0);
+    result = 31 * result + (openStderr != null ? openStderr.hashCode() : 0);
+    result = 31 * result + (openStdout != null ? openStdout.hashCode() : 0);
+    result = 31 * result + (container != null ? container.hashCode() : 0);
     return result;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("id", id)
         .add("running", running)
         .add("exitCode", exitCode)
+        .add("processConfig", processConfig)
+        .add("openStdin", openStdin)
+        .add("openStderr", openStderr)
+        .add("openStdout", openStdout)
+        .add("container", container)
         .toString();
   }
 }
