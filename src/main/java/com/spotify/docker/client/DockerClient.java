@@ -439,25 +439,26 @@ public interface DockerClient extends Closeable {
     /** Always attempt to pull a newer version of the base image even if one exists locally. */
     static final BuildParam PULL_NEWER_IMAGE = BuildParam.create("pull", "true");
 
-    final String name;
-    final String value;
-    /**
-    * Parameter name.
-    *
-    * @return name of parameter
-    */
-    public String name() {
-          return name;
-      }
+    private final String name;
+    private final String value;
 
     /**
-    * Parameter value.
-    *
-    * @return value of parameter
-    */
+     * Parameter name.
+     *
+     * @return name of parameter
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     */
     public String value() {
-          return value;
-      }
+      return value;
+    }
 
     public BuildParam(final String name, final String value) {
       this.name = name;
@@ -465,12 +466,12 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-    * Create a custom parameter.
-    *
-    * @param name custom name
-    * @param value custom value
-    * @return BuildParam
-    */
+     * Create a custom parameter.
+     *
+     * @param name custom name
+     * @param value custom value
+     * @return BuildParam
+     */
     public static BuildParam create(final String name, final String value) {
         return new BuildParam(name, value);
     }

@@ -659,7 +659,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     log.info("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
-            repo, config);
+             repo, config);
 
     try {
       return request(POST, ContainerCreation.class, resource, resource
@@ -742,11 +742,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("images").path(image).path("get");
 
     return request(
-            GET,
-            InputStream.class,
-            resource,
-            resource.request(APPLICATION_JSON_TYPE)
-                    .header("X-Registry-Auth", authHeader(authConfig))
+        GET,
+        InputStream.class,
+        resource,
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
     );
   }
 
@@ -887,7 +886,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = noTimeoutResource().path("build");
 
     for (final BuildParam param : params) {
-      resource = resource.queryParam(param.name(), param.value);
+      resource = resource.queryParam(param.name(), param.value());
     }
     if (name != null) {
       resource = resource.queryParam("t", name);
