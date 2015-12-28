@@ -18,6 +18,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
+
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -35,6 +36,7 @@ import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +49,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * A client for interacting with dockerd.
- * <p/>
+ *
  * Note: All methods throw DockerException on unexpected docker response status codes.
  */
 public interface DockerClient extends Closeable {
@@ -55,7 +57,6 @@ public interface DockerClient extends Closeable {
   /**
    * Ping the docker daemon. Returns "OK" if all is well, though that
    * it simply returns a 200 status is probably sufficient information.
-   *
    * @return String "OK"
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -134,8 +135,11 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  ContainerCreation commitContainer(final String containerId, final String repo, final String tag,
-                                    final ContainerConfig config, final String comment,
+  ContainerCreation commitContainer(final String containerId,
+                                    final String repo,
+                                    final String tag,
+                                    final ContainerConfig config,
+                                    final String comment,
                                     final String author)
       throws DockerException, InterruptedException;
 
@@ -175,7 +179,6 @@ public interface DockerClient extends Closeable {
 
   /**
    * Search for images on Docker Hub
-   *
    * @param term the search term
    * @return a list of matches for the given search term
    * @throws DockerException      if a server error occurred (500)
@@ -290,11 +293,7 @@ public interface DockerClient extends Closeable {
    *
    * @param image      The image to pull.
    * @param authConfig The authentication config needed to pull the image.
-<<<<<<< HEAD
    * @throws DockerException      if a server error occurred (500)
-=======
-   * @throws DockerException if a server error occurred (500)
->>>>>>> a7081a631a32bbb2afd3bb05fbdf2b0beed20615
    * @throws InterruptedException If the thread is interrupted
    */
   void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
@@ -430,29 +429,17 @@ public interface DockerClient extends Closeable {
    * Flags which can be passed to the <code>build</code> method.
    */
   enum BuildParameter {
-    /**
-     * Suppress verbose build output.
-     */
+    /** Suppress verbose build output. */
     QUIET("q", true),
-    /**
-     * Do not use the cache when building the image.
-     */
+    /** Do not use the cache when building the image. */
     NO_CACHE("nocache", true),
-    /**
-     * Do remove intermediate containers after a successful build.
-     */
+    /** Do remove intermediate containers after a successful build. */
     RM("rm", true),
-    /**
-     * Do not remove intermediate containers after a successful build.
-     */
+    /** Do not remove intermediate containers after a successful build. */
     NO_RM("rm", false),
-    /**
-     * Always remove intermediate containers.
-     */
+    /** Always remove intermediate containers. */
     FORCE_RM("forcerm", true),
-    /**
-     * Always attempt to pull a newer version of the base image even if one exists locally.
-     */
+    /** Always attempt to pull a newer version of the base image even if one exists locally. */
     PULL_NEWER_IMAGE("pull", true);
 
     final String buildParamName;
@@ -1074,7 +1061,6 @@ public interface DockerClient extends Closeable {
 
   /**
    * Attach to the container id
-   *
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
@@ -1087,7 +1073,6 @@ public interface DockerClient extends Closeable {
 
   /**
    * Get the Docker host address
-   *
    * @return the docker host name or IP
    */
   String getHost();
