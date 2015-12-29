@@ -40,6 +40,9 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
@@ -74,6 +77,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -178,6 +182,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Image>> IMAGE_LIST =
       new GenericType<List<Image>>() {};
+
+  private static final GenericType<List<Network>> NETWORK_LIST =
+      new GenericType<List<Network>>() {};
 
   private static final GenericType<List<ImageSearchResult>> IMAGES_SEARCH_RESULT_LIST =
       new GenericType<List<ImageSearchResult>>() {};
@@ -303,7 +310,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder
         .<ConnectionSocketFactory>create()
         .register("https", https)
-        .register("http", PlainConnectionSocketFactory.getSocketFactory());
+            .register("http", PlainConnectionSocketFactory.getSocketFactory());
 
     if (builder.uri.getScheme().equals(UNIX_SCHEME)) {
       registryBuilder.register(UNIX_SCHEME, new UnixConnectionSocketFactory(builder.uri));
@@ -508,7 +515,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = noTimeoutResource()
           .path("containers").path(containerId).path("stop")
-          .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
+              .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -646,7 +653,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("commit")
         .queryParam("container", containerId)
         .queryParam("repo", repo)
-        .queryParam("comment", comment);
+            .queryParam("comment", comment);
 
     if (!isNullOrEmpty(author)) {
       resource = resource.queryParam("author", author);
@@ -782,7 +789,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
              request(POST, ProgressStream.class, resource,
                      resource
                          .request(APPLICATION_JSON_TYPE)
-                         .header("X-Registry-Auth", authHeader(authConfig)))) {
+                                           .header("X-Registry-Auth", authHeader(authConfig)))) {
       pull.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -958,7 +965,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = resource().path("images").path(image)
           .queryParam("force", String.valueOf(force))
-          .queryParam("noprune", String.valueOf(noPrune));
+              .queryParam("noprune", String.valueOf(noPrune));
       return request(DELETE, REMOVED_IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -1137,6 +1144,82 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public List<Network> listNetworks() throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks");
+    return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId);
+    try {
+      return request(GET, Network.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NetworkNotFoundException(networkId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public NetworkCreation createNetwork(NetworkConfig networkConfig)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path("create");
+
+    return request(POST, NetworkCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
+                   Entity.json(networkConfig));
+  }
+
+  @Override
+  public void removeNetwork(String networkId) throws DockerException, InterruptedException {
+    try {
+      final WebTarget resource = resource().path("networks").path(networkId);
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NetworkNotFoundException(networkId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void connectToNetwork(String containerId, String networkId)
+      throws DockerException, InterruptedException {
+    manageNetworkConnection(containerId, "connect", networkId);
+  }
+
+  @Override
+  public void disconnectFromNetwork(String containerId, String networkId)
+      throws DockerException, InterruptedException {
+    manageNetworkConnection(containerId, "disconnect", networkId);
+  }
+
+  private void manageNetworkConnection(String containerId, String methodname, String networkId)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId).path(methodname);
+
+    Map<String, String> request = new HashMap<>();
+    request.put("Container", containerId);
+    Response response =
+        request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+                Entity.json(request));
+    switch (response.getStatus()) {
+      case 200:
+        return;
+      case 404:
+        throw new ContainerNotFoundException(containerId);
+      case 500:
+        throw new DockerException(response.readEntity(String.class));
+    }
+  }
+
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
@@ -1222,7 +1305,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
                                        message(response), cause);
     } else if ((cause instanceof SocketTimeoutException) ||
-               (cause instanceof ConnectTimeoutException)) {
+        (cause instanceof ConnectTimeoutException)) {
       throw new DockerTimeoutException(method, resource.getUri(), e);
     } else if ((cause instanceof InterruptedIOException)
                || (cause instanceof InterruptedException)) {

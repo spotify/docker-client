@@ -46,6 +46,10 @@ import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Ipam;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -1999,6 +2003,107 @@ public class DefaultDockerClientTest {
     assertThat(stats.memoryStats(), notNullValue());
     assertThat(stats.network(), notNullValue());
   }
+
+  @Test
+  public void testNetworks() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+                   "HostConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    assumeFalse(CIRCLECI);
+
+    final String networkName = randomName();
+    final Ipam ipam =
+        Ipam.builder().driver("default").config("192.168.0.0/24", "192.168.0.0/24", "192.168.0.1")
+            .build();
+    final NetworkConfig networkConfig =
+        NetworkConfig.builder().name(networkName).driver("bridge").checkDuplicate(true).ipam(ipam)
+            .build();
+
+    final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
+    assertThat(networkCreation.id(), is(notNullValue()));
+    assertThat(networkCreation.warnings(), is(nullValue()));
+
+    final List<Network> networks = sut.listNetworks();
+    assertTrue(networks.size() > 0);
+
+    Network network = null;
+    for (Network n : networks) {
+      if (n.name().equals(networkName)) {
+        network = n;
+      }
+    }
+    assertThat(network, is(notNullValue()));
+    assertThat(network.id(), is(notNullValue()));
+    assertThat(sut.inspectNetwork(network.id()).name(), is(networkName));
+    assertThat(network.ipam(), equalTo(ipam));
+
+    sut.removeNetwork(network.id());
+
+    exception.expect(NetworkNotFoundException.class);
+    sut.inspectNetwork(network.id());
+
+  }
+
+  @Test
+  public void testNetworksConnectContainerShouldFailIfContainerNotRunning() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+                   "HostConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    assumeFalse(CIRCLECI);
+    final String networkName = randomName();
+    final String containerName = randomName();
+    final NetworkCreation networkCreation =
+        sut.createNetwork(NetworkConfig.builder().name(networkName).build());
+    assertThat(networkCreation.id(), is(notNullValue()));
+    final ContainerConfig containerConfig =
+        ContainerConfig.builder().image(BUSYBOX_LATEST).cmd("sh", "-c", "echo hello").build();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    assertThat(containerCreation.id(), is(notNullValue()));
+    try {
+      exception.expect(DockerException.class);
+      sut.connectToNetwork(containerCreation.id(), networkCreation.id());
+    } finally {
+      sut.removeContainer(containerCreation.id());
+      sut.removeNetwork(networkCreation.id());
+    }
+  }
+
+
+  @Test
+  public void testNetworksConnectContainer() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+                   "HostConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    assumeFalse(CIRCLECI);
+    final String networkName = randomName();
+    final String containerName = randomName();
+    final NetworkCreation networkCreation =
+        sut.createNetwork(NetworkConfig.builder().name(networkName).build());
+    assertThat(networkCreation.id(), is(notNullValue()));
+    final ContainerConfig containerConfig =
+        ContainerConfig.builder().image(BUSYBOX_LATEST).cmd("sh", "-c", "while :; do sleep 1; done")
+            .build();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    assertThat(containerCreation.id(), is(notNullValue()));
+    sut.startContainer(containerCreation.id());
+    sut.connectToNetwork(containerCreation.id(), networkCreation.id());
+    Network network = sut.inspectNetwork(networkCreation.id());
+    assertThat(network.containers().size(), equalTo(1));
+    assertThat(network.containers().get(containerCreation.id()), notNullValue());
+
+    sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
+    network = sut.inspectNetwork(networkCreation.id());
+    assertThat(network.containers().size(), equalTo(0));
+
+    sut.stopContainer(containerCreation.id(), 1);
+    sut.removeContainer(containerCreation.id());
+    sut.removeNetwork(networkCreation.id());
+
+  }
+
 
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());
