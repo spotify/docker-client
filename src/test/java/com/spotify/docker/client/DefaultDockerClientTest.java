@@ -2022,7 +2022,7 @@ public class DefaultDockerClientTest {
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
     assertThat(networkCreation.id(), is(notNullValue()));
-    assertThat(networkCreation.getWarnings(), is(nullValue()));
+    assertThat(networkCreation.warnings(), is(nullValue()));
 
     final List<Network> networks = sut.listNetworks();
     assertTrue(networks.size() > 0);
@@ -2040,13 +2040,9 @@ public class DefaultDockerClientTest {
 
     sut.removeNetwork(network.id());
 
-    try {
-      sut.inspectNetwork(network.id());
-      fail();
-    } catch (NetworkNotFoundException e) {
-    } catch (Exception e) {
-      fail();
-    }
+    exception.expect(NetworkNotFoundException.class);
+    sut.inspectNetwork(network.id());
+
   }
 
   @Test
@@ -2066,10 +2062,8 @@ public class DefaultDockerClientTest {
     final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
     assertThat(containerCreation.id(), is(notNullValue()));
     try {
+      exception.expect(DockerException.class);
       sut.connectToNetwork(containerCreation.id(), networkCreation.id());
-      fail("Expected to throw DockerException");
-    } catch (DockerException e) {
-      assertThat(e.getMessage(), containsString("is not running"));
     } finally {
       sut.removeContainer(containerCreation.id());
       sut.removeNetwork(networkCreation.id());
@@ -2097,39 +2091,9 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerCreation.id());
     sut.connectToNetwork(containerCreation.id(), networkCreation.id());
     Network network = sut.inspectNetwork(networkCreation.id());
-
     assertThat(network.containers().size(), equalTo(1));
     assertThat(network.containers().get(containerCreation.id()), notNullValue());
-    sut.stopContainer(containerCreation.id(), 1);
-    sut.removeContainer(containerCreation.id());
-    sut.removeNetwork(networkCreation.id());
 
-  }
-
-
-  @Test
-  public void testNetworksDisconnectContainer() throws Exception {
-    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
-                   "HostConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
-
-    assumeFalse(CIRCLECI);
-    final String networkName = randomName();
-    final String containerName = randomName();
-    final NetworkCreation networkCreation =
-        sut.createNetwork(NetworkConfig.builder().name(networkName).build());
-    assertThat(networkCreation.id(), is(notNullValue()));
-    final ContainerConfig containerConfig =
-        ContainerConfig.builder().image(BUSYBOX_LATEST).cmd("sh", "-c", "while :; do sleep 1; done")
-            .build();
-    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
-    assertThat(containerCreation.id(), is(notNullValue()));
-    sut.startContainer(containerCreation.id());
-    sut.connectToNetwork(containerCreation.id(), networkCreation.id());
-    Network network = sut.inspectNetwork(networkCreation.id());
-
-    assertThat(network.containers().size(), equalTo(1));
-    assertThat(network.containers().get(containerCreation.id()), notNullValue());
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
     network = sut.inspectNetwork(networkCreation.id());
     assertThat(network.containers().size(), equalTo(0));
@@ -2139,6 +2103,7 @@ public class DefaultDockerClientTest {
     sut.removeNetwork(networkCreation.id());
 
   }
+
 
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());

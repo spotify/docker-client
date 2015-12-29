@@ -31,21 +31,23 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Ipam {
 
-  public Ipam(final String driver, final List<Config> config) {
-    this.driver = driver;
-    this.config = config;
+  @JsonProperty("Driver") private String driver;
+  @JsonProperty("Config") private List<IpamConfig> config;
+
+  private Ipam(final Builder builder) {
+    this.driver = builder.driver;
+    this.config = builder.configs;
   }
 
-  @JsonProperty("Driver")
-  private String driver;
-  @JsonProperty("Config")
-  private List<Config> config;
+  @SuppressWarnings("unused")
+  public Ipam() {
+  }
 
   public String driver() {
     return driver;
   }
 
-  public List<Config> config() {
+  public List<IpamConfig> config() {
     return config;
   }
 
@@ -81,7 +83,7 @@ public class Ipam {
 
   public static class Builder {
     private String driver;
-    private List<Config> configs = new ArrayList<Config>();
+    private List<IpamConfig> configs = new ArrayList<IpamConfig>();
 
     public Builder driver(final String driver) {
       this.driver = driver;
@@ -89,7 +91,7 @@ public class Ipam {
     }
 
     public Builder config(final String subnet, final String ipRange, final String gateway) {
-      Config config = new Config();
+      IpamConfig config = new IpamConfig();
       config.subnet(subnet);
       config.ipRange(ipRange);
       config.gateway(gateway);
@@ -98,7 +100,7 @@ public class Ipam {
     }
 
     public Ipam build() {
-      return new Ipam(this.driver, this.configs);
+      return new Ipam(this);
     }
   }
 }

@@ -22,11 +22,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkSettings {
 
   @JsonProperty("IPAddress") private String ipAddress;
@@ -45,6 +50,10 @@ public class NetworkSettings {
     this.portMapping = builder.portMapping;
     this.ports = builder.ports;
     this.macAddress = builder.macAddress;
+  }
+
+  @SuppressWarnings("unused")
+  public NetworkSettings() {
   }
 
   public String ipAddress() {

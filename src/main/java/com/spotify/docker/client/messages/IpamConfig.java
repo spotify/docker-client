@@ -26,7 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Config {
+public class IpamConfig {
 
   @JsonProperty("Subnet")
   private String subnet;
@@ -68,7 +68,7 @@ public class Config {
       return false;
     }
 
-    Config that = (Config) o;
+    IpamConfig that = (IpamConfig) o;
 
     return Objects.equal(this.subnet, that.subnet) &&
         Objects.equal(this.ipRange, that.ipRange) &&

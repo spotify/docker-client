@@ -173,7 +173,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       ObjectMapperProvider.class,
       JacksonFeature.class,
       LogsResponseReader.class,
-                       ProgressResponseReader.class);
+      ProgressResponseReader.class);
 
   private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile("/?[a-zA-Z0-9_-]+");
 
@@ -225,7 +225,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
-   * @param uri                The docker rest api uri.
+   * @param uri The docker rest api uri.
    * @param dockerCertificates The certificates to use for HTTPS.
    */
   public DefaultDockerClient(final URI uri, final DockerCertificates dockerCertificates) {

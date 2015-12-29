@@ -20,9 +20,6 @@ package com.spotify.docker.client.messages;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -33,15 +30,11 @@ public class NetworkCreation {
   @JsonProperty("Id") private String id;
   @JsonProperty("Warnings") private String warnings;
 
-  public NetworkCreation(final String id) {
-    this.id = id;
-  }
-
   public String id() {
     return id;
   }
 
-  public String getWarnings() {
+  public String warnings() {
     return warnings;
   }
 
