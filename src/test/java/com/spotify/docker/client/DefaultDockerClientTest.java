@@ -86,6 +86,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -111,10 +112,10 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
-import static com.spotify.docker.client.DockerClient.BuildParameter.FORCE_RM;
-import static com.spotify.docker.client.DockerClient.BuildParameter.NO_CACHE;
-import static com.spotify.docker.client.DockerClient.BuildParameter.NO_RM;
-import static com.spotify.docker.client.DockerClient.BuildParameter.PULL_NEWER_IMAGE;
+import static com.spotify.docker.client.DockerClient.BuildParam.FORCE_RM;
+import static com.spotify.docker.client.DockerClient.BuildParam.NO_CACHE;
+import static com.spotify.docker.client.DockerClient.BuildParam.NO_RM;
+import static com.spotify.docker.client.DockerClient.BuildParam.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
@@ -251,6 +252,22 @@ public class DefaultDockerClientTest {
   @Test(expected = ImageNotFoundException.class)
   public void testPullPrivateRepoWithoutAuth() throws Exception {
     sut.pull(CIRROS_PRIVATE_LATEST);
+  }
+
+  @Test
+  public void testBuildImageIdWithBuildargs() throws Exception {
+    assumeTrue("We need Docker API >= v1.21 to run this test." +
+               "This Docker API is " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
+    final String buildargs = "{\"testargument\":\"22-12-2015\"}";
+    final DockerClient.BuildParam buildParam =
+        DockerClient.BuildParam.create("buildargs", URLEncoder.encode(buildargs, "UTF-8"));
+    sut.build(
+        Paths.get(dockerDirectory),
+        "test-buildargs",
+        buildParam
+    );
   }
 
   @Test
@@ -574,7 +591,7 @@ public class DefaultDockerClientTest {
 
     sut2.build(Paths.get(dockerDirectory),
                "testauth",
-               DockerClient.BuildParameter.PULL_NEWER_IMAGE);
+               DockerClient.BuildParam.PULL_NEWER_IMAGE);
   }
 
   @Test

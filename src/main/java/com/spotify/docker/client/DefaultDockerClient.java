@@ -859,41 +859,41 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public String build(final Path directory, final BuildParameter... params)
+  public String build(final Path directory, final BuildParam... params)
       throws DockerException, InterruptedException, IOException {
     return build(directory, null, new LoggingBuildHandler(), params);
   }
 
   @Override
-  public String build(final Path directory, final String name, final BuildParameter... params)
+  public String build(final Path directory, final String name, final BuildParam... params)
       throws DockerException, InterruptedException, IOException {
     return build(directory, name, new LoggingBuildHandler(), params);
   }
 
   @Override
   public String build(final Path directory, final ProgressHandler handler,
-                      final BuildParameter... params)
+                      final BuildParam... params)
       throws DockerException, InterruptedException, IOException {
     return build(directory, null, handler, params);
   }
 
   @Override
   public String build(final Path directory, final String name, final ProgressHandler handler,
-                      final BuildParameter... params)
+                      final BuildParam... params)
       throws DockerException, InterruptedException, IOException {
     return build(directory, name, null, handler, params);
   }
 
   @Override
   public String build(final Path directory, final String name, final String dockerfile,
-                      final ProgressHandler handler, final BuildParameter... params)
+                      final ProgressHandler handler, final BuildParam... params)
       throws DockerException, InterruptedException, IOException {
     checkNotNull(handler, "handler");
 
     WebTarget resource = noTimeoutResource().path("build");
 
-    for (final BuildParameter param : params) {
-      resource = resource.queryParam(param.buildParamName, String.valueOf(param.buildParamValue));
+    for (final BuildParam param : params) {
+      resource = resource.queryParam(param.name(), param.value());
     }
     if (name != null) {
       resource = resource.queryParam("t", name);
