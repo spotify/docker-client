@@ -322,6 +322,10 @@
               <pattern>org.ow2.asm</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.ow2.asm</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>com.github.jnr</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.github.jnr</shadedPattern>
+            </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
         </configuration>
