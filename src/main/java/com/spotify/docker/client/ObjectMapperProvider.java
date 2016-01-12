@@ -42,9 +42,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
+    
+  private static final Logger log = LoggerFactory.getLogger(ObjectMapperProvider.class);
 
   private static final Function<? super Object, ?> VOID_VALUE =
       new Function<Object, Object>() {
@@ -58,15 +63,20 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   static {
-    MODULE.addSerializer(Set.class, new SetSerializer());
-    MODULE.addDeserializer(Set.class, new SetDeserializer());
-    MODULE.addSerializer(ImmutableSet.class, new ImmutableSetSerializer());
-    MODULE.addDeserializer(ImmutableSet.class, new ImmutableSetDeserializer());
-    OBJECT_MAPPER.registerModule(new GuavaModule());
-    OBJECT_MAPPER.registerModule(MODULE);
-    OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    OBJECT_MAPPER.setDateFormat(new DockerDateFormat());
+      try {
+      MODULE.addSerializer(Set.class, new SetSerializer());
+      MODULE.addDeserializer(Set.class, new SetDeserializer());
+      MODULE.addSerializer(ImmutableSet.class, new ImmutableSetSerializer());
+      MODULE.addDeserializer(ImmutableSet.class, new ImmutableSetDeserializer());
+      OBJECT_MAPPER.registerModule(new GuavaModule());
+      OBJECT_MAPPER.registerModule(MODULE);
+      OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      OBJECT_MAPPER.setDateFormat(new DockerDateFormat());
+      } catch (Throwable t) {
+          log.error("Failure during static initialization", t);
+          throw t;
+        }
   }
 
   @Override
