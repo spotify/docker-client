@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
@@ -112,10 +113,6 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
-import static com.spotify.docker.client.DockerClient.BuildParam.FORCE_RM;
-import static com.spotify.docker.client.DockerClient.BuildParam.NO_CACHE;
-import static com.spotify.docker.client.DockerClient.BuildParam.NO_RM;
-import static com.spotify.docker.client.DockerClient.BuildParam.PULL_NEWER_IMAGE;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
@@ -261,8 +258,8 @@ public class DefaultDockerClientTest {
                compareVersion(sut.version().apiVersion(), "1.21") >= 0);
     final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
-    final DockerClient.BuildParam buildParam =
-        DockerClient.BuildParam.create("buildargs", URLEncoder.encode(buildargs, "UTF-8"));
+    final BuildParam buildParam =
+        BuildParam.create("buildargs", URLEncoder.encode(buildargs, "UTF-8"));
     sut.build(
         Paths.get(dockerDirectory),
         "test-buildargs",
@@ -325,6 +322,7 @@ public class DefaultDockerClientTest {
     final File tmpDir    = new File(System.getProperty("java.io.tmpdir"));
     assertTrue("Temp directory " + tmpDir.getAbsolutePath() + " does not exist", tmpDir.exists());
     final File imageFile = new File(tmpDir, "busybox-" + System.nanoTime() + ".tar");
+    //noinspection ResultOfMethodCallIgnored
     imageFile.createNewFile();
     imageFile.deleteOnExit();
     final byte[] buffer = new byte[2048];
@@ -589,9 +587,7 @@ public class DefaultDockerClientTest {
         .authConfig(authConfig)
         .build();
 
-    sut2.build(Paths.get(dockerDirectory),
-               "testauth",
-               DockerClient.BuildParam.PULL_NEWER_IMAGE);
+    sut2.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());
   }
 
   @Test
@@ -646,7 +642,7 @@ public class DefaultDockerClientTest {
           pulled.set(true);
         }
       }
-    }, PULL_NEWER_IMAGE);
+    }, BuildParam.pullNewerImage());
     assertTrue(pulled.get());
   }
 
@@ -676,7 +672,7 @@ public class DefaultDockerClientTest {
       public void progress(ProgressMessage message) throws DockerException {
         assertThat(message.stream(), not(containsString(usingCache)));
       }
-    }, NO_CACHE);
+    }, BuildParam.noCache());
   }
 
   @Test
@@ -694,7 +690,7 @@ public class DefaultDockerClientTest {
           removedContainer.set(true);
         }
       }
-    }, NO_CACHE, FORCE_RM);
+    }, BuildParam.noCache(), BuildParam.forceRm());
     assertTrue(removedContainer.get());
 
     // Set NO_RM and verify we don't get message that containers were removed.
@@ -703,7 +699,7 @@ public class DefaultDockerClientTest {
       public void progress(ProgressMessage message) throws DockerException {
         assertThat(message.stream(), not(containsString(removingContainers)));
       }
-    }, NO_CACHE, NO_RM);
+    }, BuildParam.noCache(), BuildParam.rm(false));
   }
 
   @Test
@@ -717,7 +713,7 @@ public class DefaultDockerClientTest {
           public void progress(ProgressMessage message) throws DockerException {
             log.info(message.stream());
           }
-        }, NO_CACHE);
+        }, BuildParam.noCache());
     assertTrue(returnedImageId != null);
   }
 
@@ -2051,6 +2047,7 @@ public class DefaultDockerClientTest {
       }
     }
     assertThat(network, is(notNullValue()));
+    //noinspection ConstantConditions
     assertThat(network.id(), is(notNullValue()));
     assertThat(sut.inspectNetwork(network.id()).name(), is(networkName));
     assertThat(network.ipam(), equalTo(ipam));
