@@ -429,18 +429,6 @@ public interface DockerClient extends Closeable {
    * Flags which can be passed to the <code>build</code> method.
    */
   class BuildParam {
-    /** Suppress verbose build output. */
-    static final BuildParam QUIET = BuildParam.create("q", "true");
-    /** Do not use the cache when building the image. */
-    static final BuildParam NO_CACHE = BuildParam.create("nocache", "true");
-    /** Do remove intermediate containers after a successful build. */
-    static final BuildParam RM = BuildParam.create("rm", "true");
-    /** Do not remove intermediate containers after a successful build. */
-    static final BuildParam NO_RM = BuildParam.create("rm", "false");
-    /** Always remove intermediate containers. */
-    static final BuildParam FORCE_RM = BuildParam.create("forcerm", "true");
-    /** Always attempt to pull a newer version of the base image even if one exists locally. */
-    static final BuildParam PULL_NEWER_IMAGE = BuildParam.create("pull", "true");
 
     private final String name;
     private final String value;
@@ -479,6 +467,54 @@ public interface DockerClient extends Closeable {
         return new BuildParam(name, value);
     }
 
+    /**
+     * Suppress verbose build output.
+     * @return BuildParam
+     */
+    public static BuildParam quiet() {
+      return create("q", "true");
+    }
+
+    /**
+     * Remove intermediate containers after a successful build.
+     * @return BuildParam
+     */
+    public static BuildParam rm() {
+      return rm(true);
+    }
+
+    /**
+     * Control whether to remove intermediate containers after a successful build.
+     * @param rm Whether to remove
+     * @return BuildParam
+     */
+    public static BuildParam rm(final boolean rm) {
+      return create("rm", String.valueOf(rm));
+    }
+
+    /**
+     * Do not use the cache when building the image.
+     * @return BuildParam
+     */
+    public static BuildParam noCache() {
+      return create("nocache", "true");
+    }
+
+    /**
+     * Always remove intermediate containers.
+     * @return BuildParam
+     */
+    public static BuildParam forceRm() {
+      return create("forcerm", "true");
+    }
+
+    /**
+     * Always attempt to pull a newer version of the base image even if one exists locally.
+     * @return BuildParam
+     */
+    public static BuildParam pullNewerImage() {
+      return create("pull", "true");
+    }
   }
 
   /**
@@ -745,7 +781,7 @@ public interface DockerClient extends Closeable {
    * Create a new network
    *
    * @param networkConfig The network creation parameters
-   * @return
+   * @return NetworkCreation
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
