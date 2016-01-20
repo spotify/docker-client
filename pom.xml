@@ -319,8 +319,8 @@
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
             </relocation>
             <relocation>
-              <pattern>org.ow2.asm</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.org.ow2.asm</shadedPattern>
+              <pattern>org.objectweb.asm</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.objectweb.asm</shadedPattern>
             </relocation>
             <relocation>
               <pattern>jnr</pattern>
