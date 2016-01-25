@@ -68,6 +68,9 @@ docker.killContainer(id);
 
 // Remove container
 docker.removeContainer(id);
+
+// Close the docker client
+docker.close();
 ```
 
 ### Configuration
