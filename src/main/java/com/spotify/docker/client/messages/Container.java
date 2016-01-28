@@ -35,13 +35,14 @@ public class Container {
   @JsonProperty("Id") private String id;
   @JsonProperty("Names") private ImmutableList<String> names;
   @JsonProperty("Image") private String image;
+  @JsonProperty("ImageID") private String imageId;
   @JsonProperty("Command") private String command;
   @JsonProperty("Created") private Long created;
   @JsonProperty("Status") private String status;
   @JsonProperty("Ports") private ImmutableList<PortMapping> ports;
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
   @JsonProperty("SizeRw") private Long sizeRw;
-  @JsonProperty("SizeRootFs") private Long sizeRootFs;
+  @JsonProperty("SizeRootFs") private Long sizeRootFs;  
 
   /**
    * This method returns port information the way that <code>docker ps</code> does:
@@ -115,6 +116,10 @@ public class Container {
   public Long sizeRootFs() {
     return sizeRootFs;
   }
+  
+  public String imageId() {
+    return imageId;
+  }
 
   @Override
   public boolean equals(final Object o) {
@@ -158,6 +163,9 @@ public class Container {
     if (status != null ? !status.equals(container.status) : container.status != null) {
       return false;
     }
+    if (imageId != null ? !imageId.equals(container.imageId) : container.imageId != null) {
+      return false;
+    }
 
     return true;
   }
@@ -174,6 +182,7 @@ public class Container {
     result = 31 * result + (labels != null ? labels.hashCode() : 0);
     result = 31 * result + (sizeRw != null ? sizeRw.hashCode() : 0);
     result = 31 * result + (sizeRootFs != null ? sizeRootFs.hashCode() : 0);
+    result = 31 * result + (imageId != null ? imageId.hashCode() : 0);
     return result;
   }
 
@@ -189,6 +198,7 @@ public class Container {
         .add("labels", labels)
         .add("sizeRw", sizeRw)
         .add("sizeRootFs", sizeRootFs)
+        .add("imageId", imageId)
         .toString();
   }
 

@@ -57,6 +57,7 @@ public class ContainerConfig {
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
   @JsonProperty("MacAddress") private String macAddress;
   @JsonProperty("HostConfig") private HostConfig hostConfig;
+  @JsonProperty("StopSignal") private String stopSignal;
 
 
   private ContainerConfig() {
@@ -85,6 +86,7 @@ public class ContainerConfig {
     this.labels = builder.labels;
     this.macAddress = builder.macAddress;
     this.hostConfig = builder.hostConfig;
+    this.stopSignal = builder.stopSignal;
   }
 
   public String hostname() {
@@ -260,6 +262,10 @@ public class ContainerConfig {
     if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
       return false;
     }
+    
+    if (stopSignal != null ? !stopSignal.equals(config.stopSignal) : config.stopSignal != null) {
+      return false;
+    }
 
     return true;
   }
@@ -288,6 +294,7 @@ public class ContainerConfig {
     result = 31 * result + (labels != null ? labels.hashCode() : 0);
     result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
     result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
+    result = 31 * result + (stopSignal != null ? stopSignal.hashCode() : 0);
     return result;
   }
 
@@ -316,6 +323,7 @@ public class ContainerConfig {
         .add("labels", labels)
         .add("macAddress", macAddress)
         .add("hostConfig", hostConfig)
+        .add("stopSignal", stopSignal)
         .toString();
   }
 
@@ -356,6 +364,7 @@ public class ContainerConfig {
     private ImmutableMap<String, String> labels;
     private String macAddress;
     private HostConfig hostConfig;
+    private String stopSignal;
 
     private Builder() {
     }
@@ -383,6 +392,7 @@ public class ContainerConfig {
       this.labels = config.labels;
       this.macAddress = config.macAddress;
       this.hostConfig = config.hostConfig;
+      this.stopSignal = config.stopSignal;
     }
 
     public Builder hostname(final String hostname) {
@@ -707,9 +717,22 @@ public class ContainerConfig {
     public HostConfig hostConfig() {
       return hostConfig;
     }
+    
+    public Builder stopSignal(final String stopSignal) {
+      this.stopSignal = stopSignal;
+      return this;
+    }
+    
+    public String stopSignal() {
+      return stopSignal;
+    }
 
     public ContainerConfig build() {
       return new ContainerConfig(this);
     }
+  }
+
+  public String getStopSignal() {
+    return stopSignal;
   }
 }
