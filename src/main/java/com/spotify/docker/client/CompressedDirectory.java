@@ -19,7 +19,6 @@ package com.spotify.docker.client;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -138,7 +137,7 @@ class CompressedDirectory implements Closeable {
 
     if (Files.isReadable(dockerIgnorePath) && Files.isRegularFile(dockerIgnorePath)) {
       for (final String line : Files.readAllLines(dockerIgnorePath, StandardCharsets.UTF_8)) {
-        final String pattern = line.trim();
+        final String pattern = createPattern(line);
         if (pattern.isEmpty()) {
           log.debug("Will skip '{}' - cause it's empty after trimming", line);
           continue;
@@ -148,6 +147,17 @@ class CompressedDirectory implements Closeable {
     }
 
     return matchersBuilder.build();
+  }
+
+  private static String createPattern(String line) {
+
+    String pattern = line.trim();
+
+    if (OSUtils.isLinux()) {
+      return pattern;
+    }
+
+    return pattern.replace("/", "\\\\");
   }
 
   @VisibleForTesting

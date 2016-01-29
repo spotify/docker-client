@@ -18,13 +18,14 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.io.Resources;
-
+import com.spotify.docker.client.OSUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.FileNotFoundException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -142,6 +143,19 @@ public class AuthConfigTest {
   }
 
   private static Path getTestFilePath(final String path) {
+    if (OSUtils.isLinux()) {
+      return getLinuxPath(path);
+    } else {
+      return getWindowsPath(path);
+    }
+  }
+
+  private static Path getWindowsPath(final String path) {
+    URL resource = AuthConfigTest.class.getResource("/" + path);
+    return Paths.get(resource.getPath().substring(1));
+  }
+
+  private static Path getLinuxPath(final String path) {
     return Paths.get(Resources.getResource(path).getPath());
   }
 }
