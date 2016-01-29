@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
+import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -2107,6 +2108,17 @@ public class DefaultDockerClientTest {
     Network network = sut.inspectNetwork(networkCreation.id());
     assertThat(network.containers().size(), equalTo(1));
     assertThat(network.containers().get(containerCreation.id()), notNullValue());
+
+    final ContainerInfo containerInfo = sut.inspectContainer(containerCreation.id());
+    assertThat(containerInfo.networkSettings().networks().size(), is(2));
+    final AttachedNetwork attachedNetwork =
+        containerInfo.networkSettings().networks().get(networkName);
+    assertThat(attachedNetwork, is(notNullValue()));
+    assertThat(attachedNetwork.endpointId(), is(notNullValue()));
+    assertThat(attachedNetwork.gateway(), is(notNullValue()));
+    assertThat(attachedNetwork.ipAddress(), is(notNullValue()));
+    assertThat(attachedNetwork.ipPrefixLen(), is(notNullValue()));
+    assertThat(attachedNetwork.macAddress(), is(notNullValue()));
 
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
     network = sut.inspectNetwork(networkCreation.id());
