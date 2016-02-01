@@ -2157,9 +2157,10 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(containerId);
 
     assertThat(info.hostConfig().restartPolicy().name(), is(restartPolicy.name()));
-    assertThat(
-            info.hostConfig().restartPolicy().maxRetryCount(),
-            is(restartPolicy.maxRetryCount()));
+    Integer retryCount = restartPolicy.maxRetryCount() == null ?
+            0 : restartPolicy.maxRetryCount();
+
+    assertThat(info.hostConfig().restartPolicy().maxRetryCount(), is(retryCount));
   }
 
   private String randomName() {
