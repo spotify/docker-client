@@ -2121,6 +2121,46 @@ public class DefaultDockerClientTest {
 
   }
 
+  @Test
+  public void testRestartPolicyAlways() throws Exception {
+    testRestartPolicy(HostConfig.RestartPolicy.always());
+  }
+
+  @Test
+  public void testRestartUnlessStopped() throws Exception {
+    testRestartPolicy(HostConfig.RestartPolicy.unlessStopped());
+  }
+
+  @Test
+  public void testRestartOnFailure() throws Exception {
+    testRestartPolicy(HostConfig.RestartPolicy.onFailure(5));
+  }
+
+  private void testRestartPolicy(HostConfig.RestartPolicy restartPolicy) throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final HostConfig hostConfig = HostConfig.builder()
+            .restartPolicy(restartPolicy)
+            .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            // make sure the container's busy doing something upon startup
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .hostConfig(hostConfig)
+            .build();
+
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    final ContainerInfo info = sut.inspectContainer(containerId);
+
+    assertThat(info.hostConfig().restartPolicy().name(), is(restartPolicy.name()));
+    assertThat(
+            info.hostConfig().restartPolicy().maxRetryCount(),
+            is(restartPolicy.maxRetryCount()));
+  }
 
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());

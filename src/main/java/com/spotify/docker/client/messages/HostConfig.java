@@ -17,12 +17,11 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +52,7 @@ public class HostConfig {
   @JsonProperty("CpusetCpus") private String cpusetCpus;
   @JsonProperty("CpuQuota") private Long cpuQuota;
   @JsonProperty("CgroupParent") private String cgroupParent;
+  @JsonProperty("RestartPolicy") private RestartPolicy restartPolicy;
 
   private HostConfig() {
   }
@@ -77,6 +77,7 @@ public class HostConfig {
     this.cpusetCpus = builder.cpusetCpus;
     this.cpuQuota = builder.cpuQuota;
     this.cgroupParent = builder.cgroupParent;
+    this.restartPolicy = builder.restartPolicy;
   }
 
   public List<String> binds() {
@@ -153,6 +154,10 @@ public class HostConfig {
 
   public String cgroupParent() {
     return cgroupParent;
+  }
+
+  public RestartPolicy restartPolicy() {
+    return restartPolicy;
   }
 
   @Override
@@ -234,6 +239,10 @@ public class HostConfig {
       return false;
     }
 
+    if (restartPolicy != null ? !restartPolicy.equals(that.restartPolicy)
+            : that.restartPolicy != null) {
+      return false;
+    }
 
     return true;
   }
@@ -259,6 +268,7 @@ public class HostConfig {
     result = 31 * result + (cpusetCpus != null ? cpusetCpus.hashCode() : 0);
     result = 31 * result + (cpuQuota != null ? cpuQuota.hashCode() : 0);
     result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
+    result = 31 * result + (restartPolicy != null ? restartPolicy.hashCode() : 0);
     return result;
   }
 
@@ -284,6 +294,7 @@ public class HostConfig {
         .add("cpusetCpus", cpusetCpus)
         .add("cpuQuota", cpuQuota)
         .add("cgroupParent", cgroupParent)
+        .add("restartPolicy", restartPolicy)
         .toString();
   }
 
@@ -342,6 +353,73 @@ public class HostConfig {
     }
   }
 
+  public static class RestartPolicy {
+    @JsonProperty("Name") private String name;
+    @JsonProperty("MaximumRetryCount") private Integer maxRetryCount;
+
+    public static RestartPolicy always() {
+      return new RestartPolicy("always", null);
+    }
+
+    public static RestartPolicy unlessStopped() {
+      return new RestartPolicy("unless-stopped", null);
+    }
+
+    public static RestartPolicy onFailure(Integer maxRetryCount) {
+      return new RestartPolicy("on-failure", maxRetryCount);
+    }
+
+    // for mapper
+    private RestartPolicy() {
+    }
+
+    private RestartPolicy(String name, Integer maxRetryCount) {
+      this.name = name;
+      this.maxRetryCount = maxRetryCount;
+    }
+
+    public String name() {
+      return name;
+    }
+
+    public Integer maxRetryCount() {
+      return maxRetryCount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      RestartPolicy that = (RestartPolicy) o;
+
+      if (name != null ? !name.equals(that.name) : that.name != null) {
+        return false;
+      }
+      return maxRetryCount != null ?
+              maxRetryCount.equals(that.maxRetryCount) : that.maxRetryCount == null;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = name != null ? name.hashCode() : 0;
+      result = 31 * result + (maxRetryCount != null ? maxRetryCount.hashCode() : 0);
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+              .add("name", name)
+              .add("maxRetryCount", maxRetryCount)
+              .toString();
+    }
+  }
+
   public Builder toBuilder() {
     return new Builder(this);
   }
@@ -371,6 +449,7 @@ public class HostConfig {
     public String cpusetCpus;
     public Long cpuQuota;
     public String cgroupParent;
+    public RestartPolicy restartPolicy;
 
     private Builder() {
     }
@@ -395,6 +474,7 @@ public class HostConfig {
       this.cpusetCpus = hostConfig.cpusetCpus;
       this.cpuQuota = hostConfig.cpuQuota;
       this.cgroupParent = hostConfig.cgroupParent;
+      this.restartPolicy = hostConfig.restartPolicy;
     }
 
     public Builder binds(final List<String> binds) {
@@ -657,6 +737,14 @@ public class HostConfig {
       return cgroupParent;
     }
 
+    public Builder restartPolicy(final RestartPolicy restartPolicy) {
+      this.restartPolicy = restartPolicy;
+      return this;
+    }
+
+    public RestartPolicy restartPolicy() {
+      return restartPolicy;
+    }
 
     public HostConfig build() {
       return new HostConfig(this);

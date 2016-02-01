@@ -1,0 +1,3 @@
+{
+  "RestartPolicy": { "Name": "on-failure", "MaximumRetryCount" : 5 }
+}
