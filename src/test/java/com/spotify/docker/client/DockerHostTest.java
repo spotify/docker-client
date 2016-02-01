@@ -23,10 +23,11 @@ import java.net.URI;
 
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.spotify.docker.client.DockerHost.DEFAULT_PORT;
+import static com.spotify.docker.client.DockerHost.DEFAULT_HOST;
 import static com.spotify.docker.client.DockerHost.DEFAULT_UNIX_ENDPOINT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 
 public class DockerHostTest {
 
@@ -75,7 +76,7 @@ public class DockerHostTest {
   @Test
   public void testFromEnv() throws Exception {
     final String dockerHostEnvVar =
-        fromNullable(System.getenv("DOCKER_HOST")).or(DEFAULT_UNIX_ENDPOINT);
+        fromNullable(System.getenv("DOCKER_HOST")).or(defaultEndpoint());
     final boolean isUnixSocket = dockerHostEnvVar.startsWith("unix://");
     final URI dockerHostUri = new URI(dockerHostEnvVar);
     final String dockerCertPathEnvVar = System.getenv("DOCKER_CERT_PATH");
@@ -110,4 +111,10 @@ public class DockerHostTest {
     assertThat(dockerHost.dockerCertPath(), equalTo(dockerCertPathEnvVar));
   }
 
+  private static String defaultEndpoint() {
+    if (OSUtils.isLinux()) {
+      return DEFAULT_UNIX_ENDPOINT;
+    }
+    return "http://" + DEFAULT_HOST + ":" + DEFAULT_PORT;
+  }
 }
