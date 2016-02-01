@@ -54,6 +54,12 @@ public class ContainerInfo {
   @JsonProperty("MountLabel") private String mountLabel;
   @JsonProperty("Volumes") private ImmutableMap<String, String> volumes;
   @JsonProperty("VolumesRW") private ImmutableMap<String, Boolean> volumesRW;
+  @JsonProperty("AppArmorProfile") private String appArmorProfile;
+  @JsonProperty("ExecIDs") private ImmutableList<String> execId;
+  @JsonProperty("LogPath") private String logPath;
+  @JsonProperty("RestartCount") private Long restartCount;
+  @JsonProperty("Mounts") private ImmutableList<ContainerMount> mountsList;
+  
   /**
    * This field is an extension defined by the Docker Swarm API, therefore it will only
    * be populated when communicating with a Swarm cluster.
@@ -325,5 +331,25 @@ public class ContainerInfo {
               .add("name", name)
               .toString();
     }
+  }
+
+  public String appArmorProfile() {
+    return appArmorProfile;
+  }
+
+  public List<String> execId() {
+    return execId;
+  }
+
+  public String logPath() {
+    return logPath;
+  }
+
+  public Long restartCount() {
+    return restartCount;
+  }
+
+  public List<ContainerMount> mounts() {
+    return mountsList;
   }
 }
