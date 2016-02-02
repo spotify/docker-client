@@ -137,6 +137,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
@@ -2119,6 +2120,9 @@ public class DefaultDockerClientTest {
     assertThat(attachedNetwork.ipAddress(), is(notNullValue()));
     assertThat(attachedNetwork.ipPrefixLen(), is(notNullValue()));
     assertThat(attachedNetwork.macAddress(), is(notNullValue()));
+    assertThat(attachedNetwork.ipv6Gateway(), is(notNullValue()));
+    assertThat(attachedNetwork.globalIPv6Address(), is(notNullValue()));
+    assertThat(attachedNetwork.globalIPv6PrefixLen(), greaterThanOrEqualTo(0));
 
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
     network = sut.inspectNetwork(networkCreation.id());

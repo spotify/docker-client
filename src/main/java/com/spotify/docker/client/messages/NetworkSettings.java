@@ -230,11 +230,7 @@ public class NetworkSettings {
 
     public Builder networks(final Map<String, AttachedNetwork> networks) {
       if (networks != null) {
-        final ImmutableMap.Builder<String, AttachedNetwork> builder = ImmutableMap.builder();
-        for (Map.Entry<String, AttachedNetwork> entry : networks.entrySet()) {
-          builder.put(entry.getKey(), entry.getValue());
-        }
-        this.networks = builder.build();
+        this.networks = ImmutableMap.copyOf(networks);
       }
       return this;
     }
