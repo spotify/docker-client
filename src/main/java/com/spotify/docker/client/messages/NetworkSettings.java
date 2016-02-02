@@ -41,6 +41,7 @@ public class NetworkSettings {
   @JsonProperty("PortMapping") private ImmutableMap<String, Map<String, String>> portMapping;
   @JsonProperty("Ports") private Map<String, List<PortBinding>> ports;
   @JsonProperty("MacAddress") private String macAddress;
+  @JsonProperty("Networks") private ImmutableMap<String, AttachedNetwork> networks;
 
   private NetworkSettings(final Builder builder) {
     this.ipAddress = builder.ipAddress;
@@ -50,6 +51,7 @@ public class NetworkSettings {
     this.portMapping = builder.portMapping;
     this.ports = builder.ports;
     this.macAddress = builder.macAddress;
+    this.networks = builder.networks;
   }
 
   @SuppressWarnings("unused")
@@ -79,9 +81,13 @@ public class NetworkSettings {
   public Map<String, List<PortBinding>> ports() {
     return (ports == null) ? null : Collections.unmodifiableMap(ports);
   }
-  
+
   public String macAddress() {
     return macAddress;
+  }
+
+  public Map<String, AttachedNetwork> networks() {
+    return (networks == null) ? null : Collections.unmodifiableMap(networks);
   }
 
   @Override
@@ -116,6 +122,9 @@ public class NetworkSettings {
     if (macAddress != null ? !macAddress.equals(that.macAddress) : that.macAddress != null) {
       return false;
     }
+    if (networks != null ? !networks.equals(that.networks) : that.networks != null) {
+      return false;
+    }
 
     return true;
   }
@@ -129,6 +138,7 @@ public class NetworkSettings {
     result = 31 * result + (portMapping != null ? portMapping.hashCode() : 0);
     result = 31 * result + (ports != null ? ports.hashCode() : 0);
     result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
+    result = 31 * result + (networks != null ? networks.hashCode() : 0);
     return result;
   }
 
@@ -142,6 +152,7 @@ public class NetworkSettings {
         .add("portMapping", portMapping)
         .add("ports", ports)
         .add("macAddress", macAddress)
+        .add("networks", networks)
         .toString();
   }
 
@@ -162,6 +173,7 @@ public class NetworkSettings {
     private ImmutableMap<String, Map<String, String>> portMapping;
     private Map<String, List<PortBinding>> ports;
     private String macAddress;
+    private ImmutableMap<String, AttachedNetwork> networks;
 
     private Builder() {
     }
@@ -174,6 +186,7 @@ public class NetworkSettings {
       this.portMapping = networkSettings.portMapping;
       this.ports = networkSettings.ports;
       this.macAddress = networkSettings.macAddress;
+      this.networks = networkSettings.networks;
     }
 
     public Builder ipAddress(final String ipAddress) {
@@ -212,6 +225,13 @@ public class NetworkSettings {
     
     public Builder macAddress(final String macAddress) {
       this.macAddress = macAddress;
+      return this;
+    }
+
+    public Builder networks(final Map<String, AttachedNetwork> networks) {
+      if (networks != null) {
+        this.networks = ImmutableMap.copyOf(networks);
+      }
       return this;
     }
 
