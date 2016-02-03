@@ -271,11 +271,6 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPullPrivateRepoWithAuth() throws Exception {
-    final AuthConfig authConfig = AuthConfig.builder()
-        .email(AUTH_EMAIL)
-        .username(AUTH_USERNAME)
-        .password(AUTH_PASSWORD)
-        .build();
     sut.pull("dxia2/scratch-private:latest", authConfig);
   }
 
@@ -558,8 +553,7 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
-    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-        .uri(dockerEndpoint)
+    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
         .authConfig(authConfig)
         .build();
 
@@ -581,11 +575,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testBuildPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-    final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-        .password(AUTH_PASSWORD).build();
 
-    final DefaultDockerClient sut2 = DefaultDockerClient.builder()
-        .uri(dockerEndpoint)
+    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
         .authConfig(authConfig)
         .build();
 
