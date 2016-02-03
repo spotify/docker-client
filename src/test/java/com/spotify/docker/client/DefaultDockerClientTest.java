@@ -49,6 +49,7 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Ipam;
+import com.spotify.docker.client.messages.LogConfig;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
@@ -94,6 +95,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1252,7 +1254,7 @@ public class DefaultDockerClientTest {
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
   }
-  
+
   @Test
   public void testContainerWithAppArmorLogs() throws Exception {
     assumeTrue(
@@ -1538,6 +1540,43 @@ public class DefaultDockerClientTest {
     }
     assertThat(logs, containsString("1.2.3.4"));
 
+  }
+    
+  @Test
+  public void testLogDriver() throws Exception {
+        
+      assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
+                 "HostConfig LogConfig, got " + sut.version().apiVersion(),
+                 compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+        
+      sut.pull(BUSYBOX_LATEST);
+      final String name = randomName();
+        
+      final Map<String, String> logOptions = new HashMap<>();
+      logOptions.put("awslogs-region", "eu-west-1");
+      logOptions.put("awslogs-group", "ContainerLogs");
+      logOptions.put("awslogs-stream", name);
+        
+      final LogConfig logConfig = new LogConfig();
+      logConfig.logType("awslogs");
+      logConfig.logOptions(logOptions);
+        
+      final HostConfig expected = HostConfig.builder()
+      .logConfig(logConfig)
+      .build();
+        
+      final ContainerConfig config = ContainerConfig.builder()
+      .image(BUSYBOX_LATEST)
+      .hostConfig(expected)
+      .build();
+        
+      final ContainerCreation creation = sut.createContainer(config, name);
+      final String id = creation.id();
+      sut.startContainer(id);
+      
+      final HostConfig actual = sut.inspectContainer(id).hostConfig();
+      
+      assertThat(actual.logConfig(), equalTo(expected.logConfig()));
   }
 
   @Test
