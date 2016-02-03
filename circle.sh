@@ -83,6 +83,10 @@ case "$1" in
 
     codecov
 
+    mkdir -p $CIRCLE_TEST_REPORTS/junit/
+
+    find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+
     ;;
 
 esac
