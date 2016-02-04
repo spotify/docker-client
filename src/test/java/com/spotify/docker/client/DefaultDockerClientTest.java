@@ -1538,9 +1538,9 @@ public class DefaultDockerClientTest {
   @Test
   public void testLogDriver() throws Exception {
         
-      assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
+      assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
                  "HostConfig LogConfig, got " + sut.version().apiVersion(),
-                 compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+                 compareVersion(sut.version().apiVersion(), "1.21") >= 0);
         
       sut.pull(BUSYBOX_LATEST);
       final String name = randomName();
@@ -1549,7 +1549,7 @@ public class DefaultDockerClientTest {
       logOptions.put("max-size", "10k");
       logOptions.put("max-file", "2");
       logOptions.put("labels", name);
-        
+      
       final LogConfig logConfig = new LogConfig();
       logConfig.logType("json-file");
       logConfig.logOptions(logOptions);
