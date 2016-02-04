@@ -1551,14 +1551,14 @@ public class DefaultDockerClientTest {
         
       sut.pull(BUSYBOX_LATEST);
       final String name = randomName();
-        
+      
       final Map<String, String> logOptions = new HashMap<>();
-      logOptions.put("awslogs-region", "eu-west-1");
-      logOptions.put("awslogs-group", "ContainerLogs");
-      logOptions.put("awslogs-stream", name);
+      logOptions.put("max-size", "10k");
+      logOptions.put("max-file", "2");
+      logOptions.put("labels", name);
         
       final LogConfig logConfig = new LogConfig();
-      logConfig.logType("awslogs");
+      logConfig.logType("json-file");
       logConfig.logOptions(logOptions);
         
       final HostConfig expected = HostConfig.builder()
