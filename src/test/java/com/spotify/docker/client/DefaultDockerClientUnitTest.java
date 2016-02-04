@@ -17,24 +17,16 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
-
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.Info;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.Map;
@@ -46,20 +38,26 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Variant;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Info;
 
 public class DefaultDockerClientUnitTest {
 
@@ -78,19 +76,18 @@ public class DefaultDockerClientUnitTest {
   @Mock
   private WebTarget webTargetMock;
 
-  private Supplier<ClientBuilder> clientBuilderSupplier;
+  @Mock
+  private ClientFactory clientFactoryMock;
   private DefaultDockerClient.Builder builder;
 
   @Before
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    when(clientBuilderMock.build()).thenReturn(clientMock);
-    when(clientBuilderMock.withConfig(any(Configuration.class))).thenReturn(clientBuilderMock);
-    when(clientBuilderMock.property(anyString(), any())).thenReturn(clientBuilderMock);
-
-    clientBuilderSupplier = Suppliers.ofInstance(clientBuilderMock);
-
+    when(clientFactoryMock.getClient(any(HttpClientConnectionManager.class), 
+                                     any(RequestConfig.class)))
+        .thenReturn(clientMock);
+    
     when(clientMock.target(any(URI.class))).thenReturn(webTargetMock);
     // return the same mock for any path.
     when(webTargetMock.path(anyString())).thenReturn(webTargetMock);
@@ -102,8 +99,8 @@ public class DefaultDockerClientUnitTest {
     final Future<Info> futureMock = Futures.immediateFuture(new Info());
     when(asyncInvoker.method(anyString(), any(Class.class))).thenReturn(futureMock);
 
-
     builder = DefaultDockerClient.builder();
+    builder.clientFactory(clientFactoryMock);
     builder.uri("https://perdu.com:2375");
   }
 
@@ -137,8 +134,7 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testNoHeaders() throws Exception {
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
     verify(builderMock, never()).header(anyString(), anyString());
@@ -148,8 +144,7 @@ public class DefaultDockerClientUnitTest {
   public void testOneHeader() throws Exception {
     builder.header("foo", 1);
 
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
     final ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
@@ -171,8 +166,7 @@ public class DefaultDockerClientUnitTest {
       builder.header(entry.getKey(), entry.getValue());
     }
 
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
     final ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
@@ -189,8 +183,7 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testCapAddAndDrop() throws Exception {
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
     final HostConfig hostConfig = HostConfig.builder()
         .capAdd(ImmutableList.of("foo", "bar"))
