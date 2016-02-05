@@ -23,6 +23,9 @@ import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -36,6 +39,7 @@ public class Image {
   @JsonProperty("RepoTags") private ImmutableList<String> repoTags;
   @JsonProperty("Size") private Long size;
   @JsonProperty("VirtualSize") private Long virtualSize;
+  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
 
   public String created() {
     return created;
@@ -61,6 +65,10 @@ public class Image {
     return virtualSize;
   }
 
+  public Map<String, String> labels() {
+    return labels;
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -78,12 +86,13 @@ public class Image {
            Objects.equal(this.parentId, that.parentId) &&
            Objects.equal(this.repoTags, that.repoTags) &&
            Objects.equal(this.size, that.size) &&
-           Objects.equal(this.virtualSize, that.virtualSize);
+           Objects.equal(this.virtualSize, that.virtualSize) &&
+           Objects.equal(this.labels, that.labels);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(created, id, parentId, repoTags, size, virtualSize);
+    return Objects.hashCode(created, id, parentId, repoTags, size, virtualSize, labels);
   }
 
   @Override
@@ -95,6 +104,7 @@ public class Image {
         .add("repoTags", repoTags)
         .add("size", size)
         .add("virtualSize", virtualSize)
+        .add("labels", labels)
         .toString();
   }
 }

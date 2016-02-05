@@ -19,6 +19,7 @@ package com.spotify.docker.client;
 
 import com.google.common.base.Throwables;
 
+import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -44,6 +45,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -1384,6 +1386,64 @@ public interface DockerClient extends Closeable {
      */
     public static ListImagesParam filter(final String name, final String value) {
       return new ListImagesFilterParam(name, value);
+    }
+
+    /**
+     * Show images with a label value
+     *
+     * @param key   of label
+     * @param value of label
+     * @return ListImagesParam
+     */
+    public static ListImagesParam withLabel(final String key, final String value) {
+      if (isNullOrEmpty(value)) {
+        return withLabel(ImmutableMap.of(key, ""));
+      } else {
+        return withLabel(ImmutableMap.of(key, value));
+      }
+    }
+
+    /**
+     * Show images with a label
+     *
+     * @param key  of label
+     * @return ListImagesParam
+     */
+    public static ListImagesParam withLabel(final String key) {
+      return withLabel(key, null);
+    }
+
+    /**
+     * Show images with a label value
+     *
+     * @param labels Map of label key, label value pairs
+     * @return ListImagesParam
+     */
+    public static ListImagesParam withLabel(final Map<String, String> labels) {
+
+      StringBuilder stringBuilder = new StringBuilder();
+      for (Map.Entry<String, String> kvPair : labels.entrySet()) {
+        if (isNullOrEmpty(kvPair.getKey())) {
+          continue;
+        }
+        if (stringBuilder.length() > 0) {
+          stringBuilder.append(",");
+        }
+        stringBuilder.append("\"")
+                     .append(kvPair.getKey());
+        if (!isNullOrEmpty(kvPair.getValue())) {
+          stringBuilder.append("=")
+                       .append(kvPair.getValue());
+        }
+        stringBuilder.append("\"");
+      }
+      String filter = "{\"label\":[" + stringBuilder.toString() + "]}";
+      try {
+        return create("filters", URLEncoder.encode(filter, "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        // Should never happen
+        throw Throwables.propagate(e);
+      }
     }
 
     /**
