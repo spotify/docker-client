@@ -77,6 +77,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -87,11 +88,11 @@ import java.util.regex.Pattern;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -199,6 +200,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private final String apiVersion;
   private final AuthConfig authConfig;
 
+  private final List<Cookie> cookies;
+
   Client getClient() {
     return client;
   }
@@ -238,12 +241,20 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param builder DefaultDockerClient builder
    */
   protected DefaultDockerClient(final Builder builder) {
+    this(builder, new RSClientBuilderWrapper.RealWrapper());
+  }
+
+  /**
+   * Open unit tests only
+   */
+  /*package*/
+  DefaultDockerClient(final Builder builder, RSClientBuilderWrapper rsClientBuilderWrapper) {
     URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
     if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
       throw new IllegalArgumentException(
-          "An HTTPS URI for DOCKER_HOST must be provided to use Docker client certificates");
+              "An HTTPS URI for DOCKER_HOST must be provided to use Docker client certificates");
     }
 
     if (originalUri.getScheme().equals(UNIX_SCHEME)) {
@@ -256,31 +267,33 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final PoolingHttpClientConnectionManager noTimeoutCm = getConnectionManager(builder);
 
     final RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
-        .setConnectTimeout((int) builder.connectTimeoutMillis)
-        .setSocketTimeout((int) builder.readTimeoutMillis)
-        .build();
+            .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
+            .setConnectTimeout((int) builder.connectTimeoutMillis)
+            .setSocketTimeout((int) builder.readTimeoutMillis)
+            .build();
 
     final ClientConfig config = DEFAULT_CONFIG
-        .connectorProvider(new ApacheConnectorProvider())
-        .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
-        .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
+            .connectorProvider(new ApacheConnectorProvider())
+            .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
+            .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
     this.authConfig = builder.authConfig;
 
-    this.client = ClientBuilder.newClient(config);
+    this.client = rsClientBuilderWrapper.newBuilder().withConfig(config).build();
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
     // and use it for waitContainer, stopContainer, attachContainer, logs, and build
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
-        .setSocketTimeout((int) NO_TIMEOUT)
-        .build();
-    this.noTimeoutClient = ClientBuilder.newBuilder()
-        .withConfig(config)
-        .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
-        .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
-        .build();
+            .setSocketTimeout((int) NO_TIMEOUT)
+            .build();
+    this.noTimeoutClient = rsClientBuilderWrapper.newBuilder()
+            .withConfig(config)
+            .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
+            .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
+            .build();
+
+    this.cookies = new ArrayList<>(builder.cookies());
   }
 
   public String getHost() {
@@ -1240,7 +1253,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                         final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      return request.async().method(method, type).get();
+      return cookiefy(request).async().method(method, type).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -1250,7 +1263,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                         final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      return request.async().method(method, clazz).get();
+      return cookiefy(request).async().method(method, clazz).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -1261,7 +1274,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                         final Entity<?> entity)
       throws DockerException, InterruptedException {
     try {
-      return request.async().method(method, entity, clazz).get();
+      return cookiefy(request).async().method(method, entity, clazz).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -1272,10 +1285,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                        final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      request.async().method(method, String.class).get();
+      cookiefy(request).async().method(method, String.class).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
+  }
+
+  private Invocation.Builder cookiefy(final Invocation.Builder request) {
+    for (Cookie c : cookies) {
+      request.cookie(c);
+    }
+
+    return request;
   }
 
   private RuntimeException propagate(final String method, final WebTarget resource,
@@ -1436,6 +1457,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificates dockerCertificates;
     private AuthConfig authConfig;
+    private List<Cookie> cookies = new ArrayList<>();
 
     public URI uri() {
       return uri;
@@ -1553,6 +1575,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     public DefaultDockerClient build() {
       return new DefaultDockerClient(this);
+    }
+
+    public Builder withCookie(Cookie cookie) {
+      cookies.add(cookie);
+      return this;
+    }
+
+    public List<Cookie> cookies() {
+      return cookies;
     }
   }
 
