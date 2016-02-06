@@ -19,7 +19,12 @@ package com.spotify.docker.client;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
 
 import com.spotify.docker.client.messages.Info;
 import org.junit.Assert;
@@ -147,7 +152,11 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testMultipleCookies() throws Exception {
-    List<Cookie> cookieList = Arrays.asList(Cookie.valueOf("foo"), Cookie.valueOf("bar"), Cookie.valueOf("blah"));
+    List<Cookie> cookieList =
+            Arrays.asList(
+                    Cookie.valueOf("foo"),
+                    Cookie.valueOf("bar"),
+                    Cookie.valueOf("blah"));
 
     for (Cookie c : cookieList) {
       builder.withCookie(c);
