@@ -17,14 +17,14 @@
 
 package com.spotify.docker.client.messages;
 
-import java.util.Collections;
-import java.util.List; 
-import java.util.Map; 
-
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Collections;
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -35,27 +35,29 @@ public class LogConfig {
   @JsonProperty("Type") private String logType;
   @JsonProperty("Config") private Map<String, String> logOptions;
 
-  public String logType() {
-    return logType;
+  @SuppressWarnings("unused")
+  private LogConfig() {
   }
 
-  public void logType(final String logType) {
+  private LogConfig(final String logType, final Map<String, String> logOptions) {
     this.logType = logType;
+    this.logOptions = ImmutableMap.copyOf(logOptions);
+  }
+
+  public String logType() {
+    return logType;
   }
 
   public Map<String, String> logOptions() {
     return (logOptions == null) ? null : Collections.unmodifiableMap(logOptions);
   }
 
-  public void logOptions(final Map<String, String> logOptions) {
-    this.logOptions = logOptions;
+  public static LogConfig create(final String logType) {
+    return create(logType, Collections.<String, String>emptyMap());
   }
 
   public static LogConfig create(final String logType, final Map<String, String> logOptions) {
-    final LogConfig logConfig = new LogConfig();
-    logConfig.logType(logType);
-    logConfig.logOptions(logOptions);
-    return logConfig;
+    return new LogConfig(logType, logOptions);
   }
 
   @Override

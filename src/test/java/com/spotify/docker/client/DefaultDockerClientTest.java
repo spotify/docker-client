@@ -1298,8 +1298,8 @@ public class DefaultDockerClientTest {
         break;
       }
     }
+    assertNotNull(targetCont);
     assertThat(targetCont.imageId(), equalTo(inspection.image()));
-
   }
 
   @Test
@@ -1534,42 +1534,41 @@ public class DefaultDockerClientTest {
     assertThat(logs, containsString("1.2.3.4"));
 
   }
-    
+
   @Test
   public void testLogDriver() throws Exception {
-        
-      assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
-                 "HostConfig LogConfig, got " + sut.version().apiVersion(),
-                 compareVersion(sut.version().apiVersion(), "1.21") >= 0);
-        
-      sut.pull(BUSYBOX_LATEST);
-      final String name = randomName();
-      
-      final Map<String, String> logOptions = new HashMap<>();
-      logOptions.put("max-size", "10k");
-      logOptions.put("max-file", "2");
-      logOptions.put("labels", name);
-      
-      final LogConfig logConfig = new LogConfig();
-      logConfig.logType("json-file");
-      logConfig.logOptions(logOptions);
-        
-      final HostConfig expected = HostConfig.builder()
-      .logConfig(logConfig)
-      .build();
-        
-      final ContainerConfig config = ContainerConfig.builder()
-      .image(BUSYBOX_LATEST)
-      .hostConfig(expected)
-      .build();
-        
-      final ContainerCreation creation = sut.createContainer(config, name);
-      final String id = creation.id();
-      sut.startContainer(id);
-      
-      final HostConfig actual = sut.inspectContainer(id).hostConfig();
-      
-      assertThat(actual.logConfig(), equalTo(expected.logConfig()));
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+               "HostConfig LogConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    sut.pull(BUSYBOX_LATEST);
+    final String name = randomName();
+
+    final Map<String, String> logOptions = new HashMap<>();
+    logOptions.put("max-size", "10k");
+    logOptions.put("max-file", "2");
+    logOptions.put("labels", name);
+
+    final LogConfig logConfig = LogConfig.create("json-file", logOptions);
+    assertThat(logConfig.logType(), equalTo("json-file"));
+    assertThat(logConfig.logOptions(), equalTo(logOptions));
+
+    final HostConfig expected = HostConfig.builder()
+        .logConfig(logConfig)
+        .build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.logConfig(), equalTo(expected.logConfig()));
   }
 
   @Test
