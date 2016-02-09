@@ -23,13 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.messages.ContainerCreation;
-
 /**
  * The {@link CreateContainer} annotation can be used on any test method to provide the values for
- * the {@link ContainerCreation} object that the {@link DockerContainer} will username for the
- * {@link DockerClient}.
+ * the {@link com.spotify.docker.client.messages.ContainerCreation}
+ * object that the {@link DockerContainer} will username for the
+ * {@link com.spotify.docker.client.DockerClient}.
  * 
  * @author Jan-Willem Gmelig Meyling
  *

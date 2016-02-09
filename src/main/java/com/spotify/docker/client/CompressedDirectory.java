@@ -19,6 +19,7 @@ package com.spotify.docker.client;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -38,8 +39,6 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.MessageFormat;
@@ -67,7 +66,7 @@ class CompressedDirectory implements Closeable {
   /**
    * Identifier used to indicate the OS supports a Posix compliant view of the file system.
    *
-   * @see PosixFileAttributeView#name()
+   * @see java.nio.file.attribute.PosixFileAttributeView#name()
    */
   private static final String POSIX_FILE_VIEW = "posix";
 
@@ -88,8 +87,8 @@ class CompressedDirectory implements Closeable {
   /**
    * This method creates a gzip tarball of the specified directory. File permissions will be
    * retained. The file will be created in a temporary directory using the {@link
-   * Files#createTempFile(String, String, FileAttribute[])} method. The returned object is
-   * auto-closeable, and upon closing it, the archive file will be deleted.
+   * Files#createTempFile(String, String, java.nio.file.attribute.FileAttribute[])} method.
+   * The returned object is auto-closeable, and upon closing it, the archive file will be deleted.
    *
    * @param directory the directory to compress
    * @return a Path object representing the compressed directory
