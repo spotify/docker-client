@@ -53,6 +53,7 @@ public class HostConfig {
   @JsonProperty("CpuQuota") private Long cpuQuota;
   @JsonProperty("CgroupParent") private String cgroupParent;
   @JsonProperty("RestartPolicy") private RestartPolicy restartPolicy;
+  @JsonProperty("LogConfig") private LogConfig logConfig;
 
   private HostConfig() {
   }
@@ -78,6 +79,7 @@ public class HostConfig {
     this.cpuQuota = builder.cpuQuota;
     this.cgroupParent = builder.cgroupParent;
     this.restartPolicy = builder.restartPolicy;
+    this.logConfig = builder.logConfig;
   }
 
   public List<String> binds() {
@@ -158,6 +160,10 @@ public class HostConfig {
 
   public RestartPolicy restartPolicy() {
     return restartPolicy;
+  }
+
+  public LogConfig logConfig() {
+    return logConfig;
   }
 
   @Override
@@ -244,6 +250,10 @@ public class HostConfig {
       return false;
     }
 
+    if (logConfig != null ? !logConfig.equals(that.logConfig) : that.logConfig != null) {
+      return false;
+    }
+      
     return true;
   }
 
@@ -269,6 +279,7 @@ public class HostConfig {
     result = 31 * result + (cpuQuota != null ? cpuQuota.hashCode() : 0);
     result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
     result = 31 * result + (restartPolicy != null ? restartPolicy.hashCode() : 0);
+    result = 31 * result + (logConfig != null ? logConfig.hashCode() : 0);
     return result;
   }
 
@@ -295,6 +306,7 @@ public class HostConfig {
         .add("cpuQuota", cpuQuota)
         .add("cgroupParent", cgroupParent)
         .add("restartPolicy", restartPolicy)
+        .add("logConfig", logConfig)
         .toString();
   }
 
@@ -450,6 +462,7 @@ public class HostConfig {
     public Long cpuQuota;
     public String cgroupParent;
     public RestartPolicy restartPolicy;
+    public LogConfig logConfig;
 
     private Builder() {
     }
@@ -475,6 +488,7 @@ public class HostConfig {
       this.cpuQuota = hostConfig.cpuQuota;
       this.cgroupParent = hostConfig.cgroupParent;
       this.restartPolicy = hostConfig.restartPolicy;
+      this.logConfig = hostConfig.logConfig;
     }
 
     public Builder binds(final List<String> binds) {
@@ -742,8 +756,17 @@ public class HostConfig {
       return this;
     }
 
+    public Builder logConfig(final LogConfig logConfig) {
+        this.logConfig = logConfig;
+        return this;
+    }
+
     public RestartPolicy restartPolicy() {
       return restartPolicy;
+    }
+
+    public LogConfig logConfig() {
+        return logConfig;
     }
 
     public HostConfig build() {
