@@ -59,9 +59,11 @@ docker.startContainer(id);
 
 // Exec command inside running container with attached STDOUT and STDERR
 final String[] command = {"bash", "-c", "ls"};
-final String execId = docker.execCreate(id, command, DockerClient.ExecParameter.STDOUT, DockerClient.ExecParameter.STDERR);
+final String execId = docker.execCreate(id, command, DockerClient.ExecCreateParam.attachStdout(), DockerClient.ExecCreateParam.attachStderr());
 final LogStream output = docker.execStart(execId);
 final String execOutput = output.readFully();
+
+
 
 // Kill container
 docker.killContainer(id);
