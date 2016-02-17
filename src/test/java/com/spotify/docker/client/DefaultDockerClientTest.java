@@ -85,7 +85,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -119,6 +118,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
+import static com.spotify.docker.client.DockerClient.ListImagesParam.byName;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
 import static com.spotify.docker.client.DockerClient.LogsParam.since;
@@ -146,6 +146,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
@@ -1290,7 +1291,7 @@ public class DefaultDockerClientTest {
 
     final List<Container> containers =
         sut.listContainers(DockerClient.ListContainersParam.allContainers(),
-            DockerClient.ListContainersParam.exitedContainers());
+            DockerClient.ListContainersParam.withStatusExited());
 
     Container targetCont = null;
     for (Container container : containers) {
@@ -1435,6 +1436,15 @@ public class DefaultDockerClientTest {
     // Specifying both allImages() and danglingImages() should give us only dangling images
     final List<Image> allAndDanglingImages = sut.listImages(allImages(), danglingImages());
     assertThat(allAndDanglingImages.size(), equalTo(danglingImages.size()));
+
+    // Can list by name
+    final List<Image> imagesByName = sut.listImages(byName(BUSYBOX));
+    assertThat(imagesByName.size(), greaterThan(0));
+    Set<String> repoTags = Sets.newHashSet();
+    for (final Image imageByName: imagesByName) {
+      repoTags.addAll(imageByName.repoTags());
+    }
+    assertThat(BUSYBOX_LATEST, isIn(repoTags));
   }
 
   @Test
@@ -2063,27 +2073,63 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testExitedListContainersParam()
-      throws DockerException, InterruptedException, UnsupportedEncodingException {
+  public void testListContainers() throws DockerException, InterruptedException {
     sut.pull(BUSYBOX_LATEST);
 
-    final String randomLong = Long.toString(ThreadLocalRandom.current().nextLong());
+    final String label = "foo";
+    final String labelValue = "bar";
+
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .cmd("sh", "-c", "echo " + randomLong)
-        .build();
+            .image(BUSYBOX_LATEST)
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .labels(ImmutableMap.of(label, labelValue))
+            .build();
     final String containerName = randomName();
     final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
     final String containerId = containerCreation.id();
 
-    sut.startContainer(containerId);
-    sut.waitContainer(containerId);
+    // filters={"status":["created"]}
+    final List<Container> created = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusCreated());
+    assertThat(containerId, isIn(containersToIds(created)));
 
-    final List<Container> containers = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.exitedContainers());
-    assertThat(containers.size(), greaterThan(0));
-    assertThat(containers.get(0).command(), containsString(randomLong));
+    // filters={"status":["running"]}
+    sut.startContainer(containerId);
+    final List<Container> running = sut.listContainers(
+            DockerClient.ListContainersParam.withStatusRunning());
+    assertThat(containerId, isIn(containersToIds(running)));
+
+    // filters={"status":["paused"]}
+    sut.pauseContainer(containerId);
+    final List<Container> paused = sut.listContainers(
+            DockerClient.ListContainersParam.withStatusPaused());
+    assertThat(containerId, isIn(containersToIds(paused)));
+
+    // filters={"status":["exited"]}
+    sut.unpauseContainer(containerId);
+    sut.stopContainer(containerId, 0);
+    final List<Container> allExited = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusExited());
+    assertThat(containerId, isIn(containersToIds(allExited)));
+
+    // filters={"status":["created","paused","exited"]}
+    // Will work, i.e. multiple "status" filters are ORed
+    final List<Container> multipleStati = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusCreated(),
+            DockerClient.ListContainersParam.withStatusPaused(),
+            DockerClient.ListContainersParam.withStatusExited());
+    assertThat(containerId, isIn(containersToIds(multipleStati)));
+
+    // filters={"status":["exited"],"labels":["foo=bar"]}
+    // Shows that labels play nicely with other filters
+    final List<Container> statusAndLabels = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusExited(),
+            DockerClient.ListContainersParam.withLabel(label, labelValue));
+    assertThat(containerId, isIn(containersToIds(statusAndLabels)));
   }
 
   @Test
@@ -2201,9 +2247,8 @@ public class DefaultDockerClientTest {
     // Check that we find the first image again when searching with the full
     // set of labels in a Map
     final List<Image> barImages2 = sut.listImages(
-            ListImagesParam.withLabel(ImmutableMap.of(
-                    "foo", "bar", "name", "testtesttest"
-            )));
+            ListImagesParam.withLabel("foo", "bar"),
+            ListImagesParam.withLabel("name", "testtesttest"));
     final List<String> barIds2 = imagesToShortIds(barImages2);
     assertNotNull(barIds2);
     assertTrue(barIds2.contains(barId));
