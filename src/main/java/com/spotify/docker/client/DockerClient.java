@@ -751,7 +751,8 @@ public interface DockerClient extends Closeable {
    * Supported parameters for {@link #execStart}
    */
   enum ExecStartParameter {
-    DETACH("Detach");
+    DETACH("Detach"),
+    TTY("Tty");
 
     private final String name;
 
