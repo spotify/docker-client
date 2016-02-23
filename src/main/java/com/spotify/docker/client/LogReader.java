@@ -18,6 +18,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.io.ByteStreams;
+import com.spotify.docker.client.LogMessage.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ public class LogReader implements Closeable {
   }
 
   public LogMessage nextMessage() throws IOException {
+    stream.mark(HEADER_SIZE);
 
     // Read header
     final byte[] headerBytes = new byte[HEADER_SIZE];
@@ -56,12 +58,21 @@ public class LogReader implements Closeable {
       throw new EOFException();
     }
     final ByteBuffer header = ByteBuffer.wrap(headerBytes);
-    final int streamId = header.get();
-    header.position(FRAME_SIZE_OFFSET);
-    final int frameSize = header.getInt();
+    int streamId = header.get();
+    final int idZ = header.getInt(0);
 
     // Read frame
-    final byte[] frame = new byte[frameSize];
+    final byte[] frame;
+    // Header format is : {STREAM_TYPE, 0, 0, 0, SIZE1, SIZE2, SIZE3, SIZE4}
+    if (idZ == 0 || idZ == 0x01000000 || idZ == 0x02000000) {
+      header.position(FRAME_SIZE_OFFSET);
+      final int frameSize = header.getInt();
+      frame = new byte[frameSize];
+    } else {
+      stream.reset();
+      streamId = Stream.STDOUT.id();
+      frame = new byte[stream.available()];
+    }
     ByteStreams.readFully(stream, frame);
     return new LogMessage(streamId, ByteBuffer.wrap(frame));
   }

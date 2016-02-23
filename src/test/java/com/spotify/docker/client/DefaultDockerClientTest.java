@@ -1823,6 +1823,30 @@ public class DefaultDockerClientTest {
     assertThat(logs, not(containsString("This message was printed too late")));
   }
 
+  @Test
+  public void testLogsTty() throws DockerException, InterruptedException {
+    String container = randomName();
+    ContainerConfig containerConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .attachStdout(true)
+        .tty(true)
+        .cmd("sh", "-c", "ls")
+        .build();
+
+    sut.createContainer(containerConfig, container);
+    sut.startContainer(container);
+    LogStream logStream = sut.logs(container, DockerClient.LogsParam.stdout());
+
+    while (logStream.hasNext()) {
+      String line = UTF_8.decode(logStream.next().content()).toString();
+      log.info(line);
+    }
+    sut.waitContainer(container);
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+  }
+
   @Test(expected = ContainerNotFoundException.class)
   public void testStartBadContainer() throws Exception {
     sut.startContainer(randomName());
