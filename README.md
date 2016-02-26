@@ -134,7 +134,7 @@ Standard:
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.7.7</version>
+  <version>3.5.12</version>
 </dependency>
 ```
 
@@ -145,7 +145,7 @@ Shaded:
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
   <classifier>shaded</classifier>
-  <version>2.7.7</version>
+  <version>3.5.12</version>
 </dependency>
 ```
 
