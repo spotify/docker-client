@@ -23,6 +23,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,12 +50,15 @@ import com.spotify.docker.client.messages.Version;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
@@ -992,15 +996,57 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public LogStream attachContainer(final String containerId, final AttachParameter... params)
+  public EventStream events(EventsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
-        .path("containers").path(containerId)
-        .path("attach");
+            .path("events");
+    final Map<String, String> filters = newHashMap();
+    for (EventsParam param : params) {
+      if (param instanceof EventsFilterParam) {
+        filters.put(param.name(), param.value());
+      } else {
+        resource = resource.queryParam(param.name(), param.value());
+      }
+    }
+
+    try {
+      if (!filters.isEmpty()) {
+        final StringWriter writer = new StringWriter();
+        final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+        generator.writeStartObject();
+        for (Map.Entry<String, String> entry : filters.entrySet()) {
+          generator.writeArrayFieldStart(entry.getKey());
+          generator.writeString(entry.getValue());
+          generator.writeEndArray();
+        }
+        generator.writeEndObject();
+        generator.close();
+        // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
+        final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
+        resource = resource.queryParam("filters", encoded);
+      }
+    } catch (IOException exception) {
+      throw new DockerException(exception);
+    }
+
+    try {
+      CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider
+          .getHttpClient(noTimeoutClient);
+      CloseableHttpResponse response = client.execute(new HttpGet(resource.getUri()));
+      return new EventStream(response, objectMapper());
+    } catch (IOException exception) {
+      throw new DockerException(exception);
+    }
+  }
+
+  @Override
+  public LogStream attachContainer(final String containerId,
+                                   final AttachParameter... params) throws DockerException,
+      InterruptedException {
+    WebTarget resource = noTimeoutResource().path("containers").path(containerId).path("attach");
 
     for (final AttachParameter param : params) {
-      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT),
-                                     String.valueOf(true));
+      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
     }
 
     return getLogStream(POST, resource, containerId);
