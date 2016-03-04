@@ -27,6 +27,7 @@ public class Info {
   @JsonProperty("Images") private int images;
   @JsonProperty("Driver") private String storageDriver;
   @JsonProperty("DriverStatus") private List<List<String>> driverStatus;
+  @JsonProperty("SystemStatus") private List<List<String>> systemStatus;
   @JsonProperty("ExecutionDriver") private String executionDriver;
   @JsonProperty("KernelVersion") private String kernelVersion;
   @JsonProperty("NCPU") private int cpus;
@@ -61,6 +62,10 @@ public class Info {
 
   public List<List<String>> driverStatus() {
     return driverStatus;
+  }
+
+  public List<List<String>> systemStatus() {
+    return systemStatus;
   }
 
   public int cpus() {
@@ -202,6 +207,7 @@ public class Info {
     result = 31 * result + images;
     result = 31 * result + (storageDriver != null ? storageDriver.hashCode() : 0);
     result = 31 * result + (driverStatus != null ? driverStatus.hashCode() : 0);
+    result = 31 * result + (systemStatus != null ? systemStatus.hashCode() : 0);
     result = 31 * result + cpus;
     result = 31 * result + (int) memTotal;
     result = 31 * result + (name != null ? name.hashCode() : 0);
@@ -222,14 +228,14 @@ public class Info {
   @Override
   public String toString() {
     return String.format("Info{ containers = %d, images = %d, storageDriver = %s, "
-                         + "driverStatus = %s, cpus = %d, memTotal = %d, name = %s, "
-                         + "executionDriver = %s, kernelVersion = %s, debug = %b, "
+                         + "driverStatus = %s, systemStatus = %s, cpus = %d, memTotal = %d, "
+                         + "name = %s, executionDriver = %s, kernelVersion = %s, debug = %b, "
                          + "fileDescriptors = %d, goroutines = %d, eventsListener = %d, "
                          + "initPath = %s, initSha1 = %s, indexServerAddress = %s, "
                          + "memoryLimit = %b, swapLimit = %b",
-                         containers, images, storageDriver, driverStatus, cpus, memTotal, name,
-                         executionDriver, kernelVersion, debug, fileDescriptors, goroutines,
-                         eventsListener, initPath, initSha1, indexServerAddress, memoryLimit,
-                         swapLimit);
+                         containers, images, storageDriver, driverStatus, systemStatus, cpus,
+                         memTotal, name, executionDriver, kernelVersion, debug, fileDescriptors,
+                         goroutines, eventsListener, initPath, initSha1, indexServerAddress,
+                         memoryLimit, swapLimit);
   }
 }
