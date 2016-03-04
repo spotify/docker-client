@@ -8,3 +8,4 @@ pom.xml.versionsBackup
 .classpath
 .DS_Store
 dependency-reduced-pom.xml
+.checkstyle
