@@ -387,22 +387,35 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     // If filters were specified, we must put them in a JSON object and pass them using the
-    // 'filters' query param like this: filters={"dangling":["true"]}
-    try {
+    // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+    // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+
+    return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+
+  /**
+   * Takes a map of filters and URL-encodes them. If the map is empty or an exception occurs,
+   * return null.
+   *
+   * @param filters A map of filters.
+   * @return String
+   * @throws DockerException
+   */
+  private String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
+    final StringWriter writer = new StringWriter();
+    try (final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer)) {
       if (!filters.isEmpty()) {
-        final StringWriter writer = new StringWriter();
-        final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
         generator.writeObject(filters);
         generator.close();
         // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
-        final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
-        resource = resource.queryParam("filters", encoded);
+        return URLEncoder.encode(writer.toString(), UTF_8.name());
       }
     } catch (IOException e) {
       throw new DockerException(e);
     }
-
-    return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    return null;
   }
 
   @Override
@@ -434,20 +447,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     // If filters were specified, we must put them in a JSON object and pass them using the
-    // 'filters' query param like this: filters={"dangling":["true"]}
-    try {
-      if (!filters.isEmpty()) {
-        final StringWriter writer = new StringWriter();
-        final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
-        generator.writeObject(filters);
-        generator.close();
-        // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
-        final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
-        resource = resource.queryParam("filters", encoded);
-      }
-    } catch (IOException e) {
-      throw new DockerException(e);
-    }
+    // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+    // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
 
     return request(GET, IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
