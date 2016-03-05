@@ -17,6 +17,7 @@
 
 package com.spotify.docker.client.messages;
 
+import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -227,15 +228,14 @@ public class Info {
 
   @Override
   public String toString() {
-    return String.format("Info{ containers = %d, images = %d, storageDriver = %s, "
-                         + "driverStatus = %s, systemStatus = %s, cpus = %d, memTotal = %d, "
-                         + "name = %s, executionDriver = %s, kernelVersion = %s, debug = %b, "
-                         + "fileDescriptors = %d, goroutines = %d, eventsListener = %d, "
-                         + "initPath = %s, initSha1 = %s, indexServerAddress = %s, "
-                         + "memoryLimit = %b, swapLimit = %b",
-                         containers, images, storageDriver, driverStatus, systemStatus, cpus,
-                         memTotal, name, executionDriver, kernelVersion, debug, fileDescriptors,
-                         goroutines, eventsListener, initPath, initSha1, indexServerAddress,
-                         memoryLimit, swapLimit);
+    return MoreObjects.toStringHelper(this).add("containers", containers).add("images", images)
+        .add("storageDriver", storageDriver).add("driverStatus", driverStatus)
+        .add("systemStatus", systemStatus).add("cpus", cpus).add("memTotal", memTotal)
+        .add("name", name).add("executionDriver", executionDriver)
+        .add("kernelVersion", kernelVersion).add("debug", debug)
+        .add("fileDescriptors", fileDescriptors).add("goroutines", goroutines)
+        .add("eventsListener", eventsListener).add("initPath", initPath).add("initSha1", initSha1)
+        .add("indexServerAddress", indexServerAddress).add("memoryLimit", memoryLimit)
+        .add("swapLimit", swapLimit).toString();
   }
 }
