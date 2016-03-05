@@ -77,11 +77,11 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
@@ -200,7 +200,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private final String apiVersion;
   private final AuthConfig authConfig;
 
-  private final List<Cookie> cookies;
+  private final Map<String, Object> headers;
 
   Client getClient() {
     return client;
@@ -293,7 +293,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
             .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
             .build();
 
-    this.cookies = new ArrayList<>(builder.cookies());
+    this.headers = new HashMap<>(builder.headers());
   }
 
   public String getHost() {
@@ -1253,7 +1253,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                         final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      return cookiefy(request).async().method(method, type).get();
+      return headers(request).async().method(method, type).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -1263,7 +1263,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                         final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      return cookiefy(request).async().method(method, clazz).get();
+      return headers(request).async().method(method, clazz).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -1274,7 +1274,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                         final Entity<?> entity)
       throws DockerException, InterruptedException {
     try {
-      return cookiefy(request).async().method(method, entity, clazz).get();
+      return headers(request).async().method(method, entity, clazz).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
@@ -1285,15 +1285,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                        final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
-      cookiefy(request).async().method(method, String.class).get();
+      headers(request).async().method(method, String.class).get();
     } catch (ExecutionException | MultiException e) {
       throw propagate(method, resource, e);
     }
   }
 
-  private Invocation.Builder cookiefy(final Invocation.Builder request) {
-    for (Cookie c : cookies) {
-      request.cookie(c);
+  private Invocation.Builder headers(final Invocation.Builder request) {
+    Set<Map.Entry<String, Object>> entries = headers.entrySet();
+
+    for (Map.Entry<String, Object> entry : entries) {
+      request.header(entry.getKey(), entry.getValue());
     }
 
     return request;
@@ -1457,7 +1459,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificates dockerCertificates;
     private AuthConfig authConfig;
-    private List<Cookie> cookies = new ArrayList<>();
+    private Map<String, Object> headers = new HashMap<>();
 
     public URI uri() {
       return uri;
@@ -1577,13 +1579,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
 
-    public Builder withCookie(Cookie cookie) {
-      cookies.add(cookie);
+    public Builder header(String name, Object value) {
+      headers.put(name, value);
       return this;
     }
 
-    public List<Cookie> cookies() {
-      return cookies;
+    public Map<String, Object> headers() {
+      return headers;
     }
   }
 

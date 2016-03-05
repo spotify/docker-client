@@ -26,6 +26,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.spotify.docker.client.messages.Info;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,11 +42,9 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 public class DefaultDockerClientUnitTest {
@@ -128,48 +128,52 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
-  public void testNoCookies() throws Exception {
+  public void testNoHeaders() throws Exception {
     DefaultDockerClient dockerClient = new DefaultDockerClient(builder, rsClientBuilderWrapperMock);
     dockerClient.info();
 
-    verify(builderMock, never()).cookie(any(Cookie.class));
+    verify(builderMock, never()).header(anyString(), anyString());
   }
 
   @Test
-  public void testOneCookie() throws Exception {
+  public void testOneHeader() throws Exception {
 
-    Cookie cookie = Cookie.valueOf("blah");
-    builder.withCookie(cookie);
+    builder.header("foo", 1);
 
     DefaultDockerClient dockerClient = new DefaultDockerClient(builder, rsClientBuilderWrapperMock);
     dockerClient.info();
 
-    ArgumentCaptor<Cookie> cookieArgumentCaptor = ArgumentCaptor.forClass(Cookie.class);
-    verify(builderMock, times(1)).cookie(cookieArgumentCaptor.capture());
+    ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
+    verify(builderMock, times(1)).header(keyArgument.capture(), valueArgument.capture());
 
-    Assert.assertEquals(cookie, cookieArgumentCaptor.getValue());
+    Assert.assertEquals("foo", keyArgument.getValue());
+    Assert.assertEquals(1, valueArgument.getValue());
   }
 
   @Test
-  public void testMultipleCookies() throws Exception {
-    List<Cookie> cookieList =
-            Arrays.asList(
-                    Cookie.valueOf("foo"),
-                    Cookie.valueOf("bar"),
-                    Cookie.valueOf("blah"));
+  public void testMultipleHeaders() throws Exception {
+    Map<String, Object> headers = Maps.newHashMap();
+    headers.put("int", 1);
+    headers.put("string", "2");
+    headers.put("list", Lists.newArrayList("a", "b", "c"));
 
-    for (Cookie c : cookieList) {
-      builder.withCookie(c);
+    for (Map.Entry<String, Object> entry : headers.entrySet()) {
+      builder.header(entry.getKey(), entry.getValue());
     }
 
     DefaultDockerClient dockerClient = new DefaultDockerClient(builder, rsClientBuilderWrapperMock);
     dockerClient.info();
 
-    ArgumentCaptor<Cookie> cookieArgumentCaptor = ArgumentCaptor.forClass(Cookie.class);
-    verify(builderMock, times(cookieList.size())).cookie(cookieArgumentCaptor.capture());
+    ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
+    verify(builderMock, times(headers.size())).header(nameCaptor.capture(), valueCaptor.capture());
 
-    for (int i = 0; i < cookieList.size(); ++i) {
-      Assert.assertEquals(cookieList.get(i), cookieArgumentCaptor.getAllValues().get(i));
+    int i = 0;
+    for (Map.Entry<String, Object> entry : headers.entrySet()) {
+      Assert.assertEquals(entry.getKey(), nameCaptor.getAllValues().get(i));
+      Assert.assertEquals(entry.getValue(), valueCaptor.getAllValues().get(i));
+      ++i;
     }
   }
 }
