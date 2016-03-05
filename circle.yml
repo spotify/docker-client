@@ -9,6 +9,8 @@ test:
   post:
     - ./circle.sh post_test:
         parallel: true
+    - ./circle.sh collect_test_reports:
+        parallel: true
 
 machine:
   pre:

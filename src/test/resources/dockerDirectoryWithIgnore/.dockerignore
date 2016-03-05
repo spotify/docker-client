@@ -1,7 +1,20 @@
-to-be-ignored
+# comments are ignored
+
+# wildcard matching
+*ignore?
+also-*
+
+# heading and trailing are removed 
   subdir
 
+# all .ignore files at the root are excluded
 *.ignore  
   
-		
+# all .ignore files in subdir2 are excluded...		
 subdir2/*.ignore
+# ... except 'subdir2/do-not.ignore'
+!subdir2/do-not.ignore
+
+# all files in 'subdir3' are included since this rule comes after the one relative to *.ignore
+subdir3
+!subdir3/*.keep

@@ -26,13 +26,9 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-import java.util.Scanner;
 
 import static com.google.common.base.Charsets.UTF_8;
 
@@ -89,7 +85,7 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
   }
 
   /**
-   * Attach {@link OutputStream OutputStreams} to the {@link LogStream}.
+   * Attach {@link java.io.OutputStream} to the {@link LogStream}.
    *
    * <p>
    * <b>Example usage:</b>
@@ -106,11 +102,12 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
    * </pre>
    *
    * <p>
-   * Typically you use {@link PipedOutputStream PipedOutputStreams} connected to a
-   * {@link PipedInputStream} which are read by - for example - an {@link InputStreamReader} or a
-   * {@link Scanner}. For small inputs, the {@link PipedOutputStream} just writes to the buffer of
-   * the {@link PipedInputStream}, but you actually want to read and write from separate threads, as
-   * it may deadlock the thread.
+   * Typically you use {@link java.io.PipedOutputStream} connected to a
+   * {@link java.io.PipedInputStream} which are read by - for example - an
+   * {@link java.io.InputStreamReader} or a
+   * {@link java.util.Scanner}. For small inputs, the {@link java.io.PipedOutputStream} just
+   * writes to the buffer of the {@link java.io.PipedInputStream}, but you actually want to read
+   * and write from separate threads, as it may deadlock the thread.
    * </p>
    *
    * <pre>
@@ -140,8 +137,8 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
    * @param stdout OutputStream for the standard out.
    * @param stderr OutputStream for the standard err
    * @throws IOException if an I/O error occurs.
-   * @see PipedInputStream
-   * @see PipedOutputStream
+   * @see java.io.PipedInputStream
+   * @see java.io.PipedOutputStream
    */
   public void attach(final OutputStream stdout, final OutputStream stderr) throws IOException {
     try (WritableByteChannel stdoutChannel = Channels.newChannel(stdout);

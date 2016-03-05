@@ -17,13 +17,8 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,8 +33,6 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.MessageFormat;
@@ -47,8 +40,14 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
-import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 
 /**
  * This helper class is used during the docker build command to create a gzip tarball of a directory
@@ -67,7 +66,7 @@ class CompressedDirectory implements Closeable {
   /**
    * Identifier used to indicate the OS supports a Posix compliant view of the file system.
    *
-   * @see PosixFileAttributeView#name()
+   * @see java.nio.file.attribute.PosixFileAttributeView#name()
    */
   private static final String POSIX_FILE_VIEW = "posix";
 
@@ -88,8 +87,8 @@ class CompressedDirectory implements Closeable {
   /**
    * This method creates a gzip tarball of the specified directory. File permissions will be
    * retained. The file will be created in a temporary directory using the {@link
-   * Files#createTempFile(String, String, FileAttribute[])} method. The returned object is
-   * auto-closeable, and upon closing it, the archive file will be deleted.
+   * Files#createTempFile(String, String, java.nio.file.attribute.FileAttribute[])} method.
+   * The returned object is auto-closeable, and upon closing it, the archive file will be deleted.
    *
    * @param directory the directory to compress
    * @return a Path object representing the compressed directory
@@ -99,7 +98,8 @@ class CompressedDirectory implements Closeable {
     final Path file = Files.createTempFile("docker-client-", ".tar.gz");
 
     final Path dockerIgnorePath = directory.resolve(".dockerignore");
-    final ImmutableSet<PathMatcher> ignoreMatchers = parseDockerIgnore(dockerIgnorePath);
+    final ImmutableList<DockerIgnorePathMatcher> ignoreMatchers =
+        parseDockerIgnore(dockerIgnorePath);
 
     try (final OutputStream fileOut = Files.newOutputStream(file);
          final GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(fileOut);
@@ -112,7 +112,7 @@ class CompressedDirectory implements Closeable {
                          new Visitor(directory, ignoreMatchers, tarOut));
 
     } catch (Throwable t) {
-      // If an error occurs, delete temporary file before rethrowing exception.
+      // If an error occurs, delete temporary file before rethrowing exclude.
       try {
         Files.delete(file);
       } catch (IOException e) {
@@ -131,18 +131,24 @@ class CompressedDirectory implements Closeable {
     Files.delete(file);
   }
 
-  static ImmutableSet<PathMatcher> parseDockerIgnore(Path dockerIgnorePath)
+  static ImmutableList<DockerIgnorePathMatcher> parseDockerIgnore(Path dockerIgnorePath)
       throws IOException {
-    final ImmutableSet.Builder<PathMatcher> matchersBuilder = ImmutableSet.builder();
+    final ImmutableList.Builder<DockerIgnorePathMatcher> matchersBuilder = ImmutableList.builder();
 
     if (Files.isReadable(dockerIgnorePath) && Files.isRegularFile(dockerIgnorePath)) {
       for (final String line : Files.readAllLines(dockerIgnorePath, StandardCharsets.UTF_8)) {
         final String pattern = createPattern(line);
-        if (pattern.isEmpty()) {
-          log.debug("Will skip '{}' - cause it's empty after trimming", line);
+        if (pattern == null || pattern.isEmpty()) {
+          log.debug("Will skip '{}' - because it's empty after trimming or it's a comment", line);
           continue;
         }
-        matchersBuilder.add(goPathMatcher(dockerIgnorePath.getFileSystem(), pattern));
+        if (pattern.startsWith("!")) {
+          matchersBuilder
+              .add(new DockerIgnorePathMatcher(dockerIgnorePath.getFileSystem(), pattern, false));
+        } else {
+          matchersBuilder
+              .add(new DockerIgnorePathMatcher(dockerIgnorePath.getFileSystem(), pattern, true));
+        }
       }
     }
 
@@ -150,13 +156,13 @@ class CompressedDirectory implements Closeable {
   }
 
   private static String createPattern(String line) {
-
     String pattern = line.trim();
-
+    if (pattern.startsWith("#")) {
+      return null;
+    }
     if (OSUtils.isLinux()) {
       return pattern;
     }
-
     return pattern.replace("/", "\\\\");
   }
 
@@ -241,13 +247,15 @@ class CompressedDirectory implements Closeable {
   private static class Visitor extends SimpleFileVisitor<Path> {
 
     private final Path root;
-    private final ImmutableSet<PathMatcher> ignoreMatchers;
+    private final ImmutableList<DockerIgnorePathMatcher> ignoreMatchers;
     private final TarArchiveOutputStream tarStream;
 
-    private Visitor(final Path root, ImmutableSet<PathMatcher> ignoreMatchers,
+    private Visitor(final Path root, ImmutableList<DockerIgnorePathMatcher> ignoreMatchers,
                     final TarArchiveOutputStream tarStream) {
       this.root = root;
-      this.ignoreMatchers = ignoreMatchers;
+      // .dockerignore matchers need to be read from the bottom of the file, 
+      // so the given list should be reversed before using it.
+      this.ignoreMatchers = ignoreMatchers.reverse();
       this.tarStream = tarStream;
     }
 
@@ -256,7 +264,7 @@ class CompressedDirectory implements Closeable {
 
       final Path relativePath = root.relativize(file);
 
-      if (anyMatches(ignoreMatchers, relativePath)) {
+      if (exclude(ignoreMatchers, relativePath)) {
         return FileVisitResult.CONTINUE;
       }
 
@@ -270,22 +278,19 @@ class CompressedDirectory implements Closeable {
       return FileVisitResult.CONTINUE;
     }
 
-    @Override
-    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-        throws IOException {
-      final Path relativePath = root.relativize(dir);
-
-      if (anyMatches(ignoreMatchers, relativePath)) {
-        return FileVisitResult.SKIP_SUBTREE;
-      }
-
-      return super.preVisitDirectory(dir, attrs);
-    }
-
-    private static boolean anyMatches(ImmutableSet<PathMatcher> matchers, Path path) {
-      for (PathMatcher matcher : matchers) {
+    /**
+     * Checks if any of the given {@link DockerIgnorePathMatcher} matches the given {@code path}
+     * @param matchers the {@link DockerIgnorePathMatcher} to use
+     * @param path the path to match
+     * @return <code>true</code> if the given path should be excluded, <code>false</code> otherwise
+     */
+    private static boolean exclude(ImmutableList<DockerIgnorePathMatcher> matchers, Path path) {
+      for (DockerIgnorePathMatcher matcher : matchers) {
         if (matcher.matches(path)) {
-          return true;
+          if (matcher.isExclude()) {
+            return true;
+          }
+          return false;
         }
       }
       return false;
@@ -341,5 +346,64 @@ class CompressedDirectory implements Closeable {
       return result;
     }
 
+  }
+  
+  /**
+   * A decorator for the {@link PathMatcher} with a type to determine if it is an exclusion pattern
+   * or an exclude to an aforementioned exclusion. See
+   * https://docs.docker.com/engine/reference/builder/#dockerignore-file
+   */
+  private static class DockerIgnorePathMatcher implements PathMatcher {
+
+    private final String pattern;
+
+    private final PathMatcher matcher;
+
+    private final boolean exclude;
+
+    /**
+     * Constructor.
+     * 
+     * @param fileSystem the current {@link FileSystem}
+     * @param pattern the exclusion or inclusion pattern
+     * @param exclude flag to indicate if the given {@code pattern } is an exclusion (
+     *        <code>true</code>) or if it is an inclusion (<code>false</code>).
+     */
+    public DockerIgnorePathMatcher(final FileSystem fileSystem, final String pattern,
+                                   final boolean exclude) {
+      this.exclude = exclude;
+      this.pattern = pattern;
+      if (exclude) {
+        this.matcher = goPathMatcher(fileSystem, pattern);
+      } else {
+        this.matcher = goPathMatcher(fileSystem, pattern.substring(1));
+      }
+    }
+
+    /**
+     * @return <code>true</code> if the given {@code pattern} is an exclusion, <code>false</code> if
+     *         it is an exclude to an exclusion.
+     */
+    public boolean isExclude() {
+      return this.exclude;
+    }
+
+    /**
+     * @param path the path to match
+     * @return <code>true</code> if the given {@code path} starts with the pattern or matches the
+     *         pattern
+     * 
+     * @see {@link Path#startsWith(String)}
+     * @see {@link Matcher#matches(String)}
+     */
+    @Override
+    public boolean matches(Path path) {
+      return path.startsWith(this.pattern) || this.matcher.matches(path);
+    }
+
+    @Override
+    public String toString() {
+      return this.pattern;
+    }
   }
 }

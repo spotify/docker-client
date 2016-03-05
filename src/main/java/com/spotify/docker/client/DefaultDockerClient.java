@@ -21,8 +21,10 @@ package com.spotify.docker.client;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,12 +51,15 @@ import com.spotify.docker.client.messages.Version;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
@@ -71,6 +76,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -371,49 +377,92 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource()
         .path("containers").path("json");
 
+    final Map<String, List<String>> filters = newHashMap();
     for (ListContainersParam param : params) {
-      resource = resource.queryParam(param.name(), param.value());
-    }
-
-    return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
-  }
-
-  @Override
-  public List<Image> listImages(ListImagesParam... params)
-      throws DockerException, InterruptedException {
-    WebTarget resource = resource()
-        .path("images").path("json");
-
-    final Map<String, String> filters = newHashMap();
-    for (ListImagesParam param : params) {
-      if (param instanceof ListImagesFilterParam) {
-        filters.put(param.name(), param.value());
+      if (param instanceof ListContainersFilterParam) {
+        List<String> filterValueList;
+        if (filters.containsKey(param.name())) {
+          filterValueList = filters.get(param.name());
+        } else {
+          filterValueList = Lists.newArrayList();
+        }
+        filterValueList.add(param.value());
+        filters.put(param.name(), filterValueList);
       } else {
-        resource = resource.queryParam(param.name(), param.value());
+        try {
+          final String encodedName = URLEncoder.encode(param.name(), UTF_8.name());
+          final String encodedValue = URLEncoder.encode(param.value(), UTF_8.name());
+          resource = resource.queryParam(encodedName, encodedValue);
+        } catch (UnsupportedEncodingException e) {
+          throw new DockerException(e);
+        }
       }
     }
 
     // If filters were specified, we must put them in a JSON object and pass them using the
-    // 'filters' query param like this: filters={"dangling":["true"]}
-    try {
+    // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+    // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+
+    return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+
+  /**
+   * Takes a map of filters and URL-encodes them. If the map is empty or an exception occurs,
+   * return null.
+   *
+   * @param filters A map of filters.
+   * @return String
+   * @throws DockerException
+   */
+  private String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
+    final StringWriter writer = new StringWriter();
+    try (final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer)) {
       if (!filters.isEmpty()) {
-        final StringWriter writer = new StringWriter();
-        final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
-        generator.writeStartObject();
-        for (Map.Entry<String, String> entry : filters.entrySet()) {
-          generator.writeArrayFieldStart(entry.getKey());
-          generator.writeString(entry.getValue());
-          generator.writeEndArray();
-        }
-        generator.writeEndObject();
+        generator.writeObject(filters);
         generator.close();
         // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
-        final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
-        resource = resource.queryParam("filters", encoded);
+        return URLEncoder.encode(writer.toString(), UTF_8.name());
       }
     } catch (IOException e) {
       throw new DockerException(e);
     }
+    return null;
+  }
+
+  @Override
+  public List<Image> listImages(final ListImagesParam... params)
+      throws DockerException, InterruptedException {
+    WebTarget resource = resource()
+        .path("images").path("json");
+
+    final Map<String, List<String>> filters = newHashMap();
+    for (ListImagesParam param : params) {
+      if (param instanceof ListImagesFilterParam) {
+        List<String> filterValueList;
+        if (filters.containsKey(param.name())) {
+          filterValueList = filters.get(param.name());
+        } else {
+          filterValueList = Lists.newArrayList();
+        }
+        filterValueList.add(param.value());
+        filters.put(param.name(), filterValueList);
+      } else {
+        try {
+          final String encodedName = URLEncoder.encode(param.name(), UTF_8.name());
+          final String encodedValue = URLEncoder.encode(param.value(), UTF_8.name());
+          resource = resource.queryParam(encodedName, encodedValue);
+        } catch (UnsupportedEncodingException e) {
+          throw new DockerException(e);
+        }
+      }
+    }
+
+    // If filters were specified, we must put them in a JSON object and pass them using the
+    // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+    // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
 
     return request(GET, IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
@@ -1005,15 +1054,57 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public LogStream attachContainer(final String containerId, final AttachParameter... params)
+  public EventStream events(EventsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
-        .path("containers").path(containerId)
-        .path("attach");
+            .path("events");
+    final Map<String, String> filters = newHashMap();
+    for (EventsParam param : params) {
+      if (param instanceof EventsFilterParam) {
+        filters.put(param.name(), param.value());
+      } else {
+        resource = resource.queryParam(param.name(), param.value());
+      }
+    }
+
+    try {
+      if (!filters.isEmpty()) {
+        final StringWriter writer = new StringWriter();
+        final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+        generator.writeStartObject();
+        for (Map.Entry<String, String> entry : filters.entrySet()) {
+          generator.writeArrayFieldStart(entry.getKey());
+          generator.writeString(entry.getValue());
+          generator.writeEndArray();
+        }
+        generator.writeEndObject();
+        generator.close();
+        // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
+        final String encoded = URLEncoder.encode(writer.toString(), UTF_8.name());
+        resource = resource.queryParam("filters", encoded);
+      }
+    } catch (IOException exception) {
+      throw new DockerException(exception);
+    }
+
+    try {
+      CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider
+          .getHttpClient(noTimeoutClient);
+      CloseableHttpResponse response = client.execute(new HttpGet(resource.getUri()));
+      return new EventStream(response, objectMapper());
+    } catch (IOException exception) {
+      throw new DockerException(exception);
+    }
+  }
+
+  @Override
+  public LogStream attachContainer(final String containerId,
+                                   final AttachParameter... params) throws DockerException,
+      InterruptedException {
+    WebTarget resource = noTimeoutResource().path("containers").path(containerId).path("attach");
 
     for (final AttachParameter param : params) {
-      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT),
-                                     String.valueOf(true));
+      resource = resource.queryParam(param.name().toLowerCase(Locale.ROOT), String.valueOf(true));
     }
 
     return getLogStream(POST, resource, containerId);

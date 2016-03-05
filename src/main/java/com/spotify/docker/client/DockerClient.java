@@ -17,8 +17,6 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Throwables;
-
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -40,8 +38,6 @@ import com.spotify.docker.client.messages.Version;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -717,6 +713,14 @@ public interface DockerClient extends Closeable {
   LogStream logs(String containerId, LogsParam... params)
       throws DockerException, InterruptedException;
 
+  /**
+   * Watches the docker API for events.
+   *
+   * @param params The parameters to apply to the events request
+   * @return An event stream
+   */
+  EventStream events(EventsParam... params)
+          throws DockerException, InterruptedException;
 
   /**
    * Sets up an exec instance in a running container id.
@@ -749,7 +753,8 @@ public interface DockerClient extends Closeable {
    * Supported parameters for {@link #execStart}
    */
   enum ExecStartParameter {
-    DETACH("Detach");
+    DETACH("Detach"),
+    TTY("Tty");
 
     private final String name;
 
@@ -1175,6 +1180,28 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Create a custom parameter.
+     *
+     * @param name  custom name
+     * @param value custom value
+     * @return ListContainersParam
+     */
+    public static ListContainersParam create(final String name, final String value) {
+      return new ListContainersParam(name, value);
+    }
+
+    /**
+     * Create a "filters" query param from a key/value pair
+     *
+     * @param key Type of filter
+     * @param value Value of filter
+     * @return ListContainersParam
+     */
+    public static ListContainersParam filter(final String key, final String value) {
+      return new ListContainersFilterParam(key, value);
+    }
+
+    /**
      * Parameter name.
      *
      * @return name of parameter
@@ -1212,20 +1239,6 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Show exited containers.
-     *
-     * @return ListContainersParam
-     */
-    public static ListContainersParam exitedContainers() {
-      try {
-        return create("filters", URLEncoder.encode("{\"status\":[\"exited\"]}", "UTF-8"));
-      } catch (UnsupportedEncodingException e) {
-        // Should never happen
-        throw Throwables.propagate(e);
-      }
-    }
-
-    /**
      * Show <code>limit</code> last created containers, include non-running ones.
      *
      * @param limit Limit for number of containers to list
@@ -1242,7 +1255,7 @@ public interface DockerClient extends Closeable {
      * @return ListContainersParam
      */
     public static ListContainersParam containersCreatedSince(final String id) {
-      return create("since", String.valueOf(id));
+      return create("since", id);
     }
 
     /**
@@ -1264,49 +1277,104 @@ public interface DockerClient extends Closeable {
     public static ListContainersParam withContainerSizes(final Boolean size) {
       return create("size", String.valueOf(size));
     }
-    
+
     /**
-     * Show containers with a label value
+     * Show exited containers with given exit status.
      *
+     * @param exitStatus Integer exit status
      * @return ListContainersParam
      */
-    public static ListContainersParam withLabel(final String key, final String value) {
-      try {
-        if (isNullOrEmpty(value)) {
-          return create("filters", URLEncoder.encode("{\"label\":[\"" + key + "\"]}", "UTF-8"));
-        } else {
-          return create("filters",
-                        URLEncoder.encode("{\"label\":[\"" + key + '=' + value + "\"]}", "UTF-8"));
-        }
-      } catch (UnsupportedEncodingException e) {
-        // Should never happen
-        throw Throwables.propagate(e);
-      }
-    }
-    
-    /**
-     * Show containers with a label
-     *
-     * @return ListContainersParam
-     */
-    public static ListContainersParam withLabel(final String key) {
-      return withLabel(key, null);
+    public static ListContainersParam withExitStatus(final int exitStatus) {
+      return filter("exited", String.valueOf(exitStatus));
     }
 
     /**
-     * Create a custom parameter.
+     * Show created containers.
      *
-     * @param name  custom name
-     * @param value custom value
      * @return ListContainersParam
      */
-    public static ListContainersParam create(final String name, final String value) {
-      return new ListContainersParam(name, value);
+    public static ListContainersParam withStatusCreated() {
+      return filter("status", "created");
+    }
+
+    /**
+     * Show restarting containers.
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withStatusRestarting() {
+      return filter("status", "restarting");
+    }
+
+    /**
+     * Show running containers.
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withStatusRunning() {
+      return filter("status", "running");
+    }
+
+    /**
+     * Show paused containers.
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withStatusPaused() {
+      return filter("status", "paused");
+    }
+
+    /**
+     * Show exited containers.
+     *
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withStatusExited() {
+      return filter("status", "exited");
+    }
+
+    /**
+     * Show exited containers.
+     *
+     * @deprecated  Replaced by {@link #withStatusExited()}
+     *
+     * @return ListContainersParam
+     */
+    @Deprecated
+    public static ListContainersParam exitedContainers() {
+      return withStatusExited();
+    }
+
+    /**
+     * Show containers with a label value.
+     *
+     * @param label The label to filter on
+     * @param value The value of the label
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withLabel(final String label, final String value) {
+      return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
+    }
+    
+    /**
+     * Show containers with a label.
+     *
+     * @param label The label to filter on
+     * @return ListContainersParam
+     */
+    public static ListContainersParam withLabel(final String label) {
+      return withLabel(label, null);
+    }
+  }
+
+  class ListContainersFilterParam extends ListContainersParam {
+    public ListContainersFilterParam(String name, String value) {
+      super(name, value);
     }
   }
 
   /**
-   * Parameters for {@link #listImages(ListImagesParam...)}
+   * Parameters for {@link #listImages(ListImagesParam...)}.
    */
   class ListImagesParam {
 
@@ -1316,6 +1384,28 @@ public interface DockerClient extends Closeable {
     public ListImagesParam(final String name, final String value) {
       this.name = name;
       this.value = value;
+    }
+
+    /**
+     * Create a custom parameter.
+     *
+     * @param name  of parameter
+     * @param value of parameter
+     * @return ListImagesParam
+     */
+    public static ListImagesParam create(final String name, final String value) {
+      return new ListImagesParam(name, value);
+    }
+
+    /**
+     * Create a custom filter.
+     *
+     * @param name  of filter
+     * @param value of filter
+     * @return ListImagesParam
+     */
+    public static ListImagesParam filter(final String name, final String value) {
+      return new ListImagesFilterParam(name, value);
     }
 
     /**
@@ -1376,25 +1466,34 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Create a custom filter.
+     * Show images with a label value.
      *
-     * @param name  of filter
-     * @param value of filter
+     * @param label The label to filter on
+     * @param value The value of the label
      * @return ListImagesParam
      */
-    public static ListImagesParam filter(final String name, final String value) {
-      return new ListImagesFilterParam(name, value);
+    public static ListImagesParam withLabel(final String label, final String value) {
+      return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
     }
 
     /**
-     * Create a custom parameter.
+     * Show images with a label.
      *
-     * @param name  of parameter
-     * @param value of parameter
+     * @param label The label to filter on
      * @return ListImagesParam
      */
-    public static ListImagesParam create(final String name, final String value) {
-      return new ListImagesParam(name, value);
+    public static ListImagesParam withLabel(final String label) {
+      return withLabel(label, null);
+    }
+
+    /**
+     * Show images by name. Can use RepoTags or RepoDigests as valid inputs.
+     *
+     * @param name Name of the image to filter on
+     * @return ListImagesParam
+     */
+    public static ListImagesParam byName(final String name) {
+      return create("filter", name);
     }
   }
 
@@ -1407,4 +1506,65 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
+
+  /**
+   * Parameters for {@link #events(EventsParam...)}
+   */
+  public static class EventsParam {
+
+    private final String name;
+    private final String value;
+
+    protected EventsParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Filter events until the given timestamp
+     */
+    public static EventsParam until(Long until) {
+      return new EventsParam("until", String.valueOf(until));
+    }
+
+    /**
+     * Filter events since the given timestamp
+     */
+    public static EventsParam since(Long since) {
+      return new EventsParam("since", String.valueOf(since));
+    }
+
+    /**
+     * Apply filters to the returned events
+     */
+    public static EventsParam filter(String name, String value) {
+      return new EventsFilterParam(name, value);
+    }
+
+  }
+
+  /**
+   * Filter parameter for {@link #events(EventsParam...)}. This should be used by
+   * EventsParam only.
+   */
+  static class EventsFilterParam extends EventsParam {
+    public EventsFilterParam(String name, String value) {
+      super(name, value);
+    }
+  }
+
 }

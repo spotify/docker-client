@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
+import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
@@ -42,6 +43,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
@@ -49,6 +51,7 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Ipam;
+import com.spotify.docker.client.messages.LogConfig;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
@@ -82,7 +85,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -94,6 +96,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -115,6 +118,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
+import static com.spotify.docker.client.DockerClient.ListImagesParam.byName;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
 import static com.spotify.docker.client.DockerClient.LogsParam.since;
@@ -142,6 +146,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
@@ -150,6 +155,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1243,7 +1249,7 @@ public class DefaultDockerClientTest {
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
   }
-  
+
   @Test
   public void testContainerWithAppArmorLogs() throws Exception {
     assumeTrue(
@@ -1285,7 +1291,7 @@ public class DefaultDockerClientTest {
 
     final List<Container> containers =
         sut.listContainers(DockerClient.ListContainersParam.allContainers(),
-            DockerClient.ListContainersParam.exitedContainers());
+            DockerClient.ListContainersParam.withStatusExited());
 
     Container targetCont = null;
     for (Container container : containers) {
@@ -1294,8 +1300,8 @@ public class DefaultDockerClientTest {
         break;
       }
     }
+    assertNotNull(targetCont);
     assertThat(targetCont.imageId(), equalTo(inspection.image()));
-
   }
 
   @Test
@@ -1337,6 +1343,76 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testEventStream() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    EventStream eventStream = sut.events();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+
+    final Event createEvent = eventStream.next();
+    assertThat(createEvent.status(), equalTo("create"));
+    assertThat(createEvent.id(), equalTo(container.id()));
+    assertThat(createEvent.from(), startsWith("busybox:"));
+    assertThat(createEvent.time(), notNullValue());
+
+    final Event startEvent = eventStream.next();
+    assertThat(startEvent.status(), equalTo("start"));
+    assertThat(startEvent.id(), equalTo(container.id()));
+    assertThat(startEvent.from(), startsWith("busybox:"));
+    assertThat(startEvent.time(), notNullValue());
+
+    eventStream.close();
+  }
+
+  @Test
+  public void testEventStreamWithSinceTime() throws Exception {
+    Thread.sleep(1000); // ensure we push to the next second
+                        // so we don't get events from the last test
+    final Date date = new Date();
+    sut.pull(BUSYBOX_LATEST);
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    sut.startContainer(container.id());
+
+    EventStream eventStream = sut.events(DockerClient.EventsParam.since(date.getTime() / 1000));
+
+    final Event pullEvent = eventStream.next();
+    assertThat(pullEvent.status(), equalTo("pull"));
+    assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
+
+    final Event createEvent = eventStream.next();
+    assertThat(createEvent.status(), equalTo("create"));
+    assertThat(createEvent.id(), equalTo(container.id()));
+    assertThat(createEvent.from(), startsWith("busybox:"));
+    assertThat(createEvent.time(), notNullValue());
+
+    final Event startEvent = eventStream.next();
+    assertThat(startEvent.status(), equalTo("start"));
+    assertThat(startEvent.id(), equalTo(container.id()));
+    assertThat(startEvent.from(), startsWith("busybox:"));
+    assertThat(startEvent.time(), notNullValue());
+
+    eventStream.close();
+  }
+
+  @Test(timeout = 5000)
+  public void testEventStreamWithUntilTime() throws Exception {
+    EventStream eventStream =
+        sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
+
+    while (eventStream.hasNext()) {
+      eventStream.next();
+    }
+
+    eventStream.close();
+  }
+
+  @Test
   public void testListImages() throws Exception {
     sut.pull(BUSYBOX_LATEST);
     final List<Image> images = sut.listImages();
@@ -1360,6 +1436,15 @@ public class DefaultDockerClientTest {
     // Specifying both allImages() and danglingImages() should give us only dangling images
     final List<Image> allAndDanglingImages = sut.listImages(allImages(), danglingImages());
     assertThat(allAndDanglingImages.size(), equalTo(danglingImages.size()));
+
+    // Can list by name
+    final List<Image> imagesByName = sut.listImages(byName(BUSYBOX));
+    assertThat(imagesByName.size(), greaterThan(0));
+    Set<String> repoTags = Sets.newHashSet();
+    for (final Image imageByName: imagesByName) {
+      repoTags.addAll(imageByName.repoTags());
+    }
+    assertThat(BUSYBOX_LATEST, isIn(repoTags));
   }
 
   @Test
@@ -1529,6 +1614,42 @@ public class DefaultDockerClientTest {
     }
     assertThat(logs, containsString("1.2.3.4"));
 
+  }
+
+  @Test
+  public void testLogDriver() throws Exception {
+    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
+               "HostConfig LogConfig, got " + sut.version().apiVersion(),
+               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+
+    sut.pull(BUSYBOX_LATEST);
+    final String name = randomName();
+
+    final Map<String, String> logOptions = new HashMap<>();
+    logOptions.put("max-size", "10k");
+    logOptions.put("max-file", "2");
+    logOptions.put("labels", name);
+
+    final LogConfig logConfig = LogConfig.create("json-file", logOptions);
+    assertThat(logConfig.logType(), equalTo("json-file"));
+    assertThat(logConfig.logOptions(), equalTo(logOptions));
+
+    final HostConfig expected = HostConfig.builder()
+        .logConfig(logConfig)
+        .build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.logConfig(), equalTo(expected.logConfig()));
   }
 
   @Test
@@ -1783,6 +1904,30 @@ public class DefaultDockerClientTest {
     assertThat(logs, not(containsString("This message was printed too late")));
   }
 
+  @Test
+  public void testLogsTty() throws DockerException, InterruptedException {
+    String container = randomName();
+    ContainerConfig containerConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .attachStdout(true)
+        .tty(true)
+        .cmd("sh", "-c", "ls")
+        .build();
+
+    sut.createContainer(containerConfig, container);
+    sut.startContainer(container);
+    LogStream logStream = sut.logs(container, DockerClient.LogsParam.stdout());
+
+    while (logStream.hasNext()) {
+      String line = UTF_8.decode(logStream.next().content()).toString();
+      log.info(line);
+    }
+    sut.waitContainer(container);
+    final ContainerInfo info = sut.inspectContainer(container);
+    assertThat(info.state().running(), is(false));
+    assertThat(info.state().exitCode(), is(0));
+  }
+
   @Test(expected = ContainerNotFoundException.class)
   public void testStartBadContainer() throws Exception {
     sut.startContainer(randomName());
@@ -1928,31 +2073,67 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testExitedListContainersParam()
-      throws DockerException, InterruptedException, UnsupportedEncodingException {
+  public void testListContainers() throws DockerException, InterruptedException {
     sut.pull(BUSYBOX_LATEST);
 
-    final String randomLong = Long.toString(ThreadLocalRandom.current().nextLong());
+    final String label = "foo";
+    final String labelValue = "bar";
+
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .cmd("sh", "-c", "echo " + randomLong)
-        .build();
+            .image(BUSYBOX_LATEST)
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .labels(ImmutableMap.of(label, labelValue))
+            .build();
     final String containerName = randomName();
     final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
     final String containerId = containerCreation.id();
 
-    sut.startContainer(containerId);
-    sut.waitContainer(containerId);
+    // filters={"status":["created"]}
+    final List<Container> created = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusCreated());
+    assertThat(containerId, isIn(containersToIds(created)));
 
-    final List<Container> containers = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.exitedContainers());
-    assertThat(containers.size(), greaterThan(0));
-    assertThat(containers.get(0).command(), containsString(randomLong));
+    // filters={"status":["running"]}
+    sut.startContainer(containerId);
+    final List<Container> running = sut.listContainers(
+            DockerClient.ListContainersParam.withStatusRunning());
+    assertThat(containerId, isIn(containersToIds(running)));
+
+    // filters={"status":["paused"]}
+    sut.pauseContainer(containerId);
+    final List<Container> paused = sut.listContainers(
+            DockerClient.ListContainersParam.withStatusPaused());
+    assertThat(containerId, isIn(containersToIds(paused)));
+
+    // filters={"status":["exited"]}
+    sut.unpauseContainer(containerId);
+    sut.stopContainer(containerId, 0);
+    final List<Container> allExited = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusExited());
+    assertThat(containerId, isIn(containersToIds(allExited)));
+
+    // filters={"status":["created","paused","exited"]}
+    // Will work, i.e. multiple "status" filters are ORed
+    final List<Container> multipleStati = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusCreated(),
+            DockerClient.ListContainersParam.withStatusPaused(),
+            DockerClient.ListContainersParam.withStatusExited());
+    assertThat(containerId, isIn(containersToIds(multipleStati)));
+
+    // filters={"status":["exited"],"labels":["foo=bar"]}
+    // Shows that labels play nicely with other filters
+    final List<Container> statusAndLabels = sut.listContainers(
+            DockerClient.ListContainersParam.allContainers(),
+            DockerClient.ListContainersParam.withStatusExited(),
+            DockerClient.ListContainersParam.withLabel(label, labelValue));
+    assertThat(containerId, isIn(containersToIds(statusAndLabels)));
   }
 
   @Test
-  public void testLabels() throws DockerException, InterruptedException {
+  public void testContainerLabels() throws DockerException, InterruptedException {
     assumeTrue("Docker API should be at least v1.18 to support Labels, got "
                + sut.version().apiVersion(),
                compareVersion(sut.version().apiVersion(), "1.18") >= 0);
@@ -2023,6 +2204,70 @@ public class DefaultDockerClientTest {
     final List<Container> quxContainers =
         sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "qux"));
     assertThat(quxContainers.size(), equalTo(0));
+  }
+
+  @Test
+  public void testImageLabels() throws DockerException,
+          InterruptedException, IOException {
+    assumeTrue("Docker API should be at least v1.17 to support Labels, got "
+                    + sut.version().apiVersion(),
+            compareVersion(sut.version().apiVersion(), "1.17") >= 0);
+
+    final String dockerDirectory =
+            Resources.getResource("dockerDirectoryWithImageLabels").getPath();
+
+    // Check if any images already exist with the labels we will use
+    final List<Image> preexistingTestImages = sut.listImages(
+            ListImagesParam.withLabel("name", "testtesttest"));
+    final int numPreexistingTestImages = preexistingTestImages.size();
+
+    // Create test images
+    final String barDir = (new File(dockerDirectory, "barDir")).toString();
+    final String barName = randomName();
+    final String barId = sut.build(Paths.get(barDir), barName);
+
+    final String bazName = randomName();
+    final String bazDir = (new File(dockerDirectory, "bazDir")).toString();
+    final String bazId = sut.build(Paths.get(bazDir), bazName);
+
+    // Check that both test images are listed when we filter with a "name" label
+    final List<Image> nameImages = sut.listImages(
+            ListImagesParam.withLabel("name"));
+    final List<String> nameIds = imagesToShortIds(nameImages);
+    assertThat(nameIds.size(), equalTo(2 + numPreexistingTestImages));
+    assertThat(nameIds, containsInAnyOrder(barId, bazId));
+
+    // Check that the first image is listed when we filter with a "foo=bar" label
+    final List<Image> barImages = sut.listImages(
+            ListImagesParam.withLabel("foo", "bar"));
+    final List<String> barIds = imagesToShortIds(barImages);
+    assertNotNull(barIds);
+    assertTrue(barIds.contains(barId));
+
+    // Check that we find the first image again when searching with the full
+    // set of labels in a Map
+    final List<Image> barImages2 = sut.listImages(
+            ListImagesParam.withLabel("foo", "bar"),
+            ListImagesParam.withLabel("name", "testtesttest"));
+    final List<String> barIds2 = imagesToShortIds(barImages2);
+    assertNotNull(barIds2);
+    assertTrue(barIds2.contains(barId));
+
+    // Check that the second image is listed when we filter with a "foo=baz" label
+    final List<Image> bazImages = sut.listImages(
+            ListImagesParam.withLabel("foo", "baz"));
+    final List<String> bazIds = imagesToShortIds(bazImages);
+    assertNotNull(bazIds);
+    assertTrue(bazIds.contains(bazId));
+
+    // Check that no containers are listed when we filter with a "foo=qux" label
+    final List<Image> quxImages = sut.listImages(
+            ListImagesParam.withLabel("foo", "qux"));
+    assertThat(quxImages.size(), equalTo(0));
+
+    // Clean up test images
+    sut.removeImage(barName, true, true);
+    sut.removeImage(bazName, true, true);
   }
 
   @Test
@@ -2275,5 +2520,15 @@ public class DefaultDockerClientTest {
       }
     };
     return Lists.transform(containers, containerToId);
+  }
+
+  private List<String> imagesToShortIds(final List<Image> images) {
+    final Function<Image, String> imageToShortId = new Function<Image, String>() {
+      @Override
+      public String apply(final Image image) {
+        return image.id().substring(0, 12);
+      }
+    };
+    return Lists.transform(images, imageToShortId);
   }
 }

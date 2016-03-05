@@ -59,7 +59,9 @@ docker.startContainer(id);
 
 // Exec command inside running container with attached STDOUT and STDERR
 final String[] command = {"bash", "-c", "ls"};
-final String execId = docker.execCreate(id, command, DockerClient.ExecParameter.STDOUT, DockerClient.ExecParameter.STDERR);
+final String execId = docker.execCreate(
+    id, command, DockerClient.ExecCreateParam.attachStdout(),
+    DockerClient.ExecCreateParam.attachStderr());
 final LogStream output = docker.execStart(execId);
 final String execOutput = output.readFully();
 
@@ -132,7 +134,7 @@ Standard:
 <dependency>
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>2.7.7</version>
+  <version>3.5.12</version>
 </dependency>
 ```
 
@@ -143,7 +145,7 @@ Shaded:
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
   <classifier>shaded</classifier>
-  <version>2.7.7</version>
+  <version>3.5.12</version>
 </dependency>
 ```
 

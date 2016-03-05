@@ -79,13 +79,12 @@ case "$1" in
   post_test)
     docker logs registry &> $CIRCLE_ARTIFACTS/registry.log
 
-    cp target/surefire-reports/*.xml $CI_REPORTS
+    ;;
 
+  collect_test_reports)
+    cp */target/surefire-reports/*.xml $CIRCLE_TEST_REPORTS || true
+    cp */target/failsafe-reports/*.xml $CIRCLE_TEST_REPORTS || true
     codecov
-
-    mkdir -p $CIRCLE_TEST_REPORTS/junit/
-
-    find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
     ;;
 
