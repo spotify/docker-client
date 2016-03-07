@@ -562,6 +562,17 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Rename a docker container.
+   *
+   * @param containerId The id of the container to rename.
+   * @param name        The new name the container will have
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void renameContainer(String containerId, String name)
+          throws DockerException, InterruptedException;
+
+  /**
    * Start a docker container.
    *
    * @param containerId The id of the container to start.

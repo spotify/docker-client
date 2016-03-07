@@ -2439,6 +2439,97 @@ public class DefaultDockerClientTest {
     testRestartPolicy(HostConfig.RestartPolicy.onFailure(5));
   }
 
+  @Test
+  public void testRenameContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String originalName = randomName();
+    final String newName = randomName();
+
+    // Bizarrely, docker inspect returns the container name with a leading "/"
+    // in API 1.20 and above. See https://github.com/docker/docker/issues/18558.
+    final String originalComparisonName;
+    final String newComparisonName;
+    if (compareVersion(sut.version().apiVersion(), "1.20") >= 0) {
+      originalComparisonName = "/" + originalName;
+      newComparisonName = "/" + newName;
+    } else {
+      originalComparisonName = originalName;
+      newComparisonName = newName;
+    }
+
+    // Create a container with originalName
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+    final ContainerCreation creation = sut.createContainer(config, originalName);
+    final String id = creation.id();
+    assertThat(sut.inspectContainer(id).name(), equalTo(originalComparisonName));
+
+    // Rename to newName
+    sut.renameContainer(id, newName);
+    assertThat(sut.inspectContainer(id).name(), equalTo(newComparisonName));
+
+    // We should no longer find a container with originalName
+    try {
+      sut.inspectContainer(originalName);
+      fail("There should be no container with name " + originalName);
+    } catch (ContainerNotFoundException e) {
+      // Note, even though property in ContainerNotFoundException is named containerId,
+      // in this case it holds the name, since that is what we passed to inspectContainer.
+      assertThat(e.getContainerId(), equalTo(originalName));
+    }
+
+    // Try to rename to a disallowed name (not matching /?[a-zA-Z0-9_-]+).
+    // Should get IllegalArgumentException.
+    final String badName = "abc123.!*";
+    try {
+      sut.renameContainer(id, badName);
+      fail("We should not be able to rename a container " + badName);
+    } catch (IllegalArgumentException ignored) {
+      // Pass
+    }
+
+    // Try to rename to null
+    try {
+      sut.renameContainer(id, null);
+      fail("We should not be able to rename a container null");
+    } catch (IllegalArgumentException ignored) {
+      // Pass
+    }
+
+    // Create another container with originalName
+    final ContainerConfig config2 = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+    final ContainerCreation creation2 = sut.createContainer(config2, originalName);
+    final String id2 = creation2.id();
+    assertThat(sut.inspectContainer(id2).name(), equalTo(originalComparisonName));
+
+    // Try to rename another container to newName. Should get a ContainerRenameConflictException.
+    try {
+      sut.renameContainer(id2, newName);
+      fail("We should not be able to rename container " + id2 + " to " + newName);
+    } catch (ContainerRenameConflictException e) {
+      assertThat(e.getContainerId(), equalTo(id2));
+      assertThat(e.getNewName(), equalTo(newName));
+    } catch (DockerRequestException ignored) {
+      // This is a docker bug. It responds with HTTP 500 when it should be HTTP 409.
+      // See https://github.com/docker/docker/issues/21016.
+      // Fixed in version 1.11.0, so we should see a lower version.
+      assertThat(compareVersion(sut.version().version(), "1.11.0"), lessThan(0));
+    }
+
+    // Rename a non-existent id. Should get ContainerNotFoundException.
+    final String badId = "0";
+    try {
+      sut.renameContainer(badId, randomName());
+      fail("There should be no container with id " + badId);
+    } catch (ContainerNotFoundException e) {
+      assertThat(e.getContainerId(), equalTo(badId));
+    }
+  }
+
   private void testRestartPolicy(HostConfig.RestartPolicy restartPolicy) throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
