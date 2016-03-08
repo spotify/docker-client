@@ -2216,13 +2216,6 @@ public class DefaultDockerClientTest {
     final String dockerDirectory =
             Resources.getResource("dockerDirectoryWithImageLabels").getPath();
 
-    // Check if any images already exist with the labels we will use
-    final List<Image> preexistingTestImages = sut.listImages(
-            ListImagesParam.withLabel("name", "testtesttest"));
-    final int numPreexistingTestImages = preexistingTestImages.size();
-    // Make a list of just the image IDs
-    final List<String> preexistingTestImageIds = imagesToShortIds(preexistingTestImages);
-
     // Create test images
     final String barDir = (new File(dockerDirectory, "barDir")).toString();
     final String barName = randomName();
@@ -2237,21 +2230,8 @@ public class DefaultDockerClientTest {
             ListImagesParam.withLabel("name"));
     final List<String> nameIds = imagesToShortIds(nameImages);
 
-    // Find how many of the newly created images already existed.
-    // Building the same Dockerfile multiple times results in one image locally with the same ID.
-    // So subtract this number from the expected number of image IDs below.
-    // Otherwise, running this test multiple times fails because it'll expect two more IDs.
-    int numOverlappingTestImageIds = 0;
-    for (final String nameId : nameIds) {
-      for (final String preNameId : preexistingTestImageIds) {
-        if (preNameId.contains(nameId)) {
-          numOverlappingTestImageIds++;
-        }
-      }
-    }
-
-    assertThat(nameIds.size(), equalTo(2 + numPreexistingTestImages - numOverlappingTestImageIds));
-    assertThat(nameIds, containsInAnyOrder(barId, bazId));
+    assertTrue(nameIds.contains(barId));
+    assertTrue(nameIds.contains(bazId));
 
     // Check that the first image is listed when we filter with a "foo=bar" label
     final List<Image> barImages = sut.listImages(
