@@ -146,8 +146,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -2220,6 +2220,8 @@ public class DefaultDockerClientTest {
     final List<Image> preexistingTestImages = sut.listImages(
             ListImagesParam.withLabel("name", "testtesttest"));
     final int numPreexistingTestImages = preexistingTestImages.size();
+    // Make a list of just the image IDs
+    final List<String> preexistingTestImageIds = imagesToShortIds(preexistingTestImages);
 
     // Create test images
     final String barDir = (new File(dockerDirectory, "barDir")).toString();
@@ -2234,7 +2236,21 @@ public class DefaultDockerClientTest {
     final List<Image> nameImages = sut.listImages(
             ListImagesParam.withLabel("name"));
     final List<String> nameIds = imagesToShortIds(nameImages);
-    assertThat(nameIds.size(), equalTo(2 + numPreexistingTestImages));
+
+    // Find how many of the newly created images already existed.
+    // Building the same Dockerfile multiple times results in one image locally with the same ID.
+    // So subtract this number from the expected number of image IDs below.
+    // Otherwise, running this test multiple times fails because it'll expect two more IDs.
+    int numOverlappingTestImageIds = 0;
+    for (final String nameId : nameIds) {
+      for (final String preNameId : preexistingTestImageIds) {
+        if (preNameId.contains(nameId)) {
+          numOverlappingTestImageIds++;
+        }
+      }
+    }
+
+    assertThat(nameIds.size(), equalTo(2 + numPreexistingTestImages - numOverlappingTestImageIds));
     assertThat(nameIds, containsInAnyOrder(barId, bazId));
 
     // Check that the first image is listed when we filter with a "foo=bar" label
