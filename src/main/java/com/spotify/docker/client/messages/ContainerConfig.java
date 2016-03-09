@@ -340,11 +340,6 @@ public class ContainerConfig {
     private String hostname;
     private String domainname;
     private String user;
-    private Long memory;
-    private Long memorySwap;
-    private Long cpuShares;
-    private String cpuset;
-    private Long cpuQuota;
     private Boolean attachStdin;
     private Boolean attachStdout;
     private Boolean attachStderr;
@@ -420,51 +415,6 @@ public class ContainerConfig {
 
     public String user() {
       return user;
-    }
-
-    public Builder memory(final Long memory) {
-      this.memory = memory;
-      return this;
-    }
-
-    public Long memory() {
-      return memory;
-    }
-
-    public Builder memorySwap(final Long memorySwap) {
-      this.memorySwap = memorySwap;
-      return this;
-    }
-
-    public Long memorySwap() {
-      return memorySwap;
-    }
-
-    public Builder cpuShares(final Long cpuShares) {
-      this.cpuShares = cpuShares;
-      return this;
-    }
-
-    public Long cpuShares() {
-      return cpuShares;
-    }
-
-    public Builder cpuset(final String cpuset) {
-      this.cpuset = cpuset;
-      return this;
-    }
-
-    public String cpuset() {
-      return cpuset;
-    }
-
-    public Builder cpuQuota(final Long cpuQuota) {
-      this.cpuQuota = cpuQuota;
-      return this;
-    }
-
-    public Long cpuQuota() {
-      return cpuQuota;
     }
 
     public Builder attachStdin(final Boolean attachStdin) {
