@@ -654,8 +654,8 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker container.
    *
-   * @param containerId The id of the container to remove.
-   * @throws DockerException      if a server error occurred (500)
+   * @param  containerId          The id of the container to remove.
+   * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   void removeContainer(String containerId) throws DockerException, InterruptedException;
@@ -663,13 +663,106 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker container.
    *
-   * @param containerId   The id of the container to remove.
-   * @param removeVolumes Whether to remove volumes as well.
-   * @throws DockerException      if a server error occurred (500)
+   * @param  containerId          The id of the container to remove.
+   * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
+  void removeContainer(String containerId, RemoveContainerParam... params)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Remove a docker container.
+   *
+   * @param containerId           The id of the container to remove.
+   * @param removeVolumes         Whether to remove volumes as well.
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @deprecated Use {@link #removeContainer(String, RemoveContainerParam.removeVolumes)}
+   */
+  @Deprecated
   void removeContainer(String containerId, boolean removeVolumes)
       throws DockerException, InterruptedException;
+
+  /**
+   * Parameters for {@link #removeContainer(String)}
+   */
+  class RemoveContainerParam {
+
+    private final String name;
+    private final String value;
+
+    public RemoveContainerParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     *
+     * @return name of parameter
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Create a custom parameter.
+     *
+     * @param name custom name
+     * @param value custom value
+     * @return BuildParam
+     */
+
+    public static RemoveContainerParam create(final String name, final String value) {
+      return new RemoveContainerParam(name, value);
+    }
+    /**
+     * Remove the volumes associated to the container. If not specified, defaults to false.
+     *
+     * @return RemoveContainerParam
+     */
+    public static RemoveContainerParam removeVolumes() {
+      return removeVolumes(true);
+    }
+
+    /**
+     * Remove the volumes associated to the container. If not specified, defaults to false.
+     *
+     * @param remove Whether to remove volumes
+     * @return RemoveContainerParam
+     */
+    public static RemoveContainerParam removeVolumes(final boolean remove) {
+      return create("v", remove ? "1" : "0");
+    }
+
+    /**
+     * Kill then remove the container. If not specified, defaults to false.
+     *
+     * @return RemoveContainerParam
+     */
+    public static RemoveContainerParam forceKill() {
+      return forceKill(true);
+    }
+
+    /**
+     * Kill then remove the container. If not specified, defaults to false.
+     *
+     * @param force Whether to force kill before removing.
+     * @return RemoveContainerParam
+     */
+    public static RemoveContainerParam forceKill(final boolean force) {
+      return create("force", force ? "1" : "0");
+    }
+  }
 
   /**
    * Export a docker container as a tar archive.
