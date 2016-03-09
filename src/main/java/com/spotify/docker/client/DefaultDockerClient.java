@@ -609,18 +609,27 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void removeContainer(final String containerId)
       throws DockerException, InterruptedException {
-    removeContainer(containerId, false);
+    removeContainer(containerId, new RemoveContainerParam[0]);
   }
 
+  @Deprecated
   @Override
   public void removeContainer(final String containerId, final boolean removeVolumes)
       throws DockerException, InterruptedException {
+    removeContainer(containerId, RemoveContainerParam.removeVolumes(removeVolumes));
+  }
+
+  @Override
+  public void removeContainer(final String containerId, final RemoveContainerParam... params)
+      throws DockerException, InterruptedException {
     try {
-      final WebTarget resource = resource()
-          .path("containers").path(containerId);
-      request(DELETE, resource, resource
-          .queryParam("v", String.valueOf(removeVolumes))
-          .request(APPLICATION_JSON_TYPE));
+      WebTarget resource = resource().path("containers").path(containerId);
+
+      for (final RemoveContainerParam param : params) {
+        resource = resource.queryParam(param.name(), param.value());
+      }
+
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
