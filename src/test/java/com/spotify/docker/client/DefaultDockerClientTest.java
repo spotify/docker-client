@@ -2517,7 +2517,7 @@ public class DefaultDockerClientTest {
     }
 
     // Rename a non-existent id. Should get ContainerNotFoundException.
-    final String badId = "0";
+    final String badId = "no_container_with_this_id_should_exist_otherwise_things_are_weird";
     try {
       sut.renameContainer(badId, randomName());
       fail("There should be no container with id " + badId);
