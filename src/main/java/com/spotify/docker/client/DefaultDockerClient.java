@@ -248,8 +248,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Open unit tests only
+   *
+   * @param builder A {@link DefaultDockerClient.Builder}
+   * @param rsClientBuilderWrapper {@link RSClientBuilderWrapper}
    */
-  /*package*/
   DefaultDockerClient(final Builder builder, RSClientBuilderWrapper rsClientBuilderWrapper) {
     URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
@@ -410,7 +412,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    *
    * @param filters A map of filters.
    * @return String
-   * @throws DockerException
+   * @throws DockerException if there's an IOException
    */
   private String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
     final StringWriter writer = new StringWriter();

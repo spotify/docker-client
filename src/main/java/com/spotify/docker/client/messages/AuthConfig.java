@@ -177,7 +177,7 @@ public class AuthConfig {
    * @param configPath The path to the config file
    * @param serverAddress A string representing the server address
    * @return a {@link Builder}
-   * @throws IOException
+   * @throws IOException If an IOException occurred
    */
   @VisibleForTesting
   static Builder fromDockerConfig(final Path configPath, final String serverAddress)

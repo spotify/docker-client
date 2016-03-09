@@ -664,6 +664,7 @@ public interface DockerClient extends Closeable {
    * Remove a docker container.
    *
    * @param  containerId          The id of the container to remove.
+   * @param  params               {@link RemoveContainerParam}
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -677,7 +678,7 @@ public interface DockerClient extends Closeable {
    * @param removeVolumes         Whether to remove volumes as well.
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @deprecated Use {@link #removeContainer(String, RemoveContainerParam.removeVolumes)}
+   * @deprecated Use {@link #removeContainer(String, RemoveContainerParam...)}
    */
   @Deprecated
   void removeContainer(String containerId, boolean removeVolumes)
@@ -799,8 +800,9 @@ public interface DockerClient extends Closeable {
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
    * @param path        The path inside of the container to put files.
-   * @throws DockerException      if a server error occurred (500)
+   * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
+   * @throws IOException          If IOException
    */
   void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException;
@@ -822,6 +824,8 @@ public interface DockerClient extends Closeable {
    *
    * @param params The parameters to apply to the events request
    * @return An event stream
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
    */
   EventStream events(EventsParam... params)
           throws DockerException, InterruptedException;
@@ -1626,6 +1630,8 @@ public interface DockerClient extends Closeable {
 
     /**
      * Parameter name.
+     *
+     * @return The name
      */
     public String name() {
       return name;
@@ -1633,6 +1639,8 @@ public interface DockerClient extends Closeable {
 
     /**
      * Parameter value.
+     *
+     * @return The value
      */
     public String value() {
       return value;
@@ -1640,6 +1648,9 @@ public interface DockerClient extends Closeable {
 
     /**
      * Filter events until the given timestamp
+     *
+     * @param until Return events up until this Unix timestamp.
+     * @return {@link EventsParam}
      */
     public static EventsParam until(Long until) {
       return new EventsParam("until", String.valueOf(until));
@@ -1647,6 +1658,9 @@ public interface DockerClient extends Closeable {
 
     /**
      * Filter events since the given timestamp
+     *
+     * @param since Return events since this Unix timestamp.
+     * @return {@link EventsParam}
      */
     public static EventsParam since(Long since) {
       return new EventsParam("since", String.valueOf(since));
@@ -1654,6 +1668,10 @@ public interface DockerClient extends Closeable {
 
     /**
      * Apply filters to the returned events
+     *
+     * @param name Name
+     * @param value Value
+     * @return {@link EventsParam}
      */
     public static EventsParam filter(String name, String value) {
       return new EventsFilterParam(name, value);
