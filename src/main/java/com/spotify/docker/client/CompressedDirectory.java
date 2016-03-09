@@ -393,8 +393,8 @@ class CompressedDirectory implements Closeable {
      * @return <code>true</code> if the given {@code path} starts with the pattern or matches the
      *         pattern
      * 
-     * @see {@link Path#startsWith(String)}
-     * @see {@link Matcher#matches(String)}
+     * @see Path#startsWith(String)
+     * @see PathMatcher#matches(Path)
      */
     @Override
     public boolean matches(Path path) {
