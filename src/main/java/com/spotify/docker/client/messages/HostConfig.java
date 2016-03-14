@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -536,6 +537,9 @@ public class HostConfig {
 
     public Builder binds(final List<String> binds) {
       if (binds != null && !binds.isEmpty()) {
+        if (this.binds != null) {
+          binds.addAll(0, this.binds);
+        }
         this.binds = ImmutableList.copyOf(binds);
       }
 
@@ -544,10 +548,22 @@ public class HostConfig {
 
     public Builder binds(final String... binds) {
       if (binds != null && binds.length > 0) {
-        this.binds = ImmutableList.copyOf(binds);
+        return binds(Lists.newArrayList(binds));
       }
 
       return this;
+    }
+
+    public Builder binds(final Bind... binds) {
+      if (binds == null || binds.length == 0) {
+        return this;
+      }
+
+      final List<String> bindStrings = Lists.newArrayList();
+      for (final Bind bind : binds) {
+        bindStrings.add(bind.toString());
+      }
+      return binds(bindStrings);
     }
 
     public List<String> binds() {
@@ -863,6 +879,111 @@ public class HostConfig {
 
     public HostConfig build() {
       return new HostConfig(this);
+    }
+  }
+
+  public static class Bind {
+    private String to;
+    private String from;
+    private Boolean readOnly;
+
+    private Bind(final Builder builder) {
+      this.to = builder.to;
+      this.from = builder.from;
+      this.readOnly = builder.readOnly;
+    }
+
+    public static BuilderTo to(final String to) {
+      return new BuilderTo(to);
+    }
+
+    public static BuilderFrom from(final String from) {
+      return new BuilderFrom(from);
+    }
+
+    public String toString() {
+      if (to == null || to.equals("")) {
+        return "";
+      } else if (from == null || from.equals("")) {
+        return to;
+      } else if (readOnly == null || !readOnly) {
+        return from + ":" + to;
+      } else {
+        return from + ":" + to + ":ro";
+      }
+    }
+
+    public static class BuilderTo {
+      private String to;
+
+      public BuilderTo(final String to) {
+        this.to = to;
+      }
+
+      public Builder from(final String from) {
+        return new Builder(this, from);
+      }
+    }
+
+    public static class BuilderFrom {
+      private String from;
+
+      public BuilderFrom(final String from) {
+        this.from = from;
+      }
+
+      public Bind.Builder to(final String to) {
+        return new Builder(this, to);
+      }
+    }
+
+    public static class Builder {
+      private String to;
+      private String from;
+      private Boolean readOnly = false;
+
+      private Builder() {}
+
+      private Builder(final BuilderTo toBuilder, final String from) {
+        this.to = toBuilder.to;
+        this.from = from;
+      }
+
+      private Builder(final BuilderFrom fromBuilder, final String to) {
+        this.to = to;
+        this.from = fromBuilder.from;
+      }
+
+      public Builder to(final String to) {
+        this.to = to;
+        return this;
+      }
+
+      public String to() {
+        return to;
+      }
+
+      public Builder from(final String from) {
+        this.from = from;
+        return this;
+      }
+
+      public String from() {
+        return from;
+      }
+
+      public Builder readOnly(final Boolean readOnly) {
+        this.readOnly = readOnly;
+        return this;
+      }
+
+      public Boolean readOnly() {
+        return readOnly;
+      }
+
+      public Bind build() {
+        return new Bind(this);
+      }
     }
   }
 }

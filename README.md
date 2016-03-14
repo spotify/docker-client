@@ -75,6 +75,41 @@ docker.removeContainer(id);
 docker.close();
 ```
 
+### Mounting volumes in a container
+To mount a host directory into a container, create the container with a `HostConfig`.
+You can set the local path and remote path in the `binds()` method on the `HostConfig.Builder`.
+There are two ways to make a bind:
+1. Pass `binds()` a set of strings of the form `"local_path:container_path"`.
+2. Create a `Bind` object and pass it to `binds()`.
+
+If you only need to create a volume in a container, and you don't need it to mount any
+particular directory on the host, you can use the `volumes()` method on the 
+`ContainerConfig.Builder`.
+
+#### Example:
+```java
+final HostConfig hostConfig = 
+  HostConfig.builder()
+    .binds("/local/path:/remote/path")
+    .binds(Bind.from("/another/local/path")
+               .to("/another/remote/path")
+               .readOnly(true)
+               .build())
+    .build();
+final ContainerConfig volumeConfig = 
+  ContainerConfig.builder()
+    .image(BUSYBOX_LATEST)
+    .volumes("/foo")   // This volume will not mount any host directory
+    .hostConfig(hostConfig)
+    .build();
+```
+
+#### Note on Mounts
+Be aware that, starting with API version 1.20 (docker version 1.8.x), information 
+about a container's volumes is returned with the key `"Mounts"`, not `"Volumes"`.  
+As such, the `ContainerInfo.volumes()` method is deprecated. Instead, use
+`ContainerInfo.mounts()`.
+
 ### Configuration
 
 Both `DefaultDockerClient.builder()` and `DefaultDockerClient.fromEnv()` return a

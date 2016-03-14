@@ -18,6 +18,8 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -31,22 +33,22 @@ public class ContainerMount {
   @JsonProperty("Source") private String source;
   @JsonProperty("Destination") private String destination;
   @JsonProperty("Mode") private String mode;
-  @JsonProperty("RW") private Boolean rwInfo;
+  @JsonProperty("RW") private Boolean rw;
 
-  public String getSource() {
+  public String source() {
     return source;
   }
 
-  public String getDestination() {
+  public String destination() {
     return destination;
   }
 
-  public String getMode() {
+  public String mode() {
     return mode;
   }
 
-  public Boolean getRwInfo() {
-    return rwInfo;
+  public Boolean rw() {
+    return rw;
   }
 
   @Override
@@ -60,29 +62,15 @@ public class ContainerMount {
 
     final ContainerMount that = (ContainerMount) o;
 
-    if (source != null ? !source.equals(that.source) : that.source != null) {
-      return false;
-    }
-    if (destination != null ? !destination.equals(that.destination) : that.destination != null) {
-      return false;
-    }
-    if (mode != null ? !mode.equals(that.mode) : that.mode != null) {
-      return false;
-    }
-    if (rwInfo != null ? !rwInfo.equals(that.rwInfo) : that.rwInfo != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equal(this.source, that.source) &&
+        Objects.equal(this.destination, that.destination) &&
+        Objects.equal(this.mode, that.mode) &&
+        Objects.equal(this.rw, that.rw);
   }
 
   @Override
   public int hashCode() {
-    int result = source != null ? source.hashCode() : 0;
-    result = 31 * result + (destination != null ? destination.hashCode() : 0);
-    result = 31 * result + (mode != null ? mode.hashCode() : 0);
-    result = 31 * result + (rwInfo != null ? rwInfo.hashCode() : 0);
-    return result;
+    return java.util.Objects.hash(source, destination, mode, rw);
   }
 
   @Override
@@ -91,7 +79,7 @@ public class ContainerMount {
         .add("source", source)
         .add("destination", destination)
         .add("mode", mode)
-        .add("rw", rwInfo)
+        .add("rw", rw)
         .toString();
   }
 }

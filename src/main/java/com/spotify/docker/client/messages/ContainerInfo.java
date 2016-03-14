@@ -58,7 +58,7 @@ public class ContainerInfo {
   @JsonProperty("ExecIDs") private ImmutableList<String> execId;
   @JsonProperty("LogPath") private String logPath;
   @JsonProperty("RestartCount") private Long restartCount;
-  @JsonProperty("Mounts") private ImmutableList<ContainerMount> mountsList;
+  @JsonProperty("Mounts") private ImmutableList<ContainerMount> mounts;
   
   /**
    * This field is an extension defined by the Docker Swarm API, therefore it will only be populated
@@ -134,10 +134,22 @@ public class ContainerInfo {
     return mountLabel;
   }
 
+  /**
+   * Volumes returned by execInspect
+   *
+   * @deprecated Replaced by {@link #mounts()} in API 1.20.
+   */
+  @Deprecated
   public Map<String, String> volumes() {
     return volumes;
   }
 
+  /**
+   * Volumes returned by execInspect
+   *
+   * @deprecated Replaced by {@link #mounts()} in API 1.20.
+   */
+  @Deprecated
   public Map<String, Boolean> volumesRW() {
     return volumesRW;
   }
@@ -235,7 +247,7 @@ public class ContainerInfo {
         that.restartCount != null) {
       return false;
     }
-    if (mountsList != null ? !mountsList.equals(that.mountsList) : that.mountsList != null) {
+    if (mounts != null ? !mounts.equals(that.mounts) : that.mounts != null) {
       return false;
     }
 
@@ -268,7 +280,7 @@ public class ContainerInfo {
     result = 31 * result + (execId != null ? execId.hashCode() : 0);
     result = 31 * result + (logPath != null ? logPath.hashCode() : 0);
     result = 31 * result + (restartCount != null ? restartCount.hashCode() : 0);
-    result = 31 * result + (mountsList != null ? mountsList.hashCode() : 0);
+    result = 31 * result + (mounts != null ? mounts.hashCode() : 0);
     return result;
   }
 
@@ -299,7 +311,7 @@ public class ContainerInfo {
         .add("execIDs", execId)
         .add("logPath", logPath)
         .add("restartCount", restartCount)
-        .add("mounts", mountsList)
+        .add("mounts", mounts)
         .toString();
   }
 
@@ -378,6 +390,6 @@ public class ContainerInfo {
   }
 
   public List<ContainerMount> mounts() {
-    return mountsList;
+    return mounts;
   }
 }
