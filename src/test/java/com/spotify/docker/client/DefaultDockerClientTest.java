@@ -1442,7 +1442,9 @@ public class DefaultDockerClientTest {
     assertThat(imagesByName.size(), greaterThan(0));
     Set<String> repoTags = Sets.newHashSet();
     for (final Image imageByName: imagesByName) {
-      repoTags.addAll(imageByName.repoTags());
+      if (imageByName.repoTags() != null) {
+        repoTags.addAll(imageByName.repoTags());
+      }
     }
     assertThat(BUSYBOX_LATEST, isIn(repoTags));
   }
