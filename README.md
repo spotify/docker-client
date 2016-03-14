@@ -23,7 +23,7 @@ AuthConfig authConfig = AuthConfig.builder().email("foo@bar.com").username("foob
 docker.pull("foobar/busybox-private:latest", authConfig);
 
 // You can also set the AuthConfig for the DockerClient instead of passing everytime you call pull()
-DockerClient docker = DefaultDockerClient.authConfig(authConfig).build();
+DockerClient docker = DefaultDockerClient.fromEnv().authConfig(authConfig).build();
 
 // Bind container ports to host ports
 final String[] ports = {"80", "22"};
@@ -36,7 +36,7 @@ for (String port : ports) {
 
 // Bind container port 443 to an automatically allocated available host port.
 List<PortBinding> randomPort = new ArrayList<PortBinding>();
-randomPort.add(PortBinding.random("0.0.0.0"));
+randomPort.add(PortBinding.randomPort("0.0.0.0"));
 portBindings.put("443", randomPort);
 
 final HostConfig hostConfig = HostConfig.builder().portBindings(portBindings).build();
