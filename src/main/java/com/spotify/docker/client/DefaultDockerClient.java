@@ -387,13 +387,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         filterValueList.add(param.value());
         filters.put(param.name(), filterValueList);
       } else {
-        try {
-          final String encodedName = URLEncoder.encode(param.name(), UTF_8.name());
-          final String encodedValue = URLEncoder.encode(param.value(), UTF_8.name());
-          resource = resource.queryParam(encodedName, encodedValue);
-        } catch (UnsupportedEncodingException e) {
-          throw new DockerException(e);
-        }
+        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
       }
     }
 
@@ -405,6 +399,20 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
+  /**
+   * URL-encodes a string
+   *
+   * @param unencoded A string that may contain characters not allowed in URLs
+   * @return URL-encoded String
+   * @throws DockerException if there's an UnsupportedEncodingException
+   */
+  private String urlEncode(final String unencoded) throws DockerException {
+    try {
+      return URLEncoder.encode(unencoded, UTF_8.name());
+    } catch (UnsupportedEncodingException e) {
+      throw new DockerException(e);
+    }
+  }
 
   /**
    * Takes a map of filters and URL-encodes them. If the map is empty or an exception occurs,
@@ -415,13 +423,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @throws DockerException if there's an IOException
    */
   private String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
-    final StringWriter writer = new StringWriter();
-    try (final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer)) {
-      if (!filters.isEmpty()) {
-        generator.writeObject(filters);
-        generator.close();
-        // We must URL encode the string, otherwise Jersey chokes on the double-quotes in the json.
-        return URLEncoder.encode(writer.toString(), UTF_8.name());
+    try {
+      final String unencodedFilters = objectMapper().writeValueAsString(filters);
+      if (!unencodedFilters.isEmpty()) {
+        return urlEncode(unencodedFilters);
       }
     } catch (IOException e) {
       throw new DockerException(e);
@@ -447,13 +452,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         filterValueList.add(param.value());
         filters.put(param.name(), filterValueList);
       } else {
-        try {
-          final String encodedName = URLEncoder.encode(param.name(), UTF_8.name());
-          final String encodedValue = URLEncoder.encode(param.value(), UTF_8.name());
-          resource = resource.queryParam(encodedName, encodedValue);
-        } catch (UnsupportedEncodingException e) {
-          throw new DockerException(e);
-        }
+        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
       }
     }
 
