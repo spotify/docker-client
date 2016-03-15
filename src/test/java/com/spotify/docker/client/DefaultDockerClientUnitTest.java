@@ -17,13 +17,17 @@
 
 package com.spotify.docker.client;
 
-import com.spotify.docker.client.messages.Info;
-
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
+
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Info;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,12 +43,16 @@ import java.util.concurrent.Future;
 import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Variant;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
@@ -175,5 +183,43 @@ public class DefaultDockerClientUnitTest {
       Assert.assertEquals(entry.getValue(), valueCaptor.getAllValues().get(i));
       ++i;
     }
+  }
+
+  @Test
+  public void testCapAddAndDrop() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(
+        builder, clientBuilderSupplier);
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .capAdd(ImmutableList.of("foo", "bar"))
+        .capAdd(ImmutableList.of("baz", "qux"))
+        .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    //noinspection unchecked
+    when(asyncInvoker.method(
+        anyString(), any(Entity.class), any(Class.class)))
+        .thenReturn(Futures.immediateFuture(new ContainerCreation()));
+
+    dockerClient.createContainer(containerConfig);
+
+    final ArgumentCaptor<String> methodArg = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<Entity> entityArg = ArgumentCaptor.forClass(Entity.class);
+    final ArgumentCaptor<Class> classArg = ArgumentCaptor.forClass(Class.class);
+
+    //noinspection unchecked
+    verify(asyncInvoker, times(1)).method(
+        methodArg.capture(), entityArg.capture(), classArg.capture());
+
+    final Entity expectedEntity = Entity.entity(
+        containerConfig, new Variant(MediaType.valueOf(APPLICATION_JSON), (String) null, null));
+
+    // Check that we've called the right method on the underlying AsyncInvoker with the right params
+    assertThat(methodArg.getValue(), equalTo("POST"));
+    assertThat(entityArg.getValue(), equalTo(expectedEntity));
+    assertThat(classArg.getValue(), instanceOf(Class.class));
   }
 }

@@ -45,6 +45,8 @@ public class HostConfig {
   @JsonProperty("DnsSearch") private ImmutableList<String> dnsSearch;
   @JsonProperty("ExtraHosts") private ImmutableList<String> extraHosts;
   @JsonProperty("VolumesFrom") private ImmutableList<String> volumesFrom;
+  @JsonProperty("CapAdd") private ImmutableList<String> capAdd;
+  @JsonProperty("CapDrop") private ImmutableList<String> capDrop;
   @JsonProperty("NetworkMode") private String networkMode;
   @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
   @JsonProperty("Memory") private Long memory;
@@ -71,6 +73,8 @@ public class HostConfig {
     this.dnsSearch = builder.dnsSearch;
     this.extraHosts = builder.extraHosts;
     this.volumesFrom = builder.volumesFrom;
+    this.capAdd = builder.capAdd;
+    this.capDrop = builder.capDrop;
     this.networkMode = builder.networkMode;
     this.securityOpt = builder.securityOpt;
     this.memory = builder.memory;
@@ -125,6 +129,14 @@ public class HostConfig {
 
   public List<String> volumesFrom() {
     return volumesFrom;
+  }
+
+  public List<String> capAdd() {
+    return capAdd;
+  }
+
+  public List<String> capDrop() {
+    return capDrop;
   }
 
   public String networkMode() {
@@ -217,6 +229,12 @@ public class HostConfig {
     if (volumesFrom != null ? !volumesFrom.equals(that.volumesFrom) : that.volumesFrom != null) {
       return false;
     }
+    if (capAdd != null ? !capAdd.equals(that.capAdd) : that.capAdd != null) {
+      return false;
+    }
+    if (capDrop != null ? !capDrop.equals(that.capDrop) : that.capDrop != null) {
+      return false;
+    }
     if (securityOpt != null ? !securityOpt.equals(that.securityOpt) : that.securityOpt != null) {
       return false;
     }
@@ -271,6 +289,8 @@ public class HostConfig {
     result = 31 * result + (dnsSearch != null ? dnsSearch.hashCode() : 0);
     result = 31 * result + (extraHosts != null ? extraHosts.hashCode() : 0);
     result = 31 * result + (volumesFrom != null ? volumesFrom.hashCode() : 0);
+    result = 31 * result + (capAdd != null ? capAdd.hashCode() : 0);
+    result = 31 * result + (capDrop != null ? capDrop.hashCode() : 0);
     result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
     result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
     result = 31 * result + (memory != null ? memory.hashCode() : 0);
@@ -298,6 +318,8 @@ public class HostConfig {
         .add("dnsSearch", dnsSearch)
         .add("extraHosts", extraHosts)
         .add("volumesFrom", volumesFrom)
+        .add("capAdd", capAdd)
+        .add("capDrop", capDrop)
         .add("networkMode", networkMode)
         .add("securityOpt", securityOpt)
         .add("memory", memory)
@@ -455,6 +477,8 @@ public class HostConfig {
     private ImmutableList<String> dnsSearch;
     private ImmutableList<String> extraHosts;
     private ImmutableList<String> volumesFrom;
+    private ImmutableList<String> capAdd;
+    private ImmutableList<String> capDrop;
     private String networkMode;
     private ImmutableList<String> securityOpt;
     public Long memory;
@@ -481,6 +505,8 @@ public class HostConfig {
       this.dnsSearch = hostConfig.dnsSearch;
       this.extraHosts = hostConfig.extraHosts;
       this.volumesFrom = hostConfig.volumesFrom;
+      this.capAdd = hostConfig.capAdd;
+      this.capDrop = hostConfig.capDrop;
       this.networkMode = hostConfig.networkMode;
       this.securityOpt = hostConfig.securityOpt;
       this.memory = hostConfig.memory;
@@ -668,6 +694,46 @@ public class HostConfig {
 
     public List<String> volumesFrom() {
       return volumesFrom;
+    }
+
+    public Builder capAdd(final List<String> capAdd) {
+      if (capAdd != null && !capAdd.isEmpty()) {
+        this.capAdd = ImmutableList.copyOf(capAdd);
+      }
+
+      return this;
+    }
+
+    public Builder capAdd(final String... capAdd) {
+      if (capAdd != null && capAdd.length > 0) {
+        this.capAdd = ImmutableList.copyOf(capAdd);
+      }
+
+      return this;
+    }
+
+    public List<String> capAdd() {
+      return capAdd;
+    }
+
+    public Builder capDrop(final List<String> capDrop) {
+      if (capDrop != null && !capDrop.isEmpty()) {
+        this.capDrop = ImmutableList.copyOf(capDrop);
+      }
+
+      return this;
+    }
+
+    public Builder capDrop(final String... capDrop) {
+      if (capDrop != null && capDrop.length > 0) {
+        this.capDrop = ImmutableList.copyOf(capDrop);
+      }
+
+      return this;
+    }
+
+    public List<String> capDrop() {
+      return capDrop;
     }
 
     public Builder networkMode(final String networkMode) {
