@@ -17,10 +17,11 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +83,7 @@ public class Ipam {
 
 
   public static class Builder {
+
     private String driver;
     private List<IpamConfig> configs = new ArrayList<IpamConfig>();
 

@@ -18,7 +18,9 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.io.Resources;
+
 import com.spotify.docker.client.OSUtils;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Rule;
 import org.junit.Test;

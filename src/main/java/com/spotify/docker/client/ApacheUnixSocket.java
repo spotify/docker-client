@@ -35,11 +35,11 @@ import jnr.unixsocket.UnixSocketAddress;
 import jnr.unixsocket.UnixSocketChannel;
 
 /**
- * Provides a socket that wraps an jnr.unixsocket.UnixSocketChannel and delays setting options
- * until the socket is connected. This is necessary because the Apache HTTP client attempts to
- * set options prior to connecting the socket, which doesn't work for Unix sockets since options
- * are being set on the underlying file descriptor. Until the socket is connected, the file
- * descriptor doesn't exist.
+ * Provides a socket that wraps an jnr.unixsocket.UnixSocketChannel and delays setting options until
+ * the socket is connected. This is necessary because the Apache HTTP client attempts to set options
+ * prior to connecting the socket, which doesn't work for Unix sockets since options are being set
+ * on the underlying file descriptor. Until the socket is connected, the file descriptor doesn't
+ * exist.
  *
  * This class also noop's any calls to setReuseAddress, which is called by the Apache client but
  * isn't supported by AFUnixSocket.
@@ -95,7 +95,7 @@ public class ApacheUnixSocket extends Socket {
   @Override
   public InetAddress getLocalAddress() {
     try {
-      return InetAddress.getByAddress(new byte [] {0, 0, 0, 0}); // not bound
+      return InetAddress.getByAddress(new byte[] {0, 0, 0, 0}); // not bound
     } catch (UnknownHostException e) {
       return null;
     }
@@ -263,11 +263,11 @@ public class ApacheUnixSocket extends Socket {
     if (lingerTime > 0) {
       boolean sleeping = true;
       while (sleeping) {
-         try {
-             wait(lingerTime * (long) 1000);
-         } catch (InterruptedException e) {
-         }
-         sleeping = false;
+        try {
+          wait(lingerTime * (long) 1000);
+        } catch (InterruptedException e) {
+        }
+        sleeping = false;
       }
     }
     shutdownInput();
@@ -325,6 +325,7 @@ public class ApacheUnixSocket extends Socket {
   }
 
   interface SocketOptionSetter {
+
     void run() throws SocketException;
   }
 }

@@ -20,6 +20,7 @@ package com.spotify.docker.client.messages;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -48,12 +49,11 @@ public class Container {
    * This method returns port information the way that <code>docker ps</code> does:
    * <code>0.0.0.0:5432-&gt;5432/tcp</code> or <code>6379/tcp</code>
    *
-   * It should not be used to extract detailed information of ports. To do so,
-   * please refer to {@link com.spotify.docker.client.messages.PortBinding}
-   *
-   * @see com.spotify.docker.client.messages.PortBinding
+   * It should not be used to extract detailed information of ports. To do so, please refer to
+   * {@link com.spotify.docker.client.messages.PortBinding}
    *
    * @return port information as docker ps does.
+   * @see com.spotify.docker.client.messages.PortBinding
    */
   public String portsAsString() {
     final StringBuilder sb = new StringBuilder();
@@ -104,7 +104,7 @@ public class Container {
   public List<PortMapping> ports() {
     return ports;
   }
-  
+
   public Map<String, String> labels() {
     return labels;
   }
@@ -116,7 +116,7 @@ public class Container {
   public Long sizeRootFs() {
     return sizeRootFs;
   }
-  
+
   public String imageId() {
     return imageId;
   }

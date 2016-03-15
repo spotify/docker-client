@@ -25,8 +25,8 @@ import java.io.PrintStream;
 import java.util.Map;
 
 /**
- * Parses ProgressMessage objects and writes the output to a PrintStream. The output includes
- * ANSI escape characters to move the cursor around to nicely print progress bars.
+ * Parses ProgressMessage objects and writes the output to a PrintStream. The output includes ANSI
+ * escape characters to move the cursor around to nicely print progress bars.
  */
 public class AnsiProgressHandler implements ProgressHandler {
 
@@ -75,6 +75,7 @@ public class AnsiProgressHandler implements ProgressHandler {
    * Displays the upload/download status of multiple image layers the same way the docker CLI does.
    * The current status of each layer is show on its own line. As the status updated, we move the
    * cursor to the correct line, and overwrite the old status with the new one.
+   *
    * @param message the ProgressMessage to parse
    */
   private void printProgress(final ProgressMessage message) {

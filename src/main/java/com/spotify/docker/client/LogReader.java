@@ -18,6 +18,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.io.ByteStreams;
+
 import com.spotify.docker.client.LogMessage.Stream;
 
 import org.slf4j.Logger;

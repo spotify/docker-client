@@ -72,7 +72,7 @@ public class ContainerMount {
     if (rwInfo != null ? !rwInfo.equals(that.rwInfo) : that.rwInfo != null) {
       return false;
     }
-    
+
     return true;
   }
 

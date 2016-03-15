@@ -28,6 +28,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class CpuUsage {
+
   @JsonProperty("total_usage") private Long totalUsage;
   @JsonProperty("percpu_usage") private ImmutableList<Long> percpuUsage;
   @JsonProperty("usage_in_kernelmode") private Long usageInKernelmode;

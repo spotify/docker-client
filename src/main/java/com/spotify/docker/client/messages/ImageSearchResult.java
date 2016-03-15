@@ -27,7 +27,6 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 /**
  * @author xcoulon
- *
  */
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageSearchResult {
@@ -44,28 +43,28 @@ public class ImageSearchResult {
   public String getDescription() {
     return description;
   }
-  
+
   /**
    * @return the official
    */
   public boolean isOfficial() {
     return official;
   }
-  
+
   /**
    * @return the automated
    */
   public boolean isAutomated() {
     return automated;
   }
-  
+
   /**
    * @return the name
    */
   public String getName() {
     return name;
   }
-  
+
   /**
    * @return the starCount
    */
@@ -122,7 +121,7 @@ public class ImageSearchResult {
     }
     return true;
   }
-  
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -134,5 +133,5 @@ public class ImageSearchResult {
         .toString();
   }
 
-    
+
 }

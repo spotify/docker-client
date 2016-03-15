@@ -17,8 +17,14 @@
 
 package com.spotify.docker.client;
 
-import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
-import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -40,14 +46,8 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
 
 /**
  * This helper class is used during the docker build command to create a gzip tarball of a directory
@@ -78,6 +78,7 @@ class CompressedDirectory implements Closeable {
 
   /**
    * The file for the created compressed directory archive.
+   *
    * @return a Path object representing the compressed directory
    */
   public Path file() {
@@ -87,8 +88,8 @@ class CompressedDirectory implements Closeable {
   /**
    * This method creates a gzip tarball of the specified directory. File permissions will be
    * retained. The file will be created in a temporary directory using the {@link
-   * Files#createTempFile(String, String, java.nio.file.attribute.FileAttribute[])} method.
-   * The returned object is auto-closeable, and upon closing it, the archive file will be deleted.
+   * Files#createTempFile(String, String, java.nio.file.attribute.FileAttribute[])} method. The
+   * returned object is auto-closeable, and upon closing it, the archive file will be deleted.
    *
    * @param directory the directory to compress
    * @return a Path object representing the compressed directory
@@ -280,8 +281,9 @@ class CompressedDirectory implements Closeable {
 
     /**
      * Checks if any of the given {@link DockerIgnorePathMatcher} matches the given {@code path}
+     *
      * @param matchers the {@link DockerIgnorePathMatcher} to use
-     * @param path the path to match
+     * @param path     the path to match
      * @return <code>true</code> if the given path should be excluded, <code>false</code> otherwise
      */
     private static boolean exclude(ImmutableList<DockerIgnorePathMatcher> matchers, Path path) {
@@ -347,11 +349,11 @@ class CompressedDirectory implements Closeable {
     }
 
   }
-  
+
   /**
    * A decorator for the {@link PathMatcher} with a type to determine if it is an exclusion pattern
-   * or an exclude to an aforementioned exclusion. See
-   * https://docs.docker.com/engine/reference/builder/#dockerignore-file
+   * or an exclude to an aforementioned exclusion.
+   * See https://docs.docker.com/engine/reference/builder/#dockerignore-file
    */
   private static class DockerIgnorePathMatcher implements PathMatcher {
 
@@ -363,11 +365,11 @@ class CompressedDirectory implements Closeable {
 
     /**
      * Constructor.
-     * 
+     *
      * @param fileSystem the current {@link FileSystem}
-     * @param pattern the exclusion or inclusion pattern
-     * @param exclude flag to indicate if the given {@code pattern } is an exclusion (
-     *        <code>true</code>) or if it is an inclusion (<code>false</code>).
+     * @param pattern    the exclusion or inclusion pattern
+     * @param exclude    flag to indicate if the given {@code pattern } is an exclusion (
+     *                   <code>true</code>) or if it is an inclusion (<code>false</code>).
      */
     public DockerIgnorePathMatcher(final FileSystem fileSystem, final String pattern,
                                    final boolean exclude) {
@@ -382,7 +384,7 @@ class CompressedDirectory implements Closeable {
 
     /**
      * @return <code>true</code> if the given {@code pattern} is an exclusion, <code>false</code> if
-     *         it is an exclude to an exclusion.
+     * it is an exclude to an exclusion.
      */
     public boolean isExclude() {
       return this.exclude;
@@ -391,8 +393,7 @@ class CompressedDirectory implements Closeable {
     /**
      * @param path the path to match
      * @return <code>true</code> if the given {@code path} starts with the pattern or matches the
-     *         pattern
-     * 
+     * pattern
      * @see Path#startsWith(String)
      * @see PathMatcher#matches(Path)
      */

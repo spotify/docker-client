@@ -28,7 +28,9 @@ import static org.mockito.Mockito.times;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import com.spotify.docker.client.messages.Info;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +45,7 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
+
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -105,21 +108,21 @@ public class DefaultDockerClientUnitTest {
         .uri(DefaultDockerClient.DEFAULT_UNIX_ENDPOINT).build();
     assertThat(client.getHost(), equalTo("localhost"));
   }
-  
+
   @Test
   public void testHostForLocalHttps() {
     DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://localhost:2375").build();
     assertThat(client.getHost(), equalTo("localhost"));
   }
-  
+
   @Test
   public void testHostForFQDNHttps() {
     DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://perdu.com:2375").build();
     assertThat(client.getHost(), equalTo("perdu.com"));
   }
-  
+
   @Test
   public void testHostForIPHttps() {
     DefaultDockerClient client = DefaultDockerClient.builder()

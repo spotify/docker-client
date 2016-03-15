@@ -23,11 +23,13 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
+
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
 import com.spotify.docker.client.messages.Container;
@@ -47,6 +49,7 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -78,6 +81,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,14 +124,12 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
-   * Hack: this {@link ProgressHandler} is meant to capture the image ID of an
-   * image being loaded. Weirdly enough, Docker returns the ID of a newly created image
-   * in the status of a progress message.
-   * <p>
-   * The image ID is required to tag the just loaded image since, also weirdly enough,
-   * the pull operation with the <code>fromSrc</code> parameter does not support the 
-   * <code>tag</code> parameter. By retrieving the ID, the image can be tagged with its 
-   * image name, given its ID.
+   * Hack: this {@link ProgressHandler} is meant to capture the image ID of an image being loaded.
+   * Weirdly enough, Docker returns the ID of a newly created image in the status of a progress
+   * message. <p> The image ID is required to tag the just loaded image since, also weirdly enough,
+   * the pull operation with the <code>fromSrc</code> parameter does not support the
+   * <code>tag</code> parameter. By retrieving the ID, the image can be tagged with its image name,
+   * given its ID.
    */
   private static class LoadProgressHandler implements ProgressHandler {
 
@@ -181,19 +183,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile("/?[a-zA-Z0-9_-]+");
 
   private static final GenericType<List<Container>> CONTAINER_LIST =
-      new GenericType<List<Container>>() {};
+      new GenericType<List<Container>>() {
+      };
 
   private static final GenericType<List<Image>> IMAGE_LIST =
-      new GenericType<List<Image>>() {};
+      new GenericType<List<Image>>() {
+      };
 
   private static final GenericType<List<Network>> NETWORK_LIST =
-      new GenericType<List<Network>>() {};
+      new GenericType<List<Network>>() {
+      };
 
   private static final GenericType<List<ImageSearchResult>> IMAGES_SEARCH_RESULT_LIST =
-      new GenericType<List<ImageSearchResult>>() {};
+      new GenericType<List<ImageSearchResult>>() {
+      };
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
-      new GenericType<List<RemovedImage>>() {};
+      new GenericType<List<RemovedImage>>() {
+      };
 
   private final Client client;
   private final Client noTimeoutClient;
@@ -214,6 +221,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
+   *
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final String uri) {
@@ -222,6 +230,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
+   *
    * @param uri The docker rest api uri.
    */
   public DefaultDockerClient(final URI uri) {
@@ -230,7 +239,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new client with default configuration.
-   * @param uri The docker rest api uri.
+   *
+   * @param uri                The docker rest api uri.
    * @param dockerCertificates The certificates to use for HTTPS.
    */
   public DefaultDockerClient(final URI uri, final DockerCertificates dockerCertificates) {
@@ -249,7 +259,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   /**
    * Open unit tests only
    *
-   * @param builder A {@link DefaultDockerClient.Builder}
+   * @param builder                A {@link DefaultDockerClient.Builder}
    * @param rsClientBuilderWrapper {@link RSClientBuilderWrapper}
    */
   DefaultDockerClient(final Builder builder, RSClientBuilderWrapper rsClientBuilderWrapper) {
@@ -258,7 +268,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
       throw new IllegalArgumentException(
-              "An HTTPS URI for DOCKER_HOST must be provided to use Docker client certificates");
+          "An HTTPS URI for DOCKER_HOST must be provided to use Docker client certificates");
     }
 
     if (originalUri.getScheme().equals(UNIX_SCHEME)) {
@@ -271,15 +281,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final PoolingHttpClientConnectionManager noTimeoutCm = getConnectionManager(builder);
 
     final RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
-            .setConnectTimeout((int) builder.connectTimeoutMillis)
-            .setSocketTimeout((int) builder.readTimeoutMillis)
-            .build();
+        .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
+        .setConnectTimeout((int) builder.connectTimeoutMillis)
+        .setSocketTimeout((int) builder.readTimeoutMillis)
+        .build();
 
     final ClientConfig config = DEFAULT_CONFIG
-            .connectorProvider(new ApacheConnectorProvider())
-            .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
-            .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
+        .connectorProvider(new ApacheConnectorProvider())
+        .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
+        .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
     this.authConfig = builder.authConfig;
 
@@ -289,13 +299,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     // Workaround: instead create a client with infinite read timeout,
     // and use it for waitContainer, stopContainer, attachContainer, logs, and build
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
-            .setSocketTimeout((int) NO_TIMEOUT)
-            .build();
+        .setSocketTimeout((int) NO_TIMEOUT)
+        .build();
     this.noTimeoutClient = rsClientBuilderWrapper.newBuilder()
-            .withConfig(config)
-            .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
-            .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
-            .build();
+        .withConfig(config)
+        .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
+        .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
+        .build();
 
     this.headers = new HashMap<>(builder.headers());
   }
@@ -327,7 +337,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder
         .<ConnectionSocketFactory>create()
         .register("https", https)
-            .register("http", PlainConnectionSocketFactory.getSocketFactory());
+        .register("http", PlainConnectionSocketFactory.getSocketFactory());
 
     if (builder.uri.getScheme().equals(UNIX_SCHEME)) {
       registryBuilder.register(UNIX_SCHEME, new UnixConnectionSocketFactory(builder.uri));
@@ -415,8 +425,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   /**
-   * Takes a map of filters and URL-encodes them. If the map is empty or an exception occurs,
-   * return null.
+   * Takes a map of filters and URL-encodes them. If the map is empty or an exception occurs, return
+   * null.
    *
    * @param filters A map of filters.
    * @return String
@@ -574,7 +584,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = noTimeoutResource()
           .path("containers").path(containerId).path("stop")
-              .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
+          .queryParam("t", String.valueOf(secondsToWaitBeforeKilling));
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -676,7 +686,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("noOverwriteDirNonDir", true)
         .queryParam("path", path);
 
-
     CompressedDirectory compressedDirectory
         = CompressedDirectory.create(directory);
 
@@ -721,7 +730,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("commit")
         .queryParam("container", containerId)
         .queryParam("repo", repo)
-            .queryParam("comment", comment);
+        .queryParam("comment", comment);
 
     if (!isNullOrEmpty(author)) {
       resource = resource.queryParam("author", author);
@@ -751,16 +760,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void renameContainer(final String containerId, final String name)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     WebTarget resource = resource()
-            .path("containers").path(containerId).path("rename");
+        .path("containers").path(containerId).path("rename");
 
     if (name == null) {
       throw new IllegalArgumentException("Cannot rename container to null");
     }
 
     checkArgument(CONTAINER_NAME_PATTERN.matcher(name).matches(),
-            "Invalid container name: \"%s\"", name);
+                  "Invalid container name: \"%s\"", name);
     resource = resource.queryParam("name", name);
 
     log.info("Renaming container with id {}. New name {}.", containerId, name);
@@ -887,7 +896,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
              request(POST, ProgressStream.class, resource,
                      resource
                          .request(APPLICATION_JSON_TYPE)
-                                           .header("X-Registry-Auth", authHeader(authConfig)))) {
+                         .header("X-Registry-Auth", authHeader(authConfig)))) {
       pull.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -1063,7 +1072,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = resource().path("images").path(image)
           .queryParam("force", String.valueOf(force))
-              .queryParam("noprune", String.valueOf(noPrune));
+          .queryParam("noprune", String.valueOf(noPrune));
       return request(DELETE, REMOVED_IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -1093,7 +1102,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public EventStream events(EventsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
-            .path("events");
+        .path("events");
     final Map<String, String> filters = newHashMap();
     for (EventsParam param : params) {
       if (param instanceof EventsFilterParam) {
@@ -1136,7 +1145,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public LogStream attachContainer(final String containerId,
                                    final AttachParameter... params) throws DockerException,
-      InterruptedException {
+                                                                           InterruptedException {
     WebTarget resource = noTimeoutResource().path("containers").path(containerId).path("attach");
 
     for (final AttachParameter param : params) {
@@ -1166,7 +1175,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public String execCreate(final String containerId,
                            final String[] cmd,
                            final ExecCreateParam... params)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
     final StringWriter writer = new StringWriter();
@@ -1214,11 +1223,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
   }
-  
+
 
   @Override
   public LogStream execStart(final String execId, final ExecStartParameter... params)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("exec").path(execId).path("start");
 
     final StringWriter writer = new StringWriter();
@@ -1455,7 +1464,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
                                        message(response), cause);
     } else if ((cause instanceof SocketTimeoutException) ||
-        (cause instanceof ConnectTimeoutException)) {
+               (cause instanceof ConnectTimeoutException)) {
       throw new DockerTimeoutException(method, resource.getUri(), e);
     } else if ((cause instanceof InterruptedIOException)
                || (cause instanceof InterruptedException)) {
@@ -1522,6 +1531,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Create a new {@link DefaultDockerClient} builder.
+   *
    * @return Returns a builder that can be used to further customize and then build the client.
    */
   public static Builder builder() {
@@ -1529,8 +1539,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   /**
-   * Create a new {@link DefaultDockerClient} builder prepopulated with values loaded
-   * from the DOCKER_HOST and DOCKER_CERT_PATH environment variables.
+   * Create a new {@link DefaultDockerClient} builder prepopulated with values loaded from the
+   * DOCKER_HOST and DOCKER_CERT_PATH environment variables.
+   *
    * @return Returns a builder that can be used to further customize and then build the client.
    * @throws DockerCertificateException if we could not build a DockerCertificates object
    */
@@ -1627,8 +1638,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     /**
-     * Set the timeout in milliseconds until a connection to Docker is established.
-     * A timeout value of zero is interpreted as an infinite timeout.
+     * Set the timeout in milliseconds until a connection to Docker is established. A timeout value
+     * of zero is interpreted as an infinite timeout.
      *
      * @param connectTimeoutMillis connection timeout to Docker daemon in milliseconds
      * @return Builder
@@ -1643,8 +1654,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     /**
-     * Set the SO_TIMEOUT in milliseconds. This is the maximum period of inactivity
-     * between receiving two consecutive data packets from Docker.
+     * Set the SO_TIMEOUT in milliseconds. This is the maximum period of inactivity between
+     * receiving two consecutive data packets from Docker.
      *
      * @param readTimeoutMillis read timeout to Docker daemon in milliseconds
      * @return Builder
@@ -1674,10 +1685,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     /**
-     * Set the size of the connection pool for connections to Docker. Note that due to
-     * a known issue, DefaultDockerClient maintains two separate connection pools, each
-     * of which is capped at this size. Therefore, the maximum number of concurrent
-     * connections to Docker may be up to 2 * connectionPoolSize.
+     * Set the size of the connection pool for connections to Docker. Note that due to a known
+     * issue, DefaultDockerClient maintains two separate connection pools, each of which is capped
+     * at this size. Therefore, the maximum number of concurrent connections to Docker may be up to
+     * 2 * connectionPoolSize.
      *
      * @param connectionPoolSize connection pool size
      * @return Builder

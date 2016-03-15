@@ -38,10 +38,10 @@ public class ProgressResponseReader implements MessageBodyReader<ProgressStream>
 
   @Override
   public ProgressStream readFrom(final Class<ProgressStream> type, final Type genericType,
-                            final Annotation[] annotations,
-                            final MediaType mediaType,
-                            final MultivaluedMap<String, String> httpHeaders,
-                            final InputStream entityStream)
+                                 final Annotation[] annotations,
+                                 final MediaType mediaType,
+                                 final MultivaluedMap<String, String> httpHeaders,
+                                 final InputStream entityStream)
       throws IOException, WebApplicationException {
     return new ProgressStream(entityStream);
   }

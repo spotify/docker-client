@@ -32,8 +32,6 @@ public class ProgressMessage {
   private static final String STATUS_DIGEST_PREFIX_18 = "digest: ";
   private static final String STATUS_SIZE_PREFIX_18 = "size: ";
 
-
-
   @JsonProperty private String id;
   @JsonProperty private String status;
   @JsonProperty private String stream;
@@ -96,9 +94,10 @@ public class ProgressMessage {
   }
 
   /**
-   * Checks if the stream field contains a string a like "Successfully built 2d6e00052167", and
-   * if so, returns the image id. Otherwise null is returned. This string is expected when an image
-   * is built successfully.
+   * Checks if the stream field contains a string a like "Successfully built 2d6e00052167", and if
+   * so, returns the image id. Otherwise null is returned. This string is expected when an image is
+   * built successfully.
+   *
    * @return The image id if this is a build success message, otherwise null.
    */
   public String buildImageId() {

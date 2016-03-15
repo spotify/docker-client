@@ -27,6 +27,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class MemoryStats {
+
   @JsonProperty("max_usage") private Long maxUsage;
   @JsonProperty("usage") private Long usage;
   @JsonProperty("failcnt") private Long failcnt;

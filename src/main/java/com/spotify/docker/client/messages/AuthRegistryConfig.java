@@ -17,28 +17,25 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.google.common.base.MoreObjects;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
-  * A formatted string passed in X-Registry-Config request header.
-  * {"myrepository":{
-  *   "username":"myusername",
-  *   "password":"mypassword",
-  *   "auth":"",
-  *   "email":"myemail",
-  *   "serveraddress":"myserverAddress"}}
-*/
+ * A formatted string passed in X-Registry-Config request header. {"myrepository":{
+ * "username":"myusername", "password":"mypassword", "auth":"", "email":"myemail",
+ * "serveraddress":"myserverAddress"}}
+ */
 public class AuthRegistryConfig {
 
 
   private final Map<String, String> properties = new HashMap<String, String>();
 
   private final Map<String, Map<String, String>> configs =
-                             new HashMap<String, Map<String, String>>();
+      new HashMap<String, Map<String, String>>();
   private final String repository;
   private final String username;
   private final String password;
@@ -50,18 +47,19 @@ public class AuthRegistryConfig {
 
   /**
    * Wrapper to support X-Registry-Config header with auth.
+   *
    * @param repository    Repository name (uniquely identifies the config)
    * @param username      User name
    * @param password      Password for authentication
    * @param auth          Not used but must be supplied
    * @param email         EMAIL address of authenticated user
    * @param serverAddress The address of the repository
-  */
-  public AuthRegistryConfig(String repository, 
-                            String username, 
-                            String password, 
-                            String auth, 
-                            String email, 
+   */
+  public AuthRegistryConfig(String repository,
+                            String username,
+                            String password,
+                            String auth,
+                            String email,
                             String serverAddress) {
     this.repository = repository;
     this.username = username;
@@ -79,16 +77,17 @@ public class AuthRegistryConfig {
 
   /**
    * Wrapper to support X-Registry-Config header without auth.
+   *
    * @param repository    Repository name (uniquely identifies the config)
    * @param username      User name
    * @param password      Password for authentication
    * @param email         EMAIL address of authenticated user
    * @param serverAddress The address of the repository
-  */
-  public AuthRegistryConfig(String repository, 
-                            String username, 
-                            String password, 
-                            String email, 
+   */
+  public AuthRegistryConfig(String repository,
+                            String username,
+                            String password,
+                            String email,
                             String serverAddress) {
     this(repository, username, password, "", email, serverAddress);
   }
@@ -97,7 +96,7 @@ public class AuthRegistryConfig {
   public Map<String, Map<String, String>> getConfigs() {
     return configs;
   }
-  
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {

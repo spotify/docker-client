@@ -23,16 +23,16 @@ import java.text.ParseException;
 import java.util.Date;
 
 /**
- * Docker returns timestamps with nanosecond precision (e.g.
- * <tt>2014-10-17T21:22:56.949763914Z</tt>), but {@link Date} only supports milliseconds.
- * Creating a Date from the nanosecond timestamp results in the date being set to several
- * days after what date should be. This class converts the timestamp from nanoseconds to
- * milliseconds by removing the last six digits of the timestamp, so we can generate a Date
- * with the correct value (albeit with less precision).
+ * Docker returns timestamps with nanosecond precision
+ * (e.g. <tt>2014-10-17T21:22:56.949763914Z</tt>),
+ * but {@link Date} only supports milliseconds. Creating a Date from the nanosecond timestamp
+ * results in the date being set to several days after what date should be. This class converts the
+ * timestamp from nanoseconds to milliseconds by removing the last six digits of the timestamp, so
+ * we can generate a Date with the correct value (albeit with less precision).
  *
  * Note: a more complete solution would be to introduce a custom date type which can store the
- * nanosecond value in an additional field, so users can access the complete value. Or just use
- * Java 8 which has date objects with nanosecond support.
+ * nanosecond value in an additional field, so users can access the complete value. Or just use Java
+ * 8 which has date objects with nanosecond support.
  */
 public class DockerDateFormat extends StdDateFormat {
 

@@ -262,7 +262,7 @@ public class ContainerConfig {
     if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
       return false;
     }
-    
+
     if (stopSignal != null ? !stopSignal.equals(config.stopSignal) : config.stopSignal != null) {
       return false;
     }
@@ -667,12 +667,12 @@ public class ContainerConfig {
     public HostConfig hostConfig() {
       return hostConfig;
     }
-    
+
     public Builder stopSignal(final String stopSignal) {
       this.stopSignal = stopSignal;
       return this;
     }
-    
+
     public String stopSignal() {
       return stopSignal;
     }

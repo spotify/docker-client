@@ -20,22 +20,21 @@ package com.spotify.docker.client;
 
 public final class VersionCompare {
 
-  private VersionCompare(){}
+  private VersionCompare() {
+  }
 
   /**
-   * Compares two version strings.
-   * <p>
-   * https://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
-   * </p>
-   * Use this instead of String.compareTo() for a non-lexicographical
-   * comparison that works for version strings. e.g. "1.10".compareTo("1.6").
+   * Compares two version strings. <p>
+   *   https://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
+   * </p> Use this instead of String.compareTo() for a non-lexicographical comparison that works for
+   * version strings. e.g. "1.10".compareTo("1.6").
    *
    * @param str1 a string of ordinal numbers separated by decimal points.
    * @param str2 a string of ordinal numbers separated by decimal points.
-   * @return The result is a negative integer if str1 is _numerically_ less than str2.
-   * The result is a positive integer if str1 is _numerically_ greater than str2.
-   * The result is zero if the strings are _numerically_ equal.
-   * N.B. It does not work if "1.10" is supposed to be equal to "1.10.0".
+   * @return The result is a negative integer if str1 is _numerically_ less than str2. The result is
+   * a positive integer if str1 is _numerically_ greater than str2. The result is zero if the
+   * strings are _numerically_ equal. N.B. It does not work if "1.10" is supposed to be equal to
+   * "1.10.0".
    */
   public static int compareVersion(String str1, String str2) {
     String[] vals1 = str1.split("\\.");

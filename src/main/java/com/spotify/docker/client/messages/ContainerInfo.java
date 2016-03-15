@@ -61,8 +61,8 @@ public class ContainerInfo {
   @JsonProperty("Mounts") private ImmutableList<ContainerMount> mountsList;
   
   /**
-   * This field is an extension defined by the Docker Swarm API, therefore it will only
-   * be populated when communicating with a Swarm cluster.
+   * This field is an extension defined by the Docker Swarm API, therefore it will only be populated
+   * when communicating with a Swarm cluster.
    */
   @JsonProperty("Node") private Node node;
 
@@ -221,23 +221,23 @@ public class ContainerInfo {
     if (node != null ? !node.equals(that.node) : that.node != null) {
       return false;
     }
-    if (appArmorProfile != null ? !appArmorProfile.equals(that.appArmorProfile) : 
+    if (appArmorProfile != null ? !appArmorProfile.equals(that.appArmorProfile) :
         that.appArmorProfile != null) {
-        return false;
-      }
+      return false;
+    }
     if (execId != null ? !execId.equals(that.execId) : that.execId != null) {
-        return false;
-      }
+      return false;
+    }
     if (logPath != null ? !logPath.equals(that.logPath) : that.logPath != null) {
-        return false;
-      }
-    if (restartCount != null ? !restartCount.equals(that.restartCount) : 
+      return false;
+    }
+    if (restartCount != null ? !restartCount.equals(that.restartCount) :
         that.restartCount != null) {
-        return false;
-      }
+      return false;
+    }
     if (mountsList != null ? !mountsList.equals(that.mountsList) : that.mountsList != null) {
-        return false;
-      }
+      return false;
+    }
 
     return true;
   }
@@ -304,6 +304,7 @@ public class ContainerInfo {
   }
 
   public static class Node {
+
     @JsonProperty("Id") private String id;
     @JsonProperty("Ip") private String ip;
     @JsonProperty("Addr") private String addr;
@@ -339,9 +340,9 @@ public class ContainerInfo {
       }
       Node node = (Node) o;
       return Objects.equal(id, node.id) &&
-              Objects.equal(ip, node.ip) &&
-              Objects.equal(addr, node.addr) &&
-              Objects.equal(name, node.name);
+             Objects.equal(ip, node.ip) &&
+             Objects.equal(addr, node.addr) &&
+             Objects.equal(name, node.name);
     }
 
     @Override
@@ -352,11 +353,11 @@ public class ContainerInfo {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-              .add("id", id)
-              .add("ip", ip)
-              .add("addr", addr)
-              .add("name", name)
-              .toString();
+          .add("id", id)
+          .add("ip", ip)
+          .add("addr", addr)
+          .add("name", name)
+          .toString();
     }
   }
 

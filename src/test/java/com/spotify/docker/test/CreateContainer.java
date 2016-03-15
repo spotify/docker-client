@@ -25,12 +25,10 @@ import java.lang.annotation.Target;
 
 /**
  * The {@link CreateContainer} annotation can be used on any test method to provide the values for
- * the {@link com.spotify.docker.client.messages.ContainerCreation}
- * object that the {@link DockerContainer} will username for the
- * {@link com.spotify.docker.client.DockerClient}.
- * 
- * @author Jan-Willem Gmelig Meyling
+ * the {@link com.spotify.docker.client.messages.ContainerCreation} object that the {@link
+ * DockerContainer} will username for the {@link com.spotify.docker.client.DockerClient}.
  *
+ * @author Jan-Willem Gmelig Meyling
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -41,20 +39,20 @@ public @interface CreateContainer {
    * @return String value containing the image name to use for the container
    */
   String image();
-  
+
   /**
    * @return An array of mountpoint mappings (strings) inside the container
    */
   String[] volumes() default {};
-  
+
   /**
    * @return Command to run specified as an array of strings.
    */
   String[] command() default {};
-  
+
   /**
    * Start the container after creation
    */
   boolean start() default false;
-  
+
 }

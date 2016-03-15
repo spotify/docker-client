@@ -27,6 +27,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkStats {
+
   @JsonProperty("rx_bytes") private Long rxBytes;
   @JsonProperty("rx_packets") private Long rxPackets;
   @JsonProperty("rx_dropped") private Long rxDropped;

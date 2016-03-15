@@ -222,7 +222,7 @@ public class NetworkSettings {
       this.ports = (ports == null) ? null : Maps.newHashMap(ports);
       return this;
     }
-    
+
     public Builder macAddress(final String macAddress) {
       this.macAddress = macAddress;
       return this;

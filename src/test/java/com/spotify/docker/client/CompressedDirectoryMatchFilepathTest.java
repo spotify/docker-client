@@ -47,7 +47,7 @@ public class CompressedDirectoryMatchFilepathTest {
 
     // Data copy-pasted from http://golang.org/src/path/filepath/match_test.go#L22
     // Patterns we don't correctly handle are commented out
-    return Arrays.asList(new Object[][]{
+    return Arrays.asList(new Object[][] {
         {"abc", "abc", true, null},
         {"*", "abc", true, null},
         {"*c", "abc", true, null},
@@ -102,7 +102,7 @@ public class CompressedDirectoryMatchFilepathTest {
         // {"a[", "a", false, null},
         {"a[", "ab", false, PatternSyntaxException.class},
         {"*x", "xxx", true, null},
-    });
+        });
   }
 
   @Rule

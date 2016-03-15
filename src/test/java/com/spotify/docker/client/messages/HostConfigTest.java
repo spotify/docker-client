@@ -18,9 +18,12 @@
 package com.spotify.docker.client.messages;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+
 import com.spotify.docker.client.ObjectMapperProvider;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,38 +34,38 @@ import static org.junit.Assert.assertThat;
 
 public class HostConfigTest {
 
-    private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
 
-    @Before
-    public void setUp() throws Exception {
-        objectMapper = new ObjectMapperProvider().getContext(HostConfig.class);
-    }
+  @Before
+  public void setUp() throws Exception {
+    objectMapper = new ObjectMapperProvider().getContext(HostConfig.class);
+  }
 
-    @Test
-    public void testJsonAlways() throws Exception {
-        HostConfig hostConfig = objectMapper
-                .readValue(fixture("fixtures/hostConfig/restartPolicyAlways.json"),
-                        HostConfig.class);
-        assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.always()));
-    }
+  @Test
+  public void testJsonAlways() throws Exception {
+    HostConfig hostConfig = objectMapper
+        .readValue(fixture("fixtures/hostConfig/restartPolicyAlways.json"),
+                   HostConfig.class);
+    assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.always()));
+  }
 
-    @Test
-    public void testJsonUnlessStopped() throws Exception {
-        HostConfig hostConfig = objectMapper
-                .readValue(fixture("fixtures/hostConfig/restartPolicyUnlessStopped.json"),
-                        HostConfig.class);
-        assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.unlessStopped()));
-    }
+  @Test
+  public void testJsonUnlessStopped() throws Exception {
+    HostConfig hostConfig = objectMapper
+        .readValue(fixture("fixtures/hostConfig/restartPolicyUnlessStopped.json"),
+                   HostConfig.class);
+    assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.unlessStopped()));
+  }
 
-    @Test
-    public void testJsonOnFailure() throws Exception {
-        HostConfig hostConfig = objectMapper
-                .readValue(fixture("fixtures/hostConfig/restartPolicyOnFailure.json"),
-                        HostConfig.class);
-        assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.onFailure(5)));
-    }
+  @Test
+  public void testJsonOnFailure() throws Exception {
+    HostConfig hostConfig = objectMapper
+        .readValue(fixture("fixtures/hostConfig/restartPolicyOnFailure.json"),
+                   HostConfig.class);
+    assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.onFailure(5)));
+  }
 
-    private static String fixture(String filename) throws IOException {
-        return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
-    }
+  private static String fixture(String filename) throws IOException {
+    return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
+  }
 }

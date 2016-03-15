@@ -18,6 +18,7 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -132,7 +133,7 @@ public class Info {
   public boolean swapLimit() {
     return swapLimit;
   }
-  
+
   public boolean ipv4Forwarding() {
     return ipv4Forwarding;
   }
@@ -144,7 +145,7 @@ public class Info {
   public String dockerRootDir() {
     return dockerRootDir;
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -195,7 +196,7 @@ public class Info {
       return false;
     }
     if (swapLimit != null ? !swapLimit.equals(info.swapLimit)
-                            : info.swapLimit != null) {
+                          : info.swapLimit != null) {
       return false;
     }
 

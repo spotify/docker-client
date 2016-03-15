@@ -92,7 +92,7 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
     @Override
     public void serialize(final Set value, final JsonGenerator jgen,
-        final SerializerProvider provider) throws IOException {
+                          final SerializerProvider provider) throws IOException {
       final Map map = (value == null) ? null : Maps.asMap(value, VOID_VALUE);
       OBJECT_MAPPER.writeValue(jgen, map);
     }
@@ -112,7 +112,7 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
     @Override
     public void serialize(final ImmutableSet value, final JsonGenerator jgen,
-        final SerializerProvider provider) throws IOException {
+                          final SerializerProvider provider) throws IOException {
       final Map map = (value == null) ? null : Maps.asMap(value, VOID_VALUE);
       OBJECT_MAPPER.writeValue(jgen, map);
     }

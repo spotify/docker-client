@@ -87,9 +87,7 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
   /**
    * Attach {@link java.io.OutputStream} to the {@link LogStream}.
    *
-   * <p>
-   * <b>Example usage:</b>
-   * </p>
+   * <p> <b>Example usage:</b> </p>
    *
    * <pre>
    * {@code
@@ -101,13 +99,11 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
    * }
    * </pre>
    *
-   * <p>
-   * Typically you use {@link java.io.PipedOutputStream} connected to a
-   * {@link java.io.PipedInputStream} which are read by - for example - an
-   * {@link java.io.InputStreamReader} or a
-   * {@link java.util.Scanner}. For small inputs, the {@link java.io.PipedOutputStream} just
-   * writes to the buffer of the {@link java.io.PipedInputStream}, but you actually want to read
-   * and write from separate threads, as it may deadlock the thread.
+   * <p> Typically you use {@link java.io.PipedOutputStream} connected to a {@link
+   * java.io.PipedInputStream} which are read by - for example - an {@link
+   * java.io.InputStreamReader} or a {@link java.util.Scanner}. For small inputs, the {@link
+   * java.io.PipedOutputStream} just writes to the buffer of the {@link java.io.PipedInputStream},
+   * but you actually want to read and write from separate threads, as it may deadlock the thread.
    * </p>
    *
    * <pre>

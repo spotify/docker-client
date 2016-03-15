@@ -51,6 +51,7 @@ import javax.net.ssl.SSLContext;
  * client/server authentication.
  */
 public class DockerCertificates {
+
   public static final String DEFAULT_CA_CERT_NAME = "ca.pem";
   public static final String DEFAULT_CLIENT_CERT_NAME = "cert.pem";
   public static final String DEFAULT_CLIENT_KEY_NAME = "key.pem";
@@ -94,7 +95,7 @@ public class DockerCertificates {
       final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       keyStore.load(null, null);
       keyStore.setCertificateEntry("client", clientCert);
-      keyStore.setKeyEntry("key", clientKey, KEY_STORE_PASSWORD, new Certificate[]{clientCert});
+      keyStore.setKeyEntry("key", clientKey, KEY_STORE_PASSWORD, new Certificate[] {clientCert});
 
       this.sslContext = SSLContexts.custom()
           .loadTrustMaterial(trustStore, null)
@@ -102,12 +103,12 @@ public class DockerCertificates {
           .build();
     } catch (
         CertificateException |
-        IOException |
-        NoSuchAlgorithmException |
-        InvalidKeySpecException |
-        KeyStoreException |
-        UnrecoverableKeyException |
-        KeyManagementException e) {
+            IOException |
+            NoSuchAlgorithmException |
+            InvalidKeySpecException |
+            KeyStoreException |
+            UnrecoverableKeyException |
+            KeyManagementException e) {
       throw new DockerCertificateException(e);
     }
   }
@@ -158,11 +159,11 @@ public class DockerCertificates {
         log.debug("caCertPath, clientKeyPath or clientCertPath not specified, not using SSL");
         return Optional.absent();
       } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath) &&
-              Files.exists(this.clientCertPath)) {
+                 Files.exists(this.clientCertPath)) {
         return Optional.of(new DockerCertificates(this));
       } else {
         log.debug("{}, {} or {} does not exist, not using SSL", this.caCertPath, this.clientKeyPath,
-                this.clientCertPath);
+                  this.clientCertPath);
         return Optional.absent();
       }
     }

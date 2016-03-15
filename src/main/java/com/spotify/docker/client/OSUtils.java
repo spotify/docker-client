@@ -19,7 +19,8 @@ package com.spotify.docker.client;
 import java.io.File;
 
 public class OSUtils {
-    public static boolean isLinux() {
-        return File.separatorChar == '/';
-    }
+
+  public static boolean isLinux() {
+    return File.separatorChar == '/';
+  }
 }

@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+
 import com.spotify.docker.client.ContainerNotFoundException;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerException;
@@ -36,60 +37,58 @@ import com.spotify.docker.client.messages.ContainerCreation;
  * The {@link DockerContainer} is a JUnit {@link MethodRule} which automatically creates, starts,
  * kills and removes Docker containers used in unit tests. The settings for the commands can be
  * provided using the {@link CreateContainer} annotation on the test method.
- * 
- * <p></p>
- * For example:
- * 
+ *
+ * <p></p> For example:
+ *
  * <pre>
  * {@code
  *   public class DockerAttachTest {
- * 
+ *
  *     private static DockerClient dockerClient;
- * 
+ *
  *     &#064;Rule
  *     public DockerContainer dockerContainer = new DockerContainer(dockerClient);
- * 
+ *
  *     &#064;BeforeClass
  *     public static void setUp() throws DockerCertificateException {
  *       dockerClient = DefaultDockerClient.fromEnv().readTimeoutMillis(120000).build();
  *     }
- * 
+ *
  *     &#064;Test
  *     &#064;CreateContainer(image = &quot;busybox&quot;, command =
  *       {&quot;sh&quot;, &quot;-c&quot;, &quot;echo \&quot;test\&quot;&quot;}, start = true)
  *     public void testIt() throws IOException, DockerException, InterruptedException {
- * 
+ *
  *       String containerId = dockerContainer.getContainerId();
  *       dockerClient.waitContainer(containerId);
  *       LogStream logStream = dockerClient.logs(containerId, LogsParameter.STDOUT);
  *       assertThat(logStream.readFully(), equalTo(&quot;test\n&quot;));
  *     }
- * 
+ *
  *     &#064;AfterClass
  *     public static void cleanUp() {
  *       dockerClient.close();
  *     }
- * 
+ *
  *   }
  * }
  * </pre>
- * 
- * @author Jan-Willem Gmelig Meyling
  *
+ * @author Jan-Willem Gmelig Meyling
  */
 public class DockerContainer implements MethodRule {
 
   private static final Logger log = LoggerFactory.getLogger(DockerContainer.class);
-  
+
   private final DockerClient dockerClient;
-  
+
   private String containerId;
-  
+
   public DockerContainer(final DockerClient dockerClient) {
     Preconditions.checkNotNull(dockerClient);
     this.dockerClient = dockerClient;
   }
-  
+
   @Override
   public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
     final Method javaMethod = method.getMethod();
@@ -117,18 +116,16 @@ public class DockerContainer implements MethodRule {
       }
     };
   }
-  
+
   /**
    * Create a new Docker container based on the {@link CreateContainer} annotation
-   * @param createContainerAnnotation
+   *
    * @return {@link ContainerCreation} response
-   * @throws DockerException
-   * @throws InterruptedException
    */
   protected ContainerCreation createContainer(CreateContainer createContainerAnnotation)
       throws DockerException, InterruptedException {
     Preconditions.checkNotNull(createContainerAnnotation);
-    
+
     ContainerConfig.Builder configBuilder = ContainerConfig.builder()
         .image(createContainerAnnotation.image())
         .volumes(createContainerAnnotation.volumes())
@@ -144,15 +141,12 @@ public class DockerContainer implements MethodRule {
 
   /**
    * Start a created container
-   * @param startContainerAnnotation
-   * @throws DockerException
-   * @throws InterruptedException
    */
   protected void startContainer(CreateContainer createContainerAnnotation)
       throws DockerException, InterruptedException {
     Preconditions.checkNotNull(createContainerAnnotation);
     Preconditions.checkNotNull(containerId);
-    
+
     log.debug("Starting Docker container {}", containerId);
     dockerClient.startContainer(containerId);
     log.debug("Started Docker container {}", containerId);
@@ -160,18 +154,16 @@ public class DockerContainer implements MethodRule {
 
   /**
    * Clean up created container
-   * @throws InterruptedException
-   * @throws DockerException
    */
   protected void cleanup() throws InterruptedException, DockerException {
     if (containerId == null) {
       // The container was never created
       return;
     }
-    
+
     InterruptedException interuptedException = null;
     DockerException dockerException = null;
-    
+
     try {
       while (dockerClient.inspectContainer(containerId).state().running()) {
         log.debug("Killing Docker container {}", containerId);
@@ -187,7 +179,7 @@ public class DockerContainer implements MethodRule {
     } catch (InterruptedException e) {
       interuptedException = e;
     }
-    
+
     try {
       log.debug("Removing Docker container {}", containerId);
       dockerClient.removeContainer(containerId);
@@ -200,7 +192,7 @@ public class DockerContainer implements MethodRule {
     } catch (InterruptedException e) {
       interuptedException = e;
     }
-    
+
     // Fail the test if clean up failed
     if (interuptedException != null) {
       throw interuptedException;
@@ -208,7 +200,7 @@ public class DockerContainer implements MethodRule {
       throw dockerException;
     }
   }
-  
+
   public DockerClient getDockerClient() {
     return dockerClient;
   }

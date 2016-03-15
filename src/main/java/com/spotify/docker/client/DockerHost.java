@@ -66,7 +66,8 @@ public class DockerHost {
   }
 
   /**
-   * Get a Docker endpoint usable for instantiating a new DockerHost with DockerHost.from(endpoint).
+   * Get a Docker endpoint usable for instantiating a new DockerHost with
+   * DockerHost.from(endpoint).
    *
    * @return A unix socket path or, in the case of a TCP socket, the hostname and port which
    * represents a Docker endpoint.
@@ -142,7 +143,7 @@ public class DockerHost {
   /**
    * Create a {@link DockerHost} from an explicit address or uri.
    *
-   * @param endpoint The Docker endpoint.
+   * @param endpoint       The Docker endpoint.
    * @param dockerCertPath The certificate path.
    * @return The DockerHost object.
    */

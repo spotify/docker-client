@@ -91,7 +91,7 @@ public class ImageInfo {
   public Long size() {
     return size;
   }
-  
+
   public Long virtualSize() {
     return virtualSize;
   }
@@ -150,7 +150,7 @@ public class ImageInfo {
                             : imageInfo.virtualSize != null) {
       return false;
     }
-    
+
     return true;
   }
 

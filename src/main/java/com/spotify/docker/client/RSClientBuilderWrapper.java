@@ -20,13 +20,14 @@ package com.spotify.docker.client;
 import javax.ws.rs.client.ClientBuilder;
 
 interface RSClientBuilderWrapper {
-    ClientBuilder newBuilder();
 
-    class RealWrapper implements RSClientBuilderWrapper {
+  ClientBuilder newBuilder();
 
-        @Override
-        public ClientBuilder newBuilder() {
-            return ClientBuilder.newBuilder();
-        }
+  class RealWrapper implements RSClientBuilderWrapper {
+
+    @Override
+    public ClientBuilder newBuilder() {
+      return ClientBuilder.newBuilder();
     }
+  }
 }

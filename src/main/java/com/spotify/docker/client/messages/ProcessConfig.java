@@ -24,8 +24,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * An object that represents the JSON returned by the Docker API for an exec command's
- * process configuration.
+ * An object that represents the JSON returned by the Docker API for an exec command's process
+ * configuration.
  */
 public class ProcessConfig {
 

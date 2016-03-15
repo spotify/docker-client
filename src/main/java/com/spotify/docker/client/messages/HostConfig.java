@@ -17,11 +17,12 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.List;
@@ -191,8 +192,8 @@ public class HostConfig {
       return false;
     }
     if (extraHosts != null ? !extraHosts.equals(that.extraHosts) : that.extraHosts != null) {
-        return false;
-      }
+      return false;
+    }
     if (links != null ? !links.equals(that.links) : that.links != null) {
       return false;
     }
@@ -241,19 +242,19 @@ public class HostConfig {
     }
 
     if (cgroupParent != null ? !cgroupParent.equals(that.cgroupParent)
-            : that.cgroupParent != null) {
+                             : that.cgroupParent != null) {
       return false;
     }
 
     if (restartPolicy != null ? !restartPolicy.equals(that.restartPolicy)
-            : that.restartPolicy != null) {
+                              : that.restartPolicy != null) {
       return false;
     }
 
     if (logConfig != null ? !logConfig.equals(that.logConfig) : that.logConfig != null) {
       return false;
     }
-      
+
     return true;
   }
 
@@ -366,6 +367,7 @@ public class HostConfig {
   }
 
   public static class RestartPolicy {
+
     @JsonProperty("Name") private String name;
     @JsonProperty("MaximumRetryCount") private Integer maxRetryCount;
 
@@ -413,7 +415,7 @@ public class HostConfig {
         return false;
       }
       return maxRetryCount != null ?
-              maxRetryCount.equals(that.maxRetryCount) : that.maxRetryCount == null;
+             maxRetryCount.equals(that.maxRetryCount) : that.maxRetryCount == null;
     }
 
     @Override
@@ -426,9 +428,9 @@ public class HostConfig {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-              .add("name", name)
-              .add("maxRetryCount", maxRetryCount)
-              .toString();
+          .add("name", name)
+          .add("maxRetryCount", maxRetryCount)
+          .toString();
     }
   }
 
@@ -629,23 +631,23 @@ public class HostConfig {
     }
 
     public Builder extraHosts(final List<String> extraHosts) {
-        if (extraHosts != null && !extraHosts.isEmpty()) {
-            this.extraHosts = ImmutableList.copyOf(extraHosts);
-        }
+      if (extraHosts != null && !extraHosts.isEmpty()) {
+        this.extraHosts = ImmutableList.copyOf(extraHosts);
+      }
 
-        return this;
+      return this;
     }
 
     public Builder extraHosts(final String... extraHosts) {
-        if (extraHosts != null && extraHosts.length > 0) {
-            this.extraHosts = ImmutableList.copyOf(extraHosts);
-        }
+      if (extraHosts != null && extraHosts.length > 0) {
+        this.extraHosts = ImmutableList.copyOf(extraHosts);
+      }
 
-        return this;
+      return this;
     }
 
     public List<String> extraHosts() {
-        return extraHosts;
+      return extraHosts;
     }
 
     public Builder volumesFrom(final List<String> volumesFrom) {
@@ -757,8 +759,8 @@ public class HostConfig {
     }
 
     public Builder logConfig(final LogConfig logConfig) {
-        this.logConfig = logConfig;
-        return this;
+      this.logConfig = logConfig;
+      return this;
     }
 
     public RestartPolicy restartPolicy() {
@@ -766,7 +768,7 @@ public class HostConfig {
     }
 
     public LogConfig logConfig() {
-        return logConfig;
+      return logConfig;
     }
 
     public HostConfig build() {

@@ -17,10 +17,11 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -28,12 +29,9 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class IpamConfig {
 
-  @JsonProperty("Subnet")
-  private String subnet;
-  @JsonProperty("IPRange")
-  private String ipRange;
-  @JsonProperty("Gateway")
-  private String gateway;
+  @JsonProperty("Subnet") private String subnet;
+  @JsonProperty("IPRange") private String ipRange;
+  @JsonProperty("Gateway") private String gateway;
 
   public String subnet() {
     return subnet;
@@ -71,8 +69,8 @@ public class IpamConfig {
     IpamConfig that = (IpamConfig) o;
 
     return Objects.equal(this.subnet, that.subnet) &&
-        Objects.equal(this.ipRange, that.ipRange) &&
-        Objects.equal(this.gateway, that.gateway);
+           Objects.equal(this.ipRange, that.ipRange) &&
+           Objects.equal(this.gateway, that.gateway);
   }
 
   @Override

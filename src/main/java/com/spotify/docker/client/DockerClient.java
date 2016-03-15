@@ -51,8 +51,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public interface DockerClient extends Closeable {
 
   /**
-   * Ping the docker daemon. Returns "OK" if all is well, though that
-   * it simply returns a 200 status is probably sufficient information.
+   * Ping the docker daemon. Returns "OK" if all is well, though that it simply returns a 200 status
+   * is probably sufficient information.
+   *
    * @return String "OK"
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -175,6 +176,7 @@ public interface DockerClient extends Closeable {
 
   /**
    * Search for images on Docker Hub
+   *
    * @param term the search term
    * @return a list of matches for the given search term
    * @throws DockerException      if a server error occurred (500)
@@ -184,13 +186,13 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
-   * image with the given image name upon loading completion.
+   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * with the given image name upon loading completion.
    *
-   * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
-   *        (i.e.: the stream corresponding to the image's .tar file).
-   * @throws DockerException if a server error occurred (500).
+   * @param image        the name to assign to the image.
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(String image, InputStream imagePayload)
@@ -198,14 +200,15 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
-   * image with the given image name upon loading completion.
+   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * with the given image name upon loading completion.
    *
-   * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
-   *        (i.e.: the stream corresponding to the image's .tar file).
-   * @param handler The handler to use for processing each progress message received from Docker.
-   * @throws DockerException if a server error occurred (500).
+   * @param image        the name to assign to the image.
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @param handler      The handler to use for processing each progress message received from
+   *                     Docker.
+   * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(String image, InputStream imagePayload, ProgressHandler handler)
@@ -213,14 +216,14 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
-   * image with the given image name upon loading completion.
+   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * with the given image name upon loading completion.
    *
-   * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
-   *        (i.e.: the stream corresponding to the image's .tar file).
-   * @param authConfig The authentication config needed to pull the image.
-   * @throws DockerException if a server error occurred (500).
+   * @param image        the name to assign to the image.
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @param authConfig   The authentication config needed to pull the image.
+   * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(String image, InputStream imagePayload, AuthConfig authConfig)
@@ -228,15 +231,16 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the 
-   * image with the given image name upon loading completion.
+   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * with the given image name upon loading completion.
    *
-   * @param image the name to assign to the image.
-   * @param imagePayload the image's payload 
-   *        (i.e.: the stream corresponding to the image's .tar file).
-   * @param authConfig The authentication config needed to pull the image.
-   * @param handler The handler to use for processing each progress message received from Docker.
-   * @throws DockerException if a server error occurred (500).
+   * @param image        the name to assign to the image.
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @param authConfig   The authentication config needed to pull the image.
+   * @param handler      The handler to use for processing each progress message received from
+   *                     Docker.
+   * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(String image, InputStream imagePayload, AuthConfig authConfig,
@@ -246,20 +250,20 @@ public interface DockerClient extends Closeable {
   /**
    * @param image the name of the image to save.
    * @return the image's .tar stream.
-   * @throws DockerException if a server error occurred (500).
-   * @throws IOException if the server started returning, but an I/O error occurred 
-   *                     in the context of processing it on the client-side.
+   * @throws DockerException      if a server error occurred (500).
+   * @throws IOException          if the server started returning, but an I/O error occurred in the
+   *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
   InputStream save(String image) throws DockerException, IOException, InterruptedException;
 
   /**
-   * @param image the name of the image to save.
+   * @param image      the name of the image to save.
    * @param authConfig The authentication config needed to pull the image.
    * @return the image's .tar stream.
-   * @throws DockerException if a server error occurred (500).
-   * @throws IOException if the server started returning, but an I/O error occurred 
-   *                     in the context of processing it on the client-side.
+   * @throws DockerException      if a server error occurred (500).
+   * @throws IOException          if the server started returning, but an I/O error occurred in the
+   *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
   InputStream save(String image, AuthConfig authConfig)
@@ -299,7 +303,8 @@ public interface DockerClient extends Closeable {
    *
    * @param image      The image to pull.
    * @param authConfig The authentication config needed to pull the image.
-   * @param handler    The handler to use for processing each progress message received from Docker.
+   * @param handler    The handler to use for processing each progress message received from
+   *                   Docker.
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -340,7 +345,8 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to tag.
    * @param name  The new name that will be applied to the image.
-   * @param force Whether to force the tagging even if the tag is already assigned to another image.
+   * @param force Whether to force the tagging even if the tag is already assigned to another
+   *              image.
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -410,7 +416,8 @@ public interface DockerClient extends Closeable {
    * @param directory  The directory containing the dockerfile.
    * @param name       The repository name and optional tag to apply to the built image.
    * @param dockerfile The path within the build context to the Dockerfile
-   * @param handler    The handler to use for processing each progress message received from Docker.
+   * @param handler    The handler to use for processing each progress message received from
+   *                   Docker.
    * @param params     Additional flags to use during build.
    * @return The id of the built image if successful, otherwise null.
    * @throws DockerException      if a server error occurred (500)
@@ -455,16 +462,17 @@ public interface DockerClient extends Closeable {
     /**
      * Create a custom parameter.
      *
-     * @param name custom name
+     * @param name  custom name
      * @param value custom value
      * @return BuildParam
      */
     public static BuildParam create(final String name, final String value) {
-        return new BuildParam(name, value);
+      return new BuildParam(name, value);
     }
 
     /**
      * Suppress verbose build output.
+     *
      * @return BuildParam
      */
     public static BuildParam quiet() {
@@ -473,6 +481,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Remove intermediate containers after a successful build.
+     *
      * @return BuildParam
      */
     public static BuildParam rm() {
@@ -481,6 +490,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Control whether to remove intermediate containers after a successful build.
+     *
      * @param rm Whether to remove
      * @return BuildParam
      */
@@ -490,6 +500,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Do not use the cache when building the image.
+     *
      * @return BuildParam
      */
     public static BuildParam noCache() {
@@ -498,6 +509,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Always remove intermediate containers.
+     *
      * @return BuildParam
      */
     public static BuildParam forceRm() {
@@ -506,6 +518,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Always attempt to pull a newer version of the base image even if one exists locally.
+     *
      * @return BuildParam
      */
     public static BuildParam pullNewerImage() {
@@ -570,7 +583,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void renameContainer(String containerId, String name)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Start a docker container.
@@ -582,8 +595,8 @@ public interface DockerClient extends Closeable {
   void startContainer(String containerId) throws DockerException, InterruptedException;
 
   /**
-   * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the
-   * container doesn't exit gracefully and in a timely manner.
+   * Stop a docker container by sending a SIGTERM, and following up with a SIGKILL if the container
+   * doesn't exit gracefully and in a timely manner.
    *
    * @param containerId                The id of the container to stop.
    * @param secondsToWaitBeforeKilling Time to wait after SIGTERM before sending SIGKILL.
@@ -654,7 +667,7 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker container.
    *
-   * @param  containerId          The id of the container to remove.
+   * @param containerId The id of the container to remove.
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -663,8 +676,8 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker container.
    *
-   * @param  containerId          The id of the container to remove.
-   * @param  params               {@link RemoveContainerParam}
+   * @param containerId The id of the container to remove.
+   * @param params      {@link RemoveContainerParam}
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -674,8 +687,8 @@ public interface DockerClient extends Closeable {
   /**
    * Remove a docker container.
    *
-   * @param containerId           The id of the container to remove.
-   * @param removeVolumes         Whether to remove volumes as well.
+   * @param containerId   The id of the container to remove.
+   * @param removeVolumes Whether to remove volumes as well.
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    * @deprecated Use {@link #removeContainer(String, RemoveContainerParam...)}
@@ -718,7 +731,7 @@ public interface DockerClient extends Closeable {
     /**
      * Create a custom parameter.
      *
-     * @param name custom name
+     * @param name  custom name
      * @param value custom value
      * @return BuildParam
      */
@@ -726,6 +739,7 @@ public interface DockerClient extends Closeable {
     public static RemoveContainerParam create(final String name, final String value) {
       return new RemoveContainerParam(name, value);
     }
+
     /**
      * Remove the volumes associated to the container. If not specified, defaults to false.
      *
@@ -828,7 +842,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   EventStream events(EventsParam... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Sets up an exec instance in a running container id.
@@ -842,11 +856,10 @@ public interface DockerClient extends Closeable {
    */
   String execCreate(String containerId, String[] cmd, ExecCreateParam... params)
       throws DockerException, InterruptedException;
-      
+
   /**
-   * Starts a previously set up exec instance id.
-   * If detach is true, this API returns after starting the exec command.
-   * Otherwise, this API sets up an interactive session with the exec command.
+   * Starts a previously set up exec instance id. If detach is true, this API returns after starting
+   * the exec command. Otherwise, this API sets up an interactive session with the exec command.
    *
    * @param execId exec id
    * @param params Exec start params
@@ -966,11 +979,12 @@ public interface DockerClient extends Closeable {
    */
   @Override
   void close();
-  
+
   /**
    * Parameters for {@link #execCreate(String, String[], ExecCreateParam...)}
    */
   class ExecCreateParam {
+
     private final String name;
     private final String value;
 
@@ -993,6 +1007,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Execute in detached mode
+     *
      * @param detach Whether to detach.
      * @return ExecCreateParam
      */
@@ -1002,6 +1017,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Execute in detached mode
+     *
      * @return ExecCreateParam
      */
     public static ExecCreateParam detach() {
@@ -1010,6 +1026,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach stdin
+     *
      * @param attachStdin Whether to attach the standard input which allows user interaction.
      * @return ExecCreateParam
      */
@@ -1019,6 +1036,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard input
+     *
      * @return ExecCreateParam
      */
     public static ExecCreateParam attachStdin() {
@@ -1027,6 +1045,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard error
+     *
      * @param attachStderr Whether to attach standout error
      * @return ExecCreateParam
      */
@@ -1036,6 +1055,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard error
+     *
      * @return ExecCreateParam
      */
     public static ExecCreateParam attachStderr() {
@@ -1044,6 +1064,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard ouput
+     *
      * @param attachStdout Whether to attach standard output
      * @return ExecCreateParam
      */
@@ -1053,6 +1074,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard ouput
+     *
      * @return ExecCreateParam
      */
     public static ExecCreateParam attachStdout() {
@@ -1061,6 +1083,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Give extended privileges to the command
+     *
      * @param privileged Whether to give extended privileges to the command
      * @return ExecCreateParam
      */
@@ -1070,6 +1093,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Give extended privileges to the command
+     *
      * @return ExecCreateParam
      */
     public static ExecCreateParam privileged() {
@@ -1078,6 +1102,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard streams to a tty.
+     *
      * @param tty Whether to attach standard streams to a tty.
      * @return ExecCreateParam
      */
@@ -1087,6 +1112,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * Attach standard streams to a tty.
+     *
      * @return ExecCreateParam
      */
     public static ExecCreateParam tty() {
@@ -1095,6 +1121,7 @@ public interface DockerClient extends Closeable {
 
     /**
      * User that will run the command
+     *
      * @param user user
      * @return ExecCreateParam
      */
@@ -1102,12 +1129,12 @@ public interface DockerClient extends Closeable {
       return create("User", user);
     }
   }
-  
+
 
   /**
    * Parameters for {@link #logs(String, LogsParam...)}
    */
-  
+
   class LogsParam {
 
     private final String name;
@@ -1194,8 +1221,8 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Filter logs and only output entries since given Unix timestamp.
-     * Only available in Docker API &gt;= 1.19.
+     * Filter logs and only output entries since given Unix timestamp. Only available in Docker API
+     * &gt;= 1.19.
      *
      * @param timestamp Only output entries since timestamp.
      * @return LogsParam
@@ -1258,6 +1285,7 @@ public interface DockerClient extends Closeable {
 
   /**
    * Attach to the container id
+   *
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
@@ -1270,6 +1298,7 @@ public interface DockerClient extends Closeable {
 
   /**
    * Get the Docker host address
+   *
    * @return the docker host name or IP
    */
   String getHost();
@@ -1301,7 +1330,7 @@ public interface DockerClient extends Closeable {
     /**
      * Create a "filters" query param from a key/value pair
      *
-     * @param key Type of filter
+     * @param key   Type of filter
      * @param value Value of filter
      * @return ListContainersParam
      */
@@ -1444,9 +1473,8 @@ public interface DockerClient extends Closeable {
     /**
      * Show exited containers.
      *
-     * @deprecated  Replaced by {@link #withStatusExited()}
-     *
      * @return ListContainersParam
+     * @deprecated Replaced by {@link #withStatusExited()}
      */
     @Deprecated
     public static ListContainersParam exitedContainers() {
@@ -1463,7 +1491,7 @@ public interface DockerClient extends Closeable {
     public static ListContainersParam withLabel(final String label, final String value) {
       return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
     }
-    
+
     /**
      * Show containers with a label.
      *
@@ -1476,6 +1504,7 @@ public interface DockerClient extends Closeable {
   }
 
   class ListContainersFilterParam extends ListContainersParam {
+
     public ListContainersFilterParam(String name, String value) {
       super(name, value);
     }
@@ -1554,8 +1583,8 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Show dangling images only. A dangling image is one which does not have a repository name.
-     * By default both dangling and non-dangling will be shown.
+     * Show dangling images only. A dangling image is one which does not have a repository name. By
+     * default both dangling and non-dangling will be shown.
      *
      * @return ListImagesParam
      */
@@ -1610,6 +1639,7 @@ public interface DockerClient extends Closeable {
    * ListImagesParam only.
    */
   class ListImagesFilterParam extends ListImagesParam {
+
     public ListImagesFilterParam(String name, String value) {
       super(name, value);
     }
@@ -1669,7 +1699,7 @@ public interface DockerClient extends Closeable {
     /**
      * Apply filters to the returned events
      *
-     * @param name Name
+     * @param name  Name
      * @param value Value
      * @return {@link EventsParam}
      */
@@ -1680,10 +1710,10 @@ public interface DockerClient extends Closeable {
   }
 
   /**
-   * Filter parameter for {@link #events(EventsParam...)}. This should be used by
-   * EventsParam only.
+   * Filter parameter for {@link #events(EventsParam...)}. This should be used by EventsParam only.
    */
   static class EventsFilterParam extends EventsParam {
+
     public EventsFilterParam(String name, String value) {
       super(name, value);
     }

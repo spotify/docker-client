@@ -133,9 +133,9 @@ public class AuthConfig {
   }
 
   /**
-   * This function looks for and parses credentials for logging into Docker registries.
-   * We first look in ~/.docker/config.json and fallback to ~/.dockercfg. We use the first
-   * credential in the config file. These files are created from running `docker login`.
+   * This function looks for and parses credentials for logging into Docker registries. We first
+   * look in ~/.docker/config.json and fallback to ~/.dockercfg. We use the first credential in the
+   * config file. These files are created from running `docker login`.
    *
    * @return a {@link Builder}
    * @throws IOException when we can't parse the docker config file
@@ -147,8 +147,8 @@ public class AuthConfig {
 
   /**
    * This function looks for and parses credentials for logging into the Docker registry specified
-   * by serverAddress. We first look in ~/.docker/config.json and fallback to ~/.dockercfg.
-   * These files are created from running `docker login`.
+   * by serverAddress. We first look in ~/.docker/config.json and fallback to ~/.dockercfg. These
+   * files are created from running `docker login`.
    *
    * @param serverAddress A string representing the server address
    * @return a {@link Builder}
@@ -160,8 +160,9 @@ public class AuthConfig {
   }
 
   /**
-   * Returns the first credential from the specified path to the docker file.
-   * This method is package-local so we can test it.
+   * Returns the first credential from the specified path to the docker file. This method is
+   * package-local so we can test it.
+   *
    * @param configPath The path to the config file
    * @return a {@link Builder}
    * @throws IOException when we can't parse the docker config file
@@ -172,9 +173,10 @@ public class AuthConfig {
   }
 
   /**
-   * Returns the specified credential from the specified path to the docker file.
-   * This method is package-local so we can test it.
-   * @param configPath The path to the config file
+   * Returns the specified credential from the specified path to the docker file. This method is
+   * package-local so we can test it.
+   *
+   * @param configPath    The path to the config file
    * @param serverAddress A string representing the server address
    * @return a {@link Builder}
    * @throws IOException If an IOException occurred
