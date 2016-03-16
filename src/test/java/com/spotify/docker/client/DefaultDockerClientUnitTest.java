@@ -17,19 +17,13 @@
 
 package com.spotify.docker.client;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.times;
+import com.spotify.docker.client.messages.Info;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import com.spotify.docker.client.messages.Info;
+import com.google.common.util.concurrent.Futures;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,6 +31,10 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.Future;
 
 import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
@@ -46,34 +44,34 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
 
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.Future;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DefaultDockerClientUnitTest {
 
   @Mock
-  Client clientMock;
+  private Client clientMock;
 
   @Mock
-  ClientBuilder clientBuilderMock;
+  private ClientBuilder clientBuilderMock;
 
   @Mock
-  RSClientBuilderWrapper rsClientBuilderWrapperMock;
+  private Invocation.Builder builderMock;
 
   @Mock
-  Invocation.Builder builderMock;
+  private AsyncInvoker asyncInvoker;
 
   @Mock
-  AsyncInvoker asyncInvoker;
+  private WebTarget webTargetMock;
 
-  @Mock
-  Future futureMock;
-
-  @Mock
-  WebTarget webTargetMock;
-
-  DefaultDockerClient.Builder builder;
+  private Supplier<ClientBuilder> clientBuilderSupplier;
+  private DefaultDockerClient.Builder builder;
 
   @Before
   public void setup() throws Exception {
@@ -83,7 +81,7 @@ public class DefaultDockerClientUnitTest {
     when(clientBuilderMock.withConfig(any(Configuration.class))).thenReturn(clientBuilderMock);
     when(clientBuilderMock.property(anyString(), any())).thenReturn(clientBuilderMock);
 
-    when(rsClientBuilderWrapperMock.newBuilder()).thenReturn(clientBuilderMock);
+    clientBuilderSupplier = Suppliers.ofInstance(clientBuilderMock);
 
     when(clientMock.target(any(URI.class))).thenReturn(webTargetMock);
     // return the same mock for any path.
@@ -93,10 +91,9 @@ public class DefaultDockerClientUnitTest {
 
     when(builderMock.async()).thenReturn(asyncInvoker);
 
+    final Future<Info> futureMock = Futures.immediateFuture(new Info());
     when(asyncInvoker.method(anyString(), any(Class.class))).thenReturn(futureMock);
 
-    Info info = new Info();
-    when(futureMock.get()).thenReturn(info);
 
     builder = DefaultDockerClient.builder();
     builder.uri("https://perdu.com:2375");
@@ -132,7 +129,7 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testNoHeaders() throws Exception {
-    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, rsClientBuilderWrapperMock);
+    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, clientBuilderSupplier);
     dockerClient.info();
 
     verify(builderMock, never()).header(anyString(), anyString());
@@ -143,11 +140,11 @@ public class DefaultDockerClientUnitTest {
 
     builder.header("foo", 1);
 
-    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, rsClientBuilderWrapperMock);
+    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, clientBuilderSupplier);
     dockerClient.info();
 
     ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Object> valueArgument = ArgumentCaptor.forClass(Object.class);
     verify(builderMock, times(1)).header(keyArgument.capture(), valueArgument.capture());
 
     Assert.assertEquals("foo", keyArgument.getValue());
@@ -165,7 +162,7 @@ public class DefaultDockerClientUnitTest {
       builder.header(entry.getKey(), entry.getValue());
     }
 
-    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, rsClientBuilderWrapperMock);
+    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, clientBuilderSupplier);
     dockerClient.info();
 
     ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);

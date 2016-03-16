@@ -19,17 +19,6 @@
 
 package com.spotify.docker.client;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
-import com.google.common.net.HostAndPort;
-
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
 import com.spotify.docker.client.messages.Container;
@@ -49,6 +38,18 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.Version;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -71,17 +72,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -102,6 +92,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -202,6 +204,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       new GenericType<List<RemovedImage>>() {
       };
 
+  private static final Supplier<ClientBuilder> DEFAULT_BUILDER_SUPPLIER =
+      new Supplier<ClientBuilder>() {
+        @Override
+        public ClientBuilder get() {
+          return ClientBuilder.newBuilder();
+        }
+      };
+
   private final Client client;
   private final Client noTimeoutClient;
 
@@ -253,16 +263,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param builder DefaultDockerClient builder
    */
   protected DefaultDockerClient(final Builder builder) {
-    this(builder, new RSClientBuilderWrapper.RealWrapper());
+    this(builder, DEFAULT_BUILDER_SUPPLIER);
   }
 
-  /**
-   * Open unit tests only
-   *
-   * @param builder                A {@link DefaultDockerClient.Builder}
-   * @param rsClientBuilderWrapper {@link RSClientBuilderWrapper}
-   */
-  DefaultDockerClient(final Builder builder, RSClientBuilderWrapper rsClientBuilderWrapper) {
+  @VisibleForTesting
+  DefaultDockerClient(final Builder builder, Supplier<ClientBuilder> clientBuilderSupplier) {
     URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
@@ -293,7 +298,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     this.authConfig = builder.authConfig;
 
-    this.client = rsClientBuilderWrapper.newBuilder().withConfig(config).build();
+    this.client = clientBuilderSupplier.get().withConfig(config).build();
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
@@ -301,7 +306,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
-    this.noTimeoutClient = rsClientBuilderWrapper.newBuilder()
+    this.noTimeoutClient = clientBuilderSupplier.get()
         .withConfig(config)
         .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
         .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
