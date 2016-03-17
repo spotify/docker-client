@@ -2555,6 +2555,33 @@ public class DefaultDockerClientTest {
     assertThat(info.hostConfig().restartPolicy().maxRetryCount(), is(retryCount));
   }
 
+
+  @Test
+  public void testIpcMode() throws DockerException, InterruptedException {
+    assumeTrue("Docker API should be at least v1.18 to support IpcMode, got "
+                    + sut.version().apiVersion(),
+            compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+
+    final HostConfig hostConfig = HostConfig.builder()
+            .ipcMode("host")
+            .build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .hostConfig(hostConfig)
+            .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final String containerId = container.id();
+    sut.startContainer(containerId);
+
+    final ContainerInfo info = sut.inspectContainer(containerId);
+
+    assertThat(info.hostConfig().ipcMode(), is("host"));
+
+  }
+
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());
   }

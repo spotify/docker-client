@@ -57,6 +57,7 @@ public class HostConfig {
   @JsonProperty("CgroupParent") private String cgroupParent;
   @JsonProperty("RestartPolicy") private RestartPolicy restartPolicy;
   @JsonProperty("LogConfig") private LogConfig logConfig;
+  @JsonProperty("IpcMode") private String ipcMode;
 
   private HostConfig() {
   }
@@ -85,6 +86,7 @@ public class HostConfig {
     this.cgroupParent = builder.cgroupParent;
     this.restartPolicy = builder.restartPolicy;
     this.logConfig = builder.logConfig;
+    this.ipcMode = builder.ipcMode;
   }
 
   public List<String> binds() {
@@ -177,6 +179,10 @@ public class HostConfig {
 
   public LogConfig logConfig() {
     return logConfig;
+  }
+
+  public String ipcMode() {
+    return ipcMode;
   }
 
   @Override
@@ -273,6 +279,11 @@ public class HostConfig {
       return false;
     }
 
+    if (ipcMode != null ? !ipcMode.equals(that.ipcMode)
+            : that.ipcMode != null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -301,6 +312,7 @@ public class HostConfig {
     result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
     result = 31 * result + (restartPolicy != null ? restartPolicy.hashCode() : 0);
     result = 31 * result + (logConfig != null ? logConfig.hashCode() : 0);
+    result = 31 * result + (ipcMode != null ? ipcMode.hashCode() : 0);
     return result;
   }
 
@@ -330,6 +342,7 @@ public class HostConfig {
         .add("cgroupParent", cgroupParent)
         .add("restartPolicy", restartPolicy)
         .add("logConfig", logConfig)
+        .add("ipcMode", ipcMode)
         .toString();
   }
 
@@ -489,6 +502,7 @@ public class HostConfig {
     public String cgroupParent;
     public RestartPolicy restartPolicy;
     public LogConfig logConfig;
+    public String ipcMode;
 
     private Builder() {
     }
@@ -517,6 +531,7 @@ public class HostConfig {
       this.cgroupParent = hostConfig.cgroupParent;
       this.restartPolicy = hostConfig.restartPolicy;
       this.logConfig = hostConfig.logConfig;
+      this.ipcMode = hostConfig.ipcMode;
     }
 
     public Builder binds(final List<String> binds) {
@@ -835,6 +850,15 @@ public class HostConfig {
 
     public LogConfig logConfig() {
       return logConfig;
+    }
+
+    public Builder ipcMode(final String ipcMode) {
+      this.ipcMode = ipcMode;
+      return this;
+    }
+
+    public String ipcMode() {
+      return ipcMode;
     }
 
     public HostConfig build() {
