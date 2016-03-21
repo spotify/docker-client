@@ -17,8 +17,11 @@
 
 package com.spotify.docker.client.messages;
 
+import com.spotify.docker.client.jackson.UnixTimestampDeserializer;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Date;
 
@@ -31,7 +34,10 @@ public class Event {
   @JsonProperty("status") private String status;
   @JsonProperty("id") private String id;
   @JsonProperty("from") private String from;
-  @JsonProperty("time") private Date time;
+
+  @JsonProperty("time")
+  @JsonDeserialize(using= UnixTimestampDeserializer.class)
+  private Date time;
 
   public String status() {
     return status;
@@ -49,4 +55,13 @@ public class Event {
     return time == null ? null : new Date(time.getTime());
   }
 
+  @Override
+  public String toString() {
+    return "Event{" +
+           "status='" + status + '\'' +
+           ", id='" + id + '\'' +
+           ", from='" + from + '\'' +
+           ", time=" + time +
+           '}';
+  }
 }
