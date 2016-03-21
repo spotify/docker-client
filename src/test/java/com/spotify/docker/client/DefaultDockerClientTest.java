@@ -65,6 +65,8 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.hamcrest.CustomTypeSafeMatcher;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -2437,29 +2439,17 @@ public class DefaultDockerClientTest {
     final String originalName = randomName();
     final String newName = randomName();
 
-    // Bizarrely, docker inspect returns the container name with a leading "/"
-    // in API 1.20 and above. See https://github.com/docker/docker/issues/18558.
-    final String originalComparisonName;
-    final String newComparisonName;
-    if (dockerApiVersionSupported("1.20")) {
-      originalComparisonName = "/" + originalName;
-      newComparisonName = "/" + newName;
-    } else {
-      originalComparisonName = originalName;
-      newComparisonName = newName;
-    }
-
     // Create a container with originalName
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .build();
     final ContainerCreation creation = sut.createContainer(config, originalName);
     final String id = creation.id();
-    assertThat(sut.inspectContainer(id).name(), equalTo(originalComparisonName));
+    assertThat(sut.inspectContainer(id).name(), equalToIgnoreLeadingSlash(originalName));
 
     // Rename to newName
     sut.renameContainer(id, newName);
-    assertThat(sut.inspectContainer(id).name(), equalTo(newComparisonName));
+    assertThat(sut.inspectContainer(id).name(), equalToIgnoreLeadingSlash(newName));
 
     // We should no longer find a container with originalName
     try {
@@ -2468,7 +2458,7 @@ public class DefaultDockerClientTest {
     } catch (ContainerNotFoundException e) {
       // Note, even though property in ContainerNotFoundException is named containerId,
       // in this case it holds the name, since that is what we passed to inspectContainer.
-      assertThat(e.getContainerId(), equalTo(originalName));
+      assertThat(e.getContainerId(), equalToIgnoreLeadingSlash(originalName));
     }
 
     // Try to rename to a disallowed name (not matching /?[a-zA-Z0-9_-]+).
@@ -2495,7 +2485,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerCreation creation2 = sut.createContainer(config2, originalName);
     final String id2 = creation2.id();
-    assertThat(sut.inspectContainer(id2).name(), equalTo(originalComparisonName));
+    assertThat(sut.inspectContainer(id2).name(), equalToIgnoreLeadingSlash(originalName));
 
     // Try to rename another container to newName. Should get a ContainerRenameConflictException.
     try {
@@ -2503,7 +2493,7 @@ public class DefaultDockerClientTest {
       fail("We should not be able to rename container " + id2 + " to " + newName);
     } catch (ContainerRenameConflictException e) {
       assertThat(e.getContainerId(), equalTo(id2));
-      assertThat(e.getNewName(), equalTo(newName));
+      assertThat(e.getNewName(), equalToIgnoreLeadingSlash(newName));
     } catch (DockerRequestException ignored) {
       // This is a docker bug. It responds with HTTP 500 when it should be HTTP 409.
       // See https://github.com/docker/docker/issues/21016.
@@ -2519,6 +2509,18 @@ public class DefaultDockerClientTest {
     } catch (ContainerNotFoundException e) {
       assertThat(e.getContainerId(), equalTo(badId));
     }
+  }
+
+  private static Matcher<String> equalToIgnoreLeadingSlash(final String expected) {
+    final String description = "a String equal to " + expected + ", ignoring any leading '/'";
+    return new CustomTypeSafeMatcher<String>(description) {
+      @Override
+      protected boolean matchesSafely(final String actual) {
+        return actual.startsWith("/")
+               ? actual.substring(1).equals(expected)
+               : actual.equals(expected);
+      }
+    };
   }
 
   private void testRestartPolicy(HostConfig.RestartPolicy restartPolicy) throws Exception {
