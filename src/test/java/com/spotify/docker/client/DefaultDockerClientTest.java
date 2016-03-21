@@ -195,6 +195,8 @@ public class DefaultDockerClientTest {
 
   private AuthConfig authConfig;
 
+  private String dockerApiVersion;
+
   @Before
   public void setup() throws Exception {
     authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
@@ -211,6 +213,8 @@ public class DefaultDockerClientTest {
     dockerEndpoint = builder.uri();
 
     sut = builder.build();
+
+    dockerApiVersion = sut.version().apiVersion();
 
     System.out.printf("- %s\n", testName.getMethodName());
   }
@@ -239,12 +243,15 @@ public class DefaultDockerClientTest {
   private void requireDockerApiVersion(final String required, final String functionality)
       throws Exception {
 
-    final String actualVersion = sut.version().apiVersion();
     final String msg = String.format(
         "Docker API should be at least v%s to support %s but runtime version is %s",
-        required, functionality, actualVersion);
+        required, functionality, dockerApiVersion);
 
-    assumeTrue(msg, compareVersion(actualVersion, required) >= 0);
+    assumeTrue(msg, dockerApiVersionSupported(required));
+  }
+
+  private boolean dockerApiVersionSupported(String expected) throws Exception {
+    return compareVersion(dockerApiVersion, expected) >= 0;
   }
 
   @Test
@@ -748,7 +755,7 @@ public class DefaultDockerClientTest {
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    final String pullingStr = compareVersion(sut.version().apiVersion(), "1.20") >= 0 ?
+    final String pullingStr =  dockerApiVersionSupported("1.20") ?
                               "Pulling from library/busybox" : "Pulling from busybox";
     assertThat(out.toString(), allOf(containsString(pullingStr),
                                      containsString("Image is up to date")));
@@ -954,7 +961,7 @@ public class DefaultDockerClientTest {
     // Copy files to container
     // Docker API should be at least v1.20 to support extracting an archive of files or folders
     // to a directory in a container
-    if (compareVersion(sut.version().apiVersion(), "1.20") >= 0) {
+    if (dockerApiVersionSupported("1.20")) {
       try {
         sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
       } catch (Exception e) {
@@ -2029,12 +2036,20 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    final String execId = sut.execCreate(containerId, new String[] {"sh", "-c", "exit 2"},
-                                         ExecCreateParam.attachStdout(),
-                                         ExecCreateParam.attachStderr(),
-                                         ExecCreateParam.attachStdin(),
-                                         ExecCreateParam.tty(),
-                                         ExecCreateParam.user("1000"));
+    final List<ExecCreateParam> createParams = Lists.newArrayList(
+        ExecCreateParam.attachStdout(),
+        ExecCreateParam.attachStderr(),
+        ExecCreateParam.attachStdin(),
+        ExecCreateParam.tty());
+
+    // some functionality in this test depends on API 1.19 (exec user)
+    final boolean execUserSupported = dockerApiVersionSupported("1.19");
+    if (execUserSupported) {
+      createParams.add(ExecCreateParam.user("1000"));
+    }
+
+    final String execId = sut.execCreate(containerId, new String[]{"sh", "-c", "exit 2"},
+                                         createParams.toArray(new ExecCreateParam[]{}));
 
     log.info("execId = {}", execId);
     try (final LogStream stream = sut.execStart(execId)) {
@@ -2051,7 +2066,9 @@ public class DefaultDockerClientTest {
 
     final ProcessConfig processConfig = state.processConfig();
     assertThat(processConfig.privileged(), is(false));
-    assertThat(processConfig.user(), is("1000"));
+    if (execUserSupported) {
+      assertThat(processConfig.user(), is("1000"));
+    }
     assertThat(processConfig.tty(), is(true));
     assertThat(processConfig.entrypoint(), is("sh"));
     assertThat(processConfig.arguments(),
@@ -2424,7 +2441,7 @@ public class DefaultDockerClientTest {
     // in API 1.20 and above. See https://github.com/docker/docker/issues/18558.
     final String originalComparisonName;
     final String newComparisonName;
-    if (compareVersion(sut.version().apiVersion(), "1.20") >= 0) {
+    if (dockerApiVersionSupported("1.20")) {
       originalComparisonName = "/" + originalName;
       newComparisonName = "/" + newName;
     } else {
