@@ -119,6 +119,12 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
+import static com.spotify.docker.client.DockerClient.ListContainersParam.allContainers;
+import static com.spotify.docker.client.DockerClient.ListContainersParam.withLabel;
+import static com.spotify.docker.client.DockerClient.ListContainersParam.withStatusCreated;
+import static com.spotify.docker.client.DockerClient.ListContainersParam.withStatusExited;
+import static com.spotify.docker.client.DockerClient.ListContainersParam.withStatusPaused;
+import static com.spotify.docker.client.DockerClient.ListContainersParam.withStatusRunning;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.byName;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
@@ -1302,8 +1308,8 @@ public class DefaultDockerClientTest {
     assertThat(inspection.mounts().isEmpty(), equalTo(true));
 
     final List<Container> containers =
-        sut.listContainers(DockerClient.ListContainersParam.allContainers(),
-                           DockerClient.ListContainersParam.withStatusExited());
+        sut.listContainers(allContainers(),
+                           withStatusExited());
 
     Container targetCont = null;
     for (Container container : containers) {
@@ -2084,7 +2090,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testListContainers() throws DockerException, InterruptedException {
+  public void testListContainers() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
     final String label = "foo";
@@ -2100,46 +2106,49 @@ public class DefaultDockerClientTest {
     final String containerId = containerCreation.id();
 
     // filters={"status":["created"]}
-    final List<Container> created = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.withStatusCreated());
+    // can only filter by created status in docker API version >= 1.20 - the status of "created"
+    // did not exist in docker prior to 1.8.0
+    final DockerClient.ListContainersParam[] createdParams =
+        dockerApiVersionSupported("1.20")
+        ? new DockerClient.ListContainersParam[]{allContainers(), withStatusCreated()}
+        : new DockerClient.ListContainersParam[]{allContainers()};
+
+    final List<Container> created = sut.listContainers(createdParams);
+    assertThat("listContainers is unexpectedly empty",
+               created, not(empty()));
     assertThat(containerId, isIn(containersToIds(created)));
 
     // filters={"status":["running"]}
     sut.startContainer(containerId);
-    final List<Container> running = sut.listContainers(
-        DockerClient.ListContainersParam.withStatusRunning());
+    final List<Container> running = sut.listContainers(withStatusRunning());
     assertThat(containerId, isIn(containersToIds(running)));
 
     // filters={"status":["paused"]}
     sut.pauseContainer(containerId);
-    final List<Container> paused = sut.listContainers(
-        DockerClient.ListContainersParam.withStatusPaused());
+    final List<Container> paused = sut.listContainers(withStatusPaused());
     assertThat(containerId, isIn(containersToIds(paused)));
 
     // filters={"status":["exited"]}
     sut.unpauseContainer(containerId);
     sut.stopContainer(containerId, 0);
-    final List<Container> allExited = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.withStatusExited());
+    final List<Container> allExited = sut.listContainers(allContainers(), withStatusExited());
     assertThat(containerId, isIn(containersToIds(allExited)));
 
     // filters={"status":["created","paused","exited"]}
     // Will work, i.e. multiple "status" filters are ORed
     final List<Container> multipleStati = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.withStatusCreated(),
-        DockerClient.ListContainersParam.withStatusPaused(),
-        DockerClient.ListContainersParam.withStatusExited());
+        allContainers(),
+        withStatusCreated(),
+        withStatusPaused(),
+        withStatusExited());
     assertThat(containerId, isIn(containersToIds(multipleStati)));
 
     // filters={"status":["exited"],"labels":["foo=bar"]}
     // Shows that labels play nicely with other filters
     final List<Container> statusAndLabels = sut.listContainers(
-        DockerClient.ListContainersParam.allContainers(),
-        DockerClient.ListContainersParam.withStatusExited(),
-        DockerClient.ListContainersParam.withLabel(label, labelValue));
+        allContainers(),
+        withStatusExited(),
+        withLabel(label, labelValue));
     assertThat(containerId, isIn(containersToIds(statusAndLabels)));
   }
 
@@ -2190,28 +2199,28 @@ public class DefaultDockerClientTest {
 
     // Check that both containers are listed when we filter with a "name" label
     final List<Container> containers =
-        sut.listContainers(DockerClient.ListContainersParam.withLabel("name"));
+        sut.listContainers(withLabel("name"));
     final List<String> ids = containersToIds(containers);
     assertThat(ids.size(), equalTo(2));
     assertThat(ids, containsInAnyOrder(id, id2));
 
     // Check that the first container is listed when we filter with a "foo=bar" label
     final List<Container> barContainers =
-        sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "bar"));
+        sut.listContainers(withLabel("foo", "bar"));
     final List<String> barIds = containersToIds(barContainers);
     assertThat(barIds.size(), equalTo(1));
     assertThat(barIds, contains(id));
 
     // Check that the second container is listed when we filter with a "foo=baz" label
     final List<Container> bazContainers =
-        sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "baz"));
+        sut.listContainers(withLabel("foo", "baz"));
     final List<String> bazIds = containersToIds(bazContainers);
     assertThat(bazIds.size(), equalTo(1));
     assertThat(bazIds, contains(id2));
 
     // Check that no containers are listed when we filter with a "foo=qux" label
     final List<Container> quxContainers =
-        sut.listContainers(DockerClient.ListContainersParam.withLabel("foo", "qux"));
+        sut.listContainers(withLabel("foo", "qux"));
     assertThat(quxContainers.size(), equalTo(0));
   }
 
