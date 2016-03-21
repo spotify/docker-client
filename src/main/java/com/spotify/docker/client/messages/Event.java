@@ -36,7 +36,7 @@ public class Event {
   @JsonProperty("from") private String from;
 
   @JsonProperty("time")
-  @JsonDeserialize(using= UnixTimestampDeserializer.class)
+  @JsonDeserialize(using = UnixTimestampDeserializer.class)
   private Date time;
 
   public String status() {
