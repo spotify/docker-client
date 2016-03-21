@@ -236,6 +236,17 @@ public class DefaultDockerClientTest {
     sut.close();
   }
 
+  private void requireDockerApiVersion(final String required, final String functionality)
+      throws Exception {
+
+    final String actualVersion = sut.version().apiVersion();
+    final String msg = String.format(
+        "Docker API should be at least v%s to support %s but runtime version is %s",
+        required, functionality, actualVersion);
+
+    assumeTrue(msg, compareVersion(actualVersion, required) >= 0);
+  }
+
   @Test
   public void testSearchImage() throws Exception {
     // when
@@ -263,9 +274,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdWithBuildargs() throws Exception {
-    assumeTrue("We need Docker API >= v1.21 to run this test." +
-               "This Docker API is " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    requireDockerApiVersion("1.21", "build args");
+
     final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
     final BuildParam buildParam =
@@ -625,9 +635,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildWithPull() throws Exception {
-    assumeTrue("We need Docker API >= v1.19 to run this test." +
-               "This Docker API is " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
+    requireDockerApiVersion("1.19", "build with pull");
 
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String pullMsg = "Pulling from";
@@ -799,9 +807,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testCopyToContainer() throws Exception {
-    assumeTrue("We need Docker API >= v1.20 to run this test." +
-               "This Docker API is " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.20") >= 0);
+    requireDockerApiVersion("1.20", "copyToContainer");
 
     // Pull image
     sut.pull(BUSYBOX_LATEST);
@@ -1218,9 +1224,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithHostConfig() throws Exception {
-    assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
-               "HostConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+    requireDockerApiVersion("1.18", "Container creation with HostConfig");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1254,10 +1258,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithAppArmorLogs() throws Exception {
-    assumeTrue(
-        "Docker API should be at least v1.21 to support Container Creation with "
-        + "HostConfig, got " + sut.version().apiVersion(),
-        compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    requireDockerApiVersion("1.21", "StopSignal and AppArmorProfile");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1308,13 +1309,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithCpuQuota() throws Exception {
-    final String requiredVersion = "1.19";
-    final String apiVersion = sut.version().apiVersion();
-    final String msg = String.format(
-        "Docker API should be at least v%s to support Container Creation with HostConfig, got %s",
-        requiredVersion, apiVersion
-    );
-    assumeTrue(msg, compareVersion(apiVersion, requiredVersion) >= 0);
+    requireDockerApiVersion("1.19", "Container Creation with HostConfig");
 
     assumeFalse(CIRCLECI);
 
@@ -1590,10 +1585,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExtraHosts() throws Exception {
-
-    assumeTrue("Docker API should be at least v1.15 to support Container Creation with " +
-               "HostConfig ExtraHosts, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.15") >= 0);
+    requireDockerApiVersion("1.15", "Container Creation with HostConfig.ExtraHosts");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1626,9 +1618,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogDriver() throws Exception {
-    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
-               "HostConfig LogConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    requireDockerApiVersion("1.21", "Container Creation with HostConfig.LogConfig");
 
     sut.pull(BUSYBOX_LATEST);
     final String name = randomName();
@@ -1882,9 +1872,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogsSince() throws Exception {
-    assumeTrue("We need Docker API >= v1.19 to run this test." +
-               "This Docker API is " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
+    requireDockerApiVersion("1.19", "/logs?since=timestamp");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1992,10 +1980,8 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testExec() throws DockerException, InterruptedException, IOException {
-    assumeTrue("Docker API should be at least v1.15 to support Exec, got "
-               + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.15") >= 0);
+  public void testExec() throws Exception {
+    requireDockerApiVersion("1.15", "Exec");
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -2026,10 +2012,8 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testExecInspect() throws DockerException, InterruptedException, IOException {
-    assumeTrue("Docker API should be at least v1.16 to support Exec Inspect, got "
-               + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.16") >= 0);
+  public void testExecInspect() throws Exception {
+    requireDockerApiVersion("1.16", "Exec Inspect");
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -2141,10 +2125,8 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testContainerLabels() throws DockerException, InterruptedException {
-    assumeTrue("Docker API should be at least v1.18 to support Labels, got "
-               + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+  public void testContainerLabels() throws Exception {
+    requireDockerApiVersion("1.18", "labels");
     sut.pull(BUSYBOX_LATEST);
 
     final Map<String, String> labels = ImmutableMap.of(
@@ -2215,11 +2197,8 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testImageLabels() throws DockerException,
-                                       InterruptedException, IOException {
-    assumeTrue("Docker API should be at least v1.17 to support Labels, got "
-               + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.17") >= 0);
+  public void testImageLabels() throws Exception {
+    requireDockerApiVersion("1.17", "image labels");
 
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryWithImageLabels").getPath();
@@ -2276,9 +2255,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMacAddress() throws Exception {
-    assumeTrue("Docker API should be at least v1.18 to support Mac Address, got "
-               + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+    requireDockerApiVersion("1.18", "Mac Address");
+
     sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -2293,10 +2271,8 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testStats() throws DockerException, InterruptedException {
-    assumeTrue("Docker API should be at least v1.19 to support stats without streaming, got "
-               + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.19") >= 0);
+  public void testStats() throws Exception {
+    requireDockerApiVersion("1.19", "stats without streaming");
 
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -2315,9 +2291,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testNetworks() throws Exception {
-    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
-               "HostConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
 
@@ -2357,9 +2331,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testNetworksConnectContainerShouldFailIfContainerNotRunning() throws Exception {
-    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
-               "HostConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
     final String networkName = randomName();
@@ -2383,9 +2355,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testNetworksConnectContainer() throws Exception {
-    assumeTrue("Docker API should be at least v1.21 to support Container Creation with " +
-               "HostConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.21") >= 0);
+    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
     final String networkName = randomName();
@@ -2563,10 +2533,8 @@ public class DefaultDockerClientTest {
 
 
   @Test
-  public void testIpcMode() throws DockerException, InterruptedException {
-    assumeTrue("Docker API should be at least v1.18 to support IpcMode, got "
-                    + sut.version().apiVersion(),
-            compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+  public void testIpcMode() throws Exception {
+    requireDockerApiVersion("1.18", "IpcMode");
 
     final HostConfig hostConfig = HostConfig.builder()
             .ipcMode("host")
