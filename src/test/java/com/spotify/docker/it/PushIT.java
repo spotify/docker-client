@@ -108,6 +108,7 @@ public class PushIT {
   }
 
   @After
+  @SuppressWarnings("deprecated")
   public void tearDown() throws Exception {
     if (!isNullOrEmpty(registryContainerId)) {
       client.stopContainer(registryContainerId, SECONDS_TO_WAIT_BEFORE_KILL);

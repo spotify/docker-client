@@ -201,6 +201,11 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.3</version>
         <configuration>
+          <compilerArgs>
+            <arg>-Xlint:all,-serial</arg>
+          </compilerArgs>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
           <source>1.7</source>
           <target>1.7</target>
         </configuration>

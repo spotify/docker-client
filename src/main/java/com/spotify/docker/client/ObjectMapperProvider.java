@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
   private static final Logger log = LoggerFactory.getLogger(ObjectMapperProvider.class);
