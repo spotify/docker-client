@@ -55,6 +55,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
@@ -99,6 +100,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1389,25 +1391,32 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
 
-    EventStream eventStream = sut.events(DockerClient.EventsParam.since(date.getTime() / 1000));
+    final Predicate<Event> hasStatus = new Predicate<Event>() {
+      @Override
+      public boolean apply(final Event input) {
+        return input.status() != null;
+      }
+    };
 
-    final Event pullEvent = eventStream.next();
-    assertThat(pullEvent.status(), equalTo("pull"));
-    assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
+    try (EventStream stream = sut.events(DockerClient.EventsParam.since(date.getTime() / 1000))) {
+      final Iterator<Event> events = Iterators.filter(stream, hasStatus);
 
-    final Event createEvent = eventStream.next();
-    assertThat(createEvent.status(), equalTo("create"));
-    assertThat(createEvent.id(), equalTo(container.id()));
-    assertThat(createEvent.from(), startsWith("busybox:"));
-    assertThat(createEvent.time(), notNullValue());
+      final Event pullEvent = events.next();
+      assertThat(pullEvent.status(), equalTo("pull"));
+      assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
 
-    final Event startEvent = eventStream.next();
-    assertThat(startEvent.status(), equalTo("start"));
-    assertThat(startEvent.id(), equalTo(container.id()));
-    assertThat(startEvent.from(), startsWith("busybox:"));
-    assertThat(startEvent.time(), notNullValue());
+      final Event createEvent = events.next();
+      assertThat(createEvent.status(), equalTo("create"));
+      assertThat(createEvent.id(), equalTo(container.id()));
+      assertThat(createEvent.from(), startsWith("busybox:"));
+      assertThat(createEvent.time(), notNullValue());
 
-    eventStream.close();
+      final Event startEvent = events.next();
+      assertThat(startEvent.status(), equalTo("start"));
+      assertThat(startEvent.id(), equalTo(container.id()));
+      assertThat(startEvent.from(), startsWith("busybox:"));
+      assertThat(startEvent.time(), notNullValue());
+    }
   }
 
   @Test(timeout = 5000)
