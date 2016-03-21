@@ -1307,9 +1307,14 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithCpuQuota() throws Exception {
-    assumeTrue("Docker API should be at least v1.18 to support Container Creation with " +
-               "HostConfig, got " + sut.version().apiVersion(),
-               compareVersion(sut.version().apiVersion(), "1.18") >= 0);
+    final String requiredVersion = "1.19";
+    final String apiVersion = sut.version().apiVersion();
+    final String msg = String.format(
+        "Docker API should be at least v%s to support Container Creation with HostConfig, got %s",
+        requiredVersion, apiVersion
+    );
+    assumeTrue(msg, compareVersion(apiVersion, requiredVersion) >= 0);
+
     assumeFalse(CIRCLECI);
 
     sut.pull(BUSYBOX_LATEST);
