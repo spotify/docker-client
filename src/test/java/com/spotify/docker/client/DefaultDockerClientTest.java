@@ -28,10 +28,12 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerMount;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.HostConfig.Bind;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
@@ -150,6 +152,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -262,6 +265,21 @@ public class DefaultDockerClientTest {
 
   private boolean dockerApiVersionSupported(String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
+  }
+
+  private boolean dockerApiVersionLessThan(String expected) throws Exception {
+    return compareVersion(dockerApiVersion, expected) < 0;
+  }
+
+  private void requireDockerApiVersionLessThan(final String required, final String functionality)
+      throws Exception {
+
+    final String actualVersion = sut.version().apiVersion();
+    final String msg = String.format(
+        "Docker API should be less than v%s to support %s but runtime version is %s",
+        required, functionality, actualVersion);
+
+    assumeTrue(msg, dockerApiVersionLessThan(required));
   }
 
   @Test
@@ -1672,6 +1690,95 @@ public class DefaultDockerClientTest {
     final HostConfig actual = sut.inspectContainer(id).hostConfig();
 
     assertThat(actual.logConfig(), equalTo(expected.logConfig()));
+  }
+
+  @Test
+  public void testContainerVolumesOldStyle() throws Exception {
+    requireDockerApiVersionLessThan("1.20",
+        "Creating a container with volumes and inspecting volumes in old style");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .binds(Bind.from("/local/path")
+            .to("/remote/path")
+            .build())
+        .build();
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .volumes("/foo")
+        .hostConfig(hostConfig)
+        .build();
+    final String id = sut.createContainer(volumeConfig).id();
+    final ContainerInfo volumeContainer = sut.inspectContainer(id);
+
+    final List<String> expectedDestinations = Lists.newArrayList("/foo", "/remote/path");
+    final Set<String> actualDestinations = volumeContainer.volumes().keySet();
+
+    // To make sure two sets are equal, when they may be in different orders,
+    // we check that each one contains all the elements of the other.
+    // Equivalent to, in math, proving two sets are one-to-one by proving
+    // they are injective ("into") and surjective ("onto").
+    assertThat(actualDestinations, everyItem(isIn(expectedDestinations)));
+    assertThat(expectedDestinations, everyItem(isIn(actualDestinations)));
+
+    // The local paths returned from ContainerInfo.volumes() are paths in the docker
+    // file system. So they are not predictable (at least by me, the test writer,
+    // John Flavin.) However, the local path we asked for will always be included as part of
+    // the path that is returned. So we can just check that one in the list of items
+    // we got back contains our expected path.
+    final String expectedLocalPath = "/local/path";
+    assertThat(volumeContainer.volumes().values(), hasItem(containsString(expectedLocalPath)));
+  }
+
+  @Test
+  public void testContainerVolumes() throws Exception {
+    requireDockerApiVersion("1.20",
+        "Creating a container with volumes and inspecting volumes in new style");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final Bind bind =
+            Bind.from("/some/path")
+                .to("/some/other/path")
+                .readOnly(true)
+                .build();
+    final HostConfig hostConfig = HostConfig.builder()
+            .binds("/local/path:/remote/path")
+            .binds(bind)
+            .build();
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .volumes("/foo")
+            .hostConfig(hostConfig)
+            .build();
+    final String id = sut.createContainer(volumeConfig).id();
+    final ContainerInfo volumeContainer = sut.inspectContainer(id);
+    final List<ContainerMount> containerMounts = volumeContainer.mounts();
+
+    final List<String> expectedDesintations =
+            Lists.newArrayList("/foo", "/remote/path", "/some/other/path");
+    final List<String> actualDesintations =
+            Lists.transform(Lists.newArrayList(containerMounts),
+                    new Function<ContainerMount, String>() {
+                      @Override
+                      public String apply(ContainerMount containerMount) {
+                        return containerMount.destination();
+                      }
+                    });
+    assertThat(expectedDesintations, everyItem(isIn(actualDesintations)));
+
+    final List<String> expectedSources =
+            Lists.newArrayList("/local/path", "/some/path");
+    final List<String> actualSources =
+            Lists.transform(Lists.newArrayList(containerMounts),
+                    new Function<ContainerMount, String>() {
+                      @Override
+                      public String apply(ContainerMount containerMount) {
+                        return containerMount.source();
+                      }
+                    });
+    assertThat(expectedSources, everyItem(isIn(actualSources)));
   }
 
   @Test
