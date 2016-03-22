@@ -7,7 +7,6 @@ language: java
 
 jdk:
   - oraclejdk7
-  - oraclejdk8
 
 env: 
   - DOCKER_VERSION=1.6.0 DOCKER_HOST=tcp://127.0.0.1:2375
@@ -20,7 +19,8 @@ before_install:
   - dpkg -l | grep docker
   # install the version of docker in the DOCKER_VERSION env var
   - ./.travis.sh install_docker
-  # and double-check that the version is correct
+  # double-check that the version/config is correct
+  - ./.travis.sh dump_docker_config
   - docker version
   - docker info
 

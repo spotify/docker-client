@@ -3,7 +3,7 @@ set -e
 
 show_help() {
   echo "Usage: $0 <command>"
-  echo "Commands: install_docker"
+  echo "Commands: install_docker, dump_docker_config"
 }
 
 if [[ -z $1 ]]; then
@@ -65,6 +65,21 @@ end script
 	    echo 'DOCKER_OPTS="-D=true -H=unix:///var/run/docker.sock -H=tcp://127.0.0.1:2375"' | sudo tee -a /etc/default/docker
       sudo restart docker
     fi
+
+    ;;
+
+  dump_docker_config)
+    # output the upstart config and default config in case they are needed for
+    # troubleshooting
+    echo "Contents of /etc/init/docker.conf:"
+    sudo cat /etc/init/docker.conf
+
+    echo "Contents of /etc/default/docker"
+    sudo cat /etc/default/docker || :
+
+    echo "Contents of /var/log/upstart/docker.log"
+    sudo cat /var/log/upstart/docker.log
+
     ;;
 
   *)
