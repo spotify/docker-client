@@ -1,0 +1,28 @@
+sudo: required
+
+services:
+  - docker
+
+language: java
+
+jdk:
+  - oraclejdk7
+  - oraclejdk8
+
+env: 
+  - DOCKER_VERSION=1.6.0 DOCKER_HOST=tcp://127.0.0.1:2375
+  - DOCKER_VERSION=1.6.0 DOCKER_HOST=unix:///var/run/docker.sock
+  - DOCKER_VERSION=1.8.2 DOCKER_HOST=tcp://127.0.0.1:2375
+  - DOCKER_VERSION=1.8.2 DOCKER_HOST=unix:///var/run/docker.sock
+
+before_install:
+  # check what version of docker is installed beforehand
+  - dpkg -l | grep docker
+  # install the version of docker in the DOCKER_VERSION env var
+  - ./.travis.sh install_docker
+  # and double-check that the version is correct
+  - docker version
+  - docker info
+
+# TODO spin up registry, add mvn verify
+script: mvn test

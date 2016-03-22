@@ -184,6 +184,7 @@ public class DefaultDockerClientTest {
   private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
 
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
+  private static final boolean TRAVIS = "true".equals(getenv("TRAVIS"));
 
   private static final String AUTH_EMAIL = "dxia+2@spotify.com";
   private static final String AUTH_USERNAME = "dxia2";
@@ -1510,6 +1511,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testSsl() throws Exception {
+    assumeFalse(TRAVIS);
+
     // Build a run a container that contains a Docker instance configured with our SSL cert/key
     final String imageName = "test-docker-ssl";
     final String expose = "2376/tcp";
