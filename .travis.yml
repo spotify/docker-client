@@ -26,3 +26,7 @@ before_install:
 
 # TODO spin up registry, add mvn verify
 script: mvn test
+
+after_success:
+  # test coverage reporting
+  - bash <(curl -s https://codecov.io/bash)
