@@ -24,7 +24,6 @@ before_install:
   - docker version
   - docker info
 
-# TODO spin up registry, add mvn verify
 script: mvn test
 
 after_success:
