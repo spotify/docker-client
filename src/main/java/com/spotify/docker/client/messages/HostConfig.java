@@ -50,6 +50,7 @@ public class HostConfig {
   @JsonProperty("CapDrop") private ImmutableList<String> capDrop;
   @JsonProperty("NetworkMode") private String networkMode;
   @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
+  @JsonProperty("Devices") private ImmutableList<Device> devices;
   @JsonProperty("Memory") private Long memory;
   @JsonProperty("MemorySwap") private Long memorySwap;
   @JsonProperty("CpuShares") private Long cpuShares;
@@ -79,6 +80,7 @@ public class HostConfig {
     this.capDrop = builder.capDrop;
     this.networkMode = builder.networkMode;
     this.securityOpt = builder.securityOpt;
+    this.devices = builder.devices;
     this.memory = builder.memory;
     this.memorySwap = builder.memorySwap;
     this.cpuShares = builder.cpuShares;
@@ -148,6 +150,10 @@ public class HostConfig {
 
   public List<String> securityOpt() {
     return securityOpt;
+  }
+  
+  public List<Device> devices() {
+    return devices;
   }
 
   public Long memory() {
@@ -245,6 +251,9 @@ public class HostConfig {
     if (securityOpt != null ? !securityOpt.equals(that.securityOpt) : that.securityOpt != null) {
       return false;
     }
+    if (devices != null ? !devices.equals(that.devices) : that.devices != null) {
+      return false;
+    }
 
     if (memory != null ? !memory.equals(that.memory) : that.memory != null) {
       return false;
@@ -305,6 +314,7 @@ public class HostConfig {
     result = 31 * result + (capDrop != null ? capDrop.hashCode() : 0);
     result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
     result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
+    result = 31 * result + (devices != null ? devices.hashCode() : 0);
     result = 31 * result + (memory != null ? memory.hashCode() : 0);
     result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
     result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
@@ -335,6 +345,7 @@ public class HostConfig {
         .add("capDrop", capDrop)
         .add("networkMode", networkMode)
         .add("securityOpt", securityOpt)
+        .add("devices", devices)
         .add("memory", memory)
         .add("memorySwap", memorySwap)
         .add("cpuShares", cpuShares)
@@ -495,6 +506,7 @@ public class HostConfig {
     private ImmutableList<String> capDrop;
     private String networkMode;
     private ImmutableList<String> securityOpt;
+    private ImmutableList<Device> devices;
     public Long memory;
     public Long memorySwap;
     public Long cpuShares;
@@ -524,6 +536,7 @@ public class HostConfig {
       this.capDrop = hostConfig.capDrop;
       this.networkMode = hostConfig.networkMode;
       this.securityOpt = hostConfig.securityOpt;
+      this.devices = hostConfig.devices;
       this.memory = hostConfig.memory;
       this.memorySwap = hostConfig.memorySwap;
       this.cpuShares = hostConfig.cpuShares;
@@ -796,6 +809,25 @@ public class HostConfig {
       return securityOpt;
     }
 
+    public Builder devices(final List<Device> devices) {
+      if (devices != null && !devices.isEmpty()) {
+        this.devices = ImmutableList.copyOf(devices);
+      }
+      return this;
+    }
+
+    public Builder devices(final Device... devices) {
+      if (devices != null && devices.length > 0) {
+        this.devices = ImmutableList.copyOf(devices);
+      }
+
+      return this;
+    }
+
+    public List<Device> devices() {
+      return devices;
+    }
+    
     public Builder memory(final Long memory) {
       this.memory = memory;
       return this;
@@ -987,5 +1019,3 @@ public class HostConfig {
     }
   }
 }
-
-
