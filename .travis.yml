@@ -35,3 +35,7 @@ script: mvn test
 after_success:
   # test coverage reporting
   - bash <(curl -s https://codecov.io/bash)
+
+# dump the docker logs in case they are needed for troubleshooting failures
+after_script:
+  - sudo cat /var/log/upstart/docker.log
