@@ -270,9 +270,16 @@ public class ApacheUnixSocket extends Socket {
         sleeping = false;
       }
     }
-    shutdownInput();
-    shutdownOutput();
-    inner.close();
+
+    try {
+      shutdownInput();
+    } finally {
+      try {
+        shutdownOutput();
+      } finally {
+        inner.close();
+      }
+    }
   }
 
   @Override
