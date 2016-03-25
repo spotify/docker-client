@@ -157,6 +157,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -666,7 +667,8 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
-    assertThat(info.id(), startsWith(imageId));
+    final String expextedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
+    assertThat(info.id(), startsWith(expextedId));
   }
 
   @Test
@@ -2363,38 +2365,47 @@ public class DefaultDockerClientTest {
     // Check that both test images are listed when we filter with a "name" label
     final List<Image> nameImages = sut.listImages(
         ListImagesParam.withLabel("name"));
-    final List<String> nameIds = imagesToShortIds(nameImages);
+    final List<String> nameIds =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(nameImages) :
+            imagesToShortIdsAndRemoveSha256(nameImages);
 
-    assertTrue(nameIds.contains(barId));
-    assertTrue(nameIds.contains(bazId));
+    assertThat(barId, isIn(nameIds));
+    assertThat(bazId, isIn(nameIds));
 
     // Check that the first image is listed when we filter with a "foo=bar" label
     final List<Image> barImages = sut.listImages(
         ListImagesParam.withLabel("foo", "bar"));
-    final List<String> barIds = imagesToShortIds(barImages);
-    assertNotNull(barIds);
-    assertTrue(barIds.contains(barId));
+    final List<String> barIds =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(barImages) :
+            imagesToShortIdsAndRemoveSha256(barImages);
+    assertThat(barId, isIn(barIds));
 
     // Check that we find the first image again when searching with the full
     // set of labels in a Map
     final List<Image> barImages2 = sut.listImages(
         ListImagesParam.withLabel("foo", "bar"),
         ListImagesParam.withLabel("name", "testtesttest"));
-    final List<String> barIds2 = imagesToShortIds(barImages2);
-    assertNotNull(barIds2);
-    assertTrue(barIds2.contains(barId));
+    final List<String> barIds2 =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(barImages2) :
+            imagesToShortIdsAndRemoveSha256(barImages2);
+    assertThat(barId, isIn(barIds2));
 
     // Check that the second image is listed when we filter with a "foo=baz" label
     final List<Image> bazImages = sut.listImages(
         ListImagesParam.withLabel("foo", "baz"));
-    final List<String> bazIds = imagesToShortIds(bazImages);
-    assertNotNull(bazIds);
-    assertTrue(bazIds.contains(bazId));
+    final List<String> bazIds =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(bazImages) :
+            imagesToShortIdsAndRemoveSha256(bazImages);;
+    assertThat(bazId, isIn(bazIds));
 
     // Check that no containers are listed when we filter with a "foo=qux" label
     final List<Image> quxImages = sut.listImages(
         ListImagesParam.withLabel("foo", "qux"));
-    assertThat(quxImages.size(), equalTo(0));
+    assertThat(quxImages, hasSize(0));
 
     // Clean up test images
     sut.removeImage(barName, true, true);
@@ -2765,6 +2776,16 @@ public class DefaultDockerClientTest {
       @Override
       public String apply(final Image image) {
         return image.id().substring(0, 12);
+      }
+    };
+    return Lists.transform(images, imageToShortId);
+  }
+
+  private List<String> imagesToShortIdsAndRemoveSha256(final List<Image> images) {
+    final Function<Image, String> imageToShortId = new Function<Image, String>() {
+      @Override
+      public String apply(final Image image) {
+        return image.id().replaceFirst("sha256:", "").substring(0, 12);
       }
     };
     return Lists.transform(images, imageToShortId);
