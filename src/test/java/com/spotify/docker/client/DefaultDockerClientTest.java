@@ -157,6 +157,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -2355,8 +2356,9 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testImageLabels() throws Exception {
+  public void testImageLabels117To122() throws Exception {
     requireDockerApiVersion("1.17", "image labels");
+    requireDockerApiVersionLessThan("1.22", "image labels and sha256 image ids");
 
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryWithImageLabels").getPath();
@@ -2375,15 +2377,14 @@ public class DefaultDockerClientTest {
         ListImagesParam.withLabel("name"));
     final List<String> nameIds = imagesToShortIds(nameImages);
 
-    assertTrue(nameIds.contains(barId));
-    assertTrue(nameIds.contains(bazId));
+    assertThat(barId, isIn(nameIds));
+    assertThat(bazId, isIn(nameIds));
 
     // Check that the first image is listed when we filter with a "foo=bar" label
     final List<Image> barImages = sut.listImages(
         ListImagesParam.withLabel("foo", "bar"));
     final List<String> barIds = imagesToShortIds(barImages);
-    assertNotNull(barIds);
-    assertTrue(barIds.contains(barId));
+    assertThat(barId, isIn(barIds));
 
     // Check that we find the first image again when searching with the full
     // set of labels in a Map
@@ -2392,19 +2393,75 @@ public class DefaultDockerClientTest {
         ListImagesParam.withLabel("name", "testtesttest"));
     final List<String> barIds2 = imagesToShortIds(barImages2);
     assertNotNull(barIds2);
-    assertTrue(barIds2.contains(barId));
+    assertThat(barId, isIn(barIds2));
 
     // Check that the second image is listed when we filter with a "foo=baz" label
     final List<Image> bazImages = sut.listImages(
         ListImagesParam.withLabel("foo", "baz"));
     final List<String> bazIds = imagesToShortIds(bazImages);
     assertNotNull(bazIds);
-    assertTrue(bazIds.contains(bazId));
+    assertThat(bazId, isIn(bazIds));
 
     // Check that no containers are listed when we filter with a "foo=qux" label
     final List<Image> quxImages = sut.listImages(
         ListImagesParam.withLabel("foo", "qux"));
-    assertThat(quxImages.size(), equalTo(0));
+    assertThat(quxImages, hasSize(0));
+
+    // Clean up test images
+    sut.removeImage(barName, true, true);
+    sut.removeImage(bazName, true, true);
+  }
+
+  @Test
+  public void testImageLabels122() throws Exception {
+    requireDockerApiVersion("1.22", "image labels and sha256 image ids");
+
+    final String dockerDirectory =
+        Resources.getResource("dockerDirectoryWithImageLabels").getPath();
+
+    // Create test images
+    final String barDir = (new File(dockerDirectory, "barDir")).toString();
+    final String barName = randomName();
+    final String barId = sut.build(Paths.get(barDir), barName);
+
+    final String bazName = randomName();
+    final String bazDir = (new File(dockerDirectory, "bazDir")).toString();
+    final String bazId = sut.build(Paths.get(bazDir), bazName);
+
+    // Check that both test images are listed when we filter with a "name" label
+    final List<Image> nameImages = sut.listImages(
+        ListImagesParam.withLabel("name"));
+    final List<String> nameIds = imagesToShortIdsAndRemoveSha256(nameImages);
+
+    assertThat(barId, isIn(nameIds));
+    assertThat(bazId, isIn(nameIds));
+
+    // Check that the first image is listed when we filter with a "foo=bar" label
+    final List<Image> barImages = sut.listImages(
+        ListImagesParam.withLabel("foo", "bar"));
+    final List<String> barIds = imagesToShortIdsAndRemoveSha256(barImages);
+    assertThat(barId, isIn(barIds));
+
+    // Check that we find the first image again when searching with the full
+    // set of labels in a Map
+    final List<Image> barImages2 = sut.listImages(
+        ListImagesParam.withLabel("foo", "bar"),
+        ListImagesParam.withLabel("name", "testtesttest"));
+    final List<String> barIds2 = imagesToShortIdsAndRemoveSha256(barImages2);
+    assertNotNull(barIds2);
+    assertThat(barId, isIn(barIds2));
+
+    // Check that the second image is listed when we filter with a "foo=baz" label
+    final List<Image> bazImages = sut.listImages(
+        ListImagesParam.withLabel("foo", "baz"));
+    final List<String> bazIds = imagesToShortIdsAndRemoveSha256(bazImages);
+    assertNotNull(bazIds);
+    assertThat(bazId, isIn(bazIds));
+
+    // Check that no containers are listed when we filter with a "foo=qux" label
+    final List<Image> quxImages = sut.listImages(
+        ListImagesParam.withLabel("foo", "qux"));
+    assertThat(quxImages, hasSize(0));
 
     // Clean up test images
     sut.removeImage(barName, true, true);
@@ -2775,6 +2832,16 @@ public class DefaultDockerClientTest {
       @Override
       public String apply(final Image image) {
         return image.id().substring(0, 12);
+      }
+    };
+    return Lists.transform(images, imageToShortId);
+  }
+
+  private List<String> imagesToShortIdsAndRemoveSha256(final List<Image> images) {
+    final Function<Image, String> imageToShortId = new Function<Image, String>() {
+      @Override
+      public String apply(final Image image) {
+        return image.id().replaceFirst("sha256:", "").substring(0, 12);
       }
     };
     return Lists.transform(images, imageToShortId);
