@@ -661,12 +661,23 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testBuildName() throws Exception {
+  public void testBuildNameAPILessThan122() throws Exception {
+    requireDockerApiVersionLessThan("1.22", "image ids with no sha256: prefix");
     final String imageName = "test-build-name";
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
     assertThat(info.id(), startsWith(imageId));
+  }
+
+  @Test
+  public void testBuildNameAPIEqualsOrGreater122() throws Exception {
+    requireDockerApiVersion("1.22", "image ids with sha256: prefix");
+    final String imageName = "test-build-name";
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
+    final ImageInfo info = sut.inspectImage(imageName);
+    assertThat(info.id(), startsWith("sha256:" + imageId));
   }
 
   @Test
