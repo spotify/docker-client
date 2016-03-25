@@ -537,7 +537,12 @@ public class DefaultDockerClientTest {
     assertThat(info.dockerVersion(), not(isEmptyOrNullString()));
     assertThat(info.id(), not(isEmptyOrNullString()));
     assertThat(info.os(), equalTo("linux"));
-    assertThat(info.parent(), not(isEmptyOrNullString()));
+    if (dockerApiVersionLessThan("1.22")) {
+      assertThat(info.parent(), not(isEmptyOrNullString()));
+    } else {
+      // The "parent" field can be empty because of changes in
+      // image storage in 1.10. See https://github.com/docker/docker/issues/19650.
+    }
     assertThat(info.size(), notNullValue());
     assertThat(info.virtualSize(), notNullValue());
   }
