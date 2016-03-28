@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -545,9 +546,7 @@ public interface DockerClient extends Closeable {
 
     @Override
     public int hashCode() {
-      int result = name != null ? name.hashCode() : 0;
-      result = 31 * result + (value != null ? value.hashCode() : 0);
-      return result;
+      return Objects.hash(name, value);
     }
   }
 

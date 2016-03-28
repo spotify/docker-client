@@ -22,6 +22,8 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -85,9 +87,7 @@ public class PortBinding {
 
   @Override
   public int hashCode() {
-    int result = hostIp != null ? hostIp.hashCode() : 0;
-    result = 31 * result + (hostPort != null ? hostPort.hashCode() : 0);
-    return result;
+    return Objects.hash(hostIp, hostPort);
   }
 
   @Override

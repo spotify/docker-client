@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -111,11 +112,7 @@ public class AuthConfig {
 
   @Override
   public int hashCode() {
-    int result = username != null ? username.hashCode() : 0;
-    result = 31 * result + (password != null ? password.hashCode() : 0);
-    result = 31 * result + (email != null ? email.hashCode() : 0);
-    result = 31 * result + (serverAddress != null ? serverAddress.hashCode() : 0);
-    return result;
+    return Objects.hash(username, password, email, serverAddress);
   }
 
   @Override

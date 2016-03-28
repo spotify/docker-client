@@ -22,6 +22,8 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -114,15 +116,8 @@ public class ExecState {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (running != null ? running.hashCode() : 0);
-    result = 31 * result + (exitCode != null ? exitCode.hashCode() : 0);
-    result = 31 * result + (processConfig != null ? processConfig.hashCode() : 0);
-    result = 31 * result + (openStdin != null ? openStdin.hashCode() : 0);
-    result = 31 * result + (openStderr != null ? openStderr.hashCode() : 0);
-    result = 31 * result + (openStdout != null ? openStdout.hashCode() : 0);
-    result = 31 * result + (container != null ? container.hashCode() : 0);
-    return result;
+    return Objects.hash(id, running, exitCode, processConfig, openStdin, openStderr, openStdout,
+                        container);
   }
 
   @Override

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -83,9 +84,7 @@ public class LogConfig {
 
   @Override
   public int hashCode() {
-    int result = logType != null ? logType.hashCode() : 0;
-    result = 31 * result + (logOptions != null ? logOptions.hashCode() : 0);
-    return result;
+    return Objects.hash(logType, logOptions);
   }
 
   @Override

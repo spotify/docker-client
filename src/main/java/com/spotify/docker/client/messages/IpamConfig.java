@@ -18,10 +18,11 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -68,14 +69,14 @@ public class IpamConfig {
 
     IpamConfig that = (IpamConfig) o;
 
-    return Objects.equal(this.subnet, that.subnet) &&
-           Objects.equal(this.ipRange, that.ipRange) &&
-           Objects.equal(this.gateway, that.gateway);
+    return Objects.equals(this.subnet, that.subnet) &&
+           Objects.equals(this.ipRange, that.ipRange) &&
+           Objects.equals(this.gateway, that.gateway);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(subnet, ipRange, gateway);
+    return Objects.hash(subnet, ipRange, gateway);
   }
 
   @Override

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -272,30 +273,10 @@ public class ContainerConfig {
 
   @Override
   public int hashCode() {
-    int result = hostname != null ? hostname.hashCode() : 0;
-    result = 31 * result + (domainname != null ? domainname.hashCode() : 0);
-    result = 31 * result + (user != null ? user.hashCode() : 0);
-    result = 31 * result + (attachStdin != null ? attachStdin.hashCode() : 0);
-    result = 31 * result + (attachStdout != null ? attachStdout.hashCode() : 0);
-    result = 31 * result + (attachStderr != null ? attachStderr.hashCode() : 0);
-    result = 31 * result + (portSpecs != null ? portSpecs.hashCode() : 0);
-    result = 31 * result + (exposedPorts != null ? exposedPorts.hashCode() : 0);
-    result = 31 * result + (tty != null ? tty.hashCode() : 0);
-    result = 31 * result + (openStdin != null ? openStdin.hashCode() : 0);
-    result = 31 * result + (stdinOnce != null ? stdinOnce.hashCode() : 0);
-    result = 31 * result + (env != null ? env.hashCode() : 0);
-    result = 31 * result + (cmd != null ? cmd.hashCode() : 0);
-    result = 31 * result + (image != null ? image.hashCode() : 0);
-    result = 31 * result + (volumes != null ? volumes.hashCode() : 0);
-    result = 31 * result + (workingDir != null ? workingDir.hashCode() : 0);
-    result = 31 * result + (entrypoint != null ? entrypoint.hashCode() : 0);
-    result = 31 * result + (networkDisabled != null ? networkDisabled.hashCode() : 0);
-    result = 31 * result + (onBuild != null ? onBuild.hashCode() : 0);
-    result = 31 * result + (labels != null ? labels.hashCode() : 0);
-    result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
-    result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
-    result = 31 * result + (stopSignal != null ? stopSignal.hashCode() : 0);
-    return result;
+    return Objects.hash(hostname, domainname, user, attachStdin, attachStdout,
+                        attachStderr, portSpecs, exposedPorts, tty, openStdin, stdinOnce, env,
+                        cmd, image, volumes, workingDir, entrypoint, networkDisabled, onBuild,
+                        labels, macAddress, hostConfig, stopSignal);
   }
 
   @Override

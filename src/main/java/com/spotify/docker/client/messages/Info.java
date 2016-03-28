@@ -22,6 +22,7 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Info {
 
@@ -205,26 +206,10 @@ public class Info {
 
   @Override
   public int hashCode() {
-    int result = containers;
-    result = 31 * result + images;
-    result = 31 * result + (storageDriver != null ? storageDriver.hashCode() : 0);
-    result = 31 * result + (driverStatus != null ? driverStatus.hashCode() : 0);
-    result = 31 * result + (systemStatus != null ? systemStatus.hashCode() : 0);
-    result = 31 * result + cpus;
-    result = 31 * result + (int) memTotal;
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    result = 31 * result + (executionDriver != null ? executionDriver.hashCode() : 0);
-    result = 31 * result + (kernelVersion != null ? kernelVersion.hashCode() : 0);
-    result = 31 * result + (debug != null ? debug.hashCode() : 0);
-    result = 31 * result + fileDescriptors;
-    result = 31 * result + goroutines;
-    result = 31 * result + eventsListener;
-    result = 31 * result + (initPath != null ? initPath.hashCode() : 0);
-    result = 31 * result + (initSha1 != null ? initSha1.hashCode() : 0);
-    result = 31 * result + (indexServerAddress != null ? indexServerAddress.hashCode() : 0);
-    result = 31 * result + (memoryLimit != null ? memoryLimit.hashCode() : 0);
-    result = 31 * result + (swapLimit != null ? swapLimit.hashCode() : 0);
-    return result;
+    return Objects.hash(containers, images, storageDriver, driverStatus, systemStatus, cpus,
+                        memTotal, name, executionDriver, kernelVersion, debug, fileDescriptors,
+                        goroutines, eventsListener, initPath, initSha1, indexServerAddress,
+                        memoryLimit, swapLimit);
   }
 
   @Override

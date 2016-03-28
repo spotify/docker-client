@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -172,18 +173,8 @@ public class Container {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (names != null ? names.hashCode() : 0);
-    result = 31 * result + (image != null ? image.hashCode() : 0);
-    result = 31 * result + (command != null ? command.hashCode() : 0);
-    result = 31 * result + (created != null ? created.hashCode() : 0);
-    result = 31 * result + (status != null ? status.hashCode() : 0);
-    result = 31 * result + (ports != null ? ports.hashCode() : 0);
-    result = 31 * result + (labels != null ? labels.hashCode() : 0);
-    result = 31 * result + (sizeRw != null ? sizeRw.hashCode() : 0);
-    result = 31 * result + (sizeRootFs != null ? sizeRootFs.hashCode() : 0);
-    result = 31 * result + (imageId != null ? imageId.hashCode() : 0);
-    return result;
+    return Objects.hash(id, names, image, command, created, status, ports, labels, sizeRw,
+                        sizeRootFs, imageId);
   }
 
   @Override
@@ -254,11 +245,7 @@ public class Container {
 
     @Override
     public int hashCode() {
-      int result = privatePort;
-      result = 31 * result + publicPort;
-      result = 31 * result + (type != null ? type.hashCode() : 0);
-      result = 31 * result + (ip != null ? ip.hashCode() : 0);
-      return result;
+      return Objects.hash(privatePort, publicPort, type, ip);
     }
 
     @Override

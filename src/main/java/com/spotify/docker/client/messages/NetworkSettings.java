@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -131,15 +132,8 @@ public class NetworkSettings {
 
   @Override
   public int hashCode() {
-    int result = ipAddress != null ? ipAddress.hashCode() : 0;
-    result = 31 * result + (ipPrefixLen != null ? ipPrefixLen.hashCode() : 0);
-    result = 31 * result + (gateway != null ? gateway.hashCode() : 0);
-    result = 31 * result + (bridge != null ? bridge.hashCode() : 0);
-    result = 31 * result + (portMapping != null ? portMapping.hashCode() : 0);
-    result = 31 * result + (ports != null ? ports.hashCode() : 0);
-    result = 31 * result + (macAddress != null ? macAddress.hashCode() : 0);
-    result = 31 * result + (networks != null ? networks.hashCode() : 0);
-    return result;
+    return Objects.hash(ipAddress, ipPrefixLen, gateway, bridge, portMapping, ports, macAddress,
+                        networks);
   }
 
   @Override

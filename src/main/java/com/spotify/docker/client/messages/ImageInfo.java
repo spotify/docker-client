@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -156,20 +157,8 @@ public class ImageInfo {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (parent != null ? parent.hashCode() : 0);
-    result = 31 * result + (comment != null ? comment.hashCode() : 0);
-    result = 31 * result + (created != null ? created.hashCode() : 0);
-    result = 31 * result + (container != null ? container.hashCode() : 0);
-    result = 31 * result + (containerConfig != null ? containerConfig.hashCode() : 0);
-    result = 31 * result + (dockerVersion != null ? dockerVersion.hashCode() : 0);
-    result = 31 * result + (author != null ? author.hashCode() : 0);
-    result = 31 * result + (config != null ? config.hashCode() : 0);
-    result = 31 * result + (architecture != null ? architecture.hashCode() : 0);
-    result = 31 * result + (os != null ? os.hashCode() : 0);
-    result = 31 * result + (size != null ? size.hashCode() : 0);
-    result = 31 * result + (virtualSize != null ? virtualSize.hashCode() : 0);
-    return result;
+    return Objects.hash(id, parent, comment, created, container, containerConfig, dockerVersion,
+                        author, config, architecture, os, size, virtualSize);
   }
 
   @Override

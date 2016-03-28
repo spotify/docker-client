@@ -22,6 +22,7 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * An object that represents the JSON returned by the Docker API for an exec command's process
@@ -84,12 +85,7 @@ public class ProcessConfig {
 
   @Override
   public int hashCode() {
-    int result = privileged != null ? privileged.hashCode() : 0;
-    result = 31 * result + (user != null ? user.hashCode() : 0);
-    result = 31 * result + (tty != null ? tty.hashCode() : 0);
-    result = 31 * result + (entrypoint != null ? entrypoint.hashCode() : 0);
-    result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
-    return result;
+    return Objects.hash(privileged, user, tty, entrypoint, arguments);
   }
 
   @Override
