@@ -2204,11 +2204,15 @@ public class DefaultDockerClientTest {
     assertThat(processConfig.arguments(),
                Matchers.<List<String>>is(ImmutableList.of("-c", "exit 2")));
 
-    final ContainerInfo containerInfo = state.container();
-    assertThat(containerInfo.path(), is("sh"));
-    assertThat(containerInfo.args(),
-               Matchers.<List<String>>is(ImmutableList.of("-c", "while :; do sleep 1; done")));
-    assertThat(containerInfo.config().image(), is(BUSYBOX_LATEST));
+    if (dockerApiVersionLessThan("1.22")) {
+      final ContainerInfo containerInfo = state.container();
+      assertThat(containerInfo.path(), is("sh"));
+      assertThat(containerInfo.args(),
+                 Matchers.<List<String>>is(ImmutableList.of("-c", "while :; do sleep 1; done")));
+      assertThat(containerInfo.config().image(), is(BUSYBOX_LATEST));
+    } else {
+      assertNotNull(state.containerID(), "containerID");
+    }
   }
 
   @Test
