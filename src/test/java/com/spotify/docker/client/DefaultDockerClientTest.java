@@ -662,8 +662,8 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
-    final String expextedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
-    assertThat(info.id(), startsWith(expextedId));
+    final String expectedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
+    assertThat(info.id(), startsWith(expectedId));
   }
 
   @Test
