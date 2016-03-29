@@ -1738,8 +1738,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerVolumes() throws Exception {
-    requireDockerApiVersionAtLeast("1.20",
-                                   "Creating a container with volumes and inspecting volumes in new style");
+    requireDockerApiVersionAtLeast(
+        "1.20", "Creating a container with volumes and inspecting volumes in new style");
 
     sut.pull(BUSYBOX_LATEST);
 
