@@ -284,6 +284,14 @@ public class DefaultDockerClientTest {
     assumeTrue(msg, dockerApiVersionLessThan(required));
   }
 
+  private boolean dockerApiVersionNot(final String expected) {
+    return compareVersion(dockerApiVersion, expected) != 0;
+  }
+
+  private void requireDockerApiVersionNot(final String version, final String msg) {
+    assumeTrue(msg, dockerApiVersionNot(version));
+  }
+
   @Test
   public void testSearchImage() throws Exception {
     // when
@@ -1378,8 +1386,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testEventStream() throws Exception {
+    requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
+                                       + "So we skip this test.");
     sut.pull(BUSYBOX_LATEST);
-    EventStream eventStream = sut.events();
+    final EventStream eventStream = sut.events();
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .build();

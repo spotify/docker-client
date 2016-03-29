@@ -836,6 +836,9 @@ public interface DockerClient extends Closeable {
   /**
    * Watches the docker API for events.
    *
+   * This method is broken for Docker 1.7.x because of a Docker bug.
+   * See https://github.com/docker/docker/issues/14354.
+   *
    * @param params The parameters to apply to the events request
    * @return An event stream
    * @throws DockerException      If a server error occurred (500)
