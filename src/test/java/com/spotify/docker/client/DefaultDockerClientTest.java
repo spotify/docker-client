@@ -24,6 +24,7 @@ import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.exceptions.BadParamException;
+import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -34,6 +35,7 @@ import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
+import com.spotify.docker.client.exceptions.VolumeNotFoundException;
 import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
@@ -65,6 +67,8 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
+import com.spotify.docker.client.messages.Volume;
+import com.spotify.docker.client.messages.VolumeList;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.google.common.base.Function;
@@ -151,6 +155,9 @@ import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.byName;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.digests;
+import static com.spotify.docker.client.DockerClient.ListVolumesParam.dangling;
+import static com.spotify.docker.client.DockerClient.ListVolumesParam.driver;
+import static com.spotify.docker.client.DockerClient.ListVolumesParam.name;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
 import static com.spotify.docker.client.DockerClient.LogsParam.since;
 import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
@@ -191,6 +198,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -2981,6 +2989,147 @@ public class DefaultDockerClientTest {
     assertThat(BUSYBOX_LATEST, isIn(busyboxHistory.tags()));
     assertEquals(0L, busyboxHistory.size().longValue());
     assertThat(busyboxHistory.comment(), isEmptyOrNullString());
+  }
+
+  @Test
+  public void testCreateVolume() throws Exception {
+    requireDockerApiVersionAtLeast("1.21", "volumes");
+    // Create bare volume
+    final Volume volume = sut.createVolume();
+    assertThat(volume, not(nullValue()));
+    sut.removeVolume(volume);
+
+    final ImmutableMap<String, String> labels = ImmutableMap.of("foo", "bar");
+
+    // Create volume with attributes
+    final String volName = randomName();
+    final Volume toCreate;
+    if (dockerApiVersionLessThan("1.23")) {
+      toCreate = Volume.builder()
+          .name(volName)
+          .driver("local")
+          .build();
+    } else {
+      toCreate = Volume.builder()
+          .name(volName)
+          .driver("local")
+          .labels(labels)
+          .build();
+    }
+    final Volume created = sut.createVolume(toCreate);
+    assertEquals(toCreate.name(), created.name());
+    assertEquals(toCreate.driver(), created.driver());
+    assertEquals(toCreate.driverOpts(), created.driverOpts());
+
+    // mountpoint gets set by server regardless of whatever we ask for
+    assertNotEquals(toCreate.mountpoint(), created.mountpoint());
+
+    if (dockerApiVersionAtLeast("1.23")) {
+      assertEquals(labels, volume.labels());
+    }
+
+    sut.removeVolume(created);
+  }
+
+  @Test
+  public void testInspectVolume() throws Exception {
+    requireDockerApiVersionAtLeast("1.21", "volumes");
+    final Volume volume = sut.createVolume();
+
+    assertEquals(volume, sut.inspectVolume(volume.name()));
+
+    final String badVolumeName = "this-is-a-very-unlikely-volume-name";
+    try {
+      sut.inspectVolume(badVolumeName);
+      fail("We should not have found a volume with name " + badVolumeName);
+    } catch (VolumeNotFoundException e) {
+      assertEquals(badVolumeName, e.getVolumeName());
+    }
+
+    sut.removeVolume(volume);
+  }
+
+  @Test
+  public void testListVolumes() throws Exception {
+    requireDockerApiVersionAtLeast("1.21", "volumes");
+    final Volume volume = sut.createVolume();
+    final String volumeName = volume.name();
+    final String volumeDriver = volume.driver();
+
+    final VolumeList volumeList = sut.listVolumes();
+    if (volumeList.warnings() != null && volumeList.warnings().isEmpty()) {
+      for (final String warning : volumeList.warnings()) {
+        log.warn(warning);
+      }
+    }
+    assertThat(volume, isIn(volumeList.volumes()));
+
+    final VolumeList volumeListWithDangling = sut.listVolumes(dangling());
+    if (volumeListWithDangling.warnings() != null &&
+        !volumeListWithDangling.warnings().isEmpty()) {
+      for (final String warning : volumeListWithDangling.warnings()) {
+        log.warn(warning);
+      }
+    }
+    assertThat(volume, isIn(volumeListWithDangling.volumes()));
+
+    if (dockerApiVersionAtLeast("1.23")) {
+      final VolumeList volumeListByName = sut.listVolumes(name(volumeName));
+      if (volumeListByName.warnings() != null &&
+          !volumeListByName.warnings().isEmpty()) {
+        for (final String warning : volumeListByName.warnings()) {
+          log.warn(warning);
+        }
+      }
+      assertThat(volume, isIn(volumeListByName.volumes()));
+
+      final VolumeList volumeListByDriver = sut.listVolumes(driver(volumeDriver));
+      if (volumeListByDriver.warnings() != null &&
+          !volumeListByDriver.warnings().isEmpty()) {
+        for (final String warning : volumeListByDriver.warnings()) {
+          log.warn(warning);
+        }
+      }
+      assertThat(volume, isIn(volumeListByDriver.volumes()));
+    }
+
+    sut.removeVolume(volume);
+  }
+
+  @Test
+  public void testRemoveVolume() throws Exception {
+    requireDockerApiVersionAtLeast("1.21", "volumes");
+    // Create a volume and remove it
+    final Volume volume1 = sut.createVolume();
+    sut.removeVolume(volume1);
+
+    // Remove non-existent volume
+    try {
+      sut.removeVolume(volume1);
+      fail("Should not be able to remove a non-existent volume.");
+    } catch (VolumeNotFoundException e) {
+      assertEquals(volume1.name(), e.getVolumeName());
+    }
+
+    // Create a volume, assign it to a container, and try to remove it.
+    // Should get a ConflictException.
+    final Volume volume2 = sut.createVolume();
+    final HostConfig hostConfig = HostConfig.builder()
+        .binds(Bind.from(volume2).to("/tmp").build())
+        .build();
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX)
+        .hostConfig(hostConfig)
+        .build();
+    final ContainerCreation container = sut.createContainer(config);
+    try {
+      sut.removeVolume(volume2);
+      fail("Should not be able to remove a volume in use by a container.");
+    } catch (ConflictException ignored) {
+      // pass
+    }
+    sut.removeContainer(container.id());
+    sut.removeVolume(volume2);
   }
 
   private static Matcher<String> equalToIgnoreLeadingSlash(final String expected) {
