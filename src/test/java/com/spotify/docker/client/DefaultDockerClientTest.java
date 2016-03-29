@@ -329,16 +329,6 @@ public class DefaultDockerClientTest {
     sut.pull("dxia2/scratch-private:latest", authConfig);
   }
 
-  @Test(expected = ImageNotFoundException.class)
-  public void testPullPrivateRepoWithBadAuth() throws Exception {
-    final AuthConfig badAuthConfig = AuthConfig.builder()
-        .email(AUTH_EMAIL)
-        .username(AUTH_USERNAME)
-        .password("foobar")
-        .build();
-    sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
-  }
-
   @Test
   public void testFailedPullDoesNotLeakConn() throws Exception {
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
@@ -1402,7 +1392,12 @@ public class DefaultDockerClientTest {
     assertThat(createEvent.from(), startsWith("busybox:"));
     assertThat(createEvent.time(), notNullValue());
 
-    final Event startEvent = eventStream.next();
+    Event startEvent = eventStream.next();
+    if (!dockerApiVersionLessThan("1.22")) {
+      // For some reason, version 1.22 has an extra null Event. So we read the next one.
+      startEvent = eventStream.next();
+    }
+
     assertThat(startEvent.status(), equalTo("start"));
     assertThat(startEvent.id(), equalTo(container.id()));
     assertThat(startEvent.from(), startsWith("busybox:"));
@@ -2404,7 +2399,7 @@ public class DefaultDockerClientTest {
     final List<String> bazIds =
         dockerApiVersionLessThan("1.22") ?
             imagesToShortIds(bazImages) :
-            imagesToShortIdsAndRemoveSha256(bazImages);;
+            imagesToShortIdsAndRemoveSha256(bazImages);
     assertThat(bazId, isIn(bazIds));
 
     // Check that no containers are listed when we filter with a "foo=qux" label
