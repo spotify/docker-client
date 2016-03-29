@@ -15,7 +15,7 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
 import java.net.URI;
 

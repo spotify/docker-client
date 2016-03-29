@@ -15,19 +15,19 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class DockerCertificateException extends Exception {
+public class ConflictException extends DockerException {
 
-  public DockerCertificateException(final String message) {
-    super(message);
-  }
-
-  public DockerCertificateException(final String message, final Throwable cause) {
+  public ConflictException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public DockerCertificateException(final Throwable cause) {
-    super(cause);
+  public ConflictException(final Throwable cause) {
+    super(null, cause);
+  }
+
+  public ConflictException(final String message) {
+    this(message, null);
   }
 }

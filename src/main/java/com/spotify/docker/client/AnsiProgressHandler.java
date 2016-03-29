@@ -19,6 +19,7 @@ package com.spotify.docker.client;
 
 import com.google.common.collect.Maps;
 
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.ProgressMessage;
 
 import java.io.PrintStream;

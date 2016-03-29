@@ -17,9 +17,12 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.DockerTimeoutException;
+import com.spotify.docker.client.messages.ProgressMessage;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.MappingIterator;
-import com.spotify.docker.client.messages.ProgressMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

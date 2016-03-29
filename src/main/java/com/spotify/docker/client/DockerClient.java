@@ -17,6 +17,7 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -94,6 +95,8 @@ public interface DockerClient extends Closeable {
    *
    * @param params Container listing and filtering options.
    * @return A list of containers.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -105,6 +108,8 @@ public interface DockerClient extends Closeable {
    *
    * @param params Image listing and filtering options.
    * @return A list of images.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -115,6 +120,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to inspect.
    * @return Info about the container.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                            if container was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -130,6 +137,8 @@ public interface DockerClient extends Closeable {
    * @param repo        repository to commit to.
    * @param config      ContainerConfig to commit.
    * @return ContainerCreation reply.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                            if container was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -146,6 +155,8 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to inspect.
    * @return Info about the image.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -156,6 +167,10 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to remove.
    * @return A list describing each image which was removed.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
+   * @throws com.spotify.docker.client.exceptions.ConflictException
+   *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -169,6 +184,10 @@ public interface DockerClient extends Closeable {
    * @param force   Force image removal.
    * @param noPrune Do not delete untagged parents.
    * @return A list describing each image which was removed.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
+   * @throws com.spotify.docker.client.exceptions.ConflictException
+   *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -339,6 +358,12 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to tag.
    * @param name  The new name that will be applied to the image.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
+   * @throws com.spotify.docker.client.exceptions.ConflictException
+   *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -351,6 +376,12 @@ public interface DockerClient extends Closeable {
    * @param name  The new name that will be applied to the image.
    * @param force Whether to force the tagging even if the tag is already assigned to another
    *              image.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
+   * @throws com.spotify.docker.client.exceptions.ConflictException
+   *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -558,7 +589,10 @@ public interface DockerClient extends Closeable {
    *
    * @param config The container configuration.
    * @return Container creation result with container id and eventual warnings from docker.
-   * @throws DockerException      if a server error occurred (500)
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if the requested parent image was not found (404)
+   * @throws DockerException  if logs cannot be attached, because container is not running (406),
+   *                              or if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerCreation createContainer(ContainerConfig config)
@@ -570,7 +604,10 @@ public interface DockerClient extends Closeable {
    * @param config The container configuration.
    * @param name   The container name.
    * @return Container creation result with container id and eventual warnings from docker.
-   * @throws DockerException      if a server error occurred (500)
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if the requested parent image was not found (404)
+   * @throws DockerException   if logs cannot be attached, because container is not running (406),
+   *                              or if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerCreation createContainer(ContainerConfig config, String name)
@@ -581,6 +618,10 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to rename.
    * @param name        The new name the container will have
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container cannot be found (404)
+   * @throws com.spotify.docker.client.exceptions.ContainerRenameConflictException
+   *                              if name is already assigned (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -591,6 +632,8 @@ public interface DockerClient extends Closeable {
    * Start a docker container.
    *
    * @param containerId The id of the container to start.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -602,6 +645,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId                The id of the container to stop.
    * @param secondsToWaitBeforeKilling Time to wait after SIGTERM before sending SIGKILL.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -612,6 +657,8 @@ public interface DockerClient extends Closeable {
    * Pause a docker container.
    *
    * @param containerId The id of the container to pause.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -621,6 +668,8 @@ public interface DockerClient extends Closeable {
    * Unpause a docker container.
    *
    * @param containerId The id of the container to pause.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -631,6 +680,8 @@ public interface DockerClient extends Closeable {
    * Restart a docker container. with a 10 second default wait
    *
    * @param containerId The id of the container to restart.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -641,6 +692,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId                The id of the container to restart.
    * @param secondsToWaitBeforeRestart number of seconds to wait before killing the container.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -652,6 +705,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to wait for.
    * @return Exit response with status code.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -661,6 +716,8 @@ public interface DockerClient extends Closeable {
    * Kill a docker container.
    *
    * @param containerId The id of the container to kill.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -670,6 +727,10 @@ public interface DockerClient extends Closeable {
    * Remove a docker container.
    *
    * @param containerId The id of the container to remove.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -680,6 +741,10 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to remove.
    * @param params      {@link RemoveContainerParam}
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -691,6 +756,10 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId   The id of the container to remove.
    * @param removeVolumes Whether to remove volumes as well.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    * @deprecated Use {@link #removeContainer(String, RemoveContainerParam...)}
@@ -786,6 +855,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to export.
    * @return A stream in tar format that contains the contents of the container file system.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -804,6 +875,8 @@ public interface DockerClient extends Closeable {
    * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
    * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
    * tar archive containing a single folder named after the container ID.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -816,6 +889,12 @@ public interface DockerClient extends Closeable {
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
    * @param path        The path inside of the container to put files.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.PermissionException
+   *                      if the volume or container root file system is marked "read only"
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    * @throws IOException          If IOException
@@ -829,6 +908,10 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -869,6 +952,10 @@ public interface DockerClient extends Closeable {
    * @param execId exec id
    * @param params Exec start params
    * @return exec output
+   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
+   *                              if exec instance is not found (404)
+   * @throws com.spotify.docker.client.exceptions.ExecStartConflictException
+   *                              if container is paused (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -898,6 +985,8 @@ public interface DockerClient extends Closeable {
    *
    * @param execId exec id
    * @return state of this exec instance.
+   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
+   *                              if exec instance is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -908,6 +997,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to retrieve stats for.
    * @return The container stats
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -928,6 +1019,8 @@ public interface DockerClient extends Closeable {
    *
    * @param networkId The id of the network
    * @return network information
+   * @throws com.spotify.docker.client.exceptions.NetworkNotFoundException
+   *                              if network is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -938,6 +1031,8 @@ public interface DockerClient extends Closeable {
    *
    * @param networkConfig The network creation parameters
    * @return NetworkCreation
+   * @throws com.spotify.docker.client.exceptions.NetworkNotFoundException
+   *                              if network is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -948,6 +1043,8 @@ public interface DockerClient extends Closeable {
    * Remove a docker network.
    *
    * @param networkId The id of the network to remove.
+   * @throws com.spotify.docker.client.exceptions.NetworkNotFoundException
+   *                              if network is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -959,9 +1056,10 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to connect.
    * @param networkId   The id of the network to connect.
+   * @throws com.spotify.docker.client.exceptions.NotFoundException
+   *                              if either container or network is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
-   * @throws ContainerNotFoundException if the container was not found (404)
    */
   void connectToNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException;
@@ -972,9 +1070,10 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to disconnect.
    * @param networkId   The id of the network to disconnect.
+   * @throws com.spotify.docker.client.exceptions.NotFoundException
+   *                              if either container or network is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
-   * @throws ContainerNotFoundException if the container was not found (404)
    */
   void disconnectFromNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException;
@@ -1294,7 +1393,10 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
-   * @throws ContainerNotFoundException if the container was not found (404).
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                            if one or more params were bad (400)
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
    */

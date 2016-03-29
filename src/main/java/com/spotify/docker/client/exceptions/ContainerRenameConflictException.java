@@ -15,9 +15,9 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class ContainerRenameConflictException extends DockerException {
+public class ContainerRenameConflictException extends ConflictException {
 
   private final String containerId;
   private final String newName;

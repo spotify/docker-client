@@ -17,6 +17,8 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+
 import com.google.common.base.Optional;
 
 import org.apache.http.conn.ssl.NoopHostnameVerifier;

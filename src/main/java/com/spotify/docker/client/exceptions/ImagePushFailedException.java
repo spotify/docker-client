@@ -15,26 +15,24 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-import java.net.URI;
+public class ImagePushFailedException extends DockerException {
 
-public class DockerTimeoutException extends DockerException {
+  private final String image;
 
-  private final String method;
-  private final URI uri;
-
-  public DockerTimeoutException(final String method, final URI uri, final Throwable cause) {
-    super("Timeout: " + method + " " + uri, cause);
-    this.method = method;
-    this.uri = uri;
+  public ImagePushFailedException(final String image, final Throwable cause) {
+    super("Image push failed: " + image, cause);
+    this.image = image;
   }
 
-  public String method() {
-    return method;
+  public ImagePushFailedException(final String image, final String message) {
+    super("Image push failed: " + image + ": " + message);
+    this.image = image;
   }
 
-  public URI uri() {
-    return uri;
+  public String getImage() {
+    return image;
   }
+
 }

@@ -19,6 +19,21 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.exceptions.BadParamException;
+import com.spotify.docker.client.exceptions.ConflictException;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
+import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.DockerRequestException;
+import com.spotify.docker.client.exceptions.DockerTimeoutException;
+import com.spotify.docker.client.exceptions.ExecCreateConflictException;
+import com.spotify.docker.client.exceptions.ExecNotFoundException;
+import com.spotify.docker.client.exceptions.ExecStartConflictException;
+import com.spotify.docker.client.exceptions.ImageNotFoundException;
+import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NotFoundException;
+import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
 import com.spotify.docker.client.messages.Container;
@@ -48,6 +63,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 
@@ -422,7 +438,26 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam("filters", urlEncodeFilters(filters));
     }
 
-    return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    try {
+      return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource), e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  private Map<String, String> getQueryParamMap(final WebTarget resource) {
+    final String queryParams = resource.getUri().getQuery();
+    final Map<String, String> paramsMap = Maps.newHashMap();
+    for (final String queryParam : queryParams.split("&")) {
+      final String[] kv = queryParam.split("=");
+      paramsMap.put(kv[0], kv[1]);
+    }
+    return paramsMap;
   }
 
   /**
@@ -519,6 +554,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       switch (e.status()) {
         case 404:
           throw new ImageNotFoundException(config.image(), e);
+        case 406:
+          throw new DockerException("Impossible to attach. Container not running.", e);
         default:
           throw e;
       }
@@ -661,6 +698,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource()), e);
         case 404:
           throw new ContainerNotFoundException(containerId, e);
         default:
@@ -674,8 +713,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final WebTarget resource = resource()
         .path("containers").path(containerId).path("export");
-    return request(GET, InputStream.class, resource,
+    try {
+      return request(GET, InputStream.class, resource,
                    resource.request(APPLICATION_OCTET_STREAM_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
   }
 
 
@@ -689,9 +737,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final JsonNodeFactory nf = JsonNodeFactory.instance;
     final JsonNode params = nf.objectNode().set("Resource", nf.textNode(path));
 
-    return request(POST, InputStream.class, resource,
-                   resource.request(APPLICATION_OCTET_STREAM_TYPE),
-                   Entity.json(params));
+    try {
+      return request(POST, InputStream.class, resource,
+          resource.request(APPLICATION_OCTET_STREAM_TYPE),
+          Entity.json(params));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override
@@ -708,9 +765,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
 
-    request(PUT, String.class, resource,
-            resource.request(APPLICATION_OCTET_STREAM_TYPE),
-            Entity.entity(fileStream, "application/tar"));
+    try {
+       request(PUT, String.class, resource,
+          resource.request(APPLICATION_OCTET_STREAM_TYPE),
+          Entity.entity(fileStream, "application/tar"));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource), e);
+        case 403:
+          throw new PermissionException("Volume or container rootfs is marked as read-only.", e);
+        case 404:
+          throw new NotFoundException(
+              String.format("Either container %s or path %s not found.", containerId, path), e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override
@@ -973,8 +1044,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource), e);
         case 404:
           throw new ImageNotFoundException(image, e);
+        case 409:
+          throw new ConflictException(e);
         default:
           throw e;
       }
@@ -1093,7 +1168,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
-          throw new ImageNotFoundException(image);
+          throw new ImageNotFoundException(image, e);
+        case 409:
+          throw new ConflictException(e);
         default:
           throw e;
       }
@@ -1178,6 +1255,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return request(method, LogStream.class, resource, request);
     } catch (DockerRequestException e) {
       switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource), e);
         case 404:
           throw new ContainerNotFoundException(containerId);
         default:
@@ -1225,7 +1304,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
-          throw new ContainerNotFoundException(containerId);
+          throw new ContainerNotFoundException(containerId, e);
+        case 409:
+          throw new ExecCreateConflictException(containerId, e);
         default:
           throw e;
       }
@@ -1267,7 +1348,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
-          throw new ExecNotFoundException(execId);
+          throw new ExecNotFoundException(execId, e);
+        case 409:
+          throw new ExecStartConflictException(execId, e);
         default:
           throw e;
       }
@@ -1283,7 +1366,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
-          throw new ExecNotFoundException(execId);
+          throw new ExecNotFoundException(execId, e);
         default:
           throw e;
       }
@@ -1301,7 +1384,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
-          throw new ContainerNotFoundException(containerId);
+          throw new ContainerNotFoundException(containerId, e);
         default:
           throw e;
       }
@@ -1334,8 +1417,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path("create");
 
-    return request(POST, NetworkCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
-                   Entity.json(networkConfig));
+    try {
+      return request(POST, NetworkCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(networkConfig));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NotFoundException("Plugin not found", e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override
@@ -1371,16 +1463,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final Map<String, String> request = new HashMap<>();
     request.put("Container", containerId);
-    final Response response =
-        request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
-                Entity.json(request));
-    switch (response.getStatus()) {
-      case 200:
-        return;
-      case 404:
-        throw new ContainerNotFoundException(containerId);
-      case 500:
-        throw new DockerException(response.readEntity(String.class));
+
+    try {
+      request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(request));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          final String message = String.format("Container %s or network %s not found.",
+              containerId, networkId);
+          throw new NotFoundException(message, e);
+        case 500:
+          throw e;
+      }
     }
   }
 

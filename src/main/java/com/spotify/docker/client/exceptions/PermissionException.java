@@ -15,19 +15,15 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class DockerException extends Exception {
+public class PermissionException extends DockerException {
 
-  public DockerException(final String message) {
-    super(message);
-  }
-
-  public DockerException(final String message, final Throwable cause) {
+  public PermissionException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public DockerException(final Throwable cause) {
-    super(cause);
+  public PermissionException(final String message) {
+    this(message, null);
   }
 }

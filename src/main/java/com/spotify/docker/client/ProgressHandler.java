@@ -17,6 +17,7 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.ProgressMessage;
 
 /**
