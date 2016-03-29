@@ -500,7 +500,7 @@ public class DefaultDockerClientTest {
   public void testTagForce() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
-    final String name = "test-repo/tagForce:sometag";
+    final String name = "test-repo/tag-force:sometag";
     // Assign name to first image
     sut.tag(BUSYBOX_LATEST, name);
 
