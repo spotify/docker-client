@@ -255,17 +255,17 @@ public class DefaultDockerClientTest {
     sut.close();
   }
 
-  private void requireDockerApiVersion(final String required, final String functionality)
+  private void requireDockerApiVersionAtLeast(final String required, final String functionality)
       throws Exception {
 
     final String msg = String.format(
         "Docker API should be at least v%s to support %s but runtime version is %s",
         required, functionality, dockerApiVersion);
 
-    assumeTrue(msg, dockerApiVersionSupported(required));
+    assumeTrue(msg, dockerApiVersionAtLeast(required));
   }
 
-  private boolean dockerApiVersionSupported(String expected) throws Exception {
+  private boolean dockerApiVersionAtLeast(String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
   }
 
@@ -311,7 +311,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdWithBuildargs() throws Exception {
-    requireDockerApiVersion("1.21", "build args");
+    requireDockerApiVersionAtLeast("1.21", "build args");
 
     final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
@@ -668,7 +668,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildWithPull() throws Exception {
-    requireDockerApiVersion("1.19", "build with pull");
+    requireDockerApiVersionAtLeast("1.19", "build with pull");
 
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String pullMsg = "Pulling from";
@@ -781,7 +781,7 @@ public class DefaultDockerClientTest {
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    final String pullingStr =  dockerApiVersionSupported("1.20") ?
+    final String pullingStr = dockerApiVersionAtLeast("1.20") ?
                               "Pulling from library/busybox" : "Pulling from busybox";
     assertThat(out.toString(), allOf(containsString(pullingStr),
                                      containsString("Image is up to date")));
@@ -840,7 +840,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testCopyToContainer() throws Exception {
-    requireDockerApiVersion("1.20", "copyToContainer");
+    requireDockerApiVersionAtLeast("1.20", "copyToContainer");
 
     // Pull image
     sut.pull(BUSYBOX_LATEST);
@@ -987,7 +987,7 @@ public class DefaultDockerClientTest {
     // Copy files to container
     // Docker API should be at least v1.20 to support extracting an archive of files or folders
     // to a directory in a container
-    if (dockerApiVersionSupported("1.20")) {
+    if (dockerApiVersionAtLeast("1.20")) {
       try {
         sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
       } catch (Exception e) {
@@ -1257,7 +1257,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithHostConfig() throws Exception {
-    requireDockerApiVersion("1.18", "Container creation with HostConfig");
+    requireDockerApiVersionAtLeast("1.18", "Container creation with HostConfig");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1291,7 +1291,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithAppArmorLogs() throws Exception {
-    requireDockerApiVersion("1.21", "StopSignal and AppArmorProfile");
+    requireDockerApiVersionAtLeast("1.21", "StopSignal and AppArmorProfile");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1342,7 +1342,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithCpuQuota() throws Exception {
-    requireDockerApiVersion("1.19", "Container Creation with HostConfig");
+    requireDockerApiVersionAtLeast("1.19", "Container Creation with HostConfig");
 
     assumeFalse(CIRCLECI);
 
@@ -1632,7 +1632,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExtraHosts() throws Exception {
-    requireDockerApiVersion("1.15", "Container Creation with HostConfig.ExtraHosts");
+    requireDockerApiVersionAtLeast("1.15", "Container Creation with HostConfig.ExtraHosts");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1665,7 +1665,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogDriver() throws Exception {
-    requireDockerApiVersion("1.21", "Container Creation with HostConfig.LogConfig");
+    requireDockerApiVersionAtLeast("1.21", "Container Creation with HostConfig.LogConfig");
 
     sut.pull(BUSYBOX_LATEST);
     final String name = randomName();
@@ -1738,8 +1738,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerVolumes() throws Exception {
-    requireDockerApiVersion("1.20",
-        "Creating a container with volumes and inspecting volumes in new style");
+    requireDockerApiVersionAtLeast("1.20",
+                                   "Creating a container with volumes and inspecting volumes in new style");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -2008,7 +2008,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogsSince() throws Exception {
-    requireDockerApiVersion("1.19", "/logs?since=timestamp");
+    requireDockerApiVersionAtLeast("1.19", "/logs?since=timestamp");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -2117,7 +2117,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExec() throws Exception {
-    requireDockerApiVersion("1.15", "Exec");
+    requireDockerApiVersionAtLeast("1.15", "Exec");
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -2149,7 +2149,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExecInspect() throws Exception {
-    requireDockerApiVersion("1.16", "Exec Inspect");
+    requireDockerApiVersionAtLeast("1.16", "Exec Inspect");
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -2172,7 +2172,7 @@ public class DefaultDockerClientTest {
         ExecCreateParam.tty());
 
     // some functionality in this test depends on API 1.19 (exec user)
-    final boolean execUserSupported = dockerApiVersionSupported("1.19");
+    final boolean execUserSupported = dockerApiVersionAtLeast("1.19");
     if (execUserSupported) {
       createParams.add(ExecCreateParam.user("1000"));
     }
@@ -2231,7 +2231,7 @@ public class DefaultDockerClientTest {
     // can only filter by created status in docker API version >= 1.20 - the status of "created"
     // did not exist in docker prior to 1.8.0
     final DockerClient.ListContainersParam[] createdParams =
-        dockerApiVersionSupported("1.20")
+        dockerApiVersionAtLeast("1.20")
         ? new DockerClient.ListContainersParam[]{allContainers(), withStatusCreated()}
         : new DockerClient.ListContainersParam[]{allContainers()};
 
@@ -2276,7 +2276,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerLabels() throws Exception {
-    requireDockerApiVersion("1.18", "labels");
+    requireDockerApiVersionAtLeast("1.18", "labels");
     sut.pull(BUSYBOX_LATEST);
 
     final Map<String, String> labels = ImmutableMap.of(
@@ -2348,7 +2348,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testImageLabels() throws Exception {
-    requireDockerApiVersion("1.17", "image labels");
+    requireDockerApiVersionAtLeast("1.17", "image labels");
 
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryWithImageLabels").getPath();
@@ -2414,7 +2414,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMacAddress() throws Exception {
-    requireDockerApiVersion("1.18", "Mac Address");
+    requireDockerApiVersionAtLeast("1.18", "Mac Address");
 
     sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
@@ -2431,7 +2431,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testStats() throws Exception {
-    requireDockerApiVersion("1.19", "stats without streaming");
+    requireDockerApiVersionAtLeast("1.19", "stats without streaming");
 
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -2450,7 +2450,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testNetworks() throws Exception {
-    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
+    requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
 
@@ -2514,7 +2514,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testNetworksConnectContainer() throws Exception {
-    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
+    requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
     final String networkName = randomName();
@@ -2693,7 +2693,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testIpcMode() throws Exception {
-    requireDockerApiVersion("1.18", "IpcMode");
+    requireDockerApiVersionAtLeast("1.18", "IpcMode");
 
     final HostConfig hostConfig = HostConfig.builder()
             .ipcMode("host")
