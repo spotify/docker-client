@@ -1110,8 +1110,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public EventStream events(EventsParam... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = noTimeoutResource()
-        .path("events");
+    WebTarget resource = noTimeoutResource().path("events");
     final Map<String, String> filters = newHashMap();
     for (EventsParam param : params) {
       if (param instanceof EventsFilterParam) {
