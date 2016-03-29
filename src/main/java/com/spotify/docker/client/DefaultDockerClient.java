@@ -406,10 +406,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
     }
 
-    // If filters were specified, we must put them in a JSON object and pass them using the
-    // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
-    // urlEncodeFilters will return null and queryParam() will remove that query parameter.
-    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    if (!filters.isEmpty()) {
+      // If filters were specified, we must put them in a JSON object and pass them using the
+      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+      resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    }
 
     return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
@@ -471,10 +473,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
     }
 
-    // If filters were specified, we must put them in a JSON object and pass them using the
-    // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
-    // urlEncodeFilters will return null and queryParam() will remove that query parameter.
-    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    if (!filters.isEmpty()) {
+      // If filters were specified, we must put them in a JSON object and pass them using the
+      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+      resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    }
 
     return request(GET, IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
