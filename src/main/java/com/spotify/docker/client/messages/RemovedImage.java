@@ -21,6 +21,8 @@ import com.google.common.base.MoreObjects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 public class RemovedImage {
 
   private final String imageId;
@@ -82,9 +84,7 @@ public class RemovedImage {
 
   @Override
   public int hashCode() {
-    int result = imageId != null ? imageId.hashCode() : 0;
-    result = 31 * result + (type != null ? type.hashCode() : 0);
-    return result;
+    return Objects.hash(imageId, type);
   }
 
   @Override

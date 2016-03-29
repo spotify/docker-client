@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -299,32 +300,11 @@ public class HostConfig {
 
   @Override
   public int hashCode() {
-    int result = binds != null ? binds.hashCode() : 0;
-    result = 31 * result + (containerIDFile != null ? containerIDFile.hashCode() : 0);
-    result = 31 * result + (lxcConf != null ? lxcConf.hashCode() : 0);
-    result = 31 * result + (privileged != null ? privileged.hashCode() : 0);
-    result = 31 * result + (portBindings != null ? portBindings.hashCode() : 0);
-    result = 31 * result + (links != null ? links.hashCode() : 0);
-    result = 31 * result + (publishAllPorts != null ? publishAllPorts.hashCode() : 0);
-    result = 31 * result + (dns != null ? dns.hashCode() : 0);
-    result = 31 * result + (dnsSearch != null ? dnsSearch.hashCode() : 0);
-    result = 31 * result + (extraHosts != null ? extraHosts.hashCode() : 0);
-    result = 31 * result + (volumesFrom != null ? volumesFrom.hashCode() : 0);
-    result = 31 * result + (capAdd != null ? capAdd.hashCode() : 0);
-    result = 31 * result + (capDrop != null ? capDrop.hashCode() : 0);
-    result = 31 * result + (networkMode != null ? networkMode.hashCode() : 0);
-    result = 31 * result + (securityOpt != null ? securityOpt.hashCode() : 0);
-    result = 31 * result + (devices != null ? devices.hashCode() : 0);
-    result = 31 * result + (memory != null ? memory.hashCode() : 0);
-    result = 31 * result + (memorySwap != null ? memorySwap.hashCode() : 0);
-    result = 31 * result + (cpuShares != null ? cpuShares.hashCode() : 0);
-    result = 31 * result + (cpusetCpus != null ? cpusetCpus.hashCode() : 0);
-    result = 31 * result + (cpuQuota != null ? cpuQuota.hashCode() : 0);
-    result = 31 * result + (cgroupParent != null ? cgroupParent.hashCode() : 0);
-    result = 31 * result + (restartPolicy != null ? restartPolicy.hashCode() : 0);
-    result = 31 * result + (logConfig != null ? logConfig.hashCode() : 0);
-    result = 31 * result + (ipcMode != null ? ipcMode.hashCode() : 0);
-    return result;
+    return Objects.hash(binds, containerIDFile, lxcConf, privileged, portBindings, links,
+                        publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
+                        capDrop, networkMode, securityOpt, devices, memory, memorySwap,
+                        cpuShares, cpusetCpus, cpuQuota, cgroupParent, restartPolicy, logConfig,
+                        ipcMode);
   }
 
   @Override
@@ -399,9 +379,7 @@ public class HostConfig {
 
     @Override
     public int hashCode() {
-      int result = key != null ? key.hashCode() : 0;
-      result = 31 * result + (value != null ? value.hashCode() : 0);
-      return result;
+      return Objects.hash(key, value);
     }
 
     @Override
@@ -467,9 +445,7 @@ public class HostConfig {
 
     @Override
     public int hashCode() {
-      int result = name != null ? name.hashCode() : 0;
-      result = 31 * result + (maxRetryCount != null ? maxRetryCount.hashCode() : 0);
-      return result;
+      return Objects.hash(name, maxRetryCount);
     }
 
     @Override

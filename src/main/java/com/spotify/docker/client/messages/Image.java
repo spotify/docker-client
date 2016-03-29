@@ -18,7 +18,6 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -26,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -81,18 +81,18 @@ public class Image {
 
     Image that = (Image) o;
 
-    return Objects.equal(this.created, that.created) &&
-           Objects.equal(this.id, that.id) &&
-           Objects.equal(this.parentId, that.parentId) &&
-           Objects.equal(this.repoTags, that.repoTags) &&
-           Objects.equal(this.size, that.size) &&
-           Objects.equal(this.virtualSize, that.virtualSize) &&
-           Objects.equal(this.labels, that.labels);
+    return Objects.equals(this.created, that.created) &&
+           Objects.equals(this.id, that.id) &&
+           Objects.equals(this.parentId, that.parentId) &&
+           Objects.equals(this.repoTags, that.repoTags) &&
+           Objects.equals(this.size, that.size) &&
+           Objects.equals(this.virtualSize, that.virtualSize) &&
+           Objects.equals(this.labels, that.labels);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(created, id, parentId, repoTags, size, virtualSize, labels);
+    return Objects.hash(created, id, parentId, repoTags, size, virtualSize, labels);
   }
 
   @Override

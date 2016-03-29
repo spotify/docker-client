@@ -18,13 +18,13 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -63,12 +63,12 @@ public class Ipam {
 
     Ipam that = (Ipam) o;
 
-    return Objects.equal(this.driver, that.driver) && Objects.equal(this.config, that.config);
+    return Objects.equals(this.driver, that.driver) && Objects.equals(this.config, that.config);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(driver, config);
+    return Objects.hash(driver, config);
   }
 
   @Override

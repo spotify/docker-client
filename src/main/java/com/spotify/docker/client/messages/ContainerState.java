@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -120,16 +121,8 @@ public class ContainerState {
 
   @Override
   public int hashCode() {
-    int result = running != null ? running.hashCode() : 0;
-    result = 31 * result + (pid != null ? pid.hashCode() : 0);
-    result = 31 * result + (paused != null ? paused.hashCode() : 0);
-    result = 31 * result + (restarting != null ? restarting.hashCode() : 0);
-    result = 31 * result + (exitCode != null ? exitCode.hashCode() : 0);
-    result = 31 * result + (startedAt != null ? startedAt.hashCode() : 0);
-    result = 31 * result + (finishedAt != null ? finishedAt.hashCode() : 0);
-    result = 31 * result + (error != null ? error.hashCode() : 0);
-    result = 31 * result + (oomKilled != null ? oomKilled.hashCode() : 0);
-    return result;
+    return Objects.hash(running, pid, paused, restarting, exitCode, startedAt, finishedAt,
+                        error, oomKilled);
   }
 
   @Override

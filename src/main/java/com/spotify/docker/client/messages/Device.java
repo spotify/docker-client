@@ -21,6 +21,8 @@ package com.spotify.docker.client.messages;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
+import java.util.Objects;
+
 public class Device {
 
     @JsonProperty("PathOnHost") private String pathOnHost;
@@ -78,10 +80,7 @@ public class Device {
 
     @Override
     public int hashCode() {
-        int result = pathOnHost != null ? pathOnHost.hashCode() : 0;
-        result = 31 * result + (pathInContainer != null ? pathInContainer.hashCode() : 0);
-        result = 31 * result + (cGroupPermissions != null ? cGroupPermissions.hashCode() : 0);
-        return result;
+        return Objects.hash(pathOnHost, pathInContainer, cGroupPermissions);
     }
 
     @Override

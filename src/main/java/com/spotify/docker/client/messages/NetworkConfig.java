@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -90,12 +91,7 @@ public class NetworkConfig {
 
   @Override
   public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + (driver != null ? driver.hashCode() : 0);
-    result = 31 * result + (ipam != null ? ipam.hashCode() : 0);
-    result = 31 * result + (options != null ? options.hashCode() : 0);
-    result = 31 * result + (checkDuplicate ? 1 : 0);
-    return result;
+    return Objects.hash(name, driver, ipam, options, checkDuplicate);
   }
 
 

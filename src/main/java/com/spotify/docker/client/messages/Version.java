@@ -21,6 +21,8 @@ import com.google.common.base.MoreObjects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 public class Version {
 
   @JsonProperty("ApiVersion") private String apiVersion;
@@ -99,14 +101,7 @@ public class Version {
 
   @Override
   public int hashCode() {
-    int result = apiVersion != null ? apiVersion.hashCode() : 0;
-    result = 31 * result + (arch != null ? arch.hashCode() : 0);
-    result = 31 * result + (gitCommit != null ? gitCommit.hashCode() : 0);
-    result = 31 * result + (goVersion != null ? goVersion.hashCode() : 0);
-    result = 31 * result + (kernelVersion != null ? kernelVersion.hashCode() : 0);
-    result = 31 * result + (os != null ? os.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    return result;
+    return Objects.hash(apiVersion, arch, gitCommit, goVersion, kernelVersion, os, version);
   }
 
   @Override

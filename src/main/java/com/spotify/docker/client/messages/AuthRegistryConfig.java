@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * A formatted string passed in X-Registry-Config request header. {"myrepository":{
@@ -132,13 +133,7 @@ public class AuthRegistryConfig {
 
   @Override
   public int hashCode() {
-    int result = repository != null ? repository.hashCode() : 0;
-    result = 31 * result + (username != null ? username.hashCode() : 0);
-    result = 31 * result + (password != null ? password.hashCode() : 0);
-    result = 31 * result + (auth != null ? auth.hashCode() : 0);
-    result = 31 * result + (email != null ? email.hashCode() : 0);
-    result = 31 * result + (serverAddress != null ? serverAddress.hashCode() : 0);
-    return result;
+    return Objects.hash(repository, username, password, auth, email, serverAddress);
   }
 
   @Override

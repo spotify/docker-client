@@ -18,10 +18,11 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -81,20 +82,20 @@ public class AttachedNetwork {
 
     AttachedNetwork that = (AttachedNetwork) o;
 
-    return Objects.equal(this.endpointId, that.endpointId) &&
-           Objects.equal(this.gateway, that.gateway) &&
-           Objects.equal(this.ipAddress, that.ipAddress) &&
-           Objects.equal(this.ipPrefixLen, that.ipPrefixLen) &&
-           Objects.equal(this.ipv6Gateway, that.ipv6Gateway) &&
-           Objects.equal(this.globalIPv6Address, that.globalIPv6Address) &&
-           Objects.equal(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
-           Objects.equal(this.macAddress, that.macAddress);
+    return Objects.equals(this.endpointId, that.endpointId) &&
+           Objects.equals(this.gateway, that.gateway) &&
+           Objects.equals(this.ipAddress, that.ipAddress) &&
+           Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
+           Objects.equals(this.ipv6Gateway, that.ipv6Gateway) &&
+           Objects.equals(this.globalIPv6Address, that.globalIPv6Address) &&
+           Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
+           Objects.equals(this.macAddress, that.macAddress);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(endpointId, gateway, ipAddress, ipPrefixLen, ipv6Gateway,
-                            globalIPv6Address, globalIPv6PrefixLen, macAddress);
+    return Objects.hash(endpointId, gateway, ipAddress, ipPrefixLen, ipv6Gateway,
+                                  globalIPv6Address, globalIPv6PrefixLen, macAddress);
   }
 
   @Override

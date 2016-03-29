@@ -18,7 +18,6 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -28,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -256,32 +256,11 @@ public class ContainerInfo {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (created != null ? created.hashCode() : 0);
-    result = 31 * result + (path != null ? path.hashCode() : 0);
-    result = 31 * result + (args != null ? args.hashCode() : 0);
-    result = 31 * result + (config != null ? config.hashCode() : 0);
-    result = 31 * result + (hostConfig != null ? hostConfig.hashCode() : 0);
-    result = 31 * result + (state != null ? state.hashCode() : 0);
-    result = 31 * result + (image != null ? image.hashCode() : 0);
-    result = 31 * result + (networkSettings != null ? networkSettings.hashCode() : 0);
-    result = 31 * result + (resolvConfPath != null ? resolvConfPath.hashCode() : 0);
-    result = 31 * result + (hostnamePath != null ? hostnamePath.hashCode() : 0);
-    result = 31 * result + (hostsPath != null ? hostsPath.hashCode() : 0);
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    result = 31 * result + (driver != null ? driver.hashCode() : 0);
-    result = 31 * result + (execDriver != null ? execDriver.hashCode() : 0);
-    result = 31 * result + (processLabel != null ? processLabel.hashCode() : 0);
-    result = 31 * result + (mountLabel != null ? mountLabel.hashCode() : 0);
-    result = 31 * result + (volumes != null ? volumes.hashCode() : 0);
-    result = 31 * result + (volumesRW != null ? volumesRW.hashCode() : 0);
-    result = 31 * result + (node != null ? node.hashCode() : 0);
-    result = 31 * result + (appArmorProfile != null ? appArmorProfile.hashCode() : 0);
-    result = 31 * result + (execId != null ? execId.hashCode() : 0);
-    result = 31 * result + (logPath != null ? logPath.hashCode() : 0);
-    result = 31 * result + (restartCount != null ? restartCount.hashCode() : 0);
-    result = 31 * result + (mounts != null ? mounts.hashCode() : 0);
-    return result;
+    return Objects.hash(
+        id, created, path, args, config, hostConfig, state, image,
+        networkSettings, resolvConfPath, hostnamePath, hostsPath, name, driver, execDriver,
+        processLabel, mountLabel, volumes, volumesRW, node, appArmorProfile,
+        execId, logPath, restartCount, mounts);
   }
 
   @Override
@@ -351,15 +330,15 @@ public class ContainerInfo {
         return false;
       }
       Node node = (Node) o;
-      return Objects.equal(id, node.id) &&
-             Objects.equal(ip, node.ip) &&
-             Objects.equal(addr, node.addr) &&
-             Objects.equal(name, node.name);
+      return Objects.equals(id, node.id) &&
+             Objects.equals(ip, node.ip) &&
+             Objects.equals(addr, node.addr) &&
+             Objects.equals(name, node.name);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(id, ip, addr, name);
+      return Objects.hash(id, ip, addr, name);
     }
 
     @Override
