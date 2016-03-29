@@ -498,7 +498,7 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     // Tag image
-    final String newImageName = "testRepo:testTag";
+    final String newImageName = "test-repo:testTag";
     sut.tag(BUSYBOX, newImageName);
 
     // Verify tag was successful by trying to remove it.
@@ -510,7 +510,7 @@ public class DefaultDockerClientTest {
   public void testTagForce() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
-    final String name = "testRepo/tagForce:sometag";
+    final String name = "test-repo/tagForce:sometag";
     // Assign name to first image
     sut.tag(BUSYBOX_LATEST, name);
 
