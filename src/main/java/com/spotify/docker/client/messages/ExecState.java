@@ -40,6 +40,7 @@ public class ExecState {
   @JsonProperty("OpenStderr") private Boolean openStderr;
   @JsonProperty("OpenStdout") private Boolean openStdout;
   @JsonProperty("Container") private ContainerInfo container;
+  @JsonProperty("ContainerID") private String containerID;
 
   public String id() {
     return id;
@@ -73,6 +74,10 @@ public class ExecState {
     return container;
   }
 
+  public String containerID() {
+    return containerID;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -100,15 +105,16 @@ public class ExecState {
     if (openStdin != null ? !openStdin.equals(that.openStdin) : that.openStdin != null) {
       return false;
     }
-    if (openStderr != null ? !openStderr.equals(that.openStderr)
-                           : that.openStderr != null) {
+    if (openStderr != null ? !openStderr.equals(that.openStderr) : that.openStderr != null) {
       return false;
     }
-    if (openStdout != null ? !openStdout.equals(that.openStdout)
-                           : that.openStdout != null) {
+    if (openStdout != null ? !openStdout.equals(that.openStdout) : that.openStdout != null) {
       return false;
     }
-    return container != null ? container.equals(that.container) : that.container == null;
+    if (container != null ? !container.equals(that.container) : that.container != null) {
+      return false;
+    }
+    return containerID != null ? containerID.equals(that.containerID) : that.containerID == null;
 
   }
 
@@ -122,6 +128,7 @@ public class ExecState {
     result = 31 * result + (openStderr != null ? openStderr.hashCode() : 0);
     result = 31 * result + (openStdout != null ? openStdout.hashCode() : 0);
     result = 31 * result + (container != null ? container.hashCode() : 0);
+    result = 31 * result + (containerID != null ? containerID.hashCode() : 0);
     return result;
   }
 
@@ -136,6 +143,7 @@ public class ExecState {
         .add("openStderr", openStderr)
         .add("openStdout", openStdout)
         .add("container", container)
+        .add("containerID", containerID)
         .toString();
   }
 }
