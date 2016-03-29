@@ -24,6 +24,8 @@ import com.spotify.docker.Polling;
 import com.spotify.docker.client.ContainerNotFoundException;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerClient.RemoveContainerParam;
+import com.spotify.docker.client.ImageNotFoundException;
 import com.spotify.docker.client.ImagePushFailedException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -50,11 +52,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * These integration tests check we can push images to and from a private registry running as a
- * local container. Some tests in this class also check we can push to Docker Hub. N.B. Docker Hub
- * rate limits pushes, so they might fail if you run them too often :)
+ * These integration tests check we can push images to and pull from a private registry running as a
+ * local container. Some tests in this class also check we can push to and pull from Docker Hub.
+ * N.B. Docker Hub rate limits pushes, so they might fail if you run them too often :)
  */
-public class PushIT {
+public class PushPullIT {
 
   private static final int LONG_WAIT_SECONDS = 400;
   private static final int SECONDS_TO_WAIT_BEFORE_KILL = 120;
@@ -76,6 +78,11 @@ public class PushIT {
       "dxia4/docker-client-test-push-public-image-with-auth";
   private static final String HUB_PRIVATE_IMAGE =
       "dxia4/docker-client-test-push-private-image-with-auth";
+
+  private static final String HUB_AUTH_EMAIL2 = "dxia+2@spotify.com";
+  private static final String HUB_AUTH_USERNAME2 = "dxia2";
+  private static final String CIRROS_PRIVATE = "dxia/cirros-private";
+  private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
 
   private DockerClient client;
   private String registryContainerId;
@@ -112,7 +119,7 @@ public class PushIT {
   public void tearDown() throws Exception {
     if (!isNullOrEmpty(registryContainerId)) {
       client.stopContainer(registryContainerId, SECONDS_TO_WAIT_BEFORE_KILL);
-      client.removeContainer(registryContainerId, true);
+      client.removeContainer(registryContainerId, RemoveContainerParam.removeVolumes());
       awaitStopped(client, registryContainerId);
     }
   }
@@ -218,6 +225,16 @@ public class PushIT {
 
     client.build(Paths.get(dockerDirectory), HUB_PRIVATE_IMAGE);
     client.push(HUB_PRIVATE_IMAGE);
+  }
+
+  @Test(expected = ImageNotFoundException.class)
+  public void testPullPrivateRepoWithBadAuth() throws Exception {
+    final AuthConfig badAuthConfig = AuthConfig.builder()
+        .email(HUB_AUTH_EMAIL2)
+        .username(HUB_AUTH_USERNAME2)
+        .password("foobar")
+        .build();
+    client.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
 
   private static String startAuthedRegistry(final DockerClient client) throws Exception {
