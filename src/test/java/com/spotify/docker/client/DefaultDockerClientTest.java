@@ -2489,30 +2489,6 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testNetworksConnectContainerShouldFailIfContainerNotRunning() throws Exception {
-    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
-
-    assumeFalse(CIRCLECI);
-    final String networkName = randomName();
-    final String containerName = randomName();
-    final NetworkCreation networkCreation =
-        sut.createNetwork(NetworkConfig.builder().name(networkName).build());
-    assertThat(networkCreation.id(), is(notNullValue()));
-    final ContainerConfig containerConfig =
-        ContainerConfig.builder().image(BUSYBOX_LATEST).cmd("sh", "-c", "echo hello").build();
-    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
-    assertThat(containerCreation.id(), is(notNullValue()));
-    try {
-      exception.expect(DockerException.class);
-      sut.connectToNetwork(containerCreation.id(), networkCreation.id());
-    } finally {
-      sut.removeContainer(containerCreation.id());
-      sut.removeNetwork(networkCreation.id());
-    }
-  }
-
-
-  @Test
   public void testNetworksConnectContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
