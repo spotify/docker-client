@@ -2175,7 +2175,9 @@ public class DefaultDockerClientTest {
       createParams.add(ExecCreateParam.user("1000"));
     }
 
-    final String execId = sut.execCreate(containerId, new String[]{"sh", "-c", "exit 2"});
+    final String execId = sut.execCreate(
+        containerId, new String[]{"sh", "-c", "exit 2"},
+        createParams.toArray(new ExecCreateParam[createParams.size()]));
 
     log.info("execId = {}", execId);
     try (final LogStream stream = sut.execStart(execId)) {
