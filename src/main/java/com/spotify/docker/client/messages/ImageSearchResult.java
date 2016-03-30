@@ -36,7 +36,7 @@ public class ImageSearchResult {
   @JsonProperty("is_automated") private boolean automated;
   @JsonProperty("name") private String name;
   @JsonProperty("star_count") private int starCount;
-  
+
   /**
    * @return the description
    */

@@ -800,8 +800,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public List<ImageSearchResult> searchImages(final String term)
       throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("images").path("search")
-        .queryParam("term", term);
+    final WebTarget resource = resource().path("images").path("search").queryParam("term", term);
     return request(GET, IMAGES_SEARCH_RESULT_LIST, resource,
                    resource.request(APPLICATION_JSON_TYPE));
   }
