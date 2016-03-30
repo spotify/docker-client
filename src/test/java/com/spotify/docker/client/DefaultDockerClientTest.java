@@ -294,6 +294,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testSearchImage() throws Exception {
+    requireDockerApiVersionNot("1.19", "Docker 1.7.x sends the wrong Content-Type header for "
+                                       + "/images/search. So we skip this test.");
     // when
     final List<ImageSearchResult> searchResult = sut.searchImages(BUSYBOX);
     // then
