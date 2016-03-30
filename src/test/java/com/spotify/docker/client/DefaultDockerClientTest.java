@@ -367,7 +367,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testSave() throws Exception {
-    File imageFile = save(BUSYBOX);
+    // Ensure the local Docker instance has the busybox image so that save() will work
+    sut.pull(BUSYBOX_LATEST);
+    final File imageFile = save(BUSYBOX);
     assertTrue(imageFile.length() > 0);
   }
 
@@ -392,6 +394,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLoad() throws Exception {
+    // Ensure the local Docker instance has the busybox image so that save() will work
+    sut.pull(BUSYBOX_LATEST);
     final File imageFile = save(BUSYBOX);
     final String image = BUSYBOX + "test" + System.nanoTime();
 
