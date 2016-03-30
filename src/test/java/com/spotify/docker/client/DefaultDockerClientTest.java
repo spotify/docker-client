@@ -2461,7 +2461,12 @@ public class DefaultDockerClientTest {
     assertThat(stats.precpuStats(), notNullValue());
     assertThat(stats.cpuStats(), notNullValue());
     assertThat(stats.memoryStats(), notNullValue());
-    assertThat(stats.network(), notNullValue());
+
+    if (dockerApiVersionLessThan("1.21")) {
+      assertThat(stats.network(), notNullValue());
+    } else {
+      assertThat(stats.networks(), notNullValue());
+    }
   }
 
   @Test
