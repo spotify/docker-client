@@ -22,13 +22,17 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerStats {
+
   @JsonProperty("read") private String read;
   @JsonProperty("network") private NetworkStats network;
+  @JsonProperty("networks") private Map<String, NetworkStats> networks;
   @JsonProperty("memory_stats") private MemoryStats memoryStats;
   @JsonProperty("cpu_stats") private CpuStats cpuStats;
   @JsonProperty("precpu_stats") private CpuStats precpuStats;
@@ -39,6 +43,10 @@ public class ContainerStats {
 
   public NetworkStats network() {
     return network;
+  }
+
+  public Map<String, NetworkStats> networks() {
+    return networks;
   }
 
   public MemoryStats memoryStats() {
