@@ -1335,9 +1335,13 @@ public class DefaultDockerClientTest {
     assertThat(inspection.restartCount(), equalTo(0L));
     assertThat(inspection.mounts().isEmpty(), equalTo(true));
 
-    final List<Container> containers =
-        sut.listContainers(allContainers(),
-                           withStatusExited());
+    // Wait for the container to exit
+    sut.waitContainer(id);
+
+    final List<Container> containers = sut.listContainers(allContainers(), withStatusExited());
+
+    System.out.println("ID TO LOOK FOR: " + id);
+    System.out.println("CONTAINERS LISTED: " + containers);
 
     Container targetCont = null;
     for (Container container : containers) {
