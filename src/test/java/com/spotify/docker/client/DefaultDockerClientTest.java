@@ -335,11 +335,6 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testPullPrivateRepoWithAuth() throws Exception {
-    sut.pull("dxia2/scratch-private:latest", authConfig);
-  }
-
-  @Test
   public void testFailedPullDoesNotLeakConn() throws Exception {
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
 
@@ -638,18 +633,6 @@ public class DefaultDockerClientTest {
         });
 
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
-  }
-
-
-  @Test
-  public void testBuildPrivateRepoWithAuth() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-
-    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
-        .authConfig(authConfig)
-        .build();
-
-    sut2.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());
   }
 
   @Test

@@ -24,6 +24,7 @@ import com.spotify.docker.Polling;
 import com.spotify.docker.client.ContainerNotFoundException;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
 import com.spotify.docker.client.ImageNotFoundException;
 import com.spotify.docker.client.ImagePushFailedException;
@@ -81,6 +82,7 @@ public class PushPullIT {
 
   private static final String HUB_AUTH_EMAIL2 = "dxia+2@spotify.com";
   private static final String HUB_AUTH_USERNAME2 = "dxia2";
+  private static final String HUB_AUTH_PASSWORD2 = "Tv38KLPd]M";
   private static final String CIRROS_PRIVATE = "dxia/cirros-private";
   private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
 
@@ -95,7 +97,7 @@ public class PushPullIT {
 
   @BeforeClass
   public static void before() throws Exception {
-    // Pull the registry image down once before the any test methods in this class run
+    // Pull the registry image down once before any test methods in this class run
     DefaultDockerClient.fromEnv().build().pull(REGISTRY_IMAGE);
   }
 
@@ -235,6 +237,32 @@ public class PushPullIT {
         .password("foobar")
         .build();
     client.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
+  }
+
+  @Test
+  public void testBuildPrivateRepoWithAuth() throws Exception {
+    final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
+    final AuthConfig authConfig = AuthConfig.builder()
+        .email(HUB_AUTH_EMAIL2)
+        .username(HUB_AUTH_USERNAME2)
+        .password(HUB_AUTH_PASSWORD2)
+        .build();
+
+    final DefaultDockerClient client = DefaultDockerClient.fromEnv()
+        .authConfig(authConfig)
+        .build();
+
+    client.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());
+  }
+
+  @Test
+  public void testPullPrivateRepoWithAuth() throws Exception {
+    final AuthConfig authConfig = AuthConfig.builder()
+        .email(HUB_AUTH_EMAIL2)
+        .username(HUB_AUTH_USERNAME2)
+        .password(HUB_AUTH_PASSWORD2)
+        .build();
+    client.pull("dxia2/scratch-private:latest", authConfig);
   }
 
   private static String startAuthedRegistry(final DockerClient client) throws Exception {
