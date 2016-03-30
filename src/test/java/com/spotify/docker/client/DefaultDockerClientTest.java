@@ -394,10 +394,11 @@ public class DefaultDockerClientTest {
   public void testLoad() throws Exception {
     final File imageFile = save(BUSYBOX);
     final String image = BUSYBOX + "test" + System.nanoTime();
-    try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
 
+    try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
       sut.load(image, imagePayload, authConfig);
     }
+
     final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
       @Override
       public boolean apply(Image img) {
@@ -407,7 +408,7 @@ public class DefaultDockerClientTest {
 
     assertThat(images.size(), greaterThan(0));
 
-    for (Image img : images) {
+    for (final Image img : images) {
       sut.removeImage(img.id());
     }
   }
@@ -537,12 +538,15 @@ public class DefaultDockerClientTest {
     assertThat(info.dockerVersion(), not(isEmptyOrNullString()));
     assertThat(info.id(), not(isEmptyOrNullString()));
     assertThat(info.os(), equalTo("linux"));
+
+    //noinspection StatementWithEmptyBody
     if (dockerApiVersionLessThan("1.22")) {
       assertThat(info.parent(), not(isEmptyOrNullString()));
     } else {
       // The "parent" field can be empty because of changes in
       // image storage in 1.10. See https://github.com/docker/docker/issues/19650.
     }
+
     assertThat(info.size(), notNullValue());
     assertThat(info.virtualSize(), notNullValue());
   }
