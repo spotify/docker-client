@@ -530,7 +530,7 @@ public class HostConfig {
      */
     public Builder binds(final List<String> binds) {
       if (binds != null && !binds.isEmpty()) {
-        this.binds = ImmutableList.copyOf(binds);
+        this.binds = copyWithoutDuplicates(binds);
       }
 
       return this;
@@ -570,9 +570,12 @@ public class HostConfig {
 
     /** Append binds to the existing list in this builder. */
     public Builder appendBinds(final Iterable<String> newBinds) {
-      final List<String> list = new ArrayList<>(this.binds);
+      final List<String> list = new ArrayList<>();
+      if (this.binds != null) {
+        list.addAll(this.binds);
+      }
       list.addAll(Lists.newArrayList(newBinds));
-      this.binds = ImmutableList.copyOf(list);
+      this.binds = copyWithoutDuplicates(list);
 
       return this;
     }
@@ -587,6 +590,16 @@ public class HostConfig {
     public Builder appendBinds(final String... binds) {
       appendBinds(Lists.newArrayList(binds));
       return this;
+    }
+
+    private static <T> ImmutableList<T> copyWithoutDuplicates(final List<T> input) {
+      final List<T> list = new ArrayList<>(input.size());
+      for (final T element : input) {
+        if (!list.contains(element)) {
+          list.add(element);
+        }
+      }
+      return ImmutableList.copyOf(list);
     }
 
     public List<String> binds() {

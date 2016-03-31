@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class HostConfigTest {
@@ -99,5 +100,16 @@ public class HostConfigTest {
 
     assertThat("Calling .appendBinds should append to the list, not replace",
                hostConfig.binds(), is(expected));
+  }
+
+  @Test
+  public void testPreventDuplicateBinds() {
+    final HostConfig hostConfig = HostConfig.builder()
+        .appendBinds("/one:/one")
+        .appendBinds("/one:/one")
+        .appendBinds("/one:/one")
+        .build();
+
+    assertThat(hostConfig.binds(), contains("/one:/one"));
   }
 }
