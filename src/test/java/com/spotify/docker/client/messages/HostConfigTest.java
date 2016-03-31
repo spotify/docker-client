@@ -17,17 +17,18 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-
 import com.spotify.docker.client.ObjectMapperProvider;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.Resources;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -67,5 +68,36 @@ public class HostConfigTest {
 
   private static String fixture(String filename) throws IOException {
     return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
+  }
+
+  @Test
+  public void testReplaceBinds() {
+    final List<String> initialBinds = ImmutableList.of("/one:/one", "/two:/two");
+    final HostConfig hostConfig = HostConfig.builder()
+        .binds(initialBinds)
+        .binds(initialBinds)
+        .build();
+
+    assertThat("Calling .binds() multiple times should replace the list each time",
+               hostConfig.binds(), is(initialBinds));
+  }
+
+  @Test
+  public void testAppendBinds() {
+    final List<String> initialBinds = ImmutableList.of("/one:/one", "/two:/two");
+    final HostConfig hostConfig = HostConfig.builder()
+        .binds(initialBinds)
+        .appendBinds("/three:/three")
+        .appendBinds("/four:/four")
+        .build();
+
+    final List<String> expected = ImmutableList.<String>builder()
+        .addAll(initialBinds)
+        .add("/three:/three")
+        .add("/four:/four")
+        .build();
+
+    assertThat("Calling .appendBinds should append to the list, not replace",
+               hostConfig.binds(), is(expected));
   }
 }

@@ -17,14 +17,14 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +152,7 @@ public class HostConfig {
   public List<String> securityOpt() {
     return securityOpt;
   }
-  
+
   public List<Device> devices() {
     return devices;
   }
@@ -524,17 +524,22 @@ public class HostConfig {
       this.ipcMode = hostConfig.ipcMode;
     }
 
+    /**
+     * Set the list of binds to the parameter, replacing any existing value.
+     * <p>To append to the list instead, use one of the appendBinds() methods.</p>
+     */
     public Builder binds(final List<String> binds) {
       if (binds != null && !binds.isEmpty()) {
-        if (this.binds != null) {
-          binds.addAll(0, this.binds);
-        }
         this.binds = ImmutableList.copyOf(binds);
       }
 
       return this;
     }
 
+    /**
+     * Set the list of binds to the parameter, replacing any existing value.
+     * <p>To append to the list instead, use one of the appendBinds() methods.</p>
+     */
     public Builder binds(final String... binds) {
       if (binds != null && binds.length > 0) {
         return binds(Lists.newArrayList(binds));
@@ -543,16 +548,45 @@ public class HostConfig {
       return this;
     }
 
+    /**
+     * Set the list of binds to the parameter, replacing any existing value.
+     * <p>To append to the list instead, use one of the appendBinds() methods.</p>
+     */
     public Builder binds(final Bind... binds) {
       if (binds == null || binds.length == 0) {
         return this;
       }
 
+      return binds(toStringList(binds));
+    }
+
+    private static List<String> toStringList(final Bind[] binds) {
       final List<String> bindStrings = Lists.newArrayList();
       for (final Bind bind : binds) {
         bindStrings.add(bind.toString());
       }
-      return binds(bindStrings);
+      return bindStrings;
+    }
+
+    /** Append binds to the existing list in this builder. */
+    public Builder appendBinds(final Iterable<String> newBinds) {
+      final List<String> list = new ArrayList<>(this.binds);
+      list.addAll(Lists.newArrayList(newBinds));
+      this.binds = ImmutableList.copyOf(list);
+
+      return this;
+    }
+
+    /** Append binds to the existing list in this builder. */
+    public Builder appendBinds(final Bind... binds) {
+      appendBinds(toStringList(binds));
+      return this;
+    }
+
+    /** Append binds to the existing list in this builder. */
+    public Builder appendBinds(final String... binds) {
+      appendBinds(Lists.newArrayList(binds));
+      return this;
     }
 
     public List<String> binds() {
@@ -803,7 +837,7 @@ public class HostConfig {
     public List<Device> devices() {
       return devices;
     }
-    
+
     public Builder memory(final Long memory) {
       this.memory = memory;
       return this;

@@ -439,7 +439,7 @@ try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(im
   }
 }
 ```
- 
+
 
 ### Get a tarball containing all images.
 
@@ -448,7 +448,7 @@ Not implemented yet. PRs welcome.
 ### Load a tarball with a set of images and tags into docker
 
 Not implemented yet. PRs welcome.
- 
+
 ### Exec Create
 
 ```java
@@ -488,19 +488,19 @@ There are two ways to make a bind:
 2. Create a `Bind` object and pass it to `binds()`.
 
 If you only need to create a volume in a container, and you don't need it to mount any
-particular directory on the host, you can use the `volumes()` method on the 
+particular directory on the host, you can use the `volumes()` method on the
 `ContainerConfig.Builder`.
 
 ```java
-final HostConfig hostConfig = 
+final HostConfig hostConfig =
   HostConfig.builder()
-    .binds("/local/path:/remote/path")
-    .binds(Bind.from("/another/local/path")
+    .appendBinds("/local/path:/remote/path")
+    .appendBinds(Bind.from("/another/local/path")
                .to("/another/remote/path")
                .readOnly(true)
                .build())
     .build();
-final ContainerConfig volumeConfig = 
+final ContainerConfig volumeConfig =
   ContainerConfig.builder()
     .image("busybox:latest")
     .volumes("/foo")   // This volume will not mount any host directory
@@ -509,8 +509,8 @@ final ContainerConfig volumeConfig =
 ```
 
 #### A note on mounts
-Be aware that, starting with API version 1.20 (docker version 1.8.x), information 
-about a container's volumes is returned with the key `"Mounts"`, not `"Volumes"`.  
+Be aware that, starting with API version 1.20 (docker version 1.8.x), information
+about a container's volumes is returned with the key `"Mounts"`, not `"Volumes"`.
 As such, the `ContainerInfo.volumes()` method is deprecated. Instead, use
 `ContainerInfo.mounts()`.
 
