@@ -50,7 +50,7 @@ public class ContainerStateTest {
 
   @Test
   public void testLoadFromRandomFixture() throws Exception {
-    ContainerState containerState = objectMapper
+    final ContainerState containerState = objectMapper
         .readValue(fixture("fixtures/container-state-random.json"), ContainerState.class);
     assertThat(containerState.paused(), is(false));
     assertThat(containerState.restarting(), is(false));

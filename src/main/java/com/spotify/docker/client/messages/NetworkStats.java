@@ -95,7 +95,7 @@ public class NetworkStats {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    NetworkStats other = (NetworkStats) obj;
+    final NetworkStats other = (NetworkStats) obj;
     if (rxBytes == null) {
       if (other.rxBytes != null) {
         return false;

@@ -80,7 +80,7 @@ public class AttachedNetwork {
       return false;
     }
 
-    AttachedNetwork that = (AttachedNetwork) o;
+    final AttachedNetwork that = (AttachedNetwork) o;
 
     return Objects.equals(this.endpointId, that.endpointId) &&
            Objects.equals(this.gateway, that.gateway) &&

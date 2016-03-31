@@ -65,7 +65,7 @@ public class ProcessConfig {
       return false;
     }
 
-    ProcessConfig that = (ProcessConfig) o;
+    final ProcessConfig that = (ProcessConfig) o;
 
     if (privileged != null ? !privileged.equals(that.privileged) : that.privileged != null) {
       return false;

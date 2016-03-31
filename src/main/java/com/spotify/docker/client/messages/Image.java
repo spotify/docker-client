@@ -79,7 +79,7 @@ public class Image {
       return false;
     }
 
-    Image that = (Image) o;
+    final Image that = (Image) o;
 
     return Objects.equals(this.created, that.created) &&
            Objects.equals(this.id, that.id) &&

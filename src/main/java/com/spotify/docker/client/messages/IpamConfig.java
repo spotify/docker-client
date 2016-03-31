@@ -67,7 +67,7 @@ public class IpamConfig {
       return false;
     }
 
-    IpamConfig that = (IpamConfig) o;
+    final IpamConfig that = (IpamConfig) o;
 
     return Objects.equals(this.subnet, that.subnet) &&
            Objects.equals(this.ipRange, that.ipRange) &&

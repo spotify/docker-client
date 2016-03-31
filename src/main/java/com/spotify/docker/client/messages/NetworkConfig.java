@@ -71,7 +71,7 @@ public class NetworkConfig {
       return false;
     }
 
-    NetworkConfig that = (NetworkConfig) o;
+    final NetworkConfig that = (NetworkConfig) o;
 
     if (checkDuplicate != that.checkDuplicate) {
       return false;

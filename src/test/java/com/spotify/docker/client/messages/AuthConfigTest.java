@@ -136,10 +136,10 @@ public class AuthConfigTest {
 
   @Test
   public void testFromDockerConfig_MultiConfig() throws Exception {
-    AuthConfig myDockParsed = AuthConfig.fromDockerConfig(getTestFilePath(
+    final AuthConfig myDockParsed = AuthConfig.fromDockerConfig(getTestFilePath(
         "dockerConfig/multiConfig.json"), "https://narnia.mydock.io/v1/").build();
     assertThat(myDockParsed, equalTo(MY_AUTH_CONFIG));
-    AuthConfig dockerIoParsed = AuthConfig.fromDockerConfig(getTestFilePath(
+    final AuthConfig dockerIoParsed = AuthConfig.fromDockerConfig(getTestFilePath(
         "dockerConfig/multiConfig.json"), "https://index.docker.io/v1/").build();
     assertThat(dockerIoParsed, equalTo(DOCKER_AUTH_CONFIG));
   }
@@ -153,7 +153,7 @@ public class AuthConfigTest {
   }
 
   private static Path getWindowsPath(final String path) {
-    URL resource = AuthConfigTest.class.getResource("/" + path);
+    final URL resource = AuthConfigTest.class.getResource("/" + path);
     return Paths.get(resource.getPath().substring(1));
   }
 

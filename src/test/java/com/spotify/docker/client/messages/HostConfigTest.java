@@ -43,7 +43,7 @@ public class HostConfigTest {
 
   @Test
   public void testJsonAlways() throws Exception {
-    HostConfig hostConfig = objectMapper
+    final HostConfig hostConfig = objectMapper
         .readValue(fixture("fixtures/hostConfig/restartPolicyAlways.json"),
                    HostConfig.class);
     assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.always()));
@@ -51,7 +51,7 @@ public class HostConfigTest {
 
   @Test
   public void testJsonUnlessStopped() throws Exception {
-    HostConfig hostConfig = objectMapper
+    final HostConfig hostConfig = objectMapper
         .readValue(fixture("fixtures/hostConfig/restartPolicyUnlessStopped.json"),
                    HostConfig.class);
     assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.unlessStopped()));
@@ -59,7 +59,7 @@ public class HostConfigTest {
 
   @Test
   public void testJsonOnFailure() throws Exception {
-    HostConfig hostConfig = objectMapper
+    final HostConfig hostConfig = objectMapper
         .readValue(fixture("fixtures/hostConfig/restartPolicyOnFailure.json"),
                    HostConfig.class);
     assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.onFailure(5)));

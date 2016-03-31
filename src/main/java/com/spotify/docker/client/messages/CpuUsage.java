@@ -72,7 +72,7 @@ public class CpuUsage {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    CpuUsage other = (CpuUsage) obj;
+    final CpuUsage other = (CpuUsage) obj;
     if (percpuUsage == null) {
       if (other.percpuUsage != null) {
         return false;

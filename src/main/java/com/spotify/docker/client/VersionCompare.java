@@ -37,8 +37,8 @@ public final class VersionCompare {
    * "1.10.0".
    */
   public static int compareVersion(String str1, String str2) {
-    String[] vals1 = str1.split("\\.");
-    String[] vals2 = str2.split("\\.");
+    final String[] vals1 = str1.split("\\.");
+    final String[] vals2 = str2.split("\\.");
     int i = 0;
     // set index to first non-equal ordinal or length of shortest version string
     while (i < vals1.length && i < vals2.length && vals1[i].equals(vals2[i])) {
@@ -46,7 +46,7 @@ public final class VersionCompare {
     }
     // compare first non-equal ordinal number
     if (i < vals1.length && i < vals2.length) {
-      int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
+      final int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
       return Integer.signum(diff);
     } else {
       // the strings are equal or one string is a substring of the other

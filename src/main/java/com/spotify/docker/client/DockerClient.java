@@ -538,7 +538,7 @@ public interface DockerClient extends Closeable {
         return false;
       }
 
-      BuildParam that = (BuildParam) o;
+      final BuildParam that = (BuildParam) o;
 
       if (name != null ? !name.equals(that.name) : that.name != null) {
         return false;

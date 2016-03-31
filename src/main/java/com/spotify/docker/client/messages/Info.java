@@ -156,7 +156,7 @@ public class Info {
       return false;
     }
 
-    Info info = (Info) o;
+    final Info info = (Info) o;
 
     if (containers != info.containers) {
       return false;
