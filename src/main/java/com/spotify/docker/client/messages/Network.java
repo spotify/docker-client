@@ -31,31 +31,6 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Network {
 
-  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-  public static class Container {
-
-    @JsonProperty("EndpointID") private String endpointId;
-    @JsonProperty("MacAddress") private String macAddress;
-    @JsonProperty("IPv4Address") private String ipv4address;
-    @JsonProperty("IPv6Address") private String ipv6address;
-
-    public String endpointId() {
-      return endpointId;
-    }
-
-    public String macAddress() {
-      return macAddress;
-    }
-
-    public String ipv4address() {
-      return ipv4address;
-    }
-
-    public String ipv6address() {
-      return ipv6address;
-    }
-  }
-
   @JsonProperty("Name") private String name;
   @JsonProperty("Id") private String id;
   @JsonProperty("Scope") private String scope;
@@ -104,21 +79,85 @@ public class Network {
     final Network that = (Network) o;
 
     return Objects.equals(this.name, that.name) &&
-           Objects.equals(this.id, that.id) &&
-           Objects.equals(this.scope, that.scope) &&
-           Objects.equals(this.driver, that.driver) &&
-           Objects.equals(this.options, that.options);
+        Objects.equals(this.id, that.id) &&
+        Objects.equals(this.scope, that.scope) &&
+        Objects.equals(this.driver, that.driver) &&
+        Objects.equals(this.ipam, that.ipam) &&
+        Objects.equals(this.containers, that.containers) &&
+        Objects.equals(this.options, that.options);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, id, scope, driver, options);
+    return Objects.hash(name, id, scope, driver, ipam, containers, options);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("id", id).add("scope", scope)
-        .add("driver", driver).add("options", options).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("id", id)
+        .add("scope", scope)
+        .add("driver", driver)
+        .add("ipam", ipam)
+        .add("containers", containers)
+        .add("options", options)
+        .toString();
   }
 
+  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+  public static class Container {
+    @JsonProperty("EndpointID") private String endpointId;
+    @JsonProperty("MacAddress") private String macAddress;
+    @JsonProperty("IPv4Address") private String ipv4address;
+    @JsonProperty("IPv6Address") private String ipv6address;
+
+    public String endpointId() {
+      return endpointId;
+    }
+
+    public String macAddress() {
+      return macAddress;
+    }
+
+    public String ipv4address() {
+      return ipv4address;
+    }
+
+    public String ipv6address() {
+      return ipv6address;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      final Container that = (Container) o;
+
+      return Objects.equals(this.endpointId, that.endpointId) &&
+          Objects.equals(this.macAddress, that.macAddress) &&
+          Objects.equals(this.ipv4address, that.ipv4address) &&
+          Objects.equals(this.ipv6address, that.ipv6address);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(endpointId, macAddress, ipv4address, ipv6address);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("endpointId", endpointId)
+          .add("macAddress", macAddress)
+          .add("ipv4address", ipv4address)
+          .add("ipv6address", ipv6address)
+          .toString();
+    }
+  }
 }

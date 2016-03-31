@@ -72,14 +72,8 @@ public class LogConfig {
 
     final LogConfig that = (LogConfig) o;
 
-    if (logType != null ? !logType.equals(that.logType) : that.logType != null) {
-      return false;
-    }
-    if (logOptions != null ? !logOptions.equals(that.logOptions) : that.logOptions != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.logType, that.logType) &&
+        Objects.equals(this.logOptions, that.logOptions);
   }
 
   @Override

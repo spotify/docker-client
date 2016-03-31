@@ -22,6 +22,8 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -40,41 +42,23 @@ public class CpuStats {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (cpuUsage == null ? 0 : cpuUsage.hashCode());
-    result = prime * result + (systemCpuUsage == null ? 0 : systemCpuUsage.hashCode());
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final CpuStats that = (CpuStats) o;
+
+    return Objects.equals(this.cpuUsage, that.cpuUsage) &&
+        Objects.equals(this.systemCpuUsage, that.systemCpuUsage);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final CpuStats other = (CpuStats) obj;
-    if (cpuUsage == null) {
-      if (other.cpuUsage != null) {
-        return false;
-      }
-    } else if (!cpuUsage.equals(other.cpuUsage)) {
-      return false;
-    }
-    if (systemCpuUsage == null) {
-      if (other.systemCpuUsage != null) {
-        return false;
-      }
-    } else if (!systemCpuUsage.equals(other.systemCpuUsage)) {
-      return false;
-    }
-    return true;
+  public int hashCode() {
+    return Objects.hash(cpuUsage, systemCpuUsage);
   }
 
   @Override

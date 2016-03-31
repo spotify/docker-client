@@ -106,53 +106,21 @@ public class ImageInfo {
       return false;
     }
 
-    final ImageInfo imageInfo = (ImageInfo) o;
+    final ImageInfo that = (ImageInfo) o;
 
-    if (architecture != null ? !architecture.equals(imageInfo.architecture)
-                             : imageInfo.architecture != null) {
-      return false;
-    }
-    if (author != null ? !author.equals(imageInfo.author) : imageInfo.author != null) {
-      return false;
-    }
-    if (comment != null ? !comment.equals(imageInfo.comment) : imageInfo.comment != null) {
-      return false;
-    }
-    if (config != null ? !config.equals(imageInfo.config) : imageInfo.config != null) {
-      return false;
-    }
-    if (container != null ? !container.equals(imageInfo.container) : imageInfo.container != null) {
-      return false;
-    }
-    if (containerConfig != null ? !containerConfig.equals(imageInfo.containerConfig)
-                                : imageInfo.containerConfig != null) {
-      return false;
-    }
-    if (created != null ? !created.equals(imageInfo.created) : imageInfo.created != null) {
-      return false;
-    }
-    if (dockerVersion != null ? !dockerVersion.equals(imageInfo.dockerVersion)
-                              : imageInfo.dockerVersion != null) {
-      return false;
-    }
-    if (id != null ? !id.equals(imageInfo.id) : imageInfo.id != null) {
-      return false;
-    }
-    if (os != null ? !os.equals(imageInfo.os) : imageInfo.os != null) {
-      return false;
-    }
-    if (parent != null ? !parent.equals(imageInfo.parent) : imageInfo.parent != null) {
-      return false;
-    }
-    if (size != null ? !size.equals(imageInfo.size) : imageInfo.size != null) {
-      return false;
-    }
-    if (virtualSize != null ? !virtualSize.equals(imageInfo.virtualSize)
-                            : imageInfo.virtualSize != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.id, that.id) &&
+        Objects.equals(this.parent, that.parent) &&
+        Objects.equals(this.comment, that.comment) &&
+        Objects.equals(this.created, that.created) &&
+        Objects.equals(this.container, that.container) &&
+        Objects.equals(this.containerConfig, that.containerConfig) &&
+        Objects.equals(this.dockerVersion, that.dockerVersion) &&
+        Objects.equals(this.author, that.author) &&
+        Objects.equals(this.config, that.config) &&
+        Objects.equals(this.architecture, that.architecture) &&
+        Objects.equals(this.os, that.os) &&
+        Objects.equals(this.size, that.size) &&
+        Objects.equals(this.virtualSize, that.virtualSize);
   }
 
   @Override

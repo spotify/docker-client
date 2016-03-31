@@ -22,6 +22,8 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -73,53 +75,26 @@ public class ImageSearchResult {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (automated ? 1231 : 1237);
-    result = prime * result + ((description == null) ? 0 : description.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + (official ? 1231 : 1237);
-    result = prime * result + starCount;
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final ImageSearchResult that = (ImageSearchResult) o;
+
+    return Objects.equals(this.description, that.description) &&
+        Objects.equals(this.official, that.official) &&
+        Objects.equals(this.automated, that.automated) &&
+        Objects.equals(this.name, that.name) &&
+        Objects.equals(this.starCount, that.starCount);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final ImageSearchResult other = (ImageSearchResult) obj;
-    if (automated != other.automated) {
-      return false;
-    }
-    if (description == null) {
-      if (other.description != null) {
-        return false;
-      }
-    } else if (!description.equals(other.description)) {
-      return false;
-    }
-    if (name == null) {
-      if (other.name != null) {
-        return false;
-      }
-    } else if (!name.equals(other.name)) {
-      return false;
-    }
-    if (official != other.official) {
-      return false;
-    }
-    if (starCount != other.starCount) {
-      return false;
-    }
-    return true;
+  public int hashCode() {
+    return Objects.hash(description, official, automated, name, starCount);
   }
 
   @Override

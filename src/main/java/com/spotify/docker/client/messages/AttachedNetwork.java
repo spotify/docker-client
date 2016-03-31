@@ -83,19 +83,19 @@ public class AttachedNetwork {
     final AttachedNetwork that = (AttachedNetwork) o;
 
     return Objects.equals(this.endpointId, that.endpointId) &&
-           Objects.equals(this.gateway, that.gateway) &&
-           Objects.equals(this.ipAddress, that.ipAddress) &&
-           Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
-           Objects.equals(this.ipv6Gateway, that.ipv6Gateway) &&
-           Objects.equals(this.globalIPv6Address, that.globalIPv6Address) &&
-           Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
-           Objects.equals(this.macAddress, that.macAddress);
+        Objects.equals(this.gateway, that.gateway) &&
+        Objects.equals(this.ipAddress, that.ipAddress) &&
+        Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
+        Objects.equals(this.ipv6Gateway, that.ipv6Gateway) &&
+        Objects.equals(this.globalIPv6Address, that.globalIPv6Address) &&
+        Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
+        Objects.equals(this.macAddress, that.macAddress);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(endpointId, gateway, ipAddress, ipPrefixLen, ipv6Gateway,
-                                  globalIPv6Address, globalIPv6PrefixLen, macAddress);
+                        globalIPv6Address, globalIPv6PrefixLen, macAddress);
   }
 
   @Override

@@ -102,32 +102,14 @@ public class NetworkSettings {
 
     final NetworkSettings that = (NetworkSettings) o;
 
-    if (bridge != null ? !bridge.equals(that.bridge) : that.bridge != null) {
-      return false;
-    }
-    if (gateway != null ? !gateway.equals(that.gateway) : that.gateway != null) {
-      return false;
-    }
-    if (ipAddress != null ? !ipAddress.equals(that.ipAddress) : that.ipAddress != null) {
-      return false;
-    }
-    if (ipPrefixLen != null ? !ipPrefixLen.equals(that.ipPrefixLen) : that.ipPrefixLen != null) {
-      return false;
-    }
-    if (portMapping != null ? !portMapping.equals(that.portMapping) : that.portMapping != null) {
-      return false;
-    }
-    if (ports != null ? !ports.equals(that.ports) : that.ports != null) {
-      return false;
-    }
-    if (macAddress != null ? !macAddress.equals(that.macAddress) : that.macAddress != null) {
-      return false;
-    }
-    if (networks != null ? !networks.equals(that.networks) : that.networks != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.ipAddress, that.ipAddress) &&
+        Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
+        Objects.equals(this.gateway, that.gateway) &&
+        Objects.equals(this.bridge, that.bridge) &&
+        Objects.equals(this.portMapping, that.portMapping) &&
+        Objects.equals(this.ports, that.ports) &&
+        Objects.equals(this.macAddress, that.macAddress) &&
+        Objects.equals(this.networks, that.networks);
   }
 
   @Override

@@ -67,20 +67,11 @@ public class ProcessConfig {
 
     final ProcessConfig that = (ProcessConfig) o;
 
-    if (privileged != null ? !privileged.equals(that.privileged) : that.privileged != null) {
-      return false;
-    }
-    if (user != null ? !user.equals(that.user) : that.user != null) {
-      return false;
-    }
-    if (tty != null ? !tty.equals(that.tty) : that.tty != null) {
-      return false;
-    }
-    if (entrypoint != null ? !entrypoint.equals(that.entrypoint) : that.entrypoint != null) {
-      return false;
-    }
-    return arguments != null ? arguments.equals(that.arguments) : that.arguments == null;
-
+    return Objects.equals(this.privileged, that.privileged) &&
+        Objects.equals(this.user, that.user) &&
+        Objects.equals(this.tty, that.tty) &&
+        Objects.equals(this.entrypoint, that.entrypoint) &&
+        Objects.equals(this.arguments, that.arguments);
   }
 
   @Override

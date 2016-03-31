@@ -173,89 +173,30 @@ public class ContainerInfo {
 
     final ContainerInfo that = (ContainerInfo) o;
 
-    if (args != null ? !args.equals(that.args) : that.args != null) {
-      return false;
-    }
-    if (config != null ? !config.equals(that.config) : that.config != null) {
-      return false;
-    }
-    if (hostConfig != null ? !hostConfig.equals(that.hostConfig) : that.hostConfig != null) {
-      return false;
-    }
-    if (created != null ? !created.equals(that.created) : that.created != null) {
-      return false;
-    }
-    if (driver != null ? !driver.equals(that.driver) : that.driver != null) {
-      return false;
-    }
-    if (execDriver != null ? !execDriver.equals(that.execDriver) : that.execDriver != null) {
-      return false;
-    }
-    if (hostnamePath != null ? !hostnamePath.equals(that.hostnamePath)
-                             : that.hostnamePath != null) {
-      return false;
-    }
-    if (hostsPath != null ? !hostsPath.equals(that.hostsPath) : that.hostsPath != null) {
-      return false;
-    }
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (image != null ? !image.equals(that.image) : that.image != null) {
-      return false;
-    }
-    if (mountLabel != null ? !mountLabel.equals(that.mountLabel) : that.mountLabel != null) {
-      return false;
-    }
-    if (name != null ? !name.equals(that.name) : that.name != null) {
-      return false;
-    }
-    if (networkSettings != null ? !networkSettings.equals(that.networkSettings)
-                                : that.networkSettings != null) {
-      return false;
-    }
-    if (path != null ? !path.equals(that.path) : that.path != null) {
-      return false;
-    }
-    if (processLabel != null ? !processLabel.equals(that.processLabel)
-                             : that.processLabel != null) {
-      return false;
-    }
-    if (resolvConfPath != null ? !resolvConfPath.equals(that.resolvConfPath)
-                               : that.resolvConfPath != null) {
-      return false;
-    }
-    if (state != null ? !state.equals(that.state) : that.state != null) {
-      return false;
-    }
-    if (volumes != null ? !volumes.equals(that.volumes) : that.volumes != null) {
-      return false;
-    }
-    if (volumesRW != null ? !volumesRW.equals(that.volumesRW) : that.volumesRW != null) {
-      return false;
-    }
-    if (node != null ? !node.equals(that.node) : that.node != null) {
-      return false;
-    }
-    if (appArmorProfile != null ? !appArmorProfile.equals(that.appArmorProfile) :
-        that.appArmorProfile != null) {
-      return false;
-    }
-    if (execId != null ? !execId.equals(that.execId) : that.execId != null) {
-      return false;
-    }
-    if (logPath != null ? !logPath.equals(that.logPath) : that.logPath != null) {
-      return false;
-    }
-    if (restartCount != null ? !restartCount.equals(that.restartCount) :
-        that.restartCount != null) {
-      return false;
-    }
-    if (mounts != null ? !mounts.equals(that.mounts) : that.mounts != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.id, that.id) &&
+        Objects.equals(this.created, that.created) &&
+        Objects.equals(this.path, that.path) &&
+        Objects.equals(this.args, that.args) &&
+        Objects.equals(this.config, that.config) &&
+        Objects.equals(this.hostConfig, that.hostConfig) &&
+        Objects.equals(this.state, that.state) &&
+        Objects.equals(this.image, that.image) &&
+        Objects.equals(this.networkSettings, that.networkSettings) &&
+        Objects.equals(this.resolvConfPath, that.resolvConfPath) &&
+        Objects.equals(this.hostnamePath, that.hostnamePath) &&
+        Objects.equals(this.hostsPath, that.hostsPath) &&
+        Objects.equals(this.name, that.name) &&
+        Objects.equals(this.driver, that.driver) &&
+        Objects.equals(this.execDriver, that.execDriver) &&
+        Objects.equals(this.processLabel, that.processLabel) &&
+        Objects.equals(this.mountLabel, that.mountLabel) &&
+        Objects.equals(this.volumes, that.volumes) &&
+        Objects.equals(this.volumesRW, that.volumesRW) &&
+        Objects.equals(this.appArmorProfile, that.appArmorProfile) &&
+        Objects.equals(this.execId, that.execId) &&
+        Objects.equals(this.logPath, that.logPath) &&
+        Objects.equals(this.restartCount, that.restartCount) &&
+        Objects.equals(this.mounts, that.mounts);
   }
 
   @Override
@@ -333,11 +274,12 @@ public class ContainerInfo {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      final Node node = (Node) o;
-      return Objects.equals(id, node.id) &&
-             Objects.equals(ip, node.ip) &&
-             Objects.equals(addr, node.addr) &&
-             Objects.equals(name, node.name);
+      final Node that = (Node) o;
+
+      return Objects.equals(this.id, that.id) &&
+          Objects.equals(this.ip, that.ip) &&
+          Objects.equals(this.addr, that.addr) &&
+          Objects.equals(this.name, that.name);
     }
 
     @Override

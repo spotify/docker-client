@@ -91,23 +91,12 @@ public class AuthConfig {
       return false;
     }
 
-    final AuthConfig config = (AuthConfig) o;
-    if (username != null ? !username.equals(config.username) : config.username != null) {
-      return false;
-    }
-    if (password != null ? !password.equals(config.password) : config.password != null) {
-      return false;
-    }
-    if (email != null ? !email.equals(config.email) : config.email != null) {
-      return false;
-    }
-    //noinspection RedundantIfStatement
-    if (serverAddress != null ?
-        !serverAddress.equals(config.serverAddress) : config.serverAddress != null) {
-      return false;
-    }
+    final AuthConfig that = (AuthConfig) o;
 
-    return true;
+    return Objects.equals(this.username, that.username) &&
+        Objects.equals(this.password, that.password) &&
+        Objects.equals(this.email, that.email) &&
+        Objects.equals(this.serverAddress, that.serverAddress);
   }
 
   @Override

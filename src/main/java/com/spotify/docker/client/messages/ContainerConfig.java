@@ -187,88 +187,31 @@ public class ContainerConfig {
       return false;
     }
 
-    final ContainerConfig config = (ContainerConfig) o;
+    final ContainerConfig that = (ContainerConfig) o;
 
-    if (attachStderr != null ? !attachStderr.equals(config.attachStderr)
-                             : config.attachStderr != null) {
-      return false;
-    }
-    if (attachStdin != null ? !attachStdin.equals(config.attachStdin)
-                            : config.attachStdin != null) {
-      return false;
-    }
-    if (attachStdout != null ? !attachStdout.equals(config.attachStdout)
-                             : config.attachStdout != null) {
-      return false;
-    }
-    if (cmd != null ? !cmd.equals(config.cmd) : config.cmd != null) {
-      return false;
-    }
-    if (domainname != null ? !domainname.equals(config.domainname) : config.domainname != null) {
-      return false;
-    }
-    if (entrypoint != null ? !entrypoint.equals(config.entrypoint) : config.entrypoint != null) {
-      return false;
-    }
-    if (env != null ? !env.equals(config.env) : config.env != null) {
-      return false;
-    }
-    if (exposedPorts != null ? !exposedPorts.equals(config.exposedPorts)
-                             : config.exposedPorts != null) {
-      return false;
-    }
-    if (hostname != null ? !hostname.equals(config.hostname) : config.hostname != null) {
-      return false;
-    }
-    if (image != null ? !image.equals(config.image) : config.image != null) {
-      return false;
-    }
-    if (networkDisabled != null ? !networkDisabled.equals(config.networkDisabled)
-                                : config.networkDisabled != null) {
-      return false;
-    }
-    if (onBuild != null ? !onBuild.equals(config.onBuild) : config.onBuild != null) {
-      return false;
-    }
-    if (openStdin != null ? !openStdin.equals(config.openStdin) : config.openStdin != null) {
-      return false;
-    }
-    if (portSpecs != null ? !portSpecs.equals(config.portSpecs) : config.portSpecs != null) {
-      return false;
-    }
-    if (stdinOnce != null ? !stdinOnce.equals(config.stdinOnce) : config.stdinOnce != null) {
-      return false;
-    }
-    if (tty != null ? !tty.equals(config.tty) : config.tty != null) {
-      return false;
-    }
-    if (user != null ? !user.equals(config.user) : config.user != null) {
-      return false;
-    }
-    if (volumes != null ? !volumes.equals(config.volumes) : config.volumes != null) {
-      return false;
-    }
-    if (workingDir != null ? !workingDir.equals(config.workingDir) : config.workingDir != null) {
-      return false;
-    }
-
-    if (labels != null ? !labels.equals(config.labels) : config.labels != null) {
-      return false;
-    }
-
-    if (macAddress != null ? !macAddress.equals(config.macAddress) : config.macAddress != null) {
-      return false;
-    }
-
-    if (hostConfig != null ? !hostConfig.equals(config.hostConfig) : config.hostConfig != null) {
-      return false;
-    }
-
-    if (stopSignal != null ? !stopSignal.equals(config.stopSignal) : config.stopSignal != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.hostname, that.hostname) &&
+        Objects.equals(this.domainname, that.domainname) &&
+        Objects.equals(this.user, that.user) &&
+        Objects.equals(this.attachStdin, that.attachStdin) &&
+        Objects.equals(this.attachStdout, that.attachStdout) &&
+        Objects.equals(this.attachStderr, that.attachStderr) &&
+        Objects.equals(this.portSpecs, that.portSpecs) &&
+        Objects.equals(this.exposedPorts, that.exposedPorts) &&
+        Objects.equals(this.tty, that.tty) &&
+        Objects.equals(this.openStdin, that.openStdin) &&
+        Objects.equals(this.stdinOnce, that.stdinOnce) &&
+        Objects.equals(this.env, that.env) &&
+        Objects.equals(this.cmd, that.cmd) &&
+        Objects.equals(this.image, that.image) &&
+        Objects.equals(this.volumes, that.volumes) &&
+        Objects.equals(this.workingDir, that.workingDir) &&
+        Objects.equals(this.entrypoint, that.entrypoint) &&
+        Objects.equals(this.networkDisabled, that.networkDisabled) &&
+        Objects.equals(this.onBuild, that.onBuild) &&
+        Objects.equals(this.labels, that.labels) &&
+        Objects.equals(this.macAddress, that.macAddress) &&
+        Objects.equals(this.hostConfig, that.hostConfig) &&
+        Objects.equals(this.stopSignal, that.stopSignal);
   }
 
   @Override

@@ -19,7 +19,6 @@ package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
 
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -64,14 +63,14 @@ public class ContainerMount {
     final ContainerMount that = (ContainerMount) o;
 
     return Objects.equals(this.source, that.source) &&
-           Objects.equals(this.destination, that.destination) &&
-           Objects.equals(this.mode, that.mode) &&
-           Objects.equals(this.rw, that.rw);
+        Objects.equals(this.destination, that.destination) &&
+        Objects.equals(this.mode, that.mode) &&
+        Objects.equals(this.rw, that.rw);
   }
 
   @Override
   public int hashCode() {
-    return java.util.Objects.hash(source, destination, mode, rw);
+    return Objects.hash(source, destination, mode, rw);
   }
 
   @Override

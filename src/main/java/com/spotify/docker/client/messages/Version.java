@@ -70,33 +70,15 @@ public class Version {
       return false;
     }
 
-    final Version version1 = (Version) o;
+    final Version that = (Version) o;
 
-    if (apiVersion != null ? !apiVersion.equals(version1.apiVersion)
-                           : version1.apiVersion != null) {
-      return false;
-    }
-    if (arch != null ? !arch.equals(version1.arch) : version1.arch != null) {
-      return false;
-    }
-    if (gitCommit != null ? !gitCommit.equals(version1.gitCommit) : version1.gitCommit != null) {
-      return false;
-    }
-    if (goVersion != null ? !goVersion.equals(version1.goVersion) : version1.goVersion != null) {
-      return false;
-    }
-    if (kernelVersion != null ? !kernelVersion.equals(version1.kernelVersion)
-                              : version1.kernelVersion != null) {
-      return false;
-    }
-    if (os != null ? !os.equals(version1.os) : version1.os != null) {
-      return false;
-    }
-    if (version != null ? !version.equals(version1.version) : version1.version != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.apiVersion, that.apiVersion) &&
+        Objects.equals(this.arch, that.arch) &&
+        Objects.equals(this.gitCommit, that.gitCommit) &&
+        Objects.equals(this.goVersion, that.goVersion) &&
+        Objects.equals(this.kernelVersion, that.kernelVersion) &&
+        Objects.equals(this.os, that.os) &&
+        Objects.equals(this.version, that.version);
   }
 
   @Override

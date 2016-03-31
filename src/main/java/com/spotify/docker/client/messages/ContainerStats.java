@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -68,81 +69,29 @@ public class ContainerStats {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (cpuStats == null ? 0 : cpuStats.hashCode());
-    result = prime * result + (memoryStats == null ? 0 : memoryStats.hashCode());
-    result = prime * result + (network == null ? 0 : network.hashCode());
-    result = prime * result + (networks == null ? 0 : networks.hashCode());
-    result = prime * result + (blockIoStats == null ? 0 : blockIoStats.hashCode());
-    result = prime * result + (precpuStats == null ? 0 : precpuStats.hashCode());
-    result = prime * result + (read == null ? 0 : read.hashCode());
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final ContainerStats that = (ContainerStats) o;
+
+    return Objects.equals(this.read, that.read) &&
+        Objects.equals(this.network, that.network) &&
+        Objects.equals(this.networks, that.networks) &&
+        Objects.equals(this.memoryStats, that.memoryStats) &&
+        Objects.equals(this.blockIoStats, that.blockIoStats) &&
+        Objects.equals(this.cpuStats, that.cpuStats) &&
+        Objects.equals(this.precpuStats, that.precpuStats);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final ContainerStats other = (ContainerStats) obj;
-    if (cpuStats == null) {
-      if (other.cpuStats != null) {
-        return false;
-      }
-    } else if (!cpuStats.equals(other.cpuStats)) {
-      return false;
-    }
-    if (memoryStats == null) {
-      if (other.memoryStats != null) {
-        return false;
-      }
-    } else if (!memoryStats.equals(other.memoryStats)) {
-      return false;
-    }
-    if (network == null) {
-      if (other.network != null) {
-        return false;
-      }
-    } else if (!network.equals(other.network)) {
-      return false;
-    }
-    if (networks == null) {
-      if (other.networks != null) {
-        return false;
-      }
-    } else if (!networks.equals(other.networks)) {
-      return false;
-    }
-    if (blockIoStats == null) {
-      if (other.blockIoStats != null) {
-        return false;
-      }
-    } else if (!blockIoStats.equals(other.blockIoStats)) {
-      return false;
-    }
-    if (precpuStats == null) {
-      if (other.precpuStats != null) {
-        return false;
-      }
-    } else if (!precpuStats.equals(other.precpuStats)) {
-      return false;
-    }
-    if (read == null) {
-      if (other.read != null) {
-        return false;
-      }
-    } else if (!read.equals(other.read)) {
-      return false;
-    }
-    return true;
+  public int hashCode() {
+    return Objects.hash(cpuStats, memoryStats, network, networks,
+        blockIoStats, precpuStats, read);
   }
 
   @Override

@@ -571,11 +571,8 @@ public interface DockerClient extends Closeable {
 
       final BuildParam that = (BuildParam) o;
 
-      if (name != null ? !name.equals(that.name) : that.name != null) {
-        return false;
-      }
-      return !(value != null ? !value.equals(that.value) : that.value != null);
-
+      return Objects.equals(this.name, that.name) &&
+          Objects.equals(this.value, that.value);
     }
 
     @Override

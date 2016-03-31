@@ -70,8 +70,8 @@ public class IpamConfig {
     final IpamConfig that = (IpamConfig) o;
 
     return Objects.equals(this.subnet, that.subnet) &&
-           Objects.equals(this.ipRange, that.ipRange) &&
-           Objects.equals(this.gateway, that.gateway);
+         Objects.equals(this.ipRange, that.ipRange) &&
+         Objects.equals(this.gateway, that.gateway);
   }
 
   @Override
@@ -81,8 +81,11 @@ public class IpamConfig {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("subnet", subnet).add("ipRange", ipRange)
-        .add("gateway", gateway).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("subnet", subnet)
+        .add("ipRange", ipRange)
+        .add("gateway", gateway)
+        .toString();
   }
 
 }

@@ -82,12 +82,12 @@ public class Image {
     final Image that = (Image) o;
 
     return Objects.equals(this.created, that.created) &&
-           Objects.equals(this.id, that.id) &&
-           Objects.equals(this.parentId, that.parentId) &&
-           Objects.equals(this.repoTags, that.repoTags) &&
-           Objects.equals(this.size, that.size) &&
-           Objects.equals(this.virtualSize, that.virtualSize) &&
-           Objects.equals(this.labels, that.labels);
+        Objects.equals(this.id, that.id) &&
+        Objects.equals(this.parentId, that.parentId) &&
+        Objects.equals(this.repoTags, that.repoTags) &&
+        Objects.equals(this.size, that.size) &&
+        Objects.equals(this.virtualSize, that.virtualSize) &&
+        Objects.equals(this.labels, that.labels);
   }
 
   @Override

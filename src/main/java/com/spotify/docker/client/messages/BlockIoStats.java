@@ -86,17 +86,15 @@ public class BlockIoStats {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
+  public boolean equals(Object o) {
+    if (this == o) {
       return true;
     }
-    if (obj == null) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final BlockIoStats that = (BlockIoStats) obj;
+
+    final BlockIoStats that = (BlockIoStats) o;
 
     return Objects.equals(this.ioServiceBytesRecursive, that.ioServiceBytesRecursive) &&
         Objects.equals(this.ioServicedRecursive, that.ioServicedRecursive) &&

@@ -88,35 +88,15 @@ public class ContainerState {
 
     final ContainerState that = (ContainerState) o;
 
-    if (exitCode != null ? !exitCode.equals(that.exitCode) : that.exitCode != null) {
-      return false;
-    }
-    if (finishedAt != null ? !finishedAt.equals(that.finishedAt) : that.finishedAt != null) {
-      return false;
-    }
-    if (pid != null ? !pid.equals(that.pid) : that.pid != null) {
-      return false;
-    }
-    if (running != null ? !running.equals(that.running) : that.running != null) {
-      return false;
-    }
-    if (paused != null ? !paused.equals(that.paused) : that.paused != null) {
-      return false;
-    }
-    if (restarting != null ? !restarting.equals(that.restarting) : that.restarting != null) {
-      return false;
-    }
-    if (startedAt != null ? !startedAt.equals(that.startedAt) : that.startedAt != null) {
-      return false;
-    }
-    if (error != null ? !error.equals(that.error) : that.error != null) {
-      return false;
-    }
-    if (oomKilled != null ? !oomKilled.equals(that.oomKilled) : that.oomKilled != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.running, that.running) &&
+        Objects.equals(this.paused, that.paused) &&
+        Objects.equals(this.restarting, that.restarting) &&
+        Objects.equals(this.pid, that.pid) &&
+        Objects.equals(this.exitCode, that.exitCode) &&
+        Objects.equals(this.startedAt, that.startedAt) &&
+        Objects.equals(this.finishedAt, that.finishedAt) &&
+        Objects.equals(this.error, that.error) &&
+        Objects.equals(this.oomKilled, that.oomKilled);
   }
 
   @Override

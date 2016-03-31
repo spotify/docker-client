@@ -91,32 +91,15 @@ public class ExecState {
 
     final ExecState that = (ExecState) o;
 
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (running != null ? !running.equals(that.running) : that.running != null) {
-      return false;
-    }
-    if (exitCode != null ? !exitCode.equals(that.exitCode) : that.exitCode != null) {
-      return false;
-    }
-    if (processConfig != null ? !processConfig.equals(that.processConfig)
-                              : that.processConfig != null) {
-      return false;
-    }
-    if (openStdin != null ? !openStdin.equals(that.openStdin) : that.openStdin != null) {
-      return false;
-    }
-    if (openStderr != null ? !openStderr.equals(that.openStderr) : that.openStderr != null) {
-      return false;
-    }
-    if (openStdout != null ? !openStdout.equals(that.openStdout) : that.openStdout != null) {
-      return false;
-    }
-    if (container != null ? !container.equals(that.container) : that.container != null) {
-      return false;
-    }
-    return containerID != null ? containerID.equals(that.containerID) : that.containerID == null;
+    return Objects.equals(this.id, that.id) &&
+        Objects.equals(this.running, that.running) &&
+        Objects.equals(this.exitCode, that.exitCode) &&
+        Objects.equals(this.processConfig, that.processConfig) &&
+        Objects.equals(this.openStdin, that.openStdin) &&
+        Objects.equals(this.openStderr, that.openStderr) &&
+        Objects.equals(this.openStdout, that.openStdout) &&
+        Objects.equals(this.container, that.container) &&
+        Objects.equals(this.containerID, that.containerID);
 
   }
 
