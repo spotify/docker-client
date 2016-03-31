@@ -138,7 +138,11 @@ page at http://checkstyle.sourceforge.net/config.html -->
       <!-- Validates identifiers for local variables against the
         expression "^[a-z][a-zA-Z0-9]*$". -->
     </module>
-
+    <module name="FinalLocalVariable">
+      <!-- Checks that local variables that never have their values changed are declared final. -->
+      <property name="tokens" value="VARIABLE_DEF"/>
+      <property name="validateEnhancedForLoopVariable" value="true"/>
+    </module>
 
     <!--
 
