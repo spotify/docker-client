@@ -68,7 +68,7 @@ public class PushPullIT {
   private static final String LOCAL_AUTH_EMAIL = "test@example.com";
   private static final String LOCAL_AUTH_USERNAME = "testuser";
   private static final String LOCAL_AUTH_PASSWORD = "testpassword";
-  private static final String LOCAL_IMAGE = "localhost:5000/testuser/test-image";
+  private static final String LOCAL_IMAGE = "localhost:5000/testuser/test-image:latest";
 
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
@@ -138,7 +138,7 @@ public class PushPullIT {
     client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
 
     exception.expect(ImagePushFailedException.class);
-    exception.expectMessage("no basic auth credentials");
+    exception.expectMessage("Authentication is required");
     client.push(LOCAL_IMAGE);
   }
 
@@ -283,7 +283,8 @@ public class PushPullIT {
             "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm",
             "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd",
             "REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt",
-            "REGISTRY_HTTP_TLS_KEY=/certs/domain.key"
+            "REGISTRY_HTTP_TLS_KEY=/certs/domain.key",
+            "REGISTRY_HTTP_SECRET=super-secret"
         ))
         .build();
 
