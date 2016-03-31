@@ -178,6 +178,9 @@ public interface DockerClient extends Closeable {
   /**
    * Search for images on Docker Hub
    *
+   * This method is broken for Docker 1.7.x because of a Docker bug.
+   * See https://github.com/docker/docker/pull/14850.
+   *
    * @param term the search term
    * @return a list of matches for the given search term
    * @throws DockerException      if a server error occurred (500)
@@ -834,6 +837,9 @@ public interface DockerClient extends Closeable {
 
   /**
    * Watches the docker API for events.
+   *
+   * This method is broken for Docker 1.7.x because of a Docker bug.
+   * See https://github.com/docker/docker/issues/14354.
    *
    * @param params The parameters to apply to the events request
    * @return An event stream

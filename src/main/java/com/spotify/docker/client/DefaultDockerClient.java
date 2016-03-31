@@ -126,16 +126,21 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
-   * Hack: this {@link ProgressHandler} is meant to capture the image ID of an image being loaded.
-   * Weirdly enough, Docker returns the ID of a newly created image in the status of a progress
-   * message. <p> The image ID is required to tag the just loaded image since, also weirdly enough,
-   * the pull operation with the <code>fromSrc</code> parameter does not support the
-   * <code>tag</code> parameter. By retrieving the ID, the image can be tagged with its image name,
-   * given its ID.
+   * Hack: this {@link ProgressHandler} is meant to capture the image ID (or image digest in Docker
+   * 1.10+) of an image being loaded.
+   * Weirdly enough, Docker returns the ID or digest of a newly created image in the status of a
+   * progress message. <p> The image ID/digest is required to tag the just loaded image since,
+   * also weirdly enough, the pull operation with the <code>fromSrc</code> parameter does not
+   * support the <code>tag</code> parameter. By retrieving the ID/digest, the image can be tagged
+   * with its image name, given its ID/digest.
+   *
    */
   private static class LoadProgressHandler implements ProgressHandler {
 
-    private static final int EXPECTED_CHARACTER_NUM = 64;
+    // The length of the image hash
+    private static final int EXPECTED_CHARACTER_NUM1 = 64;
+    // The length of the image digest
+    private static final int EXPECTED_CHARACTER_NUM2 = 71;
 
     private final ProgressHandler delegate;
 
@@ -146,14 +151,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     private String getImageId() {
-      Preconditions.checkState(imageId != null, "Could not acquire image ID following load");
+      Preconditions.checkState(imageId != null,
+                               "Could not acquire image ID or digest following load");
       return imageId;
     }
 
     @Override
     public void progress(ProgressMessage message) throws DockerException {
       delegate.progress(message);
-      if (message.status() != null && message.status().length() == EXPECTED_CHARACTER_NUM) {
+      final String status = message.status();
+      if (status != null &&
+          (status.length() == EXPECTED_CHARACTER_NUM1 ||
+           status.length() == EXPECTED_CHARACTER_NUM2)) {
         imageId = message.status();
       }
     }
@@ -800,8 +809,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public List<ImageSearchResult> searchImages(final String term)
       throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("images").path("search")
-        .queryParam("term", term);
+    final WebTarget resource = resource().path("images").path("search").queryParam("term", term);
     return request(GET, IMAGES_SEARCH_RESULT_LIST, resource,
                    resource.request(APPLICATION_JSON_TYPE));
   }
@@ -1110,8 +1118,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public EventStream events(EventsParam... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = noTimeoutResource()
-        .path("events");
+    WebTarget resource = noTimeoutResource().path("events");
     final Map<String, String> filters = newHashMap();
     for (EventsParam param : params) {
       if (param instanceof EventsFilterParam) {

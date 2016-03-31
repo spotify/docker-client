@@ -28,6 +28,12 @@ case "$1" in
     # set DOCKER_OPTS to make sure docker listens on the ports we intend
     echo 'DOCKER_OPTS="-D=true -H=unix:///var/run/docker.sock -H=tcp://127.0.0.1:2375"' | sudo tee -a /etc/default/docker
 
+    if [[ "$DOCKER_VERSION" =~ ^1\.9\..* && ! $(mount | grep /dev/mqueue) ]]; then
+      # docker-engine 1.9.x doesn't mount /dev/mqueue which is necessary to test `--ipc=host`
+      sudo mkdir -p /dev/mqueue
+      sudo mount -t mqueue none /dev/mqueue
+    fi
+
     if [[ "$DOCKER_VERSION" =~ ^1\.6\..* ]]; then
       # docker-engine 1.6.x packages don't seem to have the upstart job config,
       # so write it ourselves

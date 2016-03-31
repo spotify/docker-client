@@ -157,6 +157,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -254,17 +255,17 @@ public class DefaultDockerClientTest {
     sut.close();
   }
 
-  private void requireDockerApiVersion(final String required, final String functionality)
+  private void requireDockerApiVersionAtLeast(final String required, final String functionality)
       throws Exception {
 
     final String msg = String.format(
         "Docker API should be at least v%s to support %s but runtime version is %s",
         required, functionality, dockerApiVersion);
 
-    assumeTrue(msg, dockerApiVersionSupported(required));
+    assumeTrue(msg, dockerApiVersionAtLeast(required));
   }
 
-  private boolean dockerApiVersionSupported(String expected) throws Exception {
+  private boolean dockerApiVersionAtLeast(String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
   }
 
@@ -283,8 +284,18 @@ public class DefaultDockerClientTest {
     assumeTrue(msg, dockerApiVersionLessThan(required));
   }
 
+  private boolean dockerApiVersionNot(final String expected) {
+    return compareVersion(dockerApiVersion, expected) != 0;
+  }
+
+  private void requireDockerApiVersionNot(final String version, final String msg) {
+    assumeTrue(msg, dockerApiVersionNot(version));
+  }
+
   @Test
   public void testSearchImage() throws Exception {
+    requireDockerApiVersionNot("1.19", "Docker 1.7.x sends the wrong Content-Type header for "
+                                       + "/images/search. So we skip this test.");
     // when
     final List<ImageSearchResult> searchResult = sut.searchImages(BUSYBOX);
     // then
@@ -310,7 +321,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdWithBuildargs() throws Exception {
-    requireDockerApiVersion("1.21", "build args");
+    requireDockerApiVersionAtLeast("1.21", "build args");
 
     final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
@@ -321,21 +332,6 @@ public class DefaultDockerClientTest {
         "test-buildargs",
         buildParam
     );
-  }
-
-  @Test
-  public void testPullPrivateRepoWithAuth() throws Exception {
-    sut.pull("dxia2/scratch-private:latest", authConfig);
-  }
-
-  @Test(expected = ImageNotFoundException.class)
-  public void testPullPrivateRepoWithBadAuth() throws Exception {
-    final AuthConfig badAuthConfig = AuthConfig.builder()
-        .email(AUTH_EMAIL)
-        .username(AUTH_USERNAME)
-        .password("foobar")
-        .build();
-    sut.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
 
   @Test
@@ -366,7 +362,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testSave() throws Exception {
-    File imageFile = save(BUSYBOX);
+    // Ensure the local Docker instance has the busybox image so that save() will work
+    sut.pull(BUSYBOX_LATEST);
+    final File imageFile = save(BUSYBOX);
     assertTrue(imageFile.length() > 0);
   }
 
@@ -391,12 +389,15 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLoad() throws Exception {
+    // Ensure the local Docker instance has the busybox image so that save() will work
+    sut.pull(BUSYBOX_LATEST);
     final File imageFile = save(BUSYBOX);
     final String image = BUSYBOX + "test" + System.nanoTime();
-    try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
 
+    try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
       sut.load(image, imagePayload, authConfig);
     }
+
     final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
       @Override
       public boolean apply(Image img) {
@@ -406,7 +407,7 @@ public class DefaultDockerClientTest {
 
     assertThat(images.size(), greaterThan(0));
 
-    for (Image img : images) {
+    for (final Image img : images) {
       sut.removeImage(img.id());
     }
   }
@@ -497,7 +498,7 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     // Tag image
-    final String newImageName = "testRepo:testTag";
+    final String newImageName = "test-repo:testTag";
     sut.tag(BUSYBOX, newImageName);
 
     // Verify tag was successful by trying to remove it.
@@ -509,7 +510,7 @@ public class DefaultDockerClientTest {
   public void testTagForce() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
-    final String name = "testRepo/tagForce:sometag";
+    final String name = "test-repo/tag-force:sometag";
     // Assign name to first image
     sut.tag(BUSYBOX_LATEST, name);
 
@@ -536,7 +537,15 @@ public class DefaultDockerClientTest {
     assertThat(info.dockerVersion(), not(isEmptyOrNullString()));
     assertThat(info.id(), not(isEmptyOrNullString()));
     assertThat(info.os(), equalTo("linux"));
-    assertThat(info.parent(), not(isEmptyOrNullString()));
+
+    //noinspection StatementWithEmptyBody
+    if (dockerApiVersionLessThan("1.22")) {
+      assertThat(info.parent(), not(isEmptyOrNullString()));
+    } else {
+      // The "parent" field can be empty because of changes in
+      // image storage in 1.10. See https://github.com/docker/docker/issues/19650.
+    }
+
     assertThat(info.size(), notNullValue());
     assertThat(info.virtualSize(), notNullValue());
   }
@@ -626,18 +635,6 @@ public class DefaultDockerClientTest {
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
   }
 
-
-  @Test
-  public void testBuildPrivateRepoWithAuth() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-
-    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
-        .authConfig(authConfig)
-        .build();
-
-    sut2.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());
-  }
-
   @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
     final String dockerDirectory =
@@ -666,12 +663,13 @@ public class DefaultDockerClientTest {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
-    assertThat(info.id(), startsWith(imageId));
+    final String expectedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
+    assertThat(info.id(), startsWith(expectedId));
   }
 
   @Test
   public void testBuildWithPull() throws Exception {
-    requireDockerApiVersion("1.19", "build with pull");
+    requireDockerApiVersionAtLeast("1.19", "build with pull");
 
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final String pullMsg = "Pulling from";
@@ -784,7 +782,7 @@ public class DefaultDockerClientTest {
     // The progress handler uses ascii escape characters to move the cursor around to nicely print
     // progress bars. This is hard to test programmatically, so let's just verify the output
     // contains some expected phrases.
-    final String pullingStr =  dockerApiVersionSupported("1.20") ?
+    final String pullingStr = dockerApiVersionAtLeast("1.20") ?
                               "Pulling from library/busybox" : "Pulling from busybox";
     assertThat(out.toString(), allOf(containsString(pullingStr),
                                      containsString("Image is up to date")));
@@ -843,7 +841,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testCopyToContainer() throws Exception {
-    requireDockerApiVersion("1.20", "copyToContainer");
+    requireDockerApiVersionAtLeast("1.20", "copyToContainer");
 
     // Pull image
     sut.pull(BUSYBOX_LATEST);
@@ -990,7 +988,7 @@ public class DefaultDockerClientTest {
     // Copy files to container
     // Docker API should be at least v1.20 to support extracting an archive of files or folders
     // to a directory in a container
-    if (dockerApiVersionSupported("1.20")) {
+    if (dockerApiVersionAtLeast("1.20")) {
       try {
         sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
       } catch (Exception e) {
@@ -1260,7 +1258,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithHostConfig() throws Exception {
-    requireDockerApiVersion("1.18", "Container creation with HostConfig");
+    requireDockerApiVersionAtLeast("1.18", "Container creation with HostConfig");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1294,7 +1292,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithAppArmorLogs() throws Exception {
-    requireDockerApiVersion("1.21", "StopSignal and AppArmorProfile");
+    requireDockerApiVersionAtLeast("1.21", "StopSignal and AppArmorProfile");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1328,9 +1326,13 @@ public class DefaultDockerClientTest {
     assertThat(inspection.restartCount(), equalTo(0L));
     assertThat(inspection.mounts().isEmpty(), equalTo(true));
 
-    final List<Container> containers =
-        sut.listContainers(allContainers(),
-                           withStatusExited());
+    // Wait for the container to exit
+    sut.waitContainer(id);
+
+    final List<Container> containers = sut.listContainers(allContainers(), withStatusExited());
+
+    System.out.println("ID TO LOOK FOR: " + id);
+    System.out.println("CONTAINERS LISTED: " + containers);
 
     Container targetCont = null;
     for (Container container : containers) {
@@ -1345,7 +1347,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithCpuQuota() throws Exception {
-    requireDockerApiVersion("1.19", "Container Creation with HostConfig");
+    requireDockerApiVersionAtLeast("1.19", "Container Creation with HostConfig");
 
     assumeFalse(CIRCLECI);
 
@@ -1381,8 +1383,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testEventStream() throws Exception {
+    requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
+                                       + "So we skip this test.");
     sut.pull(BUSYBOX_LATEST);
-    EventStream eventStream = sut.events();
+    final EventStream eventStream = sut.events();
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .build();
@@ -1395,7 +1399,12 @@ public class DefaultDockerClientTest {
     assertThat(createEvent.from(), startsWith("busybox:"));
     assertThat(createEvent.time(), notNullValue());
 
-    final Event startEvent = eventStream.next();
+    Event startEvent = eventStream.next();
+    if (!dockerApiVersionLessThan("1.22")) {
+      // For some reason, version 1.22 has an extra null Event. So we read the next one.
+      startEvent = eventStream.next();
+    }
+
     assertThat(startEvent.status(), equalTo("start"));
     assertThat(startEvent.id(), equalTo(container.id()));
     assertThat(startEvent.from(), startsWith("busybox:"));
@@ -1630,7 +1639,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExtraHosts() throws Exception {
-    requireDockerApiVersion("1.15", "Container Creation with HostConfig.ExtraHosts");
+    requireDockerApiVersionAtLeast("1.15", "Container Creation with HostConfig.ExtraHosts");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -1663,7 +1672,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogDriver() throws Exception {
-    requireDockerApiVersion("1.21", "Container Creation with HostConfig.LogConfig");
+    requireDockerApiVersionAtLeast("1.21", "Container Creation with HostConfig.LogConfig");
 
     sut.pull(BUSYBOX_LATEST);
     final String name = randomName();
@@ -1736,8 +1745,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerVolumes() throws Exception {
-    requireDockerApiVersion("1.20",
-        "Creating a container with volumes and inspecting volumes in new style");
+    requireDockerApiVersionAtLeast(
+        "1.20", "Creating a container with volumes and inspecting volumes in new style");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -2006,7 +2015,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogsSince() throws Exception {
-    requireDockerApiVersion("1.19", "/logs?since=timestamp");
+    requireDockerApiVersionAtLeast("1.19", "/logs?since=timestamp");
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -2115,7 +2124,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExec() throws Exception {
-    requireDockerApiVersion("1.15", "Exec");
+    requireDockerApiVersionAtLeast("1.15", "Exec");
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -2147,7 +2156,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testExecInspect() throws Exception {
-    requireDockerApiVersion("1.16", "Exec Inspect");
+    requireDockerApiVersionAtLeast("1.16", "Exec Inspect");
     assumeThat("Only native (libcontainer) driver supports Exec",
                sut.info().executionDriver(), startsWith("native"));
 
@@ -2170,7 +2179,7 @@ public class DefaultDockerClientTest {
         ExecCreateParam.tty());
 
     // some functionality in this test depends on API 1.19 (exec user)
-    final boolean execUserSupported = dockerApiVersionSupported("1.19");
+    final boolean execUserSupported = dockerApiVersionAtLeast("1.19");
     if (execUserSupported) {
       createParams.add(ExecCreateParam.user("1000"));
     }
@@ -2202,11 +2211,15 @@ public class DefaultDockerClientTest {
     assertThat(processConfig.arguments(),
                Matchers.<List<String>>is(ImmutableList.of("-c", "exit 2")));
 
-    final ContainerInfo containerInfo = state.container();
-    assertThat(containerInfo.path(), is("sh"));
-    assertThat(containerInfo.args(),
-               Matchers.<List<String>>is(ImmutableList.of("-c", "while :; do sleep 1; done")));
-    assertThat(containerInfo.config().image(), is(BUSYBOX_LATEST));
+    if (dockerApiVersionLessThan("1.22")) {
+      final ContainerInfo containerInfo = state.container();
+      assertThat(containerInfo.path(), is("sh"));
+      assertThat(containerInfo.args(),
+                 Matchers.<List<String>>is(ImmutableList.of("-c", "while :; do sleep 1; done")));
+      assertThat(containerInfo.config().image(), is(BUSYBOX_LATEST));
+    } else {
+      assertNotNull(state.containerID(), "containerID");
+    }
   }
 
   @Test
@@ -2229,7 +2242,7 @@ public class DefaultDockerClientTest {
     // can only filter by created status in docker API version >= 1.20 - the status of "created"
     // did not exist in docker prior to 1.8.0
     final DockerClient.ListContainersParam[] createdParams =
-        dockerApiVersionSupported("1.20")
+        dockerApiVersionAtLeast("1.20")
         ? new DockerClient.ListContainersParam[]{allContainers(), withStatusCreated()}
         : new DockerClient.ListContainersParam[]{allContainers()};
 
@@ -2274,7 +2287,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerLabels() throws Exception {
-    requireDockerApiVersion("1.18", "labels");
+    requireDockerApiVersionAtLeast("1.18", "labels");
     sut.pull(BUSYBOX_LATEST);
 
     final Map<String, String> labels = ImmutableMap.of(
@@ -2346,7 +2359,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testImageLabels() throws Exception {
-    requireDockerApiVersion("1.17", "image labels");
+    requireDockerApiVersionAtLeast("1.17", "image labels");
 
     final String dockerDirectory =
         Resources.getResource("dockerDirectoryWithImageLabels").getPath();
@@ -2363,38 +2376,47 @@ public class DefaultDockerClientTest {
     // Check that both test images are listed when we filter with a "name" label
     final List<Image> nameImages = sut.listImages(
         ListImagesParam.withLabel("name"));
-    final List<String> nameIds = imagesToShortIds(nameImages);
+    final List<String> nameIds =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(nameImages) :
+            imagesToShortIdsAndRemoveSha256(nameImages);
 
-    assertTrue(nameIds.contains(barId));
-    assertTrue(nameIds.contains(bazId));
+    assertThat(barId, isIn(nameIds));
+    assertThat(bazId, isIn(nameIds));
 
     // Check that the first image is listed when we filter with a "foo=bar" label
     final List<Image> barImages = sut.listImages(
         ListImagesParam.withLabel("foo", "bar"));
-    final List<String> barIds = imagesToShortIds(barImages);
-    assertNotNull(barIds);
-    assertTrue(barIds.contains(barId));
+    final List<String> barIds =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(barImages) :
+            imagesToShortIdsAndRemoveSha256(barImages);
+    assertThat(barId, isIn(barIds));
 
     // Check that we find the first image again when searching with the full
     // set of labels in a Map
     final List<Image> barImages2 = sut.listImages(
         ListImagesParam.withLabel("foo", "bar"),
         ListImagesParam.withLabel("name", "testtesttest"));
-    final List<String> barIds2 = imagesToShortIds(barImages2);
-    assertNotNull(barIds2);
-    assertTrue(barIds2.contains(barId));
+    final List<String> barIds2 =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(barImages2) :
+            imagesToShortIdsAndRemoveSha256(barImages2);
+    assertThat(barId, isIn(barIds2));
 
     // Check that the second image is listed when we filter with a "foo=baz" label
     final List<Image> bazImages = sut.listImages(
         ListImagesParam.withLabel("foo", "baz"));
-    final List<String> bazIds = imagesToShortIds(bazImages);
-    assertNotNull(bazIds);
-    assertTrue(bazIds.contains(bazId));
+    final List<String> bazIds =
+        dockerApiVersionLessThan("1.22") ?
+            imagesToShortIds(bazImages) :
+            imagesToShortIdsAndRemoveSha256(bazImages);
+    assertThat(bazId, isIn(bazIds));
 
     // Check that no containers are listed when we filter with a "foo=qux" label
     final List<Image> quxImages = sut.listImages(
         ListImagesParam.withLabel("foo", "qux"));
-    assertThat(quxImages.size(), equalTo(0));
+    assertThat(quxImages, hasSize(0));
 
     // Clean up test images
     sut.removeImage(barName, true, true);
@@ -2403,7 +2425,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMacAddress() throws Exception {
-    requireDockerApiVersion("1.18", "Mac Address");
+    requireDockerApiVersionAtLeast("1.18", "Mac Address");
 
     sut.pull(MEMCACHED_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
@@ -2420,7 +2442,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testStats() throws Exception {
-    requireDockerApiVersion("1.19", "stats without streaming");
+    requireDockerApiVersionAtLeast("1.19", "stats without streaming");
 
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -2434,12 +2456,17 @@ public class DefaultDockerClientTest {
     assertThat(stats.precpuStats(), notNullValue());
     assertThat(stats.cpuStats(), notNullValue());
     assertThat(stats.memoryStats(), notNullValue());
-    assertThat(stats.network(), notNullValue());
+
+    if (dockerApiVersionLessThan("1.21")) {
+      assertThat(stats.network(), notNullValue());
+    } else {
+      assertThat(stats.networks(), notNullValue());
+    }
   }
 
   @Test
   public void testNetworks() throws Exception {
-    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
+    requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
 
@@ -2478,32 +2505,8 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testNetworksConnectContainerShouldFailIfContainerNotRunning() throws Exception {
-    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
-
-    assumeFalse(CIRCLECI);
-    final String networkName = randomName();
-    final String containerName = randomName();
-    final NetworkCreation networkCreation =
-        sut.createNetwork(NetworkConfig.builder().name(networkName).build());
-    assertThat(networkCreation.id(), is(notNullValue()));
-    final ContainerConfig containerConfig =
-        ContainerConfig.builder().image(BUSYBOX_LATEST).cmd("sh", "-c", "echo hello").build();
-    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
-    assertThat(containerCreation.id(), is(notNullValue()));
-    try {
-      exception.expect(DockerException.class);
-      sut.connectToNetwork(containerCreation.id(), networkCreation.id());
-    } finally {
-      sut.removeContainer(containerCreation.id());
-      sut.removeNetwork(networkCreation.id());
-    }
-  }
-
-
-  @Test
   public void testNetworksConnectContainer() throws Exception {
-    requireDockerApiVersion("1.21", "createNetwork and listNetworks");
+    requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
     assumeFalse(CIRCLECI);
     final String networkName = randomName();
@@ -2682,7 +2685,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testIpcMode() throws Exception {
-    requireDockerApiVersion("1.18", "IpcMode");
+    requireDockerApiVersionAtLeast("1.18", "IpcMode");
 
     final HostConfig hostConfig = HostConfig.builder()
             .ipcMode("host")
@@ -2765,6 +2768,16 @@ public class DefaultDockerClientTest {
       @Override
       public String apply(final Image image) {
         return image.id().substring(0, 12);
+      }
+    };
+    return Lists.transform(images, imageToShortId);
+  }
+
+  private List<String> imagesToShortIdsAndRemoveSha256(final List<Image> images) {
+    final Function<Image, String> imageToShortId = new Function<Image, String>() {
+      @Override
+      public String apply(final Image image) {
+        return image.id().replaceFirst("sha256:", "").substring(0, 12);
       }
     };
     return Lists.transform(images, imageToShortId);
