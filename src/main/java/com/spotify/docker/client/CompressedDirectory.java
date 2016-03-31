@@ -157,7 +157,7 @@ class CompressedDirectory implements Closeable {
   }
 
   private static String createPattern(String line) {
-    String pattern = line.trim();
+    final String pattern = line.trim();
     if (pattern.startsWith("#")) {
       return null;
     }
@@ -287,12 +287,9 @@ class CompressedDirectory implements Closeable {
      * @return <code>true</code> if the given path should be excluded, <code>false</code> otherwise
      */
     private static boolean exclude(ImmutableList<DockerIgnorePathMatcher> matchers, Path path) {
-      for (DockerIgnorePathMatcher matcher : matchers) {
+      for (final DockerIgnorePathMatcher matcher : matchers) {
         if (matcher.matches(path)) {
-          if (matcher.isExclude()) {
-            return true;
-          }
-          return false;
+          return matcher.isExclude();
         }
       }
       return false;
@@ -315,12 +312,15 @@ class CompressedDirectory implements Closeable {
       final Set<PosixFilePermission> perm = attr.permissions();
 
       // retain permissions, note these values are octal
+      //noinspection OctalInteger
       int mode = 0100000;
+      //noinspection OctalInteger
       mode += 0100 * getModeFromPermissions(
           perm.contains(PosixFilePermission.OWNER_READ),
           perm.contains(PosixFilePermission.OWNER_WRITE),
           perm.contains(PosixFilePermission.OWNER_EXECUTE));
 
+      //noinspection OctalInteger
       mode += 010 * getModeFromPermissions(
           perm.contains(PosixFilePermission.GROUP_READ),
           perm.contains(PosixFilePermission.GROUP_WRITE),

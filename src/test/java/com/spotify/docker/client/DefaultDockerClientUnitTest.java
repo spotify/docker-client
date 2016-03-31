@@ -109,35 +109,36 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testHostForUnixSocket() {
-    DefaultDockerClient client = DefaultDockerClient.builder()
+    final DefaultDockerClient client = DefaultDockerClient.builder()
         .uri(DefaultDockerClient.DEFAULT_UNIX_ENDPOINT).build();
     assertThat(client.getHost(), equalTo("localhost"));
   }
 
   @Test
   public void testHostForLocalHttps() {
-    DefaultDockerClient client = DefaultDockerClient.builder()
+    final DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://localhost:2375").build();
     assertThat(client.getHost(), equalTo("localhost"));
   }
 
   @Test
   public void testHostForFQDNHttps() {
-    DefaultDockerClient client = DefaultDockerClient.builder()
+    final DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://perdu.com:2375").build();
     assertThat(client.getHost(), equalTo("perdu.com"));
   }
 
   @Test
   public void testHostForIPHttps() {
-    DefaultDockerClient client = DefaultDockerClient.builder()
+    final DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://192.168.53.103:2375").build();
     assertThat(client.getHost(), equalTo("192.168.53.103"));
   }
 
   @Test
   public void testNoHeaders() throws Exception {
-    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(
+        builder, clientBuilderSupplier);
     dockerClient.info();
 
     verify(builderMock, never()).header(anyString(), anyString());
@@ -145,14 +146,14 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testOneHeader() throws Exception {
-
     builder.header("foo", 1);
 
-    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(
+        builder, clientBuilderSupplier);
     dockerClient.info();
 
-    ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Object> valueArgument = ArgumentCaptor.forClass(Object.class);
+    final ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<Object> valueArgument = ArgumentCaptor.forClass(Object.class);
     verify(builderMock, times(1)).header(keyArgument.capture(), valueArgument.capture());
 
     Assert.assertEquals("foo", keyArgument.getValue());
@@ -161,24 +162,25 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testMultipleHeaders() throws Exception {
-    Map<String, Object> headers = Maps.newHashMap();
+    final Map<String, Object> headers = Maps.newHashMap();
     headers.put("int", 1);
     headers.put("string", "2");
     headers.put("list", Lists.newArrayList("a", "b", "c"));
 
-    for (Map.Entry<String, Object> entry : headers.entrySet()) {
+    for (final Map.Entry<String, Object> entry : headers.entrySet()) {
       builder.header(entry.getKey(), entry.getValue());
     }
 
-    DefaultDockerClient dockerClient = new DefaultDockerClient(builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(
+        builder, clientBuilderSupplier);
     dockerClient.info();
 
-    ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
     verify(builderMock, times(headers.size())).header(nameCaptor.capture(), valueCaptor.capture());
 
     int i = 0;
-    for (Map.Entry<String, Object> entry : headers.entrySet()) {
+    for (final Map.Entry<String, Object> entry : headers.entrySet()) {
       Assert.assertEquals(entry.getKey(), nameCaptor.getAllValues().get(i));
       Assert.assertEquals(entry.getValue(), valueCaptor.getAllValues().get(i));
       ++i;

@@ -71,7 +71,7 @@ public class MemoryStats {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    MemoryStats other = (MemoryStats) obj;
+    final MemoryStats other = (MemoryStats) obj;
     if (failcnt == null) {
       if (other.failcnt != null) {
         return false;

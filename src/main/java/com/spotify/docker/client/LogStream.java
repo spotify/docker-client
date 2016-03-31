@@ -77,7 +77,7 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
   }
 
   public String readFully() {
-    StringBuilder stringBuilder = new StringBuilder();
+    final StringBuilder stringBuilder = new StringBuilder();
     while (hasNext()) {
       stringBuilder.append(UTF_8.decode(next().content()));
     }

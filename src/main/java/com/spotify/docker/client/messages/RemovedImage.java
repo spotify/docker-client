@@ -70,7 +70,7 @@ public class RemovedImage {
       return false;
     }
 
-    RemovedImage that = (RemovedImage) o;
+    final RemovedImage that = (RemovedImage) o;
 
     if (imageId != null ? !imageId.equals(that.imageId) : that.imageId != null) {
       return false;

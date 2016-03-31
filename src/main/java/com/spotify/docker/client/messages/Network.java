@@ -101,7 +101,7 @@ public class Network {
       return false;
     }
 
-    Network that = (Network) o;
+    final Network that = (Network) o;
 
     return Objects.equals(this.name, that.name) &&
            Objects.equals(this.id, that.id) &&

@@ -47,7 +47,7 @@ public class ContainerTest {
 
   @Test
   public void testLoadFromFixture() throws Exception {
-    Container container = objectMapper
+    final Container container = objectMapper
         .readValue(fixture("fixtures/container-ports-as-string.json"), Container.class);
     assertThat(container.portsAsString(), is("0.0.0.0:80->88/tcp"));
   }

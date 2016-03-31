@@ -277,7 +277,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @VisibleForTesting
   DefaultDockerClient(final Builder builder, Supplier<ClientBuilder> clientBuilderSupplier) {
-    URI originalUri = checkNotNull(builder.uri, "uri");
+    final URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
     if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
@@ -400,7 +400,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("containers").path("json");
 
     final Map<String, List<String>> filters = newHashMap();
-    for (ListContainersParam param : params) {
+    for (final ListContainersParam param : params) {
       if (param instanceof ListContainersFilterParam) {
         List<String> filterValueList;
         if (filters.containsKey(param.name())) {
@@ -467,9 +467,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("images").path("json");
 
     final Map<String, List<String>> filters = newHashMap();
-    for (ListImagesParam param : params) {
+    for (final ListImagesParam param : params) {
       if (param instanceof ListImagesFilterParam) {
-        List<String> filterValueList;
+        final List<String> filterValueList;
         if (filters.containsKey(param.name())) {
           filterValueList = filters.get(param.name());
         } else {
@@ -686,7 +686,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("containers").path(containerId).path("copy");
 
     // Internal JSON object; not worth it to create class for this
-    JsonNodeFactory nf = JsonNodeFactory.instance;
+    final JsonNodeFactory nf = JsonNodeFactory.instance;
     final JsonNode params = nf.objectNode().set("Resource", nf.textNode(path));
 
     return request(POST, InputStream.class, resource,
@@ -704,11 +704,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("noOverwriteDirNonDir", true)
         .queryParam("path", path);
 
-    CompressedDirectory compressedDirectory
-        = CompressedDirectory.create(directory);
+    final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
 
-    final InputStream fileStream =
-        Files.newInputStream(compressedDirectory.file());
+    final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
 
     request(PUT, String.class, resource,
             resource.request(APPLICATION_OCTET_STREAM_TYPE),
@@ -845,9 +843,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("fromSrc", "-")
         .queryParam("tag", image);
 
-    LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
-    Entity<InputStream> entity = Entity.entity(imagePayload, MediaType.APPLICATION_OCTET_STREAM);
-    try (ProgressStream load =
+    final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
+    final Entity<InputStream> entity = Entity.entity(imagePayload,
+                                                     MediaType.APPLICATION_OCTET_STREAM);
+    try (final ProgressStream load =
              request(POST, ProgressStream.class, resource,
                      resource
                          .request(APPLICATION_JSON_TYPE)
@@ -870,7 +869,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public InputStream save(final String image, final AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException {
-    WebTarget resource = resource().path("images").path(image).path("get");
+    final WebTarget resource = resource().path("images").path(image).path("get");
 
     return request(
         GET,
@@ -1108,7 +1107,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("containers").path(containerId)
         .path("logs");
 
-    for (LogsParam param : params) {
+    for (final LogsParam param : params) {
       resource = resource.queryParam(param.name(), param.value());
     }
 
@@ -1120,7 +1119,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource().path("events");
     final Map<String, String> filters = newHashMap();
-    for (EventsParam param : params) {
+    for (final EventsParam param : params) {
       if (param instanceof EventsFilterParam) {
         filters.put(param.name(), param.value());
       } else {
@@ -1133,7 +1132,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         final StringWriter writer = new StringWriter();
         final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
         generator.writeStartObject();
-        for (Map.Entry<String, String> entry : filters.entrySet()) {
+        for (final Map.Entry<String, String> entry : filters.entrySet()) {
           generator.writeArrayFieldStart(entry.getKey());
           generator.writeString(entry.getValue());
           generator.writeEndArray();
@@ -1149,9 +1148,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     try {
-      CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider
+      final CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider
           .getHttpClient(noTimeoutClient);
-      CloseableHttpResponse response = client.execute(new HttpGet(resource.getUri()));
+      final CloseableHttpResponse response = client.execute(new HttpGet(resource.getUri()));
       return new EventStream(response, objectMapper());
     } catch (IOException exception) {
       throw new DockerException(exception);
@@ -1192,7 +1191,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                            final String[] cmd,
                            final ExecCreateParam... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = resource().path("containers").path(containerId).path("exec");
+    final WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
     final StringWriter writer = new StringWriter();
     try {
@@ -1233,7 +1232,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     try {
-      JsonNode json = objectMapper().readTree(response);
+      final JsonNode json = objectMapper().readTree(response);
       return json.findValue("Id").textValue();
     } catch (IOException e) {
       throw new DockerException(e);
@@ -1244,14 +1243,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public LogStream execStart(final String execId, final ExecStartParameter... params)
       throws DockerException, InterruptedException {
-    WebTarget resource = resource().path("exec").path(execId).path("start");
+    final WebTarget resource = resource().path("exec").path(execId).path("start");
 
     final StringWriter writer = new StringWriter();
     try {
       final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
       generator.writeStartObject();
 
-      for (ExecStartParameter param : params) {
+      for (final ExecStartParameter param : params) {
         generator.writeBooleanField(param.getName(), true);
       }
 
@@ -1277,7 +1276,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public ExecState execInspect(final String execId) throws DockerException, InterruptedException {
-    WebTarget resource = resource().path("exec").path(execId).path("json");
+    final WebTarget resource = resource().path("exec").path(execId).path("json");
 
     try {
       return request(GET, ExecState.class, resource, resource.request(APPLICATION_JSON_TYPE));
@@ -1370,9 +1369,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path(networkId).path(methodname);
 
-    Map<String, String> request = new HashMap<>();
+    final Map<String, String> request = new HashMap<>();
     request.put("Container", containerId);
-    Response response =
+    final Response response =
         request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
                 Entity.json(request));
     switch (response.getStatus()) {
@@ -1444,9 +1443,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private Invocation.Builder headers(final Invocation.Builder request) {
-    Set<Map.Entry<String, Object>> entries = headers.entrySet();
+    final Set<Map.Entry<String, Object>> entries = headers.entrySet();
 
-    for (Map.Entry<String, Object> entry : entries) {
+    for (final Map.Entry<String, Object> entry : entries) {
       request.header(entry.getKey(), entry.getValue());
     }
 
@@ -1537,7 +1536,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
 
       log.debug("Registry Config Json {}", authRegistryJson);
-      String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);
+      final String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);
       log.debug("Registry Config Encoded {}", authRegistryEncoded);
       return authRegistryEncoded;
     } catch (JsonProcessingException | InterruptedException ex) {

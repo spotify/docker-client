@@ -238,7 +238,7 @@ public class DefaultDockerClientTest {
   public void tearDown() throws Exception {
     // Remove containers
     final List<Container> containers = sut.listContainers();
-    for (Container container : containers) {
+    for (final Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
       if (info != null && info.name().contains(nameTag)) {
         try {
@@ -438,16 +438,21 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBadAuth() throws Exception {
-    AuthConfig badAuthConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-        .password("foobar").build();
+    final AuthConfig badAuthConfig = AuthConfig.builder()
+        .email(AUTH_EMAIL)
+        .username(AUTH_USERNAME)
+        .password("foobar")
+        .build();
     final int statusCode = sut.auth(badAuthConfig);
     assertThat(statusCode, equalTo(401));
   }
 
   @Test
   public void testMissingAuthParam() throws Exception {
-    AuthConfig badAuthConfig =
-        AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME).build();
+    final AuthConfig badAuthConfig = AuthConfig.builder()
+        .email(AUTH_EMAIL)
+        .username(AUTH_USERNAME)
+        .build();
     final int statusCode = sut.auth(badAuthConfig);
     assertThat(statusCode, equalTo(500));
   }
@@ -564,7 +569,7 @@ public class DefaultDockerClientTest {
 
     // Verify that we have multiple messages, and each one has a non-null field
     assertThat(messages, not(empty()));
-    for (ProgressMessage message : messages) {
+    for (final ProgressMessage message : messages) {
       assertTrue(message.error() != null ||
                  message.id() != null ||
                  message.progress() != null ||
@@ -801,7 +806,7 @@ public class DefaultDockerClientTest {
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
 
-    ImmutableSet.Builder<String> files = ImmutableSet.builder();
+    final ImmutableSet.Builder<String> files = ImmutableSet.builder();
     try (TarArchiveInputStream tarStream = new TarArchiveInputStream(sut.exportContainer(id))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
@@ -826,8 +831,8 @@ public class DefaultDockerClientTest {
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
 
-    ImmutableSet.Builder<String> files = ImmutableSet.builder();
-    try (TarArchiveInputStream tarStream =
+    final ImmutableSet.Builder<String> files = ImmutableSet.builder();
+    try (final TarArchiveInputStream tarStream =
              new TarArchiveInputStream(sut.copyContainer(id, "/bin"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
@@ -873,13 +878,12 @@ public class DefaultDockerClientTest {
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
 
-    String tag = randomName();
-    ContainerCreation
-        dockerClientTest =
+    final String tag = randomName();
+    final ContainerCreation dockerClientTest =
         sut.commitContainer(id, "mosheeshel/busybox", tag, config, "CommitedByTest-" + tag,
                             "DockerClientTest");
 
-    ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
+    final ImageInfo imageInfo = sut.inspectImage(dockerClientTest.id());
     assertThat(imageInfo.author(), is("DockerClientTest"));
     assertThat(imageInfo.comment(), is("CommitedByTest-" + tag));
 
@@ -1009,10 +1013,10 @@ public class DefaultDockerClientTest {
       final File folder = new File(dockerDirectory);
       final File[] files = folder.listFiles();
       if (files != null) {
-        for (File file : files) {
+        for (final File file : files) {
           if (!file.isDirectory()) {
             Boolean found = false;
-            for (String fileDownloaded : filesDownloaded.build()) {
+            for (final String fileDownloaded : filesDownloaded.build()) {
               if (fileDownloaded.contains(file.getName())) {
                 found = true;
               }
@@ -1335,7 +1339,7 @@ public class DefaultDockerClientTest {
     System.out.println("CONTAINERS LISTED: " + containers);
 
     Container targetCont = null;
-    for (Container container : containers) {
+    for (final Container container : containers) {
       if (container.id().equals(id)) {
         targetCont = container;
         break;
@@ -1455,7 +1459,7 @@ public class DefaultDockerClientTest {
 
   @Test(timeout = 5000)
   public void testEventStreamWithUntilTime() throws Exception {
-    EventStream eventStream =
+    final EventStream eventStream =
         sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
 
     while (eventStream.hasNext()) {
@@ -1493,7 +1497,7 @@ public class DefaultDockerClientTest {
     // Can list by name
     final List<Image> imagesByName = sut.listImages(byName(BUSYBOX));
     assertThat(imagesByName.size(), greaterThan(0));
-    Set<String> repoTags = Sets.newHashSet();
+    final Set<String> repoTags = Sets.newHashSet();
     for (final Image imageByName : imagesByName) {
       if (imageByName.repoTags() != null) {
         repoTags.addAll(imageByName.repoTags());
@@ -1524,14 +1528,14 @@ public class DefaultDockerClientTest {
   public void testBadDockerCertificates() throws Exception {
     // try building a DockerCertificates with specifying a cert path to something that
     // isn't a cert
-    Path certDir = Paths.get("src", "test", "resources", "dockerInvalidSslDirectory");
+    final Path certDir = Paths.get("src", "test", "resources", "dockerInvalidSslDirectory");
     DockerCertificates.builder().dockerCertPath(certDir).build();
   }
 
   @Test
   public void testNoDockerCertificatesInDir() throws Exception {
-    Path certDir = Paths.get(System.getProperty("java.io.tmpdir"));
-    Optional<DockerCertificates> result = DockerCertificates.builder()
+    final Path certDir = Paths.get(System.getProperty("java.io.tmpdir"));
+    final Optional<DockerCertificates> result = DockerCertificates.builder()
         .dockerCertPath(certDir).build();
     assertThat(result.isPresent(), is(false));
   }
@@ -1865,12 +1869,12 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogNoTimeout() throws Exception {
-    String volumeContainer = createSleepingContainer();
-    StringBuffer result = new StringBuffer();
-    try (LogStream stream = sut.logs(volumeContainer, stdout(), stderr(), follow())) {
+    final String volumeContainer = createSleepingContainer();
+    final StringBuffer result = new StringBuffer();
+    try (final LogStream stream = sut.logs(volumeContainer, stdout(), stderr(), follow())) {
       try {
         while (stream.hasNext()) {
-          String r = UTF_8.decode(stream.next().content()).toString();
+          final String r = UTF_8.decode(stream.next().content()).toString();
           log.info(r);
           result.append(r);
         }
@@ -1883,14 +1887,14 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAttachLogNoTimeout() throws Exception {
-    String volumeContainer = createSleepingContainer();
-    StringBuffer result = new StringBuffer();
-    try (LogStream stream = sut.attachContainer(volumeContainer,
-                                                AttachParameter.STDOUT, AttachParameter.STDERR,
-                                                AttachParameter.STREAM, AttachParameter.STDIN)) {
+    final String volumeContainer = createSleepingContainer();
+    final StringBuffer result = new StringBuffer();
+    try (final LogStream stream = sut.attachContainer(
+        volumeContainer, AttachParameter.STDOUT, AttachParameter.STDERR,
+        AttachParameter.STREAM, AttachParameter.STDIN)) {
       try {
         while (stream.hasNext()) {
-          String r = UTF_8.decode(stream.next().content()).toString();
+          final String r = UTF_8.decode(stream.next().content()).toString();
           log.info(r);
           result.append(r);
         }
@@ -2045,8 +2049,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testLogsTty() throws DockerException, InterruptedException {
-    String container = randomName();
-    ContainerConfig containerConfig = ContainerConfig.builder()
+    final String container = randomName();
+    final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .attachStdout(true)
         .tty(true)
@@ -2055,10 +2059,10 @@ public class DefaultDockerClientTest {
 
     sut.createContainer(containerConfig, container);
     sut.startContainer(container);
-    LogStream logStream = sut.logs(container, DockerClient.LogsParam.stdout());
+    final LogStream logStream = sut.logs(container, DockerClient.LogsParam.stdout());
 
     while (logStream.hasNext()) {
-      String line = UTF_8.decode(logStream.next().content()).toString();
+      final String line = UTF_8.decode(logStream.next().content()).toString();
       log.info(line);
     }
     sut.waitContainer(container);
@@ -2141,13 +2145,13 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-                                   ExecCreateParam.attachStdout(),
-                                   ExecCreateParam.attachStderr());
+    final String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
+                                         ExecCreateParam.attachStdout(),
+                                         ExecCreateParam.attachStderr());
 
     log.info("execId = {}", execId);
 
-    try (LogStream stream = sut.execStart(execId)) {
+    try (final LogStream stream = sut.execStart(execId)) {
       final String output = stream.readFully();
       log.info("Result:\n{}", output);
       assertThat(output, containsString("total"));
@@ -2327,7 +2331,7 @@ public class DefaultDockerClientTest {
     // Start the second container
     sut.startContainer(id2);
 
-    ContainerInfo containerInfo2 = sut.inspectContainer(id2);
+    final ContainerInfo containerInfo2 = sut.inspectContainer(id2);
     assertThat(containerInfo2.config().labels(), is(labels2));
 
     // Check that both containers are listed when we filter with a "name" label
@@ -2451,7 +2455,7 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
 
-    ContainerStats stats = sut.stats(container.id());
+    final ContainerStats stats = sut.stats(container.id());
     assertThat(stats.read(), notNullValue());
     assertThat(stats.precpuStats(), notNullValue());
     assertThat(stats.cpuStats(), notNullValue());
@@ -2486,7 +2490,7 @@ public class DefaultDockerClientTest {
     assertTrue(networks.size() > 0);
 
     Network network = null;
-    for (Network n : networks) {
+    for (final Network n : networks) {
       if (n.name().equals(networkName)) {
         network = n;
       }
@@ -2676,8 +2680,8 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(containerId);
 
     assertThat(info.hostConfig().restartPolicy().name(), is(restartPolicy.name()));
-    Integer retryCount = restartPolicy.maxRetryCount() == null ?
-                         0 : restartPolicy.maxRetryCount();
+    final Integer retryCount = restartPolicy.maxRetryCount() == null ?
+                               0 : restartPolicy.maxRetryCount();
 
     assertThat(info.hostConfig().restartPolicy().maxRetryCount(), is(retryCount));
   }

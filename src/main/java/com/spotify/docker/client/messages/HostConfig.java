@@ -434,7 +434,7 @@ public class HostConfig {
         return false;
       }
 
-      RestartPolicy that = (RestartPolicy) o;
+      final RestartPolicy that = (RestartPolicy) o;
 
       if (name != null ? !name.equals(that.name) : that.name != null) {
         return false;

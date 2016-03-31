@@ -104,7 +104,7 @@ public class DockerContainer implements MethodRule {
       @Override
       public void evaluate() throws Throwable {
         try {
-          ContainerCreation containerCreation = createContainer(createContainerAnnotation);
+          final ContainerCreation containerCreation = createContainer(createContainerAnnotation);
           containerId = containerCreation.id();
           if (createContainerAnnotation.start()) {
             startContainer(createContainerAnnotation);
@@ -126,14 +126,14 @@ public class DockerContainer implements MethodRule {
       throws DockerException, InterruptedException {
     Preconditions.checkNotNull(createContainerAnnotation);
 
-    ContainerConfig.Builder configBuilder = ContainerConfig.builder()
+    final ContainerConfig.Builder configBuilder = ContainerConfig.builder()
         .image(createContainerAnnotation.image())
         .volumes(createContainerAnnotation.volumes())
         .cmd(createContainerAnnotation.command());
-    ContainerConfig createContainerConfig = configBuilder.build();
+    final ContainerConfig createContainerConfig = configBuilder.build();
 
     log.debug("Creating Docker container using config {}", createContainerConfig);
-    ContainerCreation creation = dockerClient.createContainer(createContainerConfig);
+    final ContainerCreation creation = dockerClient.createContainer(createContainerConfig);
     containerId = creation.id();
     log.debug("Created Docker container {}", containerId);
     return creation;

@@ -59,7 +59,7 @@ public class CpuStats {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    CpuStats other = (CpuStats) obj;
+    final CpuStats other = (CpuStats) obj;
     if (cpuUsage == null) {
       if (other.cpuUsage != null) {
         return false;

@@ -61,7 +61,7 @@ public class Ipam {
       return false;
     }
 
-    Ipam that = (Ipam) o;
+    final Ipam that = (Ipam) o;
 
     return Objects.equals(this.driver, that.driver) && Objects.equals(this.config, that.config);
   }
@@ -93,7 +93,7 @@ public class Ipam {
     }
 
     public Builder config(final String subnet, final String ipRange, final String gateway) {
-      IpamConfig config = new IpamConfig();
+      final IpamConfig config = new IpamConfig();
       config.subnet(subnet);
       config.ipRange(ipRange);
       config.gateway(gateway);

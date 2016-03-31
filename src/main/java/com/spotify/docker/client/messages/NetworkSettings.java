@@ -205,7 +205,7 @@ public class NetworkSettings {
 
     public Builder portMapping(final Map<String, Map<String, String>> portMapping) {
       final ImmutableMap.Builder<String, Map<String, String>> builder = ImmutableMap.builder();
-      for (Map.Entry<String, Map<String, String>> entry : portMapping.entrySet()) {
+      for (final Map.Entry<String, Map<String, String>> entry : portMapping.entrySet()) {
         builder.put(entry.getKey(), ImmutableMap.copyOf(entry.getValue()));
       }
       this.portMapping = builder.build();

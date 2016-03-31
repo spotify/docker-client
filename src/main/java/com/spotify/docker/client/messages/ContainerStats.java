@@ -84,7 +84,7 @@ public class ContainerStats {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    ContainerStats other = (ContainerStats) obj;
+    final ContainerStats other = (ContainerStats) obj;
     if (cpuStats == null) {
       if (other.cpuStats != null) {
         return false;

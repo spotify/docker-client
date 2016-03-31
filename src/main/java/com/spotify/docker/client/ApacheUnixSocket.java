@@ -147,7 +147,7 @@ public class ApacheUnixSocket extends Socket {
   }
 
   private void setAllSocketOptions() throws SocketException {
-    for (SocketOptionSetter s : optionsToSet) {
+    for (final SocketOptionSetter s : optionsToSet) {
       s.run();
     }
   }

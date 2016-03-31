@@ -329,7 +329,7 @@ public class ContainerInfo {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      Node node = (Node) o;
+      final Node node = (Node) o;
       return Objects.equals(id, node.id) &&
              Objects.equals(ip, node.ip) &&
              Objects.equals(addr, node.addr) &&
