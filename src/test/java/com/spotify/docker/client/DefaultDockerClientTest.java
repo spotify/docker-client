@@ -1760,8 +1760,8 @@ public class DefaultDockerClientTest {
                 .readOnly(true)
                 .build();
     final HostConfig hostConfig = HostConfig.builder()
-            .binds("/local/path:/remote/path")
-            .binds(bind)
+            .appendBinds("/local/path:/remote/path")
+            .appendBinds(bind)
             .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
             .image(BUSYBOX_LATEST)
