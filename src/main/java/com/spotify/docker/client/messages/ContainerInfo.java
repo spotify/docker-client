@@ -137,6 +137,8 @@ public class ContainerInfo {
   /**
    * Volumes returned by execInspect
    *
+   * @return A map of volumes where the key is the source path on the local file system,
+   * and the key is the target path on the Docker host.
    * @deprecated Replaced by {@link #mounts()} in API 1.20.
    */
   @Deprecated
@@ -147,6 +149,8 @@ public class ContainerInfo {
   /**
    * Volumes returned by execInspect
    *
+   * @return A map of volumes where the key is the source path on the local file system,
+   * and the key is the target path on the Docker host.
    * @deprecated Replaced by {@link #mounts()} in API 1.20.
    */
   @Deprecated
