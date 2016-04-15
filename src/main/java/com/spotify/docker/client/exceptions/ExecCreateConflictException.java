@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Spotify AB.
+ * Copyright (c) 2016 Spotify AB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,23 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class ImagePushFailedException extends DockerException {
+public class ExecCreateConflictException extends ConflictException {
 
-  private final String image;
+  private final String containerId;
 
-  public ImagePushFailedException(final String image, final Throwable cause) {
-    super("Image push failed: " + image, cause);
-    this.image = image;
+  public ExecCreateConflictException(final String containerId,
+                                     final Throwable cause) {
+    super("Could not create exec. Container " + containerId + " is paused.", cause);
+    this.containerId = containerId;
   }
 
-  public ImagePushFailedException(final String image, final String message) {
-    super("Image push failed: " + image + ": " + message);
-    this.image = image;
+  public ExecCreateConflictException(final String containerId) {
+    this(containerId, null);
   }
 
-  public String getImage() {
-    return image;
+  public String getContainerId() {
+    return containerId;
   }
-
 }

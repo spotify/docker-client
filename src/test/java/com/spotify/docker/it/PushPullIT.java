@@ -21,13 +21,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 
 import com.spotify.docker.Polling;
-import com.spotify.docker.client.ContainerNotFoundException;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
-import com.spotify.docker.client.ImageNotFoundException;
-import com.spotify.docker.client.ImagePushFailedException;
+import com.spotify.docker.client.exceptions.ImageNotFoundException;
+import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;

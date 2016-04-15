@@ -15,22 +15,24 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class ContainerNotFoundException extends DockerException {
+import java.util.Map;
 
-  private final String containerId;
+public class BadParamException extends DockerException {
 
-  public ContainerNotFoundException(final String containerId, final Throwable cause) {
-    super("Container not found: " + containerId, cause);
-    this.containerId = containerId;
+  private final Map<String, String> params;
+
+  public BadParamException(final Map<String, String> params, final Throwable cause) {
+    super("Params: " + params.toString(), cause);
+    this.params = params;
   }
 
-  public ContainerNotFoundException(final String containerId) {
-    this(containerId, null);
+  public BadParamException(final Map<String, String> params) {
+    this(params, null);
   }
 
-  public String getContainerId() {
-    return containerId;
+  public Map<String, String> getParams() {
+    return params;
   }
 }

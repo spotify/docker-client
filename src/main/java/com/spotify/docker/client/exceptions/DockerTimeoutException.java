@@ -15,28 +15,26 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class ImageNotFoundException extends DockerException {
+import java.net.URI;
 
-  private final String image;
+public class DockerTimeoutException extends DockerException {
 
-  public ImageNotFoundException(final String image, final Throwable cause) {
-    super("Image not found: " + image, cause);
-    this.image = image;
+  private final String method;
+  private final URI uri;
+
+  public DockerTimeoutException(final String method, final URI uri, final Throwable cause) {
+    super("Timeout: " + method + " " + uri, cause);
+    this.method = method;
+    this.uri = uri;
   }
 
-  public ImageNotFoundException(final String image, final String message) {
-    super("Image not found: " + image + ": " + message);
-    this.image = image;
+  public String method() {
+    return method;
   }
 
-  public ImageNotFoundException(final String image) {
-    super("Image not found: " + image);
-    this.image = image;
-  }
-
-  public String getImage() {
-    return image;
+  public URI uri() {
+    return uri;
   }
 }

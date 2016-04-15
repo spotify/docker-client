@@ -15,25 +15,19 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ProgressMessage;
+public class DockerCertificateException extends Exception {
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class LoggingBuildHandler implements ProgressHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(LoggingBuildHandler.class);
-
-  @Override
-  public void progress(ProgressMessage message) throws DockerException {
-    if (message.error() != null) {
-      throw new DockerException(message.toString());
-    }
-
-    log.info("build: {}", message);
+  public DockerCertificateException(final String message) {
+    super(message);
   }
 
+  public DockerCertificateException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
+
+  public DockerCertificateException(final Throwable cause) {
+    super(cause);
+  }
 }

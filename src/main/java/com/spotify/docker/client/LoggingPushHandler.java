@@ -17,6 +17,8 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.messages.ProgressMessage;
 
 import org.slf4j.Logger;

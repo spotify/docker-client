@@ -15,22 +15,23 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class NetworkNotFoundException extends DockerException {
+public class ImagePullFailedException extends DockerException {
 
-  private final String networkId;
+  private final String image;
 
-  public NetworkNotFoundException(final String networkId, final Throwable cause) {
-    super("Network not found: " + networkId, cause);
-    this.networkId = networkId;
+  public ImagePullFailedException(final String image, final Throwable cause) {
+    super("Image pull failed: " + image, cause);
+    this.image = image;
   }
 
-  public NetworkNotFoundException(final String networkId) {
-    this(networkId, null);
+  public ImagePullFailedException(final String image, final String message) {
+    super("Image pull failed: " + image + ": " + message);
+    this.image = image;
   }
 
-  public String getNetworkId() {
-    return networkId;
+  public String getImage() {
+    return image;
   }
 }

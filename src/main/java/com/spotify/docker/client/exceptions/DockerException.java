@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Oleg Poleshuk.
+ * Copyright (c) 2014 Spotify AB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,19 @@
  * under the License.
  */
 
-package com.spotify.docker.client;
+package com.spotify.docker.client.exceptions;
 
-public class ExecNotFoundException extends DockerException {
+public class DockerException extends Exception {
 
-  private final String execId;
-
-  public ExecNotFoundException(final String execId, final Throwable cause) {
-    super("Exec not found: " + execId, cause);
-    this.execId = execId;
+  public DockerException(final String message) {
+    super(message);
   }
 
-  public ExecNotFoundException(final String execId) {
-    this(execId, null);
+  public DockerException(final String message, final Throwable cause) {
+    super(message, cause);
   }
 
-  public String getExecId() {
-    return execId;
+  public DockerException(final Throwable cause) {
+    super(cause);
   }
 }
