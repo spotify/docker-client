@@ -18,6 +18,7 @@
 package com.spotify.docker.client.messages;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,8 +33,9 @@ public class ContainerStats {
 
   @JsonProperty("read") private String read;
   @JsonProperty("network") private NetworkStats network;
-  @JsonProperty("networks") private Map<String, NetworkStats> networks;
+  @JsonProperty("networks") private ImmutableMap<String, NetworkStats> networks;
   @JsonProperty("memory_stats") private MemoryStats memoryStats;
+  @JsonProperty("blkio_stats") private BlockIoStats blockIoStats;
   @JsonProperty("cpu_stats") private CpuStats cpuStats;
   @JsonProperty("precpu_stats") private CpuStats precpuStats;
 
@@ -53,6 +55,10 @@ public class ContainerStats {
     return memoryStats;
   }
 
+  public BlockIoStats blockIoStats() {
+    return blockIoStats;
+  }
+
   public CpuStats cpuStats() {
     return cpuStats;
   }
@@ -68,6 +74,8 @@ public class ContainerStats {
     result = prime * result + (cpuStats == null ? 0 : cpuStats.hashCode());
     result = prime * result + (memoryStats == null ? 0 : memoryStats.hashCode());
     result = prime * result + (network == null ? 0 : network.hashCode());
+    result = prime * result + (networks == null ? 0 : networks.hashCode());
+    result = prime * result + (blockIoStats == null ? 0 : blockIoStats.hashCode());
     result = prime * result + (precpuStats == null ? 0 : precpuStats.hashCode());
     result = prime * result + (read == null ? 0 : read.hashCode());
     return result;
@@ -106,6 +114,20 @@ public class ContainerStats {
     } else if (!network.equals(other.network)) {
       return false;
     }
+    if (networks == null) {
+      if (other.networks != null) {
+        return false;
+      }
+    } else if (!networks.equals(other.networks)) {
+      return false;
+    }
+    if (blockIoStats == null) {
+      if (other.blockIoStats != null) {
+        return false;
+      }
+    } else if (!blockIoStats.equals(other.blockIoStats)) {
+      return false;
+    }
     if (precpuStats == null) {
       if (other.precpuStats != null) {
         return false;
@@ -129,6 +151,8 @@ public class ContainerStats {
         .add("cpuStats", cpuStats)
         .add("memoryStats", memoryStats)
         .add("network", network)
+        .add("networks", networks)
+        .add("blkioStats", blockIoStats)
         .add("precpuStats", precpuStats)
         .add("read", read)
         .toString();
