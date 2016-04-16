@@ -9,7 +9,7 @@ language: java
 jdk:
   - oraclejdk7
 
-env: 
+env:
   global:
     - SONATYPE_USERNAME=mattbrownspotify
     - secure: "CTYWMDSX4LOz2TiYBSqC+7klvafj0wvwcbpyL3TJueWmgKzJwysRqSHxw9JR2rfe8ysSxGFFiRO9HEyJ4o6zTF6kIy9tYsPxvSJ8c9wIEdTbUtGMuWlrhKchuMmdDaWt07/0N2llSB4h3fv53UGglSM+5FJu4e5DxvxUmIx/Zn4="
@@ -19,6 +19,7 @@ env:
     - DOCKER_VERSION=1.8.3
     - DOCKER_VERSION=1.9.1
     - DOCKER_VERSION=1.10.3
+    - DOCKER_VERSION=1.11.2
     - DOCKER_VERSION=1.12.1 UPLOAD_SONATYPE=1
 
 before_install:
