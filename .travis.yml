@@ -9,16 +9,11 @@ jdk:
   - oraclejdk7
 
 env: 
-  - DOCKER_VERSION=1.6.0 DOCKER_HOST=tcp://127.0.0.1:2375
-  - DOCKER_VERSION=1.6.0 DOCKER_HOST=unix:///var/run/docker.sock
-  - DOCKER_VERSION=1.7.1 DOCKER_HOST=tcp://127.0.0.1:2375
-  - DOCKER_VERSION=1.7.1 DOCKER_HOST=unix:///var/run/docker.sock
-  - DOCKER_VERSION=1.8.3 DOCKER_HOST=tcp://127.0.0.1:2375
-  - DOCKER_VERSION=1.8.3 DOCKER_HOST=unix:///var/run/docker.sock
-  - DOCKER_VERSION=1.9.1 DOCKER_HOST=tcp://127.0.0.1:2375
-  - DOCKER_VERSION=1.9.1 DOCKER_HOST=unix:///var/run/docker.sock
-  - DOCKER_VERSION=1.10.3 DOCKER_HOST=tcp://127.0.0.1:2375
-  - DOCKER_VERSION=1.10.3 DOCKER_HOST=unix:///var/run/docker.sock
+  - DOCKER_VERSION=1.6.0 
+  - DOCKER_VERSION=1.7.1
+  - DOCKER_VERSION=1.8.3
+  - DOCKER_VERSION=1.9.1
+  - DOCKER_VERSION=1.10.3
 
 before_install:
   # check what version of docker is installed beforehand
