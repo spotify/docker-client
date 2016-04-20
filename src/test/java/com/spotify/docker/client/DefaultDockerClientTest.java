@@ -1413,8 +1413,8 @@ public class DefaultDockerClientTest {
     assertThat(createEvent.time(), notNullValue());
 
     Event startEvent = eventStream.next();
-    if (!dockerApiVersionLessThan("1.22")) {
-      // For some reason, version 1.22 has an extra null Event. So we read the next one.
+    if (dockerApiVersionAtLeast("1.22") && eventStream.hasNext()) {
+      // For some reason, version 1.22 has an extra null Event sometimes. So we read the next one.
       startEvent = eventStream.next();
     }
 
