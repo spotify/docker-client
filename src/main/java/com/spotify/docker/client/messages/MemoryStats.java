@@ -22,6 +22,8 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -50,57 +52,25 @@ public class MemoryStats {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (failcnt == null ? 0 : failcnt.hashCode());
-    result = prime * result + (limit == null ? 0 : limit.hashCode());
-    result = prime * result + (maxUsage == null ? 0 : maxUsage.hashCode());
-    result = prime * result + (usage == null ? 0 : usage.hashCode());
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final MemoryStats that = (MemoryStats) o;
+
+    return Objects.equals(this.maxUsage, that.maxUsage) &&
+        Objects.equals(this.usage, that.usage) &&
+        Objects.equals(this.failcnt, that.failcnt) &&
+        Objects.equals(this.limit, that.limit);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final MemoryStats other = (MemoryStats) obj;
-    if (failcnt == null) {
-      if (other.failcnt != null) {
-        return false;
-      }
-    } else if (!failcnt.equals(other.failcnt)) {
-      return false;
-    }
-    if (limit == null) {
-      if (other.limit != null) {
-        return false;
-      }
-    } else if (!limit.equals(other.limit)) {
-      return false;
-    }
-    if (maxUsage == null) {
-      if (other.maxUsage != null) {
-        return false;
-      }
-    } else if (!maxUsage.equals(other.maxUsage)) {
-      return false;
-    }
-    if (usage == null) {
-      if (other.usage != null) {
-        return false;
-      }
-    } else if (!usage.equals(other.usage)) {
-      return false;
-    }
-    return true;
+  public int hashCode() {
+    return Objects.hash(maxUsage, usage, failcnt, limit);
   }
 
   @Override

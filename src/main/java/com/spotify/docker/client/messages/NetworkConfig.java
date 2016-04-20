@@ -73,20 +73,11 @@ public class NetworkConfig {
 
     final NetworkConfig that = (NetworkConfig) o;
 
-    if (checkDuplicate != that.checkDuplicate) {
-      return false;
-    }
-    if (!name.equals(that.name)) {
-      return false;
-    }
-    if (driver != null ? !driver.equals(that.driver) : that.driver != null) {
-      return false;
-    }
-    if (ipam != null ? !ipam.equals(that.ipam) : that.ipam != null) {
-      return false;
-    }
-    return !(options != null ? !options.equals(that.options) : that.options != null);
-
+    return Objects.equals(this.checkDuplicate, that.checkDuplicate) &&
+        Objects.equals(this.name, that.name) &&
+        Objects.equals(this.driver, that.driver) &&
+        Objects.equals(this.ipam, that.ipam) &&
+        Objects.equals(this.options, that.options);
   }
 
   @Override
@@ -101,9 +92,13 @@ public class NetworkConfig {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("driver", driver)
-        .add("options", options).add("checkDuplicate", checkDuplicate)
-        .add("ipam", ipam).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("driver", driver)
+        .add("options", options)
+        .add("checkDuplicate", checkDuplicate)
+        .add("ipam", ipam)
+        .toString();
   }
 
   public static class Builder {

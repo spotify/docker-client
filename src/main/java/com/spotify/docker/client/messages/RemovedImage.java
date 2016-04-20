@@ -72,14 +72,8 @@ public class RemovedImage {
 
     final RemovedImage that = (RemovedImage) o;
 
-    if (imageId != null ? !imageId.equals(that.imageId) : that.imageId != null) {
-      return false;
-    }
-    if (type != that.type) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.type, that.type) &&
+        Objects.equals(this.imageId, that.imageId);
   }
 
   @Override

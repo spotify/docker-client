@@ -75,14 +75,8 @@ public class PortBinding {
 
     final PortBinding that = (PortBinding) o;
 
-    if (hostIp != null ? !hostIp.equals(that.hostIp) : that.hostIp != null) {
-      return false;
-    }
-    if (hostPort != null ? !hostPort.equals(that.hostPort) : that.hostPort != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.hostIp, that.hostIp) &&
+        Objects.equals(this.hostPort, that.hostPort);
   }
 
   @Override

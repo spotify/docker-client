@@ -107,28 +107,14 @@ public class AuthRegistryConfig {
       return false;
     }
 
-    final AuthRegistryConfig config = (AuthRegistryConfig) o;
-    if (repository != null ? !repository.equals(config.repository) : config.repository != null) {
-      return false;
-    }
-    if (username != null ? !username.equals(config.username) : config.username != null) {
-      return false;
-    }
-    if (password != null ? !password.equals(config.password) : config.password != null) {
-      return false;
-    }
-    if (auth != null ? !auth.equals(config.auth) : config.auth != null) {
-      return false;
-    }
-    if (email != null ? !email.equals(config.email) : config.email != null) {
-      return false;
-    }
-    if (serverAddress != null ?
-        !serverAddress.equals(config.serverAddress) : config.serverAddress != null) {
-      return false;
-    }
+    final AuthRegistryConfig that = (AuthRegistryConfig) o;
 
-    return true;
+    return Objects.equals(this.repository, that.repository) &&
+        Objects.equals(this.username, that.username) &&
+        Objects.equals(this.password, that.password) &&
+        Objects.equals(this.auth, that.auth) &&
+        Objects.equals(this.email, that.email) &&
+        Objects.equals(this.serverAddress, that.serverAddress);
   }
 
   @Override

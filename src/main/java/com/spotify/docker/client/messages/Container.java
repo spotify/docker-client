@@ -131,44 +131,19 @@ public class Container {
       return false;
     }
 
-    final Container container = (Container) o;
+    final Container that = (Container) o;
 
-    if (command != null ? !command.equals(container.command) : container.command != null) {
-      return false;
-    }
-    if (created != null ? !created.equals(container.created) : container.created != null) {
-      return false;
-    }
-    if (id != null ? !id.equals(container.id) : container.id != null) {
-      return false;
-    }
-    if (image != null ? !image.equals(container.image) : container.image != null) {
-      return false;
-    }
-    if (names != null ? !names.equals(container.names) : container.names != null) {
-      return false;
-    }
-    if (ports != null ? !ports.equals(container.ports) : container.ports != null) {
-      return false;
-    }
-    if (labels != null ? !labels.equals(container.labels) : container.labels != null) {
-      return false;
-    }
-    if (sizeRootFs != null ? !sizeRootFs.equals(container.sizeRootFs)
-                           : container.sizeRootFs != null) {
-      return false;
-    }
-    if (sizeRw != null ? !sizeRw.equals(container.sizeRw) : container.sizeRw != null) {
-      return false;
-    }
-    if (status != null ? !status.equals(container.status) : container.status != null) {
-      return false;
-    }
-    if (imageId != null ? !imageId.equals(container.imageId) : container.imageId != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.id, that.id) &&
+        Objects.equals(this.names, that.names) &&
+        Objects.equals(this.image, that.image) &&
+        Objects.equals(this.imageId, that.imageId) &&
+        Objects.equals(this.command, that.command) &&
+        Objects.equals(this.created, that.created) &&
+        Objects.equals(this.status, that.status) &&
+        Objects.equals(this.ports, that.ports) &&
+        Objects.equals(this.labels, that.labels) &&
+        Objects.equals(this.sizeRw, that.sizeRw) &&
+        Objects.equals(this.sizeRootFs, that.sizeRootFs);
   }
 
   @Override
@@ -227,20 +202,10 @@ public class Container {
 
       final PortMapping that = (PortMapping) o;
 
-      if (privatePort != that.privatePort) {
-        return false;
-      }
-      if (publicPort != that.publicPort) {
-        return false;
-      }
-      if (ip != null ? !ip.equals(that.ip) : that.ip != null) {
-        return false;
-      }
-      if (type != null ? !type.equals(that.type) : that.type != null) {
-        return false;
-      }
-
-      return true;
+      return Objects.equals(this.privatePort, that.privatePort) &&
+          Objects.equals(this.publicPort, that.publicPort) &&
+          Objects.equals(this.type, that.type) &&
+          Objects.equals(this.ip, that.ip);
     }
 
     @Override

@@ -204,98 +204,31 @@ public class HostConfig {
 
     final HostConfig that = (HostConfig) o;
 
-    if (binds != null ? !binds.equals(that.binds) : that.binds != null) {
-      return false;
-    }
-    if (containerIDFile != null ? !containerIDFile.equals(that.containerIDFile)
-                                : that.containerIDFile != null) {
-      return false;
-    }
-    if (dns != null ? !dns.equals(that.dns) : that.dns != null) {
-      return false;
-    }
-    if (dnsSearch != null ? !dnsSearch.equals(that.dnsSearch) : that.dnsSearch != null) {
-      return false;
-    }
-    if (extraHosts != null ? !extraHosts.equals(that.extraHosts) : that.extraHosts != null) {
-      return false;
-    }
-    if (links != null ? !links.equals(that.links) : that.links != null) {
-      return false;
-    }
-    if (lxcConf != null ? !lxcConf.equals(that.lxcConf) : that.lxcConf != null) {
-      return false;
-    }
-    if (networkMode != null ? !networkMode.equals(that.networkMode) : that.networkMode != null) {
-      return false;
-    }
-    if (portBindings != null ? !portBindings.equals(that.portBindings)
-                             : that.portBindings != null) {
-      return false;
-    }
-    if (privileged != null ? !privileged.equals(that.privileged) : that.privileged != null) {
-      return false;
-    }
-    if (publishAllPorts != null ? !publishAllPorts.equals(that.publishAllPorts)
-                                : that.publishAllPorts != null) {
-      return false;
-    }
-    if (volumesFrom != null ? !volumesFrom.equals(that.volumesFrom) : that.volumesFrom != null) {
-      return false;
-    }
-    if (capAdd != null ? !capAdd.equals(that.capAdd) : that.capAdd != null) {
-      return false;
-    }
-    if (capDrop != null ? !capDrop.equals(that.capDrop) : that.capDrop != null) {
-      return false;
-    }
-    if (securityOpt != null ? !securityOpt.equals(that.securityOpt) : that.securityOpt != null) {
-      return false;
-    }
-    if (devices != null ? !devices.equals(that.devices) : that.devices != null) {
-      return false;
-    }
-
-    if (memory != null ? !memory.equals(that.memory) : that.memory != null) {
-      return false;
-    }
-
-    if (memorySwap != null ? !memorySwap.equals(that.memorySwap) : that.memorySwap != null) {
-      return false;
-    }
-
-    if (cpuShares != null ? !cpuShares.equals(that.cpuShares) : that.cpuShares != null) {
-      return false;
-    }
-
-    if (cpusetCpus != null ? !cpusetCpus.equals(that.cpusetCpus) : that.cpusetCpus != null) {
-      return false;
-    }
-
-    if (cpuQuota != null ? !cpuQuota.equals(that.cpuQuota) : that.cpuQuota != null) {
-      return false;
-    }
-
-    if (cgroupParent != null ? !cgroupParent.equals(that.cgroupParent)
-                             : that.cgroupParent != null) {
-      return false;
-    }
-
-    if (restartPolicy != null ? !restartPolicy.equals(that.restartPolicy)
-                              : that.restartPolicy != null) {
-      return false;
-    }
-
-    if (logConfig != null ? !logConfig.equals(that.logConfig) : that.logConfig != null) {
-      return false;
-    }
-
-    if (ipcMode != null ? !ipcMode.equals(that.ipcMode)
-            : that.ipcMode != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.binds, that.binds) &&
+        Objects.equals(this.containerIDFile, that.containerIDFile) &&
+        Objects.equals(this.lxcConf, that.lxcConf) &&
+        Objects.equals(this.privileged, that.privileged) &&
+        Objects.equals(this.portBindings, that.portBindings) &&
+        Objects.equals(this.links, that.links) &&
+        Objects.equals(this.publishAllPorts, that.publishAllPorts) &&
+        Objects.equals(this.dns, that.dns) &&
+        Objects.equals(this.dnsSearch, that.dnsSearch) &&
+        Objects.equals(this.extraHosts, that.extraHosts) &&
+        Objects.equals(this.volumesFrom, that.volumesFrom) &&
+        Objects.equals(this.capAdd, that.capAdd) &&
+        Objects.equals(this.capDrop, that.capDrop) &&
+        Objects.equals(this.networkMode, that.networkMode) &&
+        Objects.equals(this.securityOpt, that.securityOpt) &&
+        Objects.equals(this.devices, that.devices) &&
+        Objects.equals(this.memory, that.memory) &&
+        Objects.equals(this.memorySwap, that.memorySwap) &&
+        Objects.equals(this.cpuShares, that.cpuShares) &&
+        Objects.equals(this.cpusetCpus, that.cpusetCpus) &&
+        Objects.equals(this.cpuQuota, that.cpuQuota) &&
+        Objects.equals(this.cgroupParent, that.cgroupParent) &&
+        Objects.equals(this.restartPolicy, that.restartPolicy) &&
+        Objects.equals(this.logConfig, that.logConfig) &&
+        Objects.equals(this.ipcMode, that.ipcMode);
   }
 
   @Override
@@ -367,14 +300,8 @@ public class HostConfig {
 
       final LxcConfParameter that = (LxcConfParameter) o;
 
-      if (key != null ? !key.equals(that.key) : that.key != null) {
-        return false;
-      }
-      if (value != null ? !value.equals(that.value) : that.value != null) {
-        return false;
-      }
-
-      return true;
+      return Objects.equals(this.key, that.key) &&
+          Objects.equals(this.value, that.value);
     }
 
     @Override
@@ -436,11 +363,8 @@ public class HostConfig {
 
       final RestartPolicy that = (RestartPolicy) o;
 
-      if (name != null ? !name.equals(that.name) : that.name != null) {
-        return false;
-      }
-      return maxRetryCount != null ?
-             maxRetryCount.equals(that.maxRetryCount) : that.maxRetryCount == null;
+      return Objects.equals(this.name, that.name) &&
+          Objects.equals(this.maxRetryCount, that.maxRetryCount);
     }
 
     @Override

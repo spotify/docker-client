@@ -63,7 +63,8 @@ public class Ipam {
 
     final Ipam that = (Ipam) o;
 
-    return Objects.equals(this.driver, that.driver) && Objects.equals(this.config, that.config);
+    return Objects.equals(this.driver, that.driver) &&
+        Objects.equals(this.config, that.config);
   }
 
   @Override
@@ -73,14 +74,15 @@ public class Ipam {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("driver", driver).add("config", config).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("driver", driver)
+        .add("config", config)
+        .toString();
   }
-
 
   public static Builder builder() {
     return new Builder();
   }
-
 
   public static class Builder {
 

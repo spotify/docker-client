@@ -61,14 +61,8 @@ public class ContainerCreation {
 
     final ContainerCreation that = (ContainerCreation) o;
 
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (warnings != null ? !warnings.equals(that.warnings) : that.warnings != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.id, that.id) &&
+        Objects.equals(this.warnings, that.warnings);
   }
 
   @Override

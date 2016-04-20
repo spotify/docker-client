@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableList;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -51,57 +53,25 @@ public class CpuUsage {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (percpuUsage == null ? 0 : percpuUsage.hashCode());
-    result = prime * result + (totalUsage == null ? 0 : totalUsage.hashCode());
-    result = prime * result + (usageInKernelmode == null ? 0 : usageInKernelmode.hashCode());
-    result = prime * result + (usageInUsermode == null ? 0 : usageInUsermode.hashCode());
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final CpuUsage that = (CpuUsage) o;
+
+    return Objects.equals(this.totalUsage, that.totalUsage) &&
+        Objects.equals(this.percpuUsage, that.percpuUsage) &&
+        Objects.equals(this.usageInKernelmode, that.usageInKernelmode) &&
+        Objects.equals(this.usageInUsermode, that.usageInUsermode);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final CpuUsage other = (CpuUsage) obj;
-    if (percpuUsage == null) {
-      if (other.percpuUsage != null) {
-        return false;
-      }
-    } else if (!percpuUsage.equals(other.percpuUsage)) {
-      return false;
-    }
-    if (totalUsage == null) {
-      if (other.totalUsage != null) {
-        return false;
-      }
-    } else if (!totalUsage.equals(other.totalUsage)) {
-      return false;
-    }
-    if (usageInKernelmode == null) {
-      if (other.usageInKernelmode != null) {
-        return false;
-      }
-    } else if (!usageInKernelmode.equals(other.usageInKernelmode)) {
-      return false;
-    }
-    if (usageInUsermode == null) {
-      if (other.usageInUsermode != null) {
-        return false;
-      }
-    } else if (!usageInUsermode.equals(other.usageInUsermode)) {
-      return false;
-    }
-    return true;
+  public int hashCode() {
+    return Objects.hash(totalUsage, percpuUsage, usageInKernelmode, usageInUsermode);
   }
 
   @Override

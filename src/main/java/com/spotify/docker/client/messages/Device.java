@@ -24,72 +24,59 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 public class Device {
+  @JsonProperty("PathOnHost") private String pathOnHost;
+  @JsonProperty("PathInContainer") private String pathInContainer;
+  @JsonProperty("CgroupPermissions") private String cGroupPermissions;
 
-    @JsonProperty("PathOnHost") private String pathOnHost;
-    @JsonProperty("PathInContainer") private String pathInContainer;
-    @JsonProperty("CgroupPermissions") private String cGroupPermissions;
+  public Device() {
+  }
 
-    public Device() {
-    }
+  public Device(final String pathOnHost, final String pathInContainer,
+                final String cGroupPermissions) {
+    this.pathOnHost = pathOnHost;
+    this.pathInContainer = pathInContainer;
+    this.cGroupPermissions = cGroupPermissions;
+  }
 
-    public Device(final String pathOnHost, final String pathInContainer,
-                  final String cGroupPermissions) {
-        this.pathOnHost = pathOnHost;
-        this.pathInContainer = pathInContainer;
-        this.cGroupPermissions = cGroupPermissions;
-    }
-
-    public String pathOnHost() {
+  public String pathOnHost() {
         return pathOnHost;
     }
 
-    public String pathInContainer() {
+  public String pathInContainer() {
         return pathInContainer;
     }
 
-    public String cGroupPermissions() {
+  public String cGroupPermissions() {
         return cGroupPermissions;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final Device that = (Device) o;
-
-        if (pathOnHost != null ? !pathOnHost.equals(that.pathOnHost) : that.pathOnHost != null) {
-            return false;
-        }
-        if (pathInContainer != null ?
-                !pathInContainer.equals(that.pathInContainer) : that.pathInContainer != null) {
-            return false;
-        }
-        if (cGroupPermissions != null ?
-                !cGroupPermissions.equals(that.cGroupPermissions) : 
-                that.cGroupPermissions != null) {
-            return false;
-        }
-
-        return true;
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode() {
+    final Device that = (Device) o;
+
+    return Objects.equals(this.pathOnHost, that.pathOnHost) &&
+        Objects.equals(this.pathInContainer, that.pathInContainer) &&
+        Objects.equals(this.cGroupPermissions, that.cGroupPermissions);
+  }
+
+  @Override
+  public int hashCode() {
         return Objects.hash(pathOnHost, pathInContainer, cGroupPermissions);
     }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("pathOnHost", pathOnHost)
-                .add("pathInContainer", pathInContainer)
-                .add("cGroupPermissions", cGroupPermissions)
-                .toString();
-    }
-
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("pathOnHost", pathOnHost)
+        .add("pathInContainer", pathInContainer)
+        .add("cGroupPermissions", cGroupPermissions)
+        .toString();
+  }
 }

@@ -156,52 +156,32 @@ public class Info {
       return false;
     }
 
-    final Info info = (Info) o;
+    final Info that = (Info) o;
 
-    if (containers != info.containers) {
-      return false;
-    }
-    if (debug != null ? !debug.equals(info.debug)
-                      : info.debug != null) {
-      return false;
-    }
-    if (eventsListener != info.eventsListener) {
-      return false;
-    }
-    if (fileDescriptors != info.fileDescriptors) {
-      return false;
-    }
-    if (goroutines != info.goroutines) {
-      return false;
-    }
-    if (images != info.images) {
-      return false;
-    }
-    if (executionDriver != null ? !executionDriver.equals(info.executionDriver)
-                                : info.executionDriver != null) {
-      return false;
-    }
-    if (initPath != null ? !initPath.equals(info.initPath) : info.initPath != null) {
-      return false;
-    }
-    if (kernelVersion != null ? !kernelVersion.equals(info.kernelVersion)
-                              : info.kernelVersion != null) {
-      return false;
-    }
-    if (storageDriver != null ? !storageDriver.equals(info.storageDriver)
-                              : info.storageDriver != null) {
-      return false;
-    }
-    if (memoryLimit != null ? !memoryLimit.equals(info.memoryLimit)
-                            : info.memoryLimit != null) {
-      return false;
-    }
-    if (swapLimit != null ? !swapLimit.equals(info.swapLimit)
-                          : info.swapLimit != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.containers, that.containers) &&
+        Objects.equals(this.images, that.images) &&
+        Objects.equals(this.storageDriver, that.storageDriver) &&
+        Objects.equals(this.driverStatus, that.driverStatus) &&
+        Objects.equals(this.systemStatus, that.systemStatus) &&
+        Objects.equals(this.executionDriver, that.executionDriver) &&
+        Objects.equals(this.kernelVersion, that.kernelVersion) &&
+        Objects.equals(this.cpus, that.cpus) &&
+        Objects.equals(this.memTotal, that.memTotal) &&
+        Objects.equals(this.name, that.name) &&
+        Objects.equals(this.id, that.id) &&
+        Objects.equals(this.operatingSystem, that.operatingSystem) &&
+        Objects.equals(this.debug, that.debug) &&
+        Objects.equals(this.fileDescriptors, that.fileDescriptors) &&
+        Objects.equals(this.goroutines, that.goroutines) &&
+        Objects.equals(this.eventsListener, that.eventsListener) &&
+        Objects.equals(this.initPath, that.initPath) &&
+        Objects.equals(this.initSha1, that.initSha1) &&
+        Objects.equals(this.indexServerAddress, that.indexServerAddress) &&
+        Objects.equals(this.memoryLimit, that.memoryLimit) &&
+        Objects.equals(this.swapLimit, that.swapLimit) &&
+        Objects.equals(this.ipv4Forwarding, that.ipv4Forwarding) &&
+        Objects.equals(this.labels, that.labels) &&
+        Objects.equals(this.dockerRootDir, that.dockerRootDir);
   }
 
   @Override
@@ -214,14 +194,26 @@ public class Info {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("containers", containers).add("images", images)
-        .add("storageDriver", storageDriver).add("driverStatus", driverStatus)
-        .add("systemStatus", systemStatus).add("cpus", cpus).add("memTotal", memTotal)
-        .add("name", name).add("executionDriver", executionDriver)
-        .add("kernelVersion", kernelVersion).add("debug", debug)
-        .add("fileDescriptors", fileDescriptors).add("goroutines", goroutines)
-        .add("eventsListener", eventsListener).add("initPath", initPath).add("initSha1", initSha1)
-        .add("indexServerAddress", indexServerAddress).add("memoryLimit", memoryLimit)
-        .add("swapLimit", swapLimit).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("containers", containers)
+        .add("images", images)
+        .add("storageDriver", storageDriver)
+        .add("driverStatus", driverStatus)
+        .add("systemStatus", systemStatus)
+        .add("cpus", cpus)
+        .add("memTotal", memTotal)
+        .add("name", name)
+        .add("executionDriver", executionDriver)
+        .add("kernelVersion", kernelVersion)
+        .add("debug", debug)
+        .add("fileDescriptors", fileDescriptors)
+        .add("goroutines", goroutines)
+        .add("eventsListener", eventsListener)
+        .add("initPath", initPath)
+        .add("initSha1", initSha1)
+        .add("indexServerAddress", indexServerAddress)
+        .add("memoryLimit", memoryLimit)
+        .add("swapLimit", swapLimit)
+        .toString();
   }
 }

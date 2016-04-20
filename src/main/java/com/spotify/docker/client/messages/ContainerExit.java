@@ -22,6 +22,8 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
@@ -52,16 +54,12 @@ public class ContainerExit {
 
     final ContainerExit that = (ContainerExit) o;
 
-    if (statusCode != null ? !statusCode.equals(that.statusCode) : that.statusCode != null) {
-      return false;
-    }
-
-    return true;
+    return Objects.equals(this.statusCode, that.statusCode);
   }
 
   @Override
   public int hashCode() {
-    return statusCode != null ? statusCode.hashCode() : 0;
+    return Objects.hash(statusCode);
   }
 
   @Override

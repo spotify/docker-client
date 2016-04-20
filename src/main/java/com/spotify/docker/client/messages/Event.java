@@ -19,11 +19,14 @@ package com.spotify.docker.client.messages;
 
 import com.spotify.docker.client.jackson.UnixTimestampDeserializer;
 
+import com.google.common.base.MoreObjects;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Date;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -56,12 +59,35 @@ public class Event {
   }
 
   @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final Event that = (Event) o;
+
+    return Objects.equals(this.status, that.status) &&
+        Objects.equals(this.id, that.id) &&
+        Objects.equals(this.from, that.from) &&
+        Objects.equals(this.time, that.time);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(status, id, from, time);
+  }
+
+  @Override
   public String toString() {
-    return "Event{" +
-           "status='" + status + '\'' +
-           ", id='" + id + '\'' +
-           ", from='" + from + '\'' +
-           ", time=" + time +
-           '}';
+    return MoreObjects.toStringHelper(this)
+        .add("status", status)
+        .add("id", id)
+        .add("from", from)
+        .add("time", time)
+        .toString();
   }
 }
