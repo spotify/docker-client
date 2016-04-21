@@ -62,6 +62,7 @@ public class HostConfig {
   @JsonProperty("RestartPolicy") private RestartPolicy restartPolicy;
   @JsonProperty("LogConfig") private LogConfig logConfig;
   @JsonProperty("IpcMode") private String ipcMode;
+  @JsonProperty("Ulimits") private ImmutableList<Ulimit> ulimits;
 
   private HostConfig() {
   }
@@ -93,6 +94,7 @@ public class HostConfig {
     this.restartPolicy = builder.restartPolicy;
     this.logConfig = builder.logConfig;
     this.ipcMode = builder.ipcMode;
+    this.ulimits = builder.ulimits;
   }
 
   public List<String> binds() {
@@ -199,6 +201,10 @@ public class HostConfig {
     return ipcMode;
   }
 
+  public List<Ulimit> ulimits() {
+    return ulimits;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -235,7 +241,8 @@ public class HostConfig {
         Objects.equals(this.cgroupParent, that.cgroupParent) &&
         Objects.equals(this.restartPolicy, that.restartPolicy) &&
         Objects.equals(this.logConfig, that.logConfig) &&
-        Objects.equals(this.ipcMode, that.ipcMode);
+        Objects.equals(this.ipcMode, that.ipcMode) &&
+        Objects.equals(this.ulimits, that.ulimits);
   }
 
   @Override
@@ -244,7 +251,7 @@ public class HostConfig {
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
-                        restartPolicy, logConfig, ipcMode);
+                        restartPolicy, logConfig, ipcMode, ulimits);
   }
 
   @Override
@@ -276,6 +283,7 @@ public class HostConfig {
         .add("restartPolicy", restartPolicy)
         .add("logConfig", logConfig)
         .add("ipcMode", ipcMode)
+        .add("ulimits", ulimits)
         .toString();
   }
 
@@ -415,16 +423,17 @@ public class HostConfig {
     private String networkMode;
     private ImmutableList<String> securityOpt;
     private ImmutableList<Device> devices;
-    public Long memory;
-    public Long memorySwap;
-    public Long memoryReservation;
-    public Long cpuShares;
-    public String cpusetCpus;
-    public Long cpuQuota;
-    public String cgroupParent;
-    public RestartPolicy restartPolicy;
-    public LogConfig logConfig;
-    public String ipcMode;
+    private Long memory;
+    private Long memorySwap;
+    private Long memoryReservation;
+    private Long cpuShares;
+    private String cpusetCpus;
+    private Long cpuQuota;
+    private String cgroupParent;
+    private RestartPolicy restartPolicy;
+    private LogConfig logConfig;
+    private String ipcMode;
+    private ImmutableList<Ulimit> ulimits;
 
     private Builder() {
     }
@@ -456,6 +465,7 @@ public class HostConfig {
       this.restartPolicy = hostConfig.restartPolicy;
       this.logConfig = hostConfig.logConfig;
       this.ipcMode = hostConfig.ipcMode;
+      this.ulimits = hostConfig.ulimits;
     }
 
     /**
@@ -902,6 +912,11 @@ public class HostConfig {
       return ipcMode;
     }
 
+    public Builder ulimits(final List<Ulimit> ulimits) {
+      this.ulimits = ImmutableList.copyOf(ulimits);
+      return this;
+    }
+
     public HostConfig build() {
       return new HostConfig(this);
     }
@@ -1008,6 +1023,93 @@ public class HostConfig {
 
       public Bind build() {
         return new Bind(this);
+      }
+    }
+  }
+
+  public static class Ulimit {
+    @JsonProperty("Name") private String name;
+    @JsonProperty("Soft") private Integer soft;
+    @JsonProperty("Hard") private Integer hard;
+
+    public Ulimit() {
+    }
+
+    private Ulimit(final Builder builder) {
+      this.name = builder.name;
+      this.soft = builder.soft;
+      this.hard = builder.hard;
+    }
+
+    public static Builder builder() {
+      return new Builder();
+    }
+
+    public String name() {
+      return name;
+    }
+
+    public Integer soft() {
+      return soft;
+    }
+
+    public Integer hard() {
+      return hard;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      final Ulimit that = (Ulimit) o;
+
+      return Objects.equals(this.name, that.name) &&
+          Objects.equals(this.soft, that.soft) &&
+          Objects.equals(this.hard, that.hard);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, soft, hard);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("name", name)
+          .add("soft", soft)
+          .add("hard", hard)
+          .toString();
+    }
+
+    public static class Builder {
+      private String name;
+      private Integer soft;
+      private Integer hard;
+
+      private Builder() {}
+
+      public Ulimit build() {
+        return new Ulimit(this);
+      }
+
+      public Builder name(final String name) {
+        this.name = name;
+        return this;
+      }
+
+      public Builder soft(final Integer soft) {
+        this.soft = soft;
+        return this;
+      }
+      public Builder hard(final Integer hard) {
+        this.hard = hard;
+        return this;
       }
     }
   }

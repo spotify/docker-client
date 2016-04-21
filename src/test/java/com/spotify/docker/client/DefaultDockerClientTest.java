@@ -44,6 +44,7 @@ import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.HostConfig.Bind;
+import com.spotify.docker.client.messages.HostConfig.Ulimit;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
@@ -1452,11 +1453,20 @@ public class DefaultDockerClientTest {
     final boolean privileged = true;
     final boolean publishAllPorts = true;
     final String dns = "1.2.3.4";
+    final List<Ulimit> ulimits =
+        Lists.newArrayList(
+            Ulimit.builder()
+                .name("nofile")
+                .soft(1024)
+                .hard(2048)
+                .build()
+        );
     final HostConfig expected = HostConfig.builder()
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
         .cpuShares((long) 4096)
+        .ulimits(ulimits)
         .build();
 
     final ContainerConfig config = ContainerConfig.builder()
@@ -1475,6 +1485,7 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+    assertEquals(ulimits, actual.ulimits());
   }
 
   @Test
