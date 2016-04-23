@@ -1527,6 +1527,10 @@ public class DefaultDockerClientTest {
     // Verify DockerDateFormat converts nanosecond precision down to millisecond precision
     final Date nano = dateFormat.parse("2015-09-18T17:44:28.145855389Z");
     assertThat(nano, equalTo(expected));
+    // Verify DockerDateFormat converts nanosecond precision with less than nine digits
+    // down to millisecond precision
+    final Date nanoSevenDigits = dateFormat.parse("2015-09-18T17:44:28.1458553Z");
+    assertThat(nanoSevenDigits, equalTo(expected));
     // Verify the formatter works when used with the client
     sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
     final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
