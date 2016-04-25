@@ -41,9 +41,11 @@ public class DockerDateFormat extends StdDateFormat {
   @Override
   public Date parse(String source) throws ParseException {
     // If the date has nanosecond precision (e.g. 2014-10-17T21:22:56.949763914Z), remove the last
-    // six digits so we can create a Date object, which only support milliseconds.
-    if (source.matches(".+\\.\\d{9}Z$")) {
-      source = source.replaceAll("\\d{6}Z$", "Z");
+    // digits so we can create a Date object, which only support milliseconds.
+    // Docker doesn't always return nine digits for the fractional seconds part,
+    // so we need to be more flexible when trimming to milliseconds.
+    if (source.matches(".+\\.\\d{4,9}Z$")) {
+      source = source.replaceAll("(\\.\\d{3})\\d{1,6}Z$", "$1Z");
     }
 
     return super.parse(source);
