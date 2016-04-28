@@ -62,6 +62,10 @@ public class NetworkConfig {
     return options;
   }
 
+  public boolean checkDuplicate() {
+    return checkDuplicate;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
