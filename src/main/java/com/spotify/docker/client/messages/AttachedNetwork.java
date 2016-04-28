@@ -101,8 +101,8 @@ public class AttachedNetwork {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("networkID", networkId).add("endpointID", endpointId)
-        .add("gateway", gateway).add("ipAddress", ipAddress)
+    return MoreObjects.toStringHelper(this).add("networkID", networkId)
+        .add("endpointID", endpointId).add("gateway", gateway).add("ipAddress", ipAddress)
         .add("ipPrefixLen", ipPrefixLen).add("ipv6Gateway", ipv6Gateway)
         .add("globalIPv6Address", globalIPv6Address).add("globalIPv6PrefixLen", globalIPv6PrefixLen)
         .add("macAddress", macAddress).toString();
