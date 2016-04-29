@@ -17,12 +17,11 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -40,11 +39,14 @@ public class Container {
   @JsonProperty("ImageID") private String imageId;
   @JsonProperty("Command") private String command;
   @JsonProperty("Created") private Long created;
+  @JsonProperty("State") private String state;
   @JsonProperty("Status") private String status;
   @JsonProperty("Ports") private ImmutableList<PortMapping> ports;
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
   @JsonProperty("SizeRw") private Long sizeRw;
-  @JsonProperty("SizeRootFs") private Long sizeRootFs;  
+  @JsonProperty("SizeRootFs") private Long sizeRootFs;
+  @JsonProperty("NetworkSettings") private NetworkSettings networkSettings;
+  @JsonProperty("Mounts") private ImmutableList<ContainerMount> mounts;
 
   /**
    * This method returns port information the way that <code>docker ps</code> does:
@@ -90,12 +92,20 @@ public class Container {
     return image;
   }
 
+  public String imageId() {
+    return imageId;
+  }
+
   public String command() {
     return command;
   }
 
   public Long created() {
     return created;
+  }
+
+  public String state() {
+    return state;
   }
 
   public String status() {
@@ -118,8 +128,12 @@ public class Container {
     return sizeRootFs;
   }
 
-  public String imageId() {
-    return imageId;
+  public NetworkSettings networkSettings() {
+    return networkSettings;
+  }
+
+  public List<ContainerMount> mounts() {
+    return mounts;
   }
 
   @Override
@@ -134,16 +148,19 @@ public class Container {
     final Container that = (Container) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.names, that.names) &&
-        Objects.equals(this.image, that.image) &&
-        Objects.equals(this.imageId, that.imageId) &&
-        Objects.equals(this.command, that.command) &&
-        Objects.equals(this.created, that.created) &&
-        Objects.equals(this.status, that.status) &&
-        Objects.equals(this.ports, that.ports) &&
-        Objects.equals(this.labels, that.labels) &&
-        Objects.equals(this.sizeRw, that.sizeRw) &&
-        Objects.equals(this.sizeRootFs, that.sizeRootFs);
+            Objects.equals(this.names, that.names) &&
+            Objects.equals(this.image, that.image) &&
+            Objects.equals(this.imageId, that.imageId) &&
+            Objects.equals(this.command, that.command) &&
+            Objects.equals(this.created, that.created) &&
+            Objects.equals(this.state, that.state) &&
+            Objects.equals(this.status, that.status) &&
+            Objects.equals(this.ports, that.ports) &&
+            Objects.equals(this.labels, that.labels) &&
+            Objects.equals(this.sizeRw, that.sizeRw) &&
+            Objects.equals(this.sizeRootFs, that.sizeRootFs) &&
+            Objects.equals(this.networkSettings, that.networkSettings) &&
+            Objects.equals(this.mounts, that.mounts);
   }
 
   @Override
@@ -155,17 +172,20 @@ public class Container {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("image", image)
-        .add("command", command)
-        .add("created", created)
-        .add("status", status)
-        .add("ports", ports)
-        .add("labels", labels)
-        .add("sizeRw", sizeRw)
-        .add("sizeRootFs", sizeRootFs)
-        .add("imageId", imageId)
-        .toString();
+            .add("id", id)
+            .add("image", image)
+            .add("command", command)
+            .add("created", created)
+            .add("state", state)
+            .add("status", status)
+            .add("ports", ports)
+            .add("labels", labels)
+            .add("sizeRw", sizeRw)
+            .add("sizeRootFs", sizeRootFs)
+            .add("imageId", imageId)
+            .add("networkSettings", networkSettings)
+            .add("mounts", mounts)
+            .toString();
   }
 
   public static class PortMapping {
