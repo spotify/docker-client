@@ -39,6 +39,10 @@ public class AttachedNetwork {
   @JsonProperty("GlobalIPv6PrefixLen") private Integer globalIPv6PrefixLen;
   @JsonProperty("MacAddress") private String macAddress;
 
+  public String networkId() {
+    return networkId;
+  }
+
   public String endpointId() {
     return endpointId;
   }
