@@ -2547,7 +2547,9 @@ public class DefaultDockerClientTest {
     final AttachedNetwork attachedNetwork =
         containerInfo.networkSettings().networks().get(networkName);
     assertThat(attachedNetwork, is(notNullValue()));
-    assertThat(attachedNetwork.networkId(), is(notNullValue()));
+    if (dockerApiVersionAtLeast("1.22")) {
+      assertThat(attachedNetwork.networkId(), is(notNullValue()));
+    }
     assertThat(attachedNetwork.endpointId(), is(notNullValue()));
     assertThat(attachedNetwork.gateway(), is(notNullValue()));
     assertThat(attachedNetwork.ipAddress(), is(notNullValue()));
