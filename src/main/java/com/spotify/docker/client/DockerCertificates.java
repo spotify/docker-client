@@ -28,7 +28,9 @@ import org.bouncycastle.openssl.PEMParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,16 +76,20 @@ public class DockerCertificates {
           "caCertPath, clientCertPath, and clientKeyPath must all be specified");
     }
 
-    try {
-      final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-      final Certificate caCert = cf.generateCertificate(Files.newInputStream(builder.caCertPath));
-      final Certificate clientCert = cf.generateCertificate(
-          Files.newInputStream(builder.clientCertPath));
+    try (InputStream caCertStream =
+                 Files.newInputStream(builder.caCertPath);
+         InputStream clientCertStream =
+                 Files.newInputStream(builder.clientCertPath);
+         BufferedReader clientKeyStream =
+                 Files.newBufferedReader(builder.clientKeyPath, Charset.defaultCharset());
+      ) {
 
-      final PEMKeyPair clientKeyPair = (PEMKeyPair) new PEMParser(
-          Files.newBufferedReader(builder.clientKeyPath,
-                                  Charset.defaultCharset()))
-          .readObject();
+      final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+      final Certificate caCert = cf.generateCertificate(caCertStream);
+      final Certificate clientCert = cf.generateCertificate(clientCertStream);
+
+      final PEMKeyPair clientKeyPair = (PEMKeyPair) new PEMParser(clientKeyStream)
+              .readObject();
 
       final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(
           clientKeyPair.getPrivateKeyInfo().getEncoded());
