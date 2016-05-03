@@ -82,14 +82,13 @@ public class DockerCertificates {
                  Files.newInputStream(builder.clientCertPath);
          BufferedReader clientKeyStream =
                  Files.newBufferedReader(builder.clientKeyPath, Charset.defaultCharset());
+         PEMParser pemParser = new PEMParser(clientKeyStream);
       ) {
-
       final CertificateFactory cf = CertificateFactory.getInstance("X.509");
       final Certificate caCert = cf.generateCertificate(caCertStream);
       final Certificate clientCert = cf.generateCertificate(clientCertStream);
 
-      final PEMKeyPair clientKeyPair = (PEMKeyPair) new PEMParser(clientKeyStream)
-              .readObject();
+      final PEMKeyPair clientKeyPair = (PEMKeyPair)pemParser.readObject();
 
       final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(
           clientKeyPair.getPrivateKeyInfo().getEncoded());
