@@ -17,117 +17,6 @@
 
 package com.spotify.docker.client;
 
-import com.spotify.docker.client.DockerClient.AttachParameter;
-import com.spotify.docker.client.DockerClient.BuildParam;
-import com.spotify.docker.client.DockerClient.ExecCreateParam;
-import com.spotify.docker.client.DockerClient.ListImagesParam;
-import com.spotify.docker.client.exceptions.ContainerNotFoundException;
-import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.exceptions.DockerRequestException;
-import com.spotify.docker.client.exceptions.DockerTimeoutException;
-import com.spotify.docker.client.exceptions.ImageNotFoundException;
-import com.spotify.docker.client.exceptions.ImagePushFailedException;
-import com.spotify.docker.client.exceptions.NetworkNotFoundException;
-import com.spotify.docker.client.messages.AttachedNetwork;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerMount;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.Event;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.HostConfig.Bind;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.Ipam;
-import com.spotify.docker.client.messages.LogConfig;
-import com.spotify.docker.client.messages.Network;
-import com.spotify.docker.client.messages.NetworkConfig;
-import com.spotify.docker.client.messages.NetworkCreation;
-import com.spotify.docker.client.messages.ProcessConfig;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
-
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
-import com.google.common.util.concurrent.SettableFuture;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.hamcrest.CustomTypeSafeMatcher;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TestName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
-
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -186,6 +75,121 @@ import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.hamcrest.CustomTypeSafeMatcher;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
+import com.google.common.util.concurrent.SettableFuture;
+import com.spotify.docker.client.DockerClient.AttachParameter;
+import com.spotify.docker.client.DockerClient.BuildParam;
+import com.spotify.docker.client.DockerClient.ExecCreateParam;
+import com.spotify.docker.client.DockerClient.ListImagesParam;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
+import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.DockerRequestException;
+import com.spotify.docker.client.exceptions.DockerTimeoutException;
+import com.spotify.docker.client.exceptions.ImageNotFoundException;
+import com.spotify.docker.client.exceptions.ImagePushFailedException;
+import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.messages.AttachedNetwork;
+import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerExit;
+import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.ContainerMount;
+import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.Event;
+import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.HostConfig.Bind;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
+import com.spotify.docker.client.messages.ImageSearchResult;
+import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.Ipam;
+import com.spotify.docker.client.messages.LogConfig;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.ProcessConfig;
+import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.Version;
+
+@RunWith(Parameterized.class)
 public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";
@@ -220,7 +224,18 @@ public class DefaultDockerClientTest {
   private AuthConfig authConfig;
 
   private String dockerApiVersion;
+  private ClientFactory clientFactory;
 
+  @Parameters(name = "{1}")
+  public static Object[][] data() {
+    return new Object[][] { { new JerseyClientFactory(), "jersey" }, 
+                            { new ResteasyClientFactory(), "resteasy" } };
+  }
+  
+  public DefaultDockerClientTest(ClientFactory clientFactory, String clientFactoryName) {
+    this.clientFactory = clientFactory;
+  }
+  
   @Before
   public void setup() throws Exception {
     authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
@@ -233,13 +248,13 @@ public class DefaultDockerClientTest {
     } else {
       builder.readTimeoutMillis(120000);
     }
-
+    
+    builder.clientFactory(clientFactory);
     dockerEndpoint = builder.uri();
-
+    
     sut = builder.build();
-
+    
     dockerApiVersion = sut.version().apiVersion();
-
     System.out.printf("- %s\n", testName.getMethodName());
   }
 
@@ -1398,6 +1413,9 @@ public class DefaultDockerClientTest {
   public void testEventStream() throws Exception {
     requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
                                        + "So we skip this test.");
+    
+    assumeThat(sut.getClient(), not(instanceOf(ResteasyClient.class)));
+    
     sut.pull(BUSYBOX_LATEST);
     final EventStream eventStream = sut.events();
     final ContainerConfig config = ContainerConfig.builder()
@@ -1428,6 +1446,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testEventStreamWithSinceTime() throws Exception {
+    assumeThat(sut.getClient(), not(instanceOf(ResteasyClient.class)));
     Thread.sleep(1000); // ensure we push to the next second
     // so we don't get events from the last test
     final Date date = new Date();
@@ -2740,10 +2759,12 @@ public class DefaultDockerClientTest {
   }
 
   private PoolStats getClientConnectionPoolStats(final DefaultDockerClient client) {
+    assumeThat(client.getClient(), not(instanceOf(ResteasyClient.class)));
+    
     return ((PoolingHttpClientConnectionManager) client.getClient().getConfiguration()
         .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
   }
-
+  
   private String createSleepingContainer() throws Exception {
     sut.pull(BUSYBOX_LATEST);
     final String volumeContainer = randomName();

@@ -1559,10 +1559,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private String message(final Response response) {
-    final Readable reader = new InputStreamReader(response.readEntity(InputStream.class), UTF_8);
     try {
-      return CharStreams.toString(reader);
-    } catch (IOException ignore) {
+        final Readable reader = new InputStreamReader(
+                response.readEntity(InputStream.class), UTF_8);
+        
+        return CharStreams.toString(reader);
+    } catch (IllegalStateException | IOException ignore) {
       return null;
     }
   }
