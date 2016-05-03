@@ -88,7 +88,7 @@ public class DockerCertificates {
       final Certificate caCert = cf.generateCertificate(caCertStream);
       final Certificate clientCert = cf.generateCertificate(clientCertStream);
 
-      final PEMKeyPair clientKeyPair = (PEMKeyPair)pemParser.readObject();
+      final PEMKeyPair clientKeyPair = (PEMKeyPair) pemParser.readObject();
 
       final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(
           clientKeyPair.getPrivateKeyInfo().getEncoded());
