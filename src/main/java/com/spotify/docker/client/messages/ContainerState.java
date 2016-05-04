@@ -31,6 +31,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerState {
 
+  @JsonProperty("Status") private String status;
   @JsonProperty("Running") private Boolean running;
   @JsonProperty("Paused") private Boolean paused;
   @JsonProperty("Restarting") private Boolean restarting;
@@ -41,6 +42,10 @@ public class ContainerState {
   @JsonProperty("Error") private String error;
   @JsonProperty("OOMKilled") private Boolean oomKilled;
 
+  public String status() {
+    return status;
+  }
+  
   public Boolean running() {
     return running;
   }
@@ -88,7 +93,8 @@ public class ContainerState {
 
     final ContainerState that = (ContainerState) o;
 
-    return Objects.equals(this.running, that.running) &&
+    return Objects.equals(this.status, that.status) &&
+        Objects.equals(this.running, that.running) &&
         Objects.equals(this.paused, that.paused) &&
         Objects.equals(this.restarting, that.restarting) &&
         Objects.equals(this.pid, that.pid) &&
@@ -101,13 +107,14 @@ public class ContainerState {
 
   @Override
   public int hashCode() {
-    return Objects.hash(running, pid, paused, restarting, exitCode, startedAt, finishedAt,
+    return Objects.hash(status, running, pid, paused, restarting, exitCode, startedAt, finishedAt,
                         error, oomKilled);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("status", status)
         .add("running", running)
         .add("pid", pid)
         .add("paused", paused)
