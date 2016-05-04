@@ -54,7 +54,7 @@ This user manual is made to correspond to Docker's [API docs][1] (e.g. [API 1.18
   * [Exec Resize](#exec-resize)
   * [Exec Inspect](#exec-inspect)
   * [Mounting volumes in a container](#mounting-volumes-in-a-container)
-  * [Using RESTEasy instead of Jersey]#(resteasy)
+  * [Using RESTEasy instead of Jersey](#resteasy)
 
 
 ## Creating a docker-client
@@ -522,51 +522,53 @@ As such, the `ContainerInfo.volumes()` method is deprecated. Instead, use
 
 To use RESTEasy in place of Jersey you just need replace a few dependencies and configure the RESTEasyClientFactory.  
 
-    <dependency>
-       <groupId>com.spotify</groupId>
-       <artifactId>docker-client</artifactId>
-       <version>4.0.6-SNAPSHOT</version>
-       <exclusions>
-          <exclusion>
-             <groupId>org.glassfish.jersey.connectors</groupId>
-             <artifactId>jersey-apache-connector</artifactId>
-          </exclusion>
-          <exclusion>
-             <groupId>org.glassfish.jersey.media</groupId>
-             <artifactId>jersey-media-json-jackson</artifactId>
-          </exclusion>
-          <exclusion>
-             <groupId>org.glassfish.jersey.core</groupId>
-             <artifactId>jersey-client</artifactId>
-          </exclusion>
-       </exclusions>
-    </dependency>
-	 <dependency>
-       <groupId>org.jboss.resteasy</groupId>
-       <artifactId>resteasy-client</artifactId>
-       <version>3.0.16.Final</version>
-    </dependency>
-    <dependency>
-       <groupId>org.jboss.resteasy</groupId>
-       <artifactId>resteasy-jaxrs</artifactId>
-       <version>3.0.16.Final</version>
-    </dependency>
-    <dependency>
-       <groupId>org.jboss.resteasy</groupId>
-       <artifactId>resteasy-jackson2-provider</artifactId>
-       <version>3.0.16.Final</version>
-    </dependency>
-    
+```xml
+<dependency>
+  <groupId>com.spotify</groupId>
+  <artifactId>docker-client</artifactId>
+  <version>4.0.6-SNAPSHOT</version>
+  <exclusions>
+   <exclusion>
+     <groupId>org.glassfish.jersey.connectors</groupId>
+     <artifactId>jersey-apache-connector</artifactId>
+   </exclusion>
+   <exclusion>
+     <groupId>org.glassfish.jersey.media</groupId>
+     <artifactId>jersey-media-json-jackson</artifactId>
+   </exclusion>
+   <exclusion>
+     <groupId>org.glassfish.jersey.core</groupId>
+     <artifactId>jersey-client</artifactId>
+   </exclusion>
+  </exclusions>
+</dependency>
+<dependency>
+  <groupId>org.jboss.resteasy</groupId>
+  <artifactId>resteasy-client</artifactId>
+  <version>3.0.16.Final</version>
+</dependency>
+<dependency>
+  <groupId>org.jboss.resteasy</groupId>
+  <artifactId>resteasy-jaxrs</artifactId>
+  <version>3.0.16.Final</version>
+</dependency>
+<dependency>
+  <groupId>org.jboss.resteasy</groupId>
+  <artifactId>resteasy-jackson2-provider</artifactId>
+  <version>3.0.16.Final</version>
+</dependency>
+```
     
 To configure the RESTEasy Client Factory:
 
-    DockerClient docker = DefaultDockerClient.builder()
-       .uri(baseUrl)
-       .clientFactory(new ResteasyClientFactory())
-       .build();
-       
+```java
+DockerClient docker = DefaultDockerClient.builder()
+  .uri(baseUrl)
+  .clientFactory(new ResteasyClientFactory())
+  .build();
+```
        
 #### Caveats to using alternate JAX-RS Implementations
 
-   * Events currently only work with Jersey
+  * Events currently only work with Jersey
    
