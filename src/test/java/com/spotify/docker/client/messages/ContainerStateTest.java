@@ -61,6 +61,7 @@ public class ContainerStateTest {
     assertThat(containerState.finishedAt(), is(new Date(-62135769600000L)));
     assertThat(containerState.error(), is("this is an error"));
     assertThat(containerState.oomKilled(), is(false));
+    assertThat(containerState.status(), is("running"));
 
   }
 
