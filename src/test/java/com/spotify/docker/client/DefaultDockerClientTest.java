@@ -1487,6 +1487,7 @@ public class DefaultDockerClientTest {
 
   @Test(timeout = 5000)
   public void testEventStreamWithUntilTime() throws Exception {
+    assumeThat(sut.getClient(), not(instanceOf(ResteasyClient.class)));
     final EventStream eventStream =
         sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
 
