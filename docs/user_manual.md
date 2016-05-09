@@ -63,7 +63,7 @@ This user manual is made to correspond to Docker's [API docs][1] (e.g. [API 1.18
 final DockerClient docker = DefaultDockerClient.fromEnv().build();
 
 // or use the builder
-final DockerClient docker = DefaultdockerClient.builder()
+final DockerClient docker = DefaultDockerClient.builder()
   // Set various options
   .build();
 ```
