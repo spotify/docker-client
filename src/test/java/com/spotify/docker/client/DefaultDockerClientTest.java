@@ -156,6 +156,7 @@ import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -166,6 +167,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -178,6 +180,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -469,12 +472,65 @@ public class DefaultDockerClientTest {
   @Test
   public void testInfo() throws Exception {
     final Info info = sut.info();
-    assertThat(info.executionDriver(), not(isEmptyOrNullString()));
-    assertThat(info.initPath(), not(isEmptyOrNullString()));
-    assertThat(info.kernelVersion(), not(isEmptyOrNullString()));
+    assertThat(info.containers(), is(anything()));
+    assertThat(info.debug(), is(anything()));
+    assertThat(info.dockerRootDir(), not(isEmptyOrNullString()));
     assertThat(info.storageDriver(), not(isEmptyOrNullString()));
+    assertThat(info.driverStatus(), is(anything()));
+    assertThat(info.executionDriver(), not(isEmptyOrNullString()));
+    assertThat(info.id(), not(isEmptyOrNullString()));
+    assertThat(info.ipv4Forwarding(), is(anything()));
+    assertThat(info.images(), greaterThan(0));
+    assertThat(info.indexServerAddress(), not(isEmptyOrNullString()));
+    assertThat(info.initPath(), not(isEmptyOrNullString()));
+    assertThat(info.initSha1(), is(anything()));
+    assertThat(info.kernelVersion(), not(isEmptyOrNullString()));
+    assertThat(info.labels(), is(anything()));
+    assertThat(info.memTotal(), greaterThan(0L));
     assertThat(info.memoryLimit(), not(nullValue()));
+    assertThat(info.cpus(), greaterThan(0));
+    assertThat(info.eventsListener(), is(anything()));
+    assertThat(info.fileDescriptors(), is(anything()));
+    assertThat(info.goroutines(), is(anything()));
+    assertThat(info.name(), not(isEmptyOrNullString()));
+    assertThat(info.operatingSystem(), not(isEmptyOrNullString()));
+    assertThat(info.registryConfig(), notNullValue());
+    assertThat(info.registryConfig().indexConfigs(), hasKey("docker.io"));
     assertThat(info.swapLimit(), not(nullValue()));
+
+    if (dockerApiVersionAtLeast("1.18")) {
+      assertThat(info.httpProxy(), is(anything()));
+      assertThat(info.httpsProxy(), is(anything()));
+      assertThat(info.noProxy(), is(anything()));
+      assertThat(info.systemTime(), not(nullValue()));
+    }
+
+    if (dockerApiVersionAtLeast("1.19")) {
+      assertThat(info.cpuCfsPeriod(), is(anything()));
+      assertThat(info.cpuCfsQuota(), is(anything()));
+      assertThat("Sorry if you're testing on an experimental build",
+          info.experimentalBuild(), is(false));
+      assertThat(info.oomKillDisable(), is(anything()));
+    }
+
+    if (dockerApiVersionAtLeast("1.21")) {
+      assertThat(info.clusterStore(), is(anything()));
+      assertEquals(info.serverVersion(), sut.version().version());
+    }
+
+    if (dockerApiVersionAtLeast("1.22")) {
+      assertThat(info.architecture(), not(isEmptyOrNullString()));
+      assertThat(info.containersRunning(), is(anything()));
+      assertThat(info.containersStopped(), is(anything()));
+      assertThat(info.containersPaused(), is(anything()));
+      assertThat(info.osType(), not(isEmptyOrNullString()));
+      assertThat(info.systemStatus(), is(anything()));
+    }
+
+    if (dockerApiVersionAtLeast("1.23")) {
+      assertThat(info.cgroupDriver(), not(isEmptyOrNullString()));
+      assertThat(info.kernelMemory(), is(anything()));
+    }
   }
 
   @Test
