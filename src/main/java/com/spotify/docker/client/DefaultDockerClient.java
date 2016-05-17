@@ -188,6 +188,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   // ==========================================================================
 
   public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
+  public static final String DEFAULT_MAC_SOCKET_ENDPOINT = "unix:///var/tmp/docker.sock";
   public static final String DEFAULT_HOST = "localhost";
   public static final int DEFAULT_PORT = 2375;
 
@@ -1687,8 +1688,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private static String defaultEndpoint() {
-    if (getProperty("os.name").equalsIgnoreCase("linux")) {
+    final String os = getProperty("os.name").toLowerCase();
+    if (os.equalsIgnoreCase("linux")) {
       return DEFAULT_UNIX_ENDPOINT;
+    } else if (os.contains("mac")){
+      return DEFAULT_MAC_SOCKET_ENDPOINT;
     } else {
       return DEFAULT_HOST + ":" + DEFAULT_PORT;
     }
