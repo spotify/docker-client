@@ -90,6 +90,11 @@ If you're looking for how to build and develop it, keep reading.
 docker-client should be buildable on any platform with Docker, JDK7+, and a recent version of
 Maven 3.
 
+### A note on using Docker for Mac
+If you are using Docker for Mac and `DefaultDockerClient.fromEnv()`, it might not be clear 
+what value to use for the `DOCKER_HOST` environment variable. The value you should use is
+`DOCKER_HOST=unix:///var/run/docker.sock`, at least as of version 1.11.1-beta11.
+
 ## Testing
 
 Make sure Docker daemon is running and that you can do `docker ps`.
