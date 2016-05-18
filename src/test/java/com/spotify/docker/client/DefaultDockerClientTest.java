@@ -2320,8 +2320,7 @@ public class DefaultDockerClientTest {
         : new DockerClient.ListContainersParam[]{allContainers()};
 
     final List<Container> created = sut.listContainers(createdParams);
-    assertThat("listContainers is unexpectedly empty",
-               created, not(empty()));
+    assertThat("listContainers is unexpectedly empty", created, not(empty()));
     assertThat(containerId, isIn(containersToIds(created)));
 
     // filters={"status":["running"]}
@@ -2356,6 +2355,25 @@ public class DefaultDockerClientTest {
         withStatusExited(),
         withLabel(label, labelValue));
     assertThat(containerId, isIn(containersToIds(statusAndLabels)));
+
+    if (dockerApiVersionAtLeast("1.21")) {
+      for (final Container c : running) {
+        assertThat(c.imageId(), is(notNullValue()));
+      }
+    }
+
+    if (dockerApiVersionAtLeast("1.22")) {
+      for (final Container c : running) {
+        assertThat(c.networkSettings(), is(notNullValue()));
+      }
+    }
+
+    if (dockerApiVersionAtLeast("1.23")) {
+      for (final Container c : running) {
+        assertThat(c.state(), equalTo("running"));
+        assertThat(c.mounts(), is(notNullValue()));
+      }
+    }
   }
 
   @Test
@@ -2757,7 +2775,6 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().restartPolicy().maxRetryCount(), is(retryCount));
   }
-
 
   @Test
   public void testIpcMode() throws Exception {
