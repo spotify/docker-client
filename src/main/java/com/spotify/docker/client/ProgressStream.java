@@ -17,15 +17,9 @@
 
 package com.spotify.docker.client;
 
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.exceptions.DockerTimeoutException;
-import com.spotify.docker.client.messages.ProgressMessage;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.MappingIterator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.io.ByteStreams.copy;
+import static com.google.common.io.ByteStreams.nullOutputStream;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,9 +27,14 @@ import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
-import static com.google.common.io.ByteStreams.copy;
-import static com.google.common.io.ByteStreams.nullOutputStream;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.DockerTimeoutException;
+import com.spotify.docker.client.messages.ProgressMessage;
 
 class ProgressStream implements Closeable {
 
@@ -93,6 +92,9 @@ class ProgressStream implements Closeable {
     // Jersey will close the stream and release the connection after we read all the data.
     // We cannot call the stream's close method because it an instance of UncloseableInputStream,
     // where close is a no-op.
-    copy(stream, nullOutputStream());
+    try {
+        copy(stream, nullOutputStream());
+    } catch (IOException ignore) {
+    }
   }
 }
