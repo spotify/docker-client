@@ -449,7 +449,7 @@ public class Info {
 
   public static class IndexConfig {
     @JsonProperty("Name") private String name;
-    @JsonProperty("Mirrors") private String mirrors;
+    @JsonProperty("Mirrors") private List<String> mirrors;
     @JsonProperty("Secure") private Boolean secure;
     @JsonProperty("Official") private Boolean official;
 
