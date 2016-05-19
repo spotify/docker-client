@@ -17,19 +17,54 @@
 
 package com.spotify.docker.client;
 
+import com.spotify.docker.client.DockerHost.SystemDelegate;
+
+import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URI;
 
-import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.spotify.docker.client.DockerHost.DEFAULT_PORT;
-import static com.spotify.docker.client.DockerHost.DEFAULT_HOST;
-import static com.spotify.docker.client.DockerHost.DEFAULT_UNIX_ENDPOINT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DockerHostTest {
+
+  private SystemDelegate systemDelegate;
+
+  @Before
+  public void before() {
+    systemDelegate = mock(SystemDelegate.class);
+  }
+
+  @Test
+  public void testDefaultDockerEndpoint() throws Exception {
+    when(systemDelegate.getProperty("os.name")).thenReturn("linux", "mac", "other");
+    DockerHost.setSystemDelegate(systemDelegate);
+
+    assertThat(DockerHost.defaultDockerEndpoint(), equalTo("unix:///var/run/docker.sock"));
+    assertThat(DockerHost.defaultDockerEndpoint(), equalTo("unix:///var/run/docker.sock"));
+    assertThat(DockerHost.defaultDockerEndpoint(), equalTo("localhost:2375"));
+  }
+
+  @Test
+  public void testDefaultPort() throws Exception {
+    when(systemDelegate.getenv("DOCKER_PORT")).thenReturn("1234", (String) null);
+    DockerHost.setSystemDelegate(systemDelegate);
+
+    assertThat(DockerHost.portFromEnv(), equalTo(1234));
+    assertThat(DockerHost.portFromEnv(), equalTo(2375));
+  }
+
+  @Test
+  public void testDefaultCertPath() throws Exception {
+    when(systemDelegate.getProperty("user.home")).thenReturn("foobar");
+    DockerHost.setSystemDelegate(systemDelegate);
+
+    assertThat(DockerHost.defaultCertPath(), equalTo("foobar/.docker"));
+  }
 
   @Test
   public void testFromUnixSocket() throws Exception {
@@ -75,11 +110,13 @@ public class DockerHostTest {
 
   @Test
   public void testFromEnv() throws Exception {
-    final String dockerHostEnvVar =
-        fromNullable(System.getenv("DOCKER_HOST")).or(defaultEndpoint());
+    when(systemDelegate.getProperty("os.name")).thenReturn("linux");
+    DockerHost.setSystemDelegate(systemDelegate);
+
+    final String dockerHostEnvVar = DockerHost.defaultDockerEndpoint();
     final boolean isUnixSocket = dockerHostEnvVar.startsWith("unix://");
     final URI dockerHostUri = new URI(dockerHostEnvVar);
-    final String dockerCertPathEnvVar = System.getenv("DOCKER_CERT_PATH");
+    final String dockerCertPathEnvVar = DockerHost.defaultCertPath();
 
     final String dockerHostAndPort;
     final URI dockerHostHttpUri;
@@ -109,12 +146,5 @@ public class DockerHostTest {
     assertThat(dockerHost.port(), equalTo(dockerHostPort));
     assertThat(dockerHost.address(), equalTo(dockerHostHost));
     assertThat(dockerHost.dockerCertPath(), equalTo(dockerCertPathEnvVar));
-  }
-
-  private static String defaultEndpoint() {
-    if (OSUtils.isLinux()) {
-      return DEFAULT_UNIX_ENDPOINT;
-    }
-    return "http://" + DEFAULT_HOST + ":" + DEFAULT_PORT;
   }
 }
