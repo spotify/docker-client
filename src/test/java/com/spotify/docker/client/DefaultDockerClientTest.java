@@ -55,6 +55,7 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
@@ -982,6 +983,40 @@ public class DefaultDockerClientTest {
       final ContainerInfo containerInfo = sut.inspectContainer(containerId);
       assertThat(containerInfo.state().running(), equalTo(false));
     }
+  }
+
+  @Test
+  public void testTopProcessesOfContainer() throws Exception {
+    sut.pull("busybox");
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image("busybox")
+        // make sure the container's busy doing something upon startup
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Ensure that it's running so we can check the active processes
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+    }
+
+    final TopResults topResults = sut.topContainer(containerId, null);
+
+    assertThat(topResults.titles(), not(Matchers.empty()));
+    // there could be one or two processes running, depending on if we happen to catch it in
+    // between sleeps
+    assertThat(topResults.processes(), hasSize(greaterThanOrEqualTo(1)));
+
+    assertThat(topResults.titles(), hasItem("CMD"));
+
+    final List<String> firstProcessStatus = topResults.processes().get(0);
+    assertThat("All processes will run as 'root'", firstProcessStatus, hasItem("root"));
   }
 
   @Test

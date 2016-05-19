@@ -34,6 +34,7 @@ import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 
 import java.io.Closeable;
@@ -291,6 +292,29 @@ public interface DockerClient extends Closeable {
    */
   InputStream save(String image, AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException;
+
+  /**
+   * List processes running inside the container by using <code>ps</code>.
+   *
+   * @param containerId the id of the container to examine
+   * @return the titles and process list for the container
+   * @throws DockerException
+   * @throws InterruptedException
+   */
+  TopResults topContainer(String containerId) throws DockerException, InterruptedException;
+
+  /**
+   * List processes running inside the container using <code>ps</code> and the given arguments.
+   *
+   * @param containerId the id of the container to examine
+   * @param psArgs the arguments to pass to <code>ps</code>
+   *               inside the container, e.g., <code>"-ef"</code>
+   * @return the titles and process list for the container
+   * @throws DockerException
+   * @throws InterruptedException
+   */
+  TopResults topContainer(String containerId, String psArgs)
+      throws DockerException, InterruptedException;
 
   /**
    * Pull a docker container image.
