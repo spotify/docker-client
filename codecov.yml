@@ -1,0 +1,16 @@
+comment:
+  layout: header, changes, diff
+
+coverage: 
+  status:
+    # set a github PR status for overall project coverage with an automatically
+    # calculated coverage target
+    project:
+      default:
+        target: auto
+    
+    # disable the PR status for coverage within the patch as it might often be
+    # low in this project due to needing to add "messages" POJO classes
+    patch:
+      default:
+        enabled: false
