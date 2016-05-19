@@ -187,15 +187,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   // ==========================================================================
 
-  public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
-  public static final String DEFAULT_HOST = "localhost";
-  public static final int DEFAULT_PORT = 2375;
+  static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
+  private static final String DEFAULT_HOST = "localhost";
+  private static final int DEFAULT_PORT = 2375;
 
   private static final String UNIX_SCHEME = "unix";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
-  public static final long NO_TIMEOUT = 0;
+  static final long NO_TIMEOUT = 0;
 
   private static final long DEFAULT_CONNECT_TIMEOUT_MILLIS = SECONDS.toMillis(5);
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
@@ -1687,7 +1687,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private static String defaultEndpoint() {
-    if (getProperty("os.name").equalsIgnoreCase("linux")) {
+    final String os = getProperty("os.name").toLowerCase(Locale.ENGLISH);
+    if (os.equalsIgnoreCase("linux") || os.contains("mac")) {
       return DEFAULT_UNIX_ENDPOINT;
     } else {
       return DEFAULT_HOST + ":" + DEFAULT_PORT;
