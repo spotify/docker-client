@@ -17,35 +17,56 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
 
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Locale;
 
-import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.lang.System.getenv;
 
 /**
  * Represents a dockerd endpoint. A codified DOCKER_HOST.
  */
 public class DockerHost {
 
-  public static final int DEFAULT_PORT = 2375;
-  public static final String DEFAULT_HOST = "localhost";
-  public static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
+  /**
+   * An interface to be mocked during testing.
+   */
+  @VisibleForTesting
+  interface SystemDelegate {
+    String getProperty(String key);
+    String getenv(String name);
+  }
+
+  private static SystemDelegate systemDelegate = new SystemDelegate() {
+    @Override
+    public String getProperty(final String key) {
+      return System.getProperty(key);
+    }
+    @Override
+    public String getenv(final String name) {
+      return System.getenv(name);
+    }
+  };
+
+  private static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
+  private static final String DEFAULT_ADDRESS = "localhost";
+  private static final int DEFAULT_PORT = 2375;
 
   private final String host;
   private final URI uri;
   private final URI bindURI;
   private final String address;
   private final int port;
-  private final String dockerCertPath;
+  private final String certPath;
 
-  private DockerHost(final String endpoint, final String dockerCertPath) {
+  private DockerHost(final String endpoint, final String certPath) {
     if (endpoint.startsWith("unix://")) {
       this.port = 0;
-      this.address = DEFAULT_HOST;
+      this.address = DEFAULT_ADDRESS;
       this.host = endpoint;
       this.uri = URI.create(endpoint);
       this.bindURI = URI.create(endpoint);
@@ -53,16 +74,16 @@ public class DockerHost {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
       final String hostText = hostAndPort.getHostText();
-      final String scheme = isNullOrEmpty(dockerCertPath) ? "http" : "https";
+      final String scheme = isNullOrEmpty(certPath) ? "http" : "https";
 
       this.port = hostAndPort.getPortOrDefault(defaultPort());
-      this.address = isNullOrEmpty(hostText) ? DEFAULT_HOST : hostText;
+      this.address = isNullOrEmpty(hostText) ? DEFAULT_ADDRESS : hostText;
       this.host = address + ":" + port;
       this.uri = URI.create(scheme + "://" + address + ":" + port);
       this.bindURI = URI.create("tcp://" + address + ":" + port);
     }
 
-    this.dockerCertPath = dockerCertPath;
+    this.certPath = certPath;
   }
 
   /**
@@ -118,7 +139,12 @@ public class DockerHost {
    * @return The path to the certificate.
    */
   public String dockerCertPath() {
-    return dockerCertPath;
+    return certPath;
+  }
+
+  @VisibleForTesting
+  static void setSystemDelegate(final SystemDelegate delegate) {
+    systemDelegate = delegate;
   }
 
   /**
@@ -127,44 +153,119 @@ public class DockerHost {
    * @return The DockerHost object.
    */
   public static DockerHost fromEnv() {
-    final String defaultEndpoint;
-    if (System.getProperty("os.name").toLowerCase(Locale.ENGLISH).equals("linux")) {
-      defaultEndpoint = DEFAULT_UNIX_ENDPOINT;
-    } else {
-      defaultEndpoint = DEFAULT_HOST + ":" + defaultPort();
-    }
-
-    final String host = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint);
-    final String dockerCertPath = getenv("DOCKER_CERT_PATH");
-
-    return new DockerHost(host, dockerCertPath);
+    final String host = endpointFromEnv();
+    final String certPath = certPathFromEnv();
+    return new DockerHost(host, certPath);
   }
 
   /**
    * Create a {@link DockerHost} from an explicit address or uri.
    *
    * @param endpoint       The Docker endpoint.
-   * @param dockerCertPath The certificate path.
+   * @param certPath The certificate path.
    * @return The DockerHost object.
    */
-  public static DockerHost from(final String endpoint, final String dockerCertPath) {
-    return new DockerHost(endpoint, dockerCertPath);
+  public static DockerHost from(final String endpoint, final String certPath) {
+    return new DockerHost(endpoint, certPath);
   }
 
-  private static int defaultPort() {
-    final String port = getenv("DOCKER_PORT");
+  static String defaultDockerEndpoint() {
+    final String osName = systemDelegate.getProperty("os.name");
+    final String os = osName.toLowerCase(Locale.ENGLISH);
+    if (os.equalsIgnoreCase("linux") || os.contains("mac")) {
+      return DEFAULT_UNIX_ENDPOINT;
+    } else {
+      return DEFAULT_ADDRESS + ":" + defaultPort();
+    }
+  }
+
+  static String endpointFromEnv() {
+    return firstNonNull(systemDelegate.getenv("DOCKER_HOST"), defaultDockerEndpoint());
+  }
+
+  public static String defaultUnixEndpoint() {
+    return DEFAULT_UNIX_ENDPOINT;
+  }
+
+  public static String defaultAddress() {
+    return DEFAULT_ADDRESS;
+  }
+
+  public static int defaultPort() {
+    return DEFAULT_PORT;
+  }
+
+  static int portFromEnv() {
+    final String port = systemDelegate.getenv("DOCKER_PORT");
     if (port == null) {
-      return DEFAULT_PORT;
+      return defaultPort();
     }
     try {
       return Integer.parseInt(port);
     } catch (NumberFormatException e) {
-      return DEFAULT_PORT;
+      return defaultPort();
     }
+  }
+
+  static String defaultCertPath() {
+    final String userHome = systemDelegate.getProperty("user.home");
+    return Paths.get(userHome, ".docker").toString();
+  }
+
+  static String certPathFromEnv() {
+    return firstNonNull(systemDelegate.getenv("DOCKER_CERT_PATH"), defaultCertPath());
   }
 
   @Override
   public String toString() {
-    return host();
+    return "DockerHost{" +
+           "host='" + host + '\'' +
+           ", uri=" + uri +
+           ", bindURI=" + bindURI +
+           ", address='" + address + '\'' +
+           ", port=" + port +
+           ", certPath='" + certPath + '\'' +
+           '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    final DockerHost that = (DockerHost) o;
+
+    if (port != that.port) {
+      return false;
+    }
+    if (host != null ? !host.equals(that.host) : that.host != null) {
+      return false;
+    }
+    if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
+      return false;
+    }
+    if (bindURI != null ? !bindURI.equals(that.bindURI) : that.bindURI != null) {
+      return false;
+    }
+    if (address != null ? !address.equals(that.address) : that.address != null) {
+      return false;
+    }
+    return certPath != null ? certPath.equals(that.certPath) : that.certPath == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = host != null ? host.hashCode() : 0;
+    result = 31 * result + (uri != null ? uri.hashCode() : 0);
+    result = 31 * result + (bindURI != null ? bindURI.hashCode() : 0);
+    result = 31 * result + (address != null ? address.hashCode() : 0);
+    result = 31 * result + port;
+    result = 31 * result + (certPath != null ? certPath.hashCode() : 0);
+    return result;
   }
 }

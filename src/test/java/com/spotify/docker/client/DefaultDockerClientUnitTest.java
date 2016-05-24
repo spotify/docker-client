@@ -110,7 +110,7 @@ public class DefaultDockerClientUnitTest {
   @Test
   public void testHostForUnixSocket() {
     final DefaultDockerClient client = DefaultDockerClient.builder()
-        .uri(DefaultDockerClient.DEFAULT_UNIX_ENDPOINT).build();
+        .uri("unix:///var/run/docker.sock").build();
     assertThat(client.getHost(), equalTo("localhost"));
   }
 

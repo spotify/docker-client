@@ -36,6 +36,7 @@ import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
+
 import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 
@@ -131,8 +132,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
-import static java.lang.System.getProperty;
-import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.HttpMethod.DELETE;
@@ -189,10 +188,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   // ==========================================================================
-
-  static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
-  private static final String DEFAULT_HOST = "localhost";
-  private static final int DEFAULT_PORT = 2375;
 
   private static final String UNIX_SCHEME = "unix";
 
@@ -1685,9 +1680,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @throws DockerCertificateException if we could not build a DockerCertificates object
    */
   public static Builder fromEnv() throws DockerCertificateException {
-    final String endpoint = fromNullable(getenv("DOCKER_HOST")).or(defaultEndpoint());
-    final Path dockerCertPath = Paths.get(fromNullable(getenv("DOCKER_CERT_PATH"))
-                                              .or(defaultCertPath()));
+    final String endpoint = DockerHost.endpointFromEnv();
+    final Path dockerCertPath = Paths.get(DockerHost.certPathFromEnv());
 
     final Builder builder = new Builder();
 
@@ -1702,8 +1696,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       final String hostText = hostAndPort.getHostText();
       final String scheme = certs.isPresent() ? "https" : "http";
 
-      final int port = hostAndPort.getPortOrDefault(DEFAULT_PORT);
-      final String address = isNullOrEmpty(hostText) ? DEFAULT_HOST : hostText;
+      final int port = hostAndPort.getPortOrDefault(DockerHost.defaultPort());
+      final String address = isNullOrEmpty(hostText) ? DockerHost.defaultAddress() : hostText;
 
       builder.uri(scheme + "://" + address + ":" + port);
     }
@@ -1713,19 +1707,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     return builder;
-  }
-
-  private static String defaultEndpoint() {
-    final String os = getProperty("os.name").toLowerCase(Locale.ENGLISH);
-    if (os.equalsIgnoreCase("linux") || os.contains("mac")) {
-      return DEFAULT_UNIX_ENDPOINT;
-    } else {
-      return DEFAULT_HOST + ":" + DEFAULT_PORT;
-    }
-  }
-
-  private static String defaultCertPath() {
-    return Paths.get(getProperty("user.home"), ".docker").toString();
   }
 
   public static class Builder {
