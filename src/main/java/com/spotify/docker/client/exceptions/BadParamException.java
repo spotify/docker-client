@@ -28,8 +28,13 @@ public class BadParamException extends DockerException {
     this.params = params;
   }
 
+  public BadParamException(final Map<String, String> params, final String message) {
+    super(String.format("Params: %s. %s", params.toString(), message));
+    this.params = params;
+  }
+
   public BadParamException(final Map<String, String> params) {
-    this(params, null);
+    this(params, (Throwable) null);
   }
 
   public Map<String, String> getParams() {

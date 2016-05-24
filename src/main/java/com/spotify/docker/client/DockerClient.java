@@ -1045,6 +1045,25 @@ public interface DockerClient extends Closeable {
   }
 
   /**
+   * Resizes the tty session used by an exec command.
+   * This API is valid only if <code>tty</code> was specified as part
+   * of {@link #execCreate(String, String[], ExecCreateParam...) creating} and
+   * {@link #execStart(String, ExecStartParameter...) starting} the exec command.
+   * @param execId exec id
+   * @param height height of tty session
+   * @param width width of tty session
+   *
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                              if both height and width are null or zero
+   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
+   *                              if exec instance is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void execResizeTty(String execId, Integer height, Integer width)
+          throws DockerException, InterruptedException;
+
+  /**
    * Inspects a running or previously run exec instance id.
    *
    * @param execId exec id
@@ -1067,6 +1086,24 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerStats stats(String containerId) throws DockerException, InterruptedException;
+
+  /**
+   * Resize container TTY
+   * This API is valid only if <code>tty</code> was specified as
+   * part of {@link #createContainer(ContainerConfig) creating} the container.
+   *
+   * @param containerId The id of the container whose TTY will be resized.
+   * @param height New height of TTY
+   * @param width New width of TTY
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                              if both height and width are null or zero
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void resizeTty(String containerId, Integer height, Integer width)
+      throws DockerException, InterruptedException;
 
 
   /**

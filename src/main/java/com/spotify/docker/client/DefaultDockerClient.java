@@ -143,6 +143,7 @@ import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -1452,6 +1453,33 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void execResizeTty(final String execId,
+                            final Integer height,
+                            final Integer width)
+          throws DockerException, InterruptedException {
+    checkTtyParams(height, width);
+
+    WebTarget resource = resource().path("exec").path(execId).path("resize");
+    if (height != null && height > 0) {
+      resource = resource.queryParam("h", height);
+    }
+    if (width != null && width > 0) {
+      resource = resource.queryParam("w", width);
+    }
+
+    try {
+      request(POST, resource, resource.request(TEXT_PLAIN_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ExecNotFoundException(execId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public ExecState execInspect(final String execId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("exec").path(execId).path("json");
 
@@ -1482,6 +1510,41 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         default:
           throw e;
       }
+    }
+  }
+
+  @Override
+  public void resizeTty(final String containerId, final Integer height, final Integer width)
+      throws DockerException, InterruptedException {
+    checkTtyParams(height, width);
+
+    WebTarget resource = resource().path("containers").path(containerId).path("resize");
+    if (height != null && height > 0) {
+      resource = resource.queryParam("h", height);
+    }
+    if (width != null && width > 0) {
+      resource = resource.queryParam("w", width);
+    }
+
+    try {
+      request(POST, resource, resource.request(TEXT_PLAIN_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  private void checkTtyParams(final Integer height, final Integer width) throws BadParamException {
+    if ((height == null && width == null) || (height != null && height == 0) ||
+            (width != null && width == 0)) {
+      final Map<String, String> paramMap = Maps.newHashMap();
+      paramMap.put("h", height == null ? null : height.toString());
+      paramMap.put("w", width == null ? null : width.toString());
+      throw new BadParamException(paramMap, "Either width or height must be non-null and > 0");
     }
   }
 

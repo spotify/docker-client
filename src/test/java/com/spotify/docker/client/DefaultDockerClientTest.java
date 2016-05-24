@@ -17,10 +17,13 @@
 
 package com.spotify.docker.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
+import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -2877,6 +2880,54 @@ public class DefaultDockerClientTest {
     expected.path("/tmp/foo.txt");
 
     assertThat(expected, isIn(sut.inspectContainerChanges(id)));
+  }
+
+  @Test
+  public void testResizeTty() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("/bin/sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final ContainerCreation creation = sut.createContainer(config);
+    final String id = creation.id();
+
+    try {
+      sut.resizeTty(id, 100, 0);
+      fail("Should get an exception resizing TTY with width=0");
+    } catch (BadParamException e) {
+      final Map<String, String> params = e.getParams();
+      assertThat(params, hasKey("w"));
+      assertEquals("0", params.get("w"));
+    }
+
+    try {
+      sut.resizeTty(id, 100, 80);
+      fail("Should get an exception resizing TTY for non-running container");
+    } catch (DockerRequestException e) {
+      if (dockerApiVersionLessThan("1.20")) {
+        assertEquals(
+            String.format("Cannot resize container %s, container is not running\n", id),
+            e.message());
+      } else if (dockerApiVersionLessThan("1.24")) {
+        assertEquals(String.format("Container %s is not running\n", id),
+            e.message());
+      } else {
+        final ObjectMapper mapper = new ObjectMapper();
+        final Map<String, String> jsonMessage =
+                mapper.readValue(e.message(), new TypeReference<Map<String, String>>(){});
+        assertThat(jsonMessage, hasKey("message"));
+        assertEquals(String.format("Container %s is not running", id),
+                jsonMessage.get("message"));
+      }
+    }
+
+    sut.startContainer(id);
+
+    sut.resizeTty(id, 100, 80);
+
+    // We didn't get an exception, so everything went fine
   }
 
   private static Matcher<String> equalToIgnoreLeadingSlash(final String expected) {
