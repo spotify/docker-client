@@ -451,6 +451,9 @@ public class HostConfig {
     /**
      * Set the list of binds to the parameter, replacing any existing value.
      * <p>To append to the list instead, use one of the appendBinds() methods.</p>
+     *
+     * @param binds A list of volume bindings for this container. Each volume binding is a string.
+     * @return The builder
      */
     public Builder binds(final List<String> binds) {
       if (binds != null && !binds.isEmpty()) {
@@ -463,6 +466,9 @@ public class HostConfig {
     /**
      * Set the list of binds to the parameter, replacing any existing value.
      * <p>To append to the list instead, use one of the appendBinds() methods.</p>
+     *
+     * @param binds An array of volume bindings for this container. Each volume binding is a string.
+     * @return The builder
      */
     public Builder binds(final String... binds) {
       if (binds != null && binds.length > 0) {
@@ -475,6 +481,10 @@ public class HostConfig {
     /**
      * Set the list of binds to the parameter, replacing any existing value.
      * <p>To append to the list instead, use one of the appendBinds() methods.</p>
+     *
+     * @param binds An array of volume bindings for this container. Each volume binding is a
+     * {@link Bind} object.
+     * @return The builder
      */
     public Builder binds(final Bind... binds) {
       if (binds == null || binds.length == 0) {
@@ -492,7 +502,13 @@ public class HostConfig {
       return bindStrings;
     }
 
-    /** Append binds to the existing list in this builder. */
+    /**
+     * Append binds to the existing list in this builder.
+     *
+     * @param newBinds An iterable of volume bindings for this container. Each volume binding is a
+     * String.
+     * @return The builder
+     */
     public Builder appendBinds(final Iterable<String> newBinds) {
       final List<String> list = new ArrayList<>();
       if (this.binds != null) {
@@ -504,13 +520,24 @@ public class HostConfig {
       return this;
     }
 
-    /** Append binds to the existing list in this builder. */
+    /**
+     * Append binds to the existing list in this builder.
+     *
+     * @param binds An array of volume bindings for this container. Each volume binding is a
+     * {@link Bind} object.
+     * @return The builder
+     */
     public Builder appendBinds(final Bind... binds) {
       appendBinds(toStringList(binds));
       return this;
     }
 
-    /** Append binds to the existing list in this builder. */
+    /**
+     * Append binds to the existing list in this builder.
+     *
+     * @param binds An array of volume bindings for this container. Each volume binding is a String.
+     * @return The builder
+     */
     public Builder appendBinds(final String... binds) {
       appendBinds(Lists.newArrayList(binds));
       return this;

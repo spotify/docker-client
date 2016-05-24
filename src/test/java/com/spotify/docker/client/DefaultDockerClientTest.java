@@ -1245,7 +1245,7 @@ public class DefaultDockerClientTest {
     final int callableCount = connectionPoolSize * 100;
 
     final ExecutorService executor = Executors.newCachedThreadPool();
-    final CompletionService completion = new ExecutorCompletionService(executor);
+    final CompletionService<ContainerExit> completion = new ExecutorCompletionService<>(executor);
 
     // Spawn and wait on many more containers than the connection pool size.
     // This should cause a timeout once the connection pool is exhausted.

@@ -298,8 +298,8 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId the id of the container to examine
    * @return the titles and process list for the container
-   * @throws DockerException
-   * @throws InterruptedException
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
    */
   TopResults topContainer(String containerId) throws DockerException, InterruptedException;
 
@@ -310,8 +310,8 @@ public interface DockerClient extends Closeable {
    * @param psArgs the arguments to pass to <code>ps</code>
    *               inside the container, e.g., <code>"-ef"</code>
    * @return the titles and process list for the container
-   * @throws DockerException
-   * @throws InterruptedException
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
    */
   TopResults topContainer(String containerId, String psArgs)
       throws DockerException, InterruptedException;
