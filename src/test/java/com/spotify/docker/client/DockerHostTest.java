@@ -50,7 +50,32 @@ public class DockerHostTest {
   }
 
   @Test
+  public void testEndpointFromEnv() throws Exception {
+    when(systemDelegate.getenv("DOCKER_HOST")).thenReturn("foo", (String) null);
+    when(systemDelegate.getProperty("os.name")).thenReturn("linux");
+    DockerHost.setSystemDelegate(systemDelegate);
+
+    assertThat(DockerHost.endpointFromEnv(), equalTo("foo"));
+    assertThat(DockerHost.endpointFromEnv(), equalTo("unix:///var/run/docker.sock"));
+  }
+
+  @Test
+  public void testDefaultUnixEndpoint() throws Exception {
+    assertThat(DockerHost.defaultUnixEndpoint(), equalTo("unix:///var/run/docker.sock"));
+  }
+
+  @Test
+  public void testDefaultAddress() throws Exception {
+    assertThat(DockerHost.defaultAddress(), equalTo("localhost"));
+  }
+
+  @Test
   public void testDefaultPort() throws Exception {
+    assertThat(DockerHost.defaultPort(), equalTo(2375));
+  }
+
+  @Test
+  public void testPortFromEnv() throws Exception {
     when(systemDelegate.getenv("DOCKER_PORT")).thenReturn("1234", (String) null);
     DockerHost.setSystemDelegate(systemDelegate);
 
@@ -64,6 +89,16 @@ public class DockerHostTest {
     DockerHost.setSystemDelegate(systemDelegate);
 
     assertThat(DockerHost.defaultCertPath(), equalTo("foobar/.docker"));
+  }
+
+  @Test
+  public void testCertPathFromEnv() throws Exception {
+    when(systemDelegate.getenv("DOCKER_CERT_PATH")).thenReturn("foo", (String) null);
+    when(systemDelegate.getProperty("user.home")).thenReturn("bar");
+    DockerHost.setSystemDelegate(systemDelegate);
+
+    assertThat(DockerHost.certPathFromEnv(), equalTo("foo"));
+    assertThat(DockerHost.certPathFromEnv(), equalTo("bar/.docker"));
   }
 
   @Test

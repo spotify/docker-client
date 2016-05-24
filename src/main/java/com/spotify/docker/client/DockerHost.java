@@ -183,11 +183,15 @@ public class DockerHost {
     return firstNonNull(systemDelegate.getenv("DOCKER_HOST"), defaultDockerEndpoint());
   }
 
-  static String defaultAddress() {
+  public static String defaultUnixEndpoint() {
+    return DEFAULT_UNIX_ENDPOINT;
+  }
+
+  public static String defaultAddress() {
     return DEFAULT_ADDRESS;
   }
 
-  static int defaultPort() {
+  public static int defaultPort() {
     return DEFAULT_PORT;
   }
 
