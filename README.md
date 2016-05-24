@@ -95,6 +95,9 @@ If you are using Docker for Mac and `DefaultDockerClient.fromEnv()`, it might no
 what value to use for the `DOCKER_HOST` environment variable. The value you should use is
 `DOCKER_HOST=unix:///var/run/docker.sock`, at least as of version 1.11.1-beta11.
 
+As of version 4.0.8 of docker-client, `DefaultDockerClient.fromEnv()` uses
+`unix:///var/run/docker.sock` on OS X by default.
+
 ## Testing
 
 Make sure Docker daemon is running and that you can do `docker ps`.
