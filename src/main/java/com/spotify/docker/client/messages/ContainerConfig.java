@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class ContainerConfig {
   @JsonProperty("Env") private ImmutableList<String> env;
   @JsonProperty("Cmd") private ImmutableList<String> cmd;
   @JsonProperty("Image") private String image;
-  @JsonProperty("Volumes") private ImmutableSet<String> volumes;
+  @JsonProperty("Volumes") private ImmutableMap<String, Map> volumes;
   @JsonProperty("WorkingDir") private String workingDir;
   @JsonProperty("Entrypoint") private ImmutableList<String> entrypoint;
   @JsonProperty("NetworkDisabled") private Boolean networkDisabled;
@@ -79,7 +80,6 @@ public class ContainerConfig {
     this.env = builder.env;
     this.cmd = builder.cmd;
     this.image = builder.image;
-    this.volumes = builder.volumes;
     this.workingDir = builder.workingDir;
     this.entrypoint = builder.entrypoint;
     this.networkDisabled = builder.networkDisabled;
@@ -88,6 +88,14 @@ public class ContainerConfig {
     this.macAddress = builder.macAddress;
     this.hostConfig = builder.hostConfig;
     this.stopSignal = builder.stopSignal;
+
+    if (builder.volumes != null) {
+      final Map<String, Map> volumesToAdd = Maps.newHashMap();
+      for (final String builderVolume : builder.volumes) {
+        volumesToAdd.put(builderVolume, Maps.newHashMap());
+      }
+      this.volumes = ImmutableMap.copyOf(volumesToAdd);
+    }
   }
 
   public String hostname() {
@@ -147,7 +155,7 @@ public class ContainerConfig {
   }
 
   public Set<String> volumes() {
-    return volumes;
+    return volumes.keySet();
   }
 
   public String workingDir() {
@@ -303,7 +311,7 @@ public class ContainerConfig {
       this.env = config.env;
       this.cmd = config.cmd;
       this.image = config.image;
-      this.volumes = config.volumes;
+      this.volumes = config.volumes.keySet();
       this.workingDir = config.workingDir;
       this.entrypoint = config.entrypoint;
       this.networkDisabled = config.networkDisabled;

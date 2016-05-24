@@ -1932,6 +1932,8 @@ public class DefaultDockerClientTest {
     // we got back contains our expected path.
     final String expectedLocalPath = "/local/path";
     assertThat(volumeContainer.volumes().values(), hasItem(containsString(expectedLocalPath)));
+
+    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
   }
 
   @Test
@@ -1982,6 +1984,8 @@ public class DefaultDockerClientTest {
                       }
                     });
     assertThat(expectedSources, everyItem(isIn(actualSources)));
+
+    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
   }
 
   @Test
