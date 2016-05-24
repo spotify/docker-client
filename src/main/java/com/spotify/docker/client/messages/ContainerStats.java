@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -32,7 +33,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerStats {
 
-  @JsonProperty("read") private String read;
+  @JsonProperty("read") private Date read;
   @JsonProperty("network") private NetworkStats network;
   @JsonProperty("networks") private ImmutableMap<String, NetworkStats> networks;
   @JsonProperty("memory_stats") private MemoryStats memoryStats;
@@ -40,8 +41,8 @@ public class ContainerStats {
   @JsonProperty("cpu_stats") private CpuStats cpuStats;
   @JsonProperty("precpu_stats") private CpuStats precpuStats;
 
-  public String read() {
-    return read;
+  public Date read() {
+    return new Date(read.getTime());
   }
 
   public NetworkStats network() {
