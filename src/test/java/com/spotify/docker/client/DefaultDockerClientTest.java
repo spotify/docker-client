@@ -34,6 +34,7 @@ import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
@@ -2857,6 +2858,25 @@ public class DefaultDockerClientTest {
     } catch (ContainerNotFoundException e) {
       assertThat(e.getContainerId(), equalTo(badId));
     }
+  }
+
+  @Test
+  public void testInspectContainerChanges() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("/bin/sh", "-c", "echo foo > /tmp/foo.txt")
+        .build();
+    final ContainerCreation creation = sut.createContainer(config);
+    final String id = creation.id();
+    sut.startContainer(id);
+
+    final ContainerChange expected = new ContainerChange();
+    expected.kind(1);
+    expected.path("/tmp/foo.txt");
+
+    assertThat(expected, isIn(sut.inspectContainerChanges(id)));
   }
 
   private static Matcher<String> equalToIgnoreLeadingSlash(final String expected) {

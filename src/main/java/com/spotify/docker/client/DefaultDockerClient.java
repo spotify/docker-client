@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
@@ -211,6 +212,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Container>> CONTAINER_LIST =
       new GenericType<List<Container>>() {
+      };
+
+  private static final GenericType<List<ContainerChange>> CONTAINER_CHANGE_LIST =
+      new GenericType<List<ContainerChange>>() {
       };
 
   private static final GenericType<List<Image>> IMAGE_LIST =
@@ -839,6 +844,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         case 404:
           throw new NotFoundException(
               String.format("Either container %s or path %s not found.", containerId, path), e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public List<ContainerChange> inspectContainerChanges(final String containerId)
+      throws DockerException, InterruptedException {
+    try {
+      final WebTarget resource = resource().path("containers").path(containerId).path("changes");
+      return request(GET, CONTAINER_CHANGE_LIST, resource,
+          resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
         default:
           throw e;
       }

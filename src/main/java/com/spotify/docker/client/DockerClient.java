@@ -20,6 +20,7 @@ package com.spotify.docker.client;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
@@ -950,6 +951,20 @@ public interface DockerClient extends Closeable {
    */
   void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException;
+
+
+  /**
+   * Inspect changes on a container's filesystem.
+   *
+   * @param containerId The id of the container.
+   * @return A list of the changes to the container file system.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<ContainerChange> inspectContainerChanges(String containerId)
+      throws DockerException, InterruptedException;
 
   /**
    * Get docker container logs.
