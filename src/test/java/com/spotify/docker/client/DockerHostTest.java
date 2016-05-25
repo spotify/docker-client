@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import java.net.URI;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -98,7 +98,7 @@ public class DockerHostTest {
     DockerHost.setSystemDelegate(systemDelegate);
 
     assertThat(DockerHost.certPathFromEnv(), equalTo("foo"));
-    assertThat(DockerHost.certPathFromEnv(), equalTo(null));
+    assertThat(DockerHost.certPathFromEnv(), nullValue());
   }
 
   @Test
@@ -126,7 +126,7 @@ public class DockerHostTest {
     assertThat(dockerHost.bindURI(), equalTo(new URI(tcpSocket)));
     assertThat(dockerHost.port(), equalTo(2375));
     assertThat(dockerHost.address(), equalTo("127.0.0.1"));
-    assertThat(dockerHost.dockerCertPath(), equalTo(null));
+    assertThat(dockerHost.dockerCertPath(), nullValue());
   }
 
   @Test
@@ -151,7 +151,6 @@ public class DockerHostTest {
     final String dockerHostEnvVar = DockerHost.defaultDockerEndpoint();
     final boolean isUnixSocket = dockerHostEnvVar.startsWith("unix://");
     final URI dockerHostUri = new URI(dockerHostEnvVar);
-    final String dockerCertPathEnvVar = null;
 
     final String dockerHostAndPort;
     final URI dockerHostHttpUri;
@@ -166,9 +165,7 @@ public class DockerHostTest {
       dockerHostHost = "localhost";
     } else {
       dockerHostAndPort = dockerHostUri.getHost() + ":" + dockerHostUri.getPort();
-      dockerHostHttpUri = isNullOrEmpty(dockerCertPathEnvVar) ?
-                          new URI("http://" + dockerHostAndPort) :
-                          new URI("https://" + dockerHostAndPort);
+      dockerHostHttpUri = new URI("http://" + dockerHostAndPort);
       dockerTcpUri = new URI("tcp://" + dockerHostAndPort);
       dockerHostPort = dockerHostUri.getPort();
       dockerHostHost = dockerHostUri.getHost();
@@ -180,6 +177,6 @@ public class DockerHostTest {
     assertThat(dockerHost.bindURI(), equalTo(dockerTcpUri));
     assertThat(dockerHost.port(), equalTo(dockerHostPort));
     assertThat(dockerHost.address(), equalTo(dockerHostHost));
-    assertThat(dockerHost.dockerCertPath(), equalTo(dockerCertPathEnvVar));
+    assertThat(dockerHost.dockerCertPath(), nullValue());
   }
 }
