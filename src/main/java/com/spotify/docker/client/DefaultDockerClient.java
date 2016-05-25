@@ -125,6 +125,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -1681,7 +1682,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = DockerHost.endpointFromEnv();
-    final Path dockerCertPath = Paths.get(DockerHost.certPathFromEnv());
+    final Path dockerCertPath = Paths.get(firstNonNull(DockerHost.certPathFromEnv(),
+                                                       DockerHost.defaultCertPath()));
 
     final Builder builder = new Builder();
 

@@ -213,7 +213,7 @@ public class DockerHost {
   }
 
   static String certPathFromEnv() {
-    return firstNonNull(systemDelegate.getenv("DOCKER_CERT_PATH"), defaultCertPath());
+    return systemDelegate.getenv("DOCKER_CERT_PATH");
   }
 
   @Override

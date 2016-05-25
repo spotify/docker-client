@@ -98,7 +98,7 @@ public class DockerHostTest {
     DockerHost.setSystemDelegate(systemDelegate);
 
     assertThat(DockerHost.certPathFromEnv(), equalTo("foo"));
-    assertThat(DockerHost.certPathFromEnv(), equalTo("bar/.docker"));
+    assertThat(DockerHost.certPathFromEnv(), equalTo(null));
   }
 
   @Test
@@ -151,7 +151,7 @@ public class DockerHostTest {
     final String dockerHostEnvVar = DockerHost.defaultDockerEndpoint();
     final boolean isUnixSocket = dockerHostEnvVar.startsWith("unix://");
     final URI dockerHostUri = new URI(dockerHostEnvVar);
-    final String dockerCertPathEnvVar = DockerHost.defaultCertPath();
+    final String dockerCertPathEnvVar = null;
 
     final String dockerHostAndPort;
     final URI dockerHostHttpUri;
