@@ -911,14 +911,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void load(final String image, final InputStream imagePayload)
       throws DockerException, InterruptedException {
-    load(image, imagePayload, new LoggingPullHandler("image stream"));
-  }
-
-  @Override
-  public void load(final String image, final InputStream imagePayload,
-                   final AuthConfig authConfig, final ProgressHandler handler)
-      throws DockerException, InterruptedException {
-    load(image, imagePayload, handler);
+    load(image, imagePayload, authConfig, new LoggingPullHandler("image stream"));
   }
 
   @Override
@@ -932,7 +925,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void load(final String image, final InputStream imagePayload,
                    final ProgressHandler handler)
       throws DockerException, InterruptedException {
+    load(image, imagePayload, authConfig, handler);
+  }
 
+  @Override
+  public void load(final String image, final InputStream imagePayload,
+                   final AuthConfig authConfig, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("images").path("create");
 
     resource = resource
