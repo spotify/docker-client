@@ -19,6 +19,8 @@ package com.spotify.docker.client;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,5 +63,12 @@ public class DockerDateFormatTest {
   @Test
   public void testHandlesNanosecondWithLessThanNineDigits() throws Exception {
     assertThat(dockerDateFormat.parse("2015-09-18T17:44:28.1458553Z"), equalTo(expected));
+  }
+
+  @Test
+  public void otherTimeZones() throws Exception {
+    final Date expected =
+        new DateTime(2016, 6, 3, 6, 57, 17, 478, DateTimeZone.forOffsetHours(-4)).toDate();
+    assertThat(dockerDateFormat.parse("2016-06-03T06:57:17.4782869-04:00"), equalTo(expected));
   }
 }
