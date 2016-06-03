@@ -1020,7 +1020,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void push(final String image, final AuthConfig authconfig)
+      throws DockerException, InterruptedException {
+    push(image, new LoggingPushHandler(image), authconfig);
+  }
+
+  @Override
   public void push(final String image, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
+    push(image, handler, authConfig);
+  }
+
+  @Override
+  public void push(final String image, final ProgressHandler handler, final AuthConfig authConfig)
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
@@ -1035,7 +1047,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
-                         .header("X-Registry-Auth", authHeader()))) {
+                         .header("X-Registry-Auth", authHeader(authConfig)))) {
       push.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -1615,10 +1627,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } catch (IOException ignore) {
       return null;
     }
-  }
-
-  private String authHeader() throws DockerException {
-    return authHeader(authConfig);
   }
 
   private String authHeader(final AuthConfig authConfig) throws DockerException {
