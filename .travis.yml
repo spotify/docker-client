@@ -34,3 +34,7 @@ after_success:
 # dump the docker logs in case they are needed for troubleshooting failures
 after_script:
   - sudo cat /var/log/upstart/docker.log
+
+branches:
+  only:
+    - master
