@@ -9,11 +9,15 @@ jdk:
   - oraclejdk7
 
 env: 
-  - DOCKER_VERSION=1.6.0 
-  - DOCKER_VERSION=1.7.1
-  - DOCKER_VERSION=1.8.3
-  - DOCKER_VERSION=1.9.1
-  - DOCKER_VERSION=1.10.3
+  global:
+    - SONATYPE_USERNAME=mattbrownspotify
+    - secure: "CTYWMDSX4LOz2TiYBSqC+7klvafj0wvwcbpyL3TJueWmgKzJwysRqSHxw9JR2rfe8ysSxGFFiRO9HEyJ4o6zTF6kIy9tYsPxvSJ8c9wIEdTbUtGMuWlrhKchuMmdDaWt07/0N2llSB4h3fv53UGglSM+5FJu4e5DxvxUmIx/Zn4="
+  matrix:
+    - DOCKER_VERSION=1.6.0
+    - DOCKER_VERSION=1.7.1
+    - DOCKER_VERSION=1.8.3
+    - DOCKER_VERSION=1.9.1
+    - DOCKER_VERSION=1.10.3
 
 before_install:
   # check what version of docker is installed beforehand
@@ -30,6 +34,8 @@ script: mvn test
 after_success:
   # test coverage reporting
   - bash <(curl -s https://codecov.io/bash)
+  # deploy snapshots to Maven central, but only from master branch
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && mvn --settings sonatype-settings.xml -DskipTests -B deploy"
 
 # dump the docker logs in case they are needed for troubleshooting failures
 after_script:
