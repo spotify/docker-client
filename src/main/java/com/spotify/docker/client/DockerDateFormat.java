@@ -38,14 +38,20 @@ public class DockerDateFormat extends StdDateFormat {
 
   private static final long serialVersionUID = 249048552876483658L;
 
+  // either a literal Z or an offset like -04:00 or +1200 with an optional colon separator
+  private static final String TIMEZONE_PATTERN = "(Z|[+-]\\d{2}:?\\d{2})";
+
   @Override
   public Date parse(String source) throws ParseException {
     // If the date has nanosecond precision (e.g. 2014-10-17T21:22:56.949763914Z), remove the last
     // digits so we can create a Date object, which only support milliseconds.
     // Docker doesn't always return nine digits for the fractional seconds part,
     // so we need to be more flexible when trimming to milliseconds.
-    if (source.matches(".+\\.\\d{4,9}Z$")) {
-      source = source.replaceAll("(\\.\\d{3})\\d{1,6}Z$", "$1Z");
+    // Also allow for flexible timezone formats, either 'Z' for zulu/UTC or hour offsets.
+    // StdDateFormat has logic for handling these other timezones, but only if the time portion of
+    // the string matches hh:mm:ss or hh:mm:ss.SSS
+    if (source.matches(".+\\.\\d{4,9}" + TIMEZONE_PATTERN + "$")) {
+      source = source.replaceAll("(\\.\\d{3})\\d{1,6}" + TIMEZONE_PATTERN + "$", "$1$2");
     }
 
     return super.parse(source);
