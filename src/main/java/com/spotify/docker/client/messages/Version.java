@@ -27,6 +27,7 @@ public class Version {
 
   @JsonProperty("ApiVersion") private String apiVersion;
   @JsonProperty("Arch") private String arch;
+  @JsonProperty("BuildTime") private String buildTime;
   @JsonProperty("GitCommit") private String gitCommit;
   @JsonProperty("GoVersion") private String goVersion;
   @JsonProperty("KernelVersion") private String kernelVersion;
@@ -39,6 +40,10 @@ public class Version {
 
   public String arch() {
     return arch;
+  }
+
+  public String buildTime() {
+    return buildTime;
   }
 
   public String gitCommit() {
@@ -74,6 +79,7 @@ public class Version {
 
     return Objects.equals(this.apiVersion, that.apiVersion) &&
         Objects.equals(this.arch, that.arch) &&
+        Objects.equals(this.buildTime, that.buildTime) &&
         Objects.equals(this.gitCommit, that.gitCommit) &&
         Objects.equals(this.goVersion, that.goVersion) &&
         Objects.equals(this.kernelVersion, that.kernelVersion) &&
@@ -83,7 +89,8 @@ public class Version {
 
   @Override
   public int hashCode() {
-    return Objects.hash(apiVersion, arch, gitCommit, goVersion, kernelVersion, os, version);
+    return Objects.hash(apiVersion, arch, buildTime, gitCommit,
+        goVersion, kernelVersion, os, version);
   }
 
   @Override
@@ -91,6 +98,7 @@ public class Version {
     return MoreObjects.toStringHelper(this)
         .add("apiVersion", apiVersion)
         .add("arch", arch)
+        .add("buildTime", buildTime)
         .add("gitCommit", gitCommit)
         .add("goVersion", goVersion)
         .add("kernelVersion", kernelVersion)

@@ -436,6 +436,7 @@ public class DefaultDockerClientTest {
     final Version version = sut.version();
     assertThat(version.apiVersion(), not(isEmptyOrNullString()));
     assertThat(version.arch(), not(isEmptyOrNullString()));
+    assertThat(version.buildTime(), not(isEmptyOrNullString()));
     assertThat(version.gitCommit(), not(isEmptyOrNullString()));
     assertThat(version.goVersion(), not(isEmptyOrNullString()));
     assertThat(version.kernelVersion(), not(isEmptyOrNullString()));
