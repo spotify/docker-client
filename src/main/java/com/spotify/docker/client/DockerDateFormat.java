@@ -22,6 +22,10 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.text.ParseException;
 import java.util.Date;
 
+import org.threeten.bp.ZonedDateTime;
+import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.format.DateTimeParseException;
+
 /**
  * Docker returns timestamps with nanosecond precision
  * (e.g. <tt>2014-10-17T21:22:56.949763914Z</tt>),
@@ -29,6 +33,9 @@ import java.util.Date;
  * results in the date being set to several days after what date should be. This class converts the
  * timestamp from nanoseconds to milliseconds by removing the last six digits of the timestamp, so
  * we can generate a Date with the correct value (albeit with less precision).
+ *
+ * Nano second precision time can be parse using {@code parseNano}. It uses
+ * JSR310 backport(http://www.threeten.org/threetenbp/) for  parsing.
  *
  * Note: a more complete solution would be to introduce a custom date type which can store the
  * nanosecond value in an additional field, so users can access the complete value. Or just use Java
@@ -55,6 +62,18 @@ public class DockerDateFormat extends StdDateFormat {
     }
 
     return super.parse(source);
+  }
+
+  /**
+  * Parse the input time using {@link ISO_OFFSET_DATE_TIME} and return a=nanosecond precision.
+  * <p>
+  * @param source time in ISO_OFFSET_DATE_TIME format
+  * @return zonedDateTime
+  * @throws DateTimeParseException if the  source can not e parsed
+  */
+  public ZonedDateTime parseNano(String source) throws DateTimeParseException {
+    final DateTimeFormatter df = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    return ZonedDateTime.parse(source, df);
   }
 
   @Override
