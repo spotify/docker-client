@@ -742,6 +742,9 @@ public interface DockerClient extends Closeable {
 
   /**
    * Kill a docker container.
+   * Note: This implementation deviates from the Docker Remote API. The
+   * latter accepts the kill signal as an argument. This implementation does
+   * not accept the signal argument; instead, the default SIGKILL is sent.
    *
    * @param containerId The id of the container to kill.
    * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
