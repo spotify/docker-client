@@ -1794,6 +1794,15 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Show digests.
+     *
+     * @return ListImagesParam
+     */
+    public static ListImagesParam digests() {
+      return create("digests", "1");
+    }
+
+    /**
      * Show dangling images only. A dangling image is one which does not have a repository name. By
      * default both dangling and non-dangling will be shown.
      *

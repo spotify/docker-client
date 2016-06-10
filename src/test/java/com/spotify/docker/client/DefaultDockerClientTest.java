@@ -148,6 +148,7 @@ import static com.spotify.docker.client.DockerClient.ListContainersParam.withSta
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.byName;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
+import static com.spotify.docker.client.DockerClient.ListImagesParam.digests;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
 import static com.spotify.docker.client.DockerClient.LogsParam.since;
 import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
@@ -1674,17 +1675,41 @@ public class DefaultDockerClientTest {
     assertThat(images.size(), greaterThan(0));
 
     // Verify that image contains valid values
-    final Image image = images.get(0);
-    assertThat(image.virtualSize(), greaterThan(0L));
-    assertThat(image.created(), not(isEmptyOrNullString()));
-    assertThat(image.id(), not(isEmptyOrNullString()));
-    assertThat(image.parentId(), not(isEmptyOrNullString()));
+    Image busybox = null;
+    for (final Image image : images) {
+      if (image.repoTags() != null && image.repoTags().contains(BUSYBOX_LATEST)) {
+        busybox = image;
+      }
+    }
+    assertNotNull(busybox);
+    assertThat(busybox.virtualSize(), greaterThan(0L));
+    assertThat(busybox.created(), not(isEmptyOrNullString()));
+    assertThat(busybox.id(), not(isEmptyOrNullString()));
+    assertThat(busybox.repoTags(), notNullValue());
+    assertThat(busybox.repoTags().size(), greaterThan(0));
+    assertThat(BUSYBOX_LATEST, isIn(busybox.repoTags()));
+    if (dockerApiVersionLessThan("1.23")) {
+      assertThat(busybox.parentId(), not(isEmptyOrNullString()));
+    }
+
+    final List<Image> imagesWithDigests = sut.listImages(digests());
+    assertThat(imagesWithDigests.size(), greaterThan(0));
+    busybox = null;
+    for (final Image image : imagesWithDigests) {
+      if (image.repoTags() != null && image.repoTags().contains(BUSYBOX_LATEST)) {
+        busybox = image;
+      }
+    }
+    assertNotNull(busybox);
+    if (dockerApiVersionLessThan("1.22")) {
+      assertThat(busybox.repoDigests(), notNullValue());
+    }
 
     // Using allImages() should give us more images
     final List<Image> allImages = sut.listImages(allImages());
     assertThat(allImages.size(), greaterThan(images.size()));
 
-    // Including just dangling images should give us less images
+    // Including just dangling images should give us fewer images
     final List<Image> danglingImages = sut.listImages(danglingImages());
     assertThat(danglingImages.size(), lessThan(images.size()));
 
