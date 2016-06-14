@@ -34,7 +34,7 @@ import org.threeten.bp.format.DateTimeParseException;
  * timestamp from nanoseconds to milliseconds by removing the last six digits of the timestamp, so
  * we can generate a Date with the correct value (albeit with less precision).
  *
- * Nano second precision time can be parse using {@code parseNano}. It uses
+ * Nano second precision time can be parse using {@code parseRFC3339Nano}. It uses
  * JSR310 backport(http://www.threeten.org/threetenbp/) for  parsing.
  *
  * Note: a more complete solution would be to introduce a custom date type which can store the
@@ -67,11 +67,11 @@ public class DockerDateFormat extends StdDateFormat {
   /**
   * Parse the input time using {@link ISO_OFFSET_DATE_TIME} and return a=nanosecond precision.
   * <p>
-  * @param source time in ISO_OFFSET_DATE_TIME format
+  * @param source time in ISO_OFFSET_DATE_TIME (RFC3339Nano) format
   * @return zonedDateTime
   * @throws DateTimeParseException if the  source can not e parsed
   */
-  public ZonedDateTime parseNano(String source) throws DateTimeParseException {
+  public ZonedDateTime parseRFC3339Nano(String source) throws DateTimeParseException {
     final DateTimeFormatter df = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
     return ZonedDateTime.parse(source, df);
   }
