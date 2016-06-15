@@ -21,13 +21,14 @@ import com.google.common.base.MoreObjects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class Version {
 
   @JsonProperty("ApiVersion") private String apiVersion;
   @JsonProperty("Arch") private String arch;
-  @JsonProperty("BuildTime") private String buildTime;
+  @JsonProperty("BuildTime") private Date buildTime;
   @JsonProperty("GitCommit") private String gitCommit;
   @JsonProperty("GoVersion") private String goVersion;
   @JsonProperty("KernelVersion") private String kernelVersion;
@@ -42,8 +43,8 @@ public class Version {
     return arch;
   }
 
-  public String buildTime() {
-    return buildTime;
+  public Date buildTime() {
+    return buildTime == null ? null : new Date(buildTime.getTime());
   }
 
   public String gitCommit() {
