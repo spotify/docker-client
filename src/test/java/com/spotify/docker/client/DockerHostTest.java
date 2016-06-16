@@ -19,6 +19,7 @@ package com.spotify.docker.client;
 
 import com.spotify.docker.client.DockerHost.SystemDelegate;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,6 +38,11 @@ public class DockerHostTest {
   @Before
   public void before() {
     systemDelegate = mock(SystemDelegate.class);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    DockerHost.restoreSystemDelegate();
   }
 
   @Test
