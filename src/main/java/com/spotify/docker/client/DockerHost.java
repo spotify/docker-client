@@ -41,7 +41,7 @@ public class DockerHost {
     String getenv(String name);
   }
 
-  private static SystemDelegate systemDelegate = new SystemDelegate() {
+  private static final SystemDelegate defaultSystemDelegate = new SystemDelegate() {
     @Override
     public String getProperty(final String key) {
       return System.getProperty(key);
@@ -51,6 +51,7 @@ public class DockerHost {
       return System.getenv(name);
     }
   };
+  private static SystemDelegate systemDelegate = defaultSystemDelegate;
 
   private static final String DEFAULT_UNIX_ENDPOINT = "unix:///var/run/docker.sock";
   private static final String DEFAULT_ADDRESS = "localhost";
@@ -145,6 +146,11 @@ public class DockerHost {
   @VisibleForTesting
   static void setSystemDelegate(final SystemDelegate delegate) {
     systemDelegate = delegate;
+  }
+
+  @VisibleForTesting
+  static void restoreSystemDelegate() {
+    systemDelegate = defaultSystemDelegate;
   }
 
   /**
