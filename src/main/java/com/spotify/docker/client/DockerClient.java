@@ -41,6 +41,7 @@ import com.spotify.docker.client.messages.Version;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -589,6 +590,80 @@ public interface DockerClient extends Closeable {
      */
     public static BuildParam pullNewerImage() {
       return create("pull", "true");
+    }
+
+    /**
+     * Repository name (and optionally a tag) to be applied to the
+     * resulting image in case of success.
+     *
+     * You could also pass the name explicitly to {@link #build(Path, String, BuildParam...)}
+     * or one of the other build methods that takes an explicit name.
+     * @param name A name to apply to the image
+     * @return BuildParam
+     */
+    public static BuildParam name(final String name) {
+      return create("t", name);
+    }
+
+    /**
+     * path within the build context to the Dockerfile. This is ignored
+     * if {@link #remote(URI)} is specified and points to an individual filename.
+     *
+     * You could also pass the dockerfile path explicitly to
+     * {@link #build(Path, String, String, ProgressHandler, BuildParam...)}
+     * or one of the other build methods that takes an explicit dockerfile path.
+     * @param dockerfile Path to the dockerfile in the build context.
+     * @return BuildParam
+     */
+    public static BuildParam dockerfile(final Path dockerfile) {
+      return create("dockerfile", dockerfile.toString());
+    }
+
+    /**
+     * A Git repository URI or HTTP/HTTPS URI build source. If the URI
+     * specifies a filename, the file's contents are placed into a file called `Dockerfile`.
+     *
+     * @param remote A Git repository URI or HTTP/HTTPS URI build source.
+     * @return BuildParam
+     */
+    public static BuildParam remote(final URI remote) {
+      return create("remote", remote.toString());
+    }
+
+    /**
+     * Set memory limit for build.
+     * @param memory Memory limit for build, in bytes.
+     * @return BuildParam
+     */
+    public static BuildParam memory(final Integer memory) {
+      return create("memory", memory.toString());
+    }
+
+    /**
+     * Total memory (memory + swap). Set to -1 to enable unlimited swap.
+     * @param totalMemory Total memory (memory + swap) in bytes.
+     * @return BuildParam
+     */
+    public static BuildParam totalMemory(final Integer totalMemory) {
+      return create("memoryswap", totalMemory.toString());
+    }
+
+    /**
+     * CPU shares (relative weight).
+     * @param cpuShares CPU shares (relative weight).
+     * @return BuildParam
+     */
+    public static BuildParam cpuShares(final Integer cpuShares) {
+      return create("cpushares", cpuShares.toString());
+    }
+
+    /**
+     * CPUs in which to allow execution, e.g. <code>0-3</code>, <code>0,1</code>.
+     * @param cpusetCpus CPUs in which to allow execution
+     * @return BuildParam
+     */
+    public static BuildParam cpusetCpus(final Integer cpusetCpus) {
+      return create("cpusetcpus", cpusetCpus.toString());
     }
 
     @Override
