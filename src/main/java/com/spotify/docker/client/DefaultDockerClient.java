@@ -50,6 +50,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
@@ -233,6 +234,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {
+      };
+
+  private static final GenericType<List<ImageHistory>> IMAGE_HISTORY_LIST =
+      new GenericType<List<ImageHistory>>() {
       };
 
   private static final Supplier<ClientBuilder> DEFAULT_BUILDER_SUPPLIER =
@@ -1266,6 +1271,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw new ImageNotFoundException(image, e);
         case 409:
           throw new ConflictException(e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public List<ImageHistory> history(final String image)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource()
+        .path("images")
+        .path(image)
+        .path("history");
+    try {
+      return request(GET, IMAGE_HISTORY_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ImageNotFoundException(image, e);
         default:
           throw e;
       }

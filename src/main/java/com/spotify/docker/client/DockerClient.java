@@ -28,6 +28,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
@@ -686,6 +687,13 @@ public interface DockerClient extends Closeable {
       return Objects.hash(name, value);
     }
   }
+
+  /**
+   * Return the history of the image.
+   * @param image An image name or ID.
+   * @return List<ImageHistory>
+   */
+  List<ImageHistory> history(final String image) throws InterruptedException, DockerException;
 
   /**
    * Create a docker container.

@@ -50,6 +50,7 @@ import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.HostConfig.Bind;
 import com.spotify.docker.client.messages.HostConfig.Ulimit;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
@@ -2953,6 +2954,21 @@ public class DefaultDockerClientTest {
     sut.resizeTty(id, 100, 80);
 
     // We didn't get an exception, so everything went fine
+  }
+
+  @Test
+  public void testHistory() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    final List<ImageHistory> imageHistoryList = sut.history(BUSYBOX_LATEST);
+    assertThat(imageHistoryList, hasSize(2));
+
+    final ImageHistory busyboxHistory = imageHistoryList.get(0);
+    assertThat(busyboxHistory.id(), not(isEmptyOrNullString()));
+    assertNotNull(busyboxHistory.created());
+    assertEquals("/bin/sh -c #(nop) CMD [\"sh\"]", busyboxHistory.createdBy());
+    assertThat(BUSYBOX_LATEST, isIn(busyboxHistory.tags()));
+    assertEquals(0L, busyboxHistory.size().longValue());
+    assertThat(busyboxHistory.comment(), isEmptyOrNullString());
   }
 
   private static Matcher<String> equalToIgnoreLeadingSlash(final String expected) {
