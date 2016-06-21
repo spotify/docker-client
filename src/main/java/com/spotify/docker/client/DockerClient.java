@@ -1951,12 +1951,12 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #events(EventsParam...)}
    */
-  public static class EventsParam {
+  class EventsParam {
 
     private final String name;
     private final String value;
 
-    protected EventsParam(final String name, final String value) {
+    private EventsParam(final String name, final String value) {
       this.name = name;
       this.value = value;
     }
@@ -2006,16 +2006,99 @@ public interface DockerClient extends Closeable {
      * @param value Value
      * @return {@link EventsParam}
      */
-    public static EventsParam filter(String name, String value) {
+    private static EventsParam filter(String name, String value) {
       return new EventsFilterParam(name, value);
     }
 
+    /**
+     * Show only certain events. For example, "event=pull" for image pull events.
+     * @param event Type of event to show
+     * @return EventsParam
+     */
+    public static EventsParam event(final String event) {
+      return filter("event", event);
+    }
+
+    /**
+     * Show events for an image.
+     * @param image An image tag or id
+     * @return EventsParam
+     */
+    public static EventsParam image(final String image) {
+      return filter("image", image);
+    }
+
+    /**
+     * Show events for a container.
+     * @param container A container name or id
+     * @return EventsParam
+     */
+    public static EventsParam container(final String container) {
+      return filter("container", container);
+    }
+
+    /**
+     * Show events for a volume.
+     * @param volume A volume name or id
+     * @return EventsParam
+     */
+    public static EventsParam volume(final String volume) {
+      return filter("volume", volume);
+    }
+
+    /**
+     * Show events for a network.
+     * @param network A network name or id
+     * @return EventsParam
+     */
+    public static EventsParam network(final String network) {
+      return filter("network", network);
+    }
+
+    /**
+     * Show events for a daemon.
+     * @param daemon A daemon name or id
+     * @return EventsParam
+     */
+    public static EventsParam daemon(final String daemon) {
+      return filter("daemon", daemon);
+    }
+
+    /**
+     * Show events of a given type. For instance, "type=image" for all image events.
+     * @param type A type of event. Possible values: container, image, volume, network, or daemon
+     * @return EventsParam
+     */
+    public static EventsParam type(final String type) {
+      return filter("type", type);
+    }
+
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
+     * @param value The value of the label
+     * @return EventsParam
+     */
+    public static EventsParam label(final String label, final String value) {
+      return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
+    }
+
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
+     * @return EventsParam
+     */
+    public static EventsParam label(final String label) {
+      return label(label, null);
+    }
   }
 
   /**
    * Filter parameter for {@link #events(EventsParam...)}. This should be used by EventsParam only.
    */
-  static class EventsFilterParam extends EventsParam {
+  class EventsFilterParam extends EventsParam {
 
     public EventsFilterParam(String name, String value) {
       super(name, value);

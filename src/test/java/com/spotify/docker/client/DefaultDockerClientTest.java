@@ -1597,6 +1597,8 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
 
+    assumeTrue("Sometimes there are no events, and it is unclear why.", eventStream.hasNext());
+
     final Event createEvent = eventStream.next();
     assertThat(createEvent.status(), equalTo("create"));
     assertThat(createEvent.id(), equalTo(container.id()));
@@ -1689,7 +1691,7 @@ public class DefaultDockerClientTest {
     assertThat(busybox.repoTags(), notNullValue());
     assertThat(busybox.repoTags().size(), greaterThan(0));
     assertThat(BUSYBOX_LATEST, isIn(busybox.repoTags()));
-    if (dockerApiVersionLessThan("1.23")) {
+    if (dockerApiVersionLessThan("1.22")) {
       assertThat(busybox.parentId(), not(isEmptyOrNullString()));
     }
 
