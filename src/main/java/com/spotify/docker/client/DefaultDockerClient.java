@@ -905,8 +905,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource()
         .path("commit")
         .queryParam("container", containerId)
-        .queryParam("repo", repo)
-        .queryParam("comment", comment);
+        .queryParam("repo", repo);
 
     if (!isNullOrEmpty(author)) {
       resource = resource.queryParam("author", author);
