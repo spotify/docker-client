@@ -1115,6 +1115,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       push.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ImageNotFoundException(image, e);
+      }
     }
   }
 
