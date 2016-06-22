@@ -441,6 +441,9 @@ public class DefaultDockerClientTest {
     assertThat(version.kernelVersion(), not(isEmptyOrNullString()));
     assertThat(version.os(), not(isEmptyOrNullString()));
     assertThat(version.version(), not(isEmptyOrNullString()));
+    if (dockerApiVersionAtLeast("1.22")) {
+      assertThat(version.buildTime(), not(isEmptyOrNullString()));
+    }
   }
 
   @Test
