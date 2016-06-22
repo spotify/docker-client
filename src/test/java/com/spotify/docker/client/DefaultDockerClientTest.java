@@ -45,6 +45,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerMount;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.Event;
+import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.HostConfig.Bind;
@@ -2368,9 +2369,12 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    final String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-                                         ExecCreateParam.attachStdout(),
-                                         ExecCreateParam.attachStderr());
+    final ExecCreation execCreation = sut.execCreate(
+        containerId,
+        new String[] {"ls", "-la"},
+        ExecCreateParam.attachStdout(),
+        ExecCreateParam.attachStderr());
+    final String execId = execCreation.id();
 
     log.info("execId = {}", execId);
 
@@ -2411,9 +2415,10 @@ public class DefaultDockerClientTest {
       createParams.add(ExecCreateParam.user("1000"));
     }
 
-    final String execId = sut.execCreate(
+    final ExecCreation execCreation = sut.execCreate(
         containerId, new String[]{"sh", "-c", "exit 2"},
         createParams.toArray(new ExecCreateParam[createParams.size()]));
+    final String execId = execCreation.id();
 
     log.info("execId = {}", execId);
     try (final LogStream stream = sut.execStart(execId)) {

@@ -1038,6 +1038,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public InputStream saveMultiple(final String... images)
+      throws DockerException, IOException, InterruptedException {
+
+    final WebTarget resource = resource().path("images").path("get");
+    if (images != null) {
+      for (final String image : images) {
+        resource.queryParam("names", urlEncode(image));
+      }
+    }
+
+    return request(
+        GET,
+        InputStream.class,
+        resource,
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
+    );
+  }
+
+  @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
   }

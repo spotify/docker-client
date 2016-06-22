@@ -275,7 +275,12 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * @param image the name of the image to save.
+   * Get a tarball containing all images and metadata for the repository specified.
+   * @param image the name or id of the image to save. If a specific name and tag
+   *              (e.g. ubuntu:latest), then only that image (and its parents) are returned.
+   *              If an image ID, similarly only that image (and its parents) are returned,
+   *              but with the exclusion of the 'repositories' file in the tarball,
+   *              as there were no image names referenced.
    * @return the image's .tar stream.
    * @throws DockerException      if a server error occurred (500).
    * @throws IOException          if the server started returning, but an I/O error occurred in the
@@ -285,7 +290,12 @@ public interface DockerClient extends Closeable {
   InputStream save(String image) throws DockerException, IOException, InterruptedException;
 
   /**
-   * @param image      the name of the image to save.
+   * Get a tarball containing all images and metadata for the repository specified.
+   * @param image the name or id of the image to save. If a specific name and tag
+   *              (e.g. ubuntu:latest), then only that image (and its parents) are returned.
+   *              If an image ID, similarly only that image (and its parents) are returned,
+   *              but with the exclusion of the 'repositories' file in the tarball,
+   *              as there were no image names referenced.
    * @param authConfig The authentication config needed to pull the image.
    * @return the image's .tar stream.
    * @throws DockerException      if a server error occurred (500).
@@ -294,6 +304,22 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   InputStream save(String image, AuthConfig authConfig)
+      throws DockerException, IOException, InterruptedException;
+
+  /**
+   * Get a tarball containing all images and metadata for one or more repositories.
+   * @param images the name or id of the image to save.
+   *               if it is a specific name and tag (e.g. ubuntu:latest), then only that image
+   *               (and its parents) are returned; if it is an image ID, similarly only that
+   *               image (and its parents) are returned and there would be no names referenced
+   *               in the 'repositories' file for this image ID.
+   * @return a tar stream containing the image(s)
+   * @throws DockerException      if a server error occurred (500).
+   * @throws IOException          if the server started returning, but an I/O error occurred in the
+   *                              context of processing it on the client-side.
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  InputStream saveMultiple(String... images)
       throws DockerException, IOException, InterruptedException;
 
   /**
