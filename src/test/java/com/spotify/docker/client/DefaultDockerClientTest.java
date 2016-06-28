@@ -414,7 +414,7 @@ public class DefaultDockerClientTest {
     final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
       @Override
       public boolean apply(Image img) {
-        return img.repoTags().contains(image + ":latest");
+        return img.repoTags() != null && img.repoTags().contains(image + ":latest");
       }
     });
 
@@ -465,6 +465,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMissingAuthParam() throws Exception {
+    requireDockerApiVersionNot("1.24", "https://github.com/docker/docker/issues/24093");
     final AuthConfig badAuthConfig = AuthConfig.builder()
         .email(AUTH_EMAIL)
         .username(AUTH_USERNAME)

@@ -20,6 +20,9 @@ case "$1" in
     # stop docker service if running
     sudo stop docker || :
 
+    if [[ "$DOCKER_VERSION" =~ ^1\.12\..* ]]; then
+      sudo sh -c 'echo "deb https://apt.dockerproject.org/repo ubuntu-trusty experimental" > /etc/apt/sources.list.d/docker.list'
+    fi
     sudo apt-get -qq update
     sudo apt-get -q -y purge docker-engine
     apt-cache policy docker-engine
