@@ -26,6 +26,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageHistory;
@@ -1114,11 +1115,11 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container
    * @param cmd         shell command
    * @param params      Exec params
-   * @return exec id
+   * @return {@link ExecCreation}
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  String execCreate(String containerId, String[] cmd, ExecCreateParam... params)
+  ExecCreation execCreate(String containerId, String[] cmd, ExecCreateParam... params)
       throws DockerException, InterruptedException;
 
   /**

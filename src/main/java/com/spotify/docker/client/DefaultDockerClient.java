@@ -48,6 +48,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageHistory;
@@ -1408,9 +1409,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public String execCreate(final String containerId,
-                           final String[] cmd,
-                           final ExecCreateParam... params)
+  public ExecCreation execCreate(final String containerId,
+                                 final String[] cmd,
+                                 final ExecCreateParam... params)
       throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
@@ -1439,9 +1440,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
 
-    final String response;
     try {
-      response = request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+      return request(POST, ExecCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
                          Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -1452,13 +1452,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         default:
           throw e;
       }
-    }
-
-    try {
-      final JsonNode json = objectMapper().readTree(response);
-      return json.findValue("Id").textValue();
-    } catch (IOException e) {
-      throw new DockerException(e);
     }
   }
 
