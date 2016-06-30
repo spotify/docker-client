@@ -34,6 +34,7 @@ import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
+import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
 
@@ -71,6 +72,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -729,21 +731,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
-
     final String apiVersion = version().apiVersion();
-    final int versionComparison = compareVersion(apiVersion, "1.20");
+    final int versionComparison = compareVersion(apiVersion, "1.24");
 
-    // Version below 1.20
-    if (versionComparison < 0) {
-      return doCopyContainer(containerId, path);
-    } else {
-      // Version equal or above 1.20
-      return doArchiveContainer(containerId, path);
+    // Version above 1.24
+    if (versionComparison >= 0) {
+      throw new UnsupportedApiVersionException(apiVersion);
     }
-  }
 
-  public InputStream doCopyContainer(String containerId, String path)
-      throws DockerException, InterruptedException {
     final WebTarget resource = resource()
         .path("containers").path(containerId).path("copy");
 
@@ -765,15 +760,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  public InputStream doArchiveContainer(String containerId, String path)
+  public TarArchiveInputStream archiveContainer(String containerId, String path)
       throws DockerException, InterruptedException {
+    final String apiVersion = version().apiVersion();
+    final int versionComparison = compareVersion(apiVersion, "1.20");
+
+    // Version below 1.20
+    if (versionComparison < 0) {
+      throw new UnsupportedApiVersionException(apiVersion);
+    }
+
     final WebTarget resource = resource()
         .path("containers").path(containerId).path("archive")
         .queryParam("path", path);
 
     try {
-      return request(GET, InputStream.class, resource,
-          resource.request(APPLICATION_OCTET_STREAM_TYPE));
+      return new TarArchiveInputStream(request(GET, InputStream.class, resource,
+          resource.request(APPLICATION_OCTET_STREAM_TYPE)));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:

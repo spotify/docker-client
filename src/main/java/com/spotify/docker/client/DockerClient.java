@@ -44,6 +44,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -884,7 +886,7 @@ public interface DockerClient extends Closeable {
   InputStream exportContainer(String containerId) throws DockerException, InterruptedException;
 
   /**
-   * Copies some files out of a container.
+   * Copies some files out of a container. (removed on API version 1.24)
    *
    * @param containerId The id of the container to copy files from.
    * @param path        The path inside of the container to copy.  If this is a directory, it will
@@ -902,6 +904,28 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   InputStream copyContainer(String containerId, String path)
+      throws DockerException, InterruptedException;
+
+
+  /**
+   * Copies an archive out of a container. (API version 1.20+)
+   *
+   * @param containerId The id of the container to copy files from.
+   * @param path        The path inside of the container to copy.  If this is a directory, it will
+   *                    be copied recursively.  If this is a file, only that file will be copied.
+   * @return A stream in tar format that contains the copied files.  If a directory was copied, the
+   * directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")} will
+   * result in a directory called {@code share} in the tar archive).  The directory name is
+   * completely resolved, so copying {@code "/usr/share/././."} will still create a directory called
+   * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
+   * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
+   * tar archive containing a single folder named after the container ID.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  TarArchiveInputStream archiveContainer(String containerId, String path)
       throws DockerException, InterruptedException;
 
   /**

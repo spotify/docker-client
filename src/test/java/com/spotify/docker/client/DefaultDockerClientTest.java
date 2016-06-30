@@ -30,6 +30,7 @@ import com.spotify.docker.client.exceptions.DockerTimeoutException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
@@ -482,12 +483,16 @@ public class DefaultDockerClientTest {
     assertThat(info.dockerRootDir(), not(isEmptyOrNullString()));
     assertThat(info.storageDriver(), not(isEmptyOrNullString()));
     assertThat(info.driverStatus(), is(anything()));
-    assertThat(info.executionDriver(), not(isEmptyOrNullString()));
+    if (dockerApiVersionNot("1.24")) {
+      assertThat(info.executionDriver(), not(isEmptyOrNullString()));
+    }
     assertThat(info.id(), not(isEmptyOrNullString()));
     assertThat(info.ipv4Forwarding(), is(anything()));
     assertThat(info.images(), greaterThan(0));
     assertThat(info.indexServerAddress(), not(isEmptyOrNullString()));
-    assertThat(info.initPath(), not(isEmptyOrNullString()));
+    if (dockerApiVersionNot("1.24")) {
+      assertThat(info.initPath(), not(isEmptyOrNullString()));
+    }
     assertThat(info.initSha1(), is(anything()));
     assertThat(info.kernelVersion(), not(isEmptyOrNullString()));
     assertThat(info.labels(), is(anything()));
@@ -513,8 +518,10 @@ public class DefaultDockerClientTest {
     if (dockerApiVersionAtLeast("1.19")) {
       assertThat(info.cpuCfsPeriod(), is(anything()));
       assertThat(info.cpuCfsQuota(), is(anything()));
-      assertThat("Sorry if you're testing on an experimental build",
-          info.experimentalBuild(), is(false));
+      if (dockerApiVersionNot("1.24")) {
+        assertThat("Sorry if you're testing on an experimental build",
+            info.experimentalBuild(), is(false));
+      }
       assertThat(info.oomKillDisable(), is(anything()));
     }
 
@@ -890,6 +897,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testCopyContainer() throws Exception {
+    requireDockerApiVersionLessThan("1.24", "failCopyToContainer");
+
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
@@ -912,6 +921,74 @@ public class DefaultDockerClientTest {
 
     // Check that some common files exist
     assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
+  }
+
+  @Test
+  public void testFailCopyContainer() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "failCopyToContainer");
+
+    exception.expect(UnsupportedApiVersionException.class);
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.copyContainer(id, "/bin");
+  }
+
+  @Test
+  public void testArchiveContainer() throws Exception {
+    requireDockerApiVersionAtLeast("1.20", "copyToContainer");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    final ImmutableSet.Builder<String> files = ImmutableSet.builder();
+    try (final TarArchiveInputStream tarStream =
+        sut.archiveContainer(id, "/bin")) {
+      TarArchiveEntry entry;
+      while ((entry = tarStream.getNextTarEntry()) != null) {
+        files.add(entry.getName());
+      }
+    }
+
+    // Check that some common files exist
+    assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
+  }
+
+  @Test
+  public void testFailArchiveContainer() throws Exception {
+    requireDockerApiVersionLessThan("1.20", "failCopyToContainer");
+
+    exception.expect(UnsupportedApiVersionException.class);
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.archiveContainer(id, "/bin");
   }
 
   @Test
@@ -1106,7 +1183,9 @@ public class DefaultDockerClientTest {
       // Copy the same files from container
       final ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
       try (TarArchiveInputStream tarStream =
-               new TarArchiveInputStream(sut.copyContainer(id, "/tmp"))) {
+               dockerApiVersionLessThan("1.24") ?
+               new TarArchiveInputStream(sut.copyContainer(id, "/tmp")) :
+               sut.archiveContainer(id, "/tmp")) {
         TarArchiveEntry entry;
         while ((entry = tarStream.getNextTarEntry()) != null) {
           filesDownloaded.add(entry.getName());
