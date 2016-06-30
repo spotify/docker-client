@@ -413,8 +413,8 @@ public class DefaultDockerClientTest {
 
     final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
       @Override
-      public boolean apply(Image img) {
-        return img.repoTags().contains(image + ":latest");
+      public boolean apply(final Image img) {
+        return img.repoTags() != null && img.repoTags().contains(image + ":latest");
       }
     });
 
