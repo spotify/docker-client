@@ -18,7 +18,8 @@
 package com.spotify.docker.client;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
@@ -35,7 +36,7 @@ import jnr.unixsocket.UnixSocketAddress;
 /**
  * Provides a ConnectionSocketFactory for connecting Apache HTTP clients to Unix sockets.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
 
   private File socketFile;
