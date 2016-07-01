@@ -858,12 +858,31 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public InputStream copyFromContainer(String containerId, String path)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource()
+        .path("containers").path(containerId).path("archive").queryParam("path", path);
+
+    try {
+      return request(GET, InputStream.class, resource,
+          resource.request(APPLICATION_OCTET_STREAM_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public List<ContainerChange> inspectContainerChanges(final String containerId)
       throws DockerException, InterruptedException {
     try {
       final WebTarget resource = resource().path("containers").path(containerId).path("changes");
       return request(GET, CONTAINER_CHANGE_LIST, resource,
-          resource.request(APPLICATION_JSON_TYPE));
+                     resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
