@@ -390,7 +390,7 @@ public class DefaultDockerClientTest {
     assertTrue(imageFile.length() > 0);
   }
 
-  private File save(String image) throws Exception {
+  private File save(final String image) throws Exception {
     final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
     assertTrue("Temp directory " + tmpDir.getAbsolutePath() + " does not exist", tmpDir.exists());
     final File imageFile = new File(tmpDir, "busybox-" + System.nanoTime() + ".tar");
@@ -400,7 +400,7 @@ public class DefaultDockerClientTest {
     final byte[] buffer = new byte[2048];
     int read;
     try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(imageFile))) {
-      try (InputStream imageInput = sut.save(image, authConfig)) {
+      try (InputStream imageInput = sut.save(image)) {
         while ((read = imageInput.read(buffer)) > -1) {
           imageOutput.write(buffer, 0, read);
         }

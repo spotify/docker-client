@@ -332,18 +332,18 @@ public interface DockerClient extends Closeable {
 
   /**
    * Get a tarball containing all images and metadata for the repository specified.
-   * @param image the name or id of the image to save. If a specific name and tag
+   * @param images the name(s) of one or more images to save. If a specific name and tag
    *              (e.g. ubuntu:latest), then only that image (and its parents) are returned.
    *              If an image ID, similarly only that image (and its parents) are returned,
    *              but with the exclusion of the 'repositories' file in the tarball,
    *              as there were no image names referenced.
-   * @return the image's .tar stream.
+   * @return the images' .tar streams.
    * @throws DockerException      if a server error occurred (500).
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
-  InputStream save(String image) throws DockerException, IOException, InterruptedException;
+  InputStream save(String... images) throws DockerException, IOException, InterruptedException;
 
   /**
    * Get a tarball containing all images and metadata for the repository specified.
@@ -358,7 +358,10 @@ public interface DockerClient extends Closeable {
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated AuthConfig is not required. Use {@link #save(String...)}.
    */
+  @Deprecated
   InputStream save(String image, AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException;
 
