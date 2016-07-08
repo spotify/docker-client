@@ -410,14 +410,14 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testLoad() throws Exception {
+  public void testCreate() throws Exception {
     // Ensure the local Docker instance has the busybox image so that save() will work
     sut.pull(BUSYBOX_LATEST);
     final File imageFile = save(BUSYBOX);
     final String image = BUSYBOX + "test" + System.nanoTime();
 
     try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
-      sut.load(image, imagePayload, authConfig);
+      sut.create(image, imagePayload);
     }
 
     final Collection<Image> images = Collections2.filter(sut.listImages(), new Predicate<Image>() {
