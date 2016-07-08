@@ -327,14 +327,14 @@ public interface DockerClient extends Closeable {
           throws DockerException, InterruptedException;
 
   /**
-   * @param image the name of the image to save.
-   * @return the image's .tar stream.
+   * @param images the name(s) of one or more images to save.
+   * @return the images' .tar streams.
    * @throws DockerException      if a server error occurred (500).
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
-  InputStream save(String image) throws DockerException, IOException, InterruptedException;
+  InputStream save(String... images) throws DockerException, IOException, InterruptedException;
 
   /**
    * @param image      the name of the image to save.
@@ -344,7 +344,10 @@ public interface DockerClient extends Closeable {
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated AuthConfig is not required. Use {@link #save(String...)}.
    */
+  @Deprecated
   InputStream save(String image, AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException;
 

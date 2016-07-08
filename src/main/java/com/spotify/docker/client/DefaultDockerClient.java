@@ -986,22 +986,33 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public InputStream save(final String image)
+  public InputStream save(final String... images)
       throws DockerException, IOException, InterruptedException {
-    return save(image, authConfig);
-  }
-
-  @Override
-  public InputStream save(final String image, final AuthConfig authConfig)
-      throws DockerException, IOException, InterruptedException {
-    final WebTarget resource = resource().path("images").path(image).path("get");
+    WebTarget resource;
+    if (images.length == 1) {
+      resource = resource().path("images").path(images[0]).path("get");
+    } else {
+      resource = resource().path("images").path("get");
+      if (images.length > 1) {
+        for (final String image : images) {
+          if (!isNullOrEmpty(image)) {
+            resource = resource.queryParam("names", urlEncode(image));
+          }
+        }
+      }
+    }
 
     return request(
         GET,
         InputStream.class,
         resource,
-        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
-    );
+        resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public InputStream save(final String image, final AuthConfig authConfig)
+          throws DockerException, IOException, InterruptedException {
+    return save(image);
   }
 
   @Override
