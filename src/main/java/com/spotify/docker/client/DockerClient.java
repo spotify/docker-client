@@ -719,6 +719,8 @@ public interface DockerClient extends Closeable {
    * Return the history of the image.
    * @param image An image name or ID.
    * @return List<ImageHistory>
+   * @throws DockerException  if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
    */
   List<ImageHistory> history(final String image) throws InterruptedException, DockerException;
 
