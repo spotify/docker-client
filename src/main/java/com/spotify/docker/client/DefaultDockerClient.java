@@ -1826,12 +1826,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     /**
-     * Set the auth parameters for pull/push requests from/to private repositories.
+     * Allows reusing Docker auth info
      *
-     * @param dockerAuth tells if Docker auth should be used
+     * @param dockerAuth tells if Docker auth info should be used
      * @return Builder
      */
-    public Builder authConfig(final boolean dockerAuth) {
+    public Builder dockerAuth(final boolean dockerAuth) {
       this.dockerAuth = dockerAuth;
       return this;
     }
