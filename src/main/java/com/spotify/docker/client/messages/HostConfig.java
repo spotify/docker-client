@@ -63,6 +63,7 @@ public class HostConfig {
   @JsonProperty("LogConfig") private LogConfig logConfig;
   @JsonProperty("IpcMode") private String ipcMode;
   @JsonProperty("Ulimits") private ImmutableList<Ulimit> ulimits;
+  @JsonProperty("PidMode") private String pidMode;
 
   private HostConfig() {
   }
@@ -95,6 +96,7 @@ public class HostConfig {
     this.logConfig = builder.logConfig;
     this.ipcMode = builder.ipcMode;
     this.ulimits = builder.ulimits;
+    this.pidMode = builder.pidMode;
   }
 
   public List<String> binds() {
@@ -251,7 +253,7 @@ public class HostConfig {
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
-                        restartPolicy, logConfig, ipcMode, ulimits);
+                        restartPolicy, logConfig, ipcMode, ulimits, pidMode);
   }
 
   @Override
@@ -284,6 +286,7 @@ public class HostConfig {
         .add("logConfig", logConfig)
         .add("ipcMode", ipcMode)
         .add("ulimits", ulimits)
+        .add("pidMode", pidMode)
         .toString();
   }
 
@@ -434,6 +437,7 @@ public class HostConfig {
     private LogConfig logConfig;
     private String ipcMode;
     private ImmutableList<Ulimit> ulimits;
+    private String pidMode;
 
     private Builder() {
     }
@@ -466,6 +470,7 @@ public class HostConfig {
       this.logConfig = hostConfig.logConfig;
       this.ipcMode = hostConfig.ipcMode;
       this.ulimits = hostConfig.ulimits;
+      this.pidMode = hostConfig.pidMode;
     }
 
     /**
@@ -914,6 +919,29 @@ public class HostConfig {
 
     public Builder ulimits(final List<Ulimit> ulimits) {
       this.ulimits = ImmutableList.copyOf(ulimits);
+      return this;
+    }
+
+    /**
+     * Set the PID (Process) Namespace mode for the container.
+     * Use this method to join another container's PID namespace. To use the host
+     * PID namespace, use {@link #hostPidMode()}.
+     * @param container Join the namespace of this container (Name or ID)
+     * @return Builder
+     */
+    public Builder containerPidMode(final String container) {
+      this.pidMode = "container:" + container;
+      return this;
+    }
+
+    /**
+     * Set the PID (Process) Namespace mode for the container.
+     * Use this method to use the host's PID namespace. To use another container's
+     * PID namespace, use {@link #containerPidMode(String)}.
+     * @return Builder
+     */
+    public Builder hostPidMode() {
+      this.pidMode = "host";
       return this;
     }
 
