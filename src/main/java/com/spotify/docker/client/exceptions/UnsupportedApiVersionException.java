@@ -17,7 +17,7 @@
 
 package com.spotify.docker.client.exceptions;
 
-public class UnsupportedApiVersionException extends NotFoundException {
+public class UnsupportedApiVersionException extends DockerException {
 
   public UnsupportedApiVersionException(final String version, final Throwable cause) {
     super("Unsupported Api Version: " + version, cause);
