@@ -72,7 +72,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.net.HostAndPort;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -760,7 +759,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  public TarArchiveInputStream archiveContainer(String containerId, String path)
+  @Override
+  public InputStream archiveContainer(String containerId, String path)
       throws DockerException, InterruptedException {
     final String apiVersion = version().apiVersion();
     final int versionComparison = compareVersion(apiVersion, "1.20");
@@ -775,8 +775,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("path", path);
 
     try {
-      return new TarArchiveInputStream(request(GET, InputStream.class, resource,
-          resource.request(APPLICATION_OCTET_STREAM_TYPE)));
+      return request(GET, InputStream.class, resource,
+          resource.request(APPLICATION_OCTET_STREAM_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
