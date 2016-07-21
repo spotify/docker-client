@@ -379,6 +379,12 @@ public interface DockerClient extends Closeable {
    */
   void push(String image, ProgressHandler handler) throws DockerException, InterruptedException;
 
+  void push(final String image, final AuthConfig authconfig)
+      throws DockerException, InterruptedException;
+
+  void push(final String image, final ProgressHandler handler, final AuthConfig authConfig)
+      throws DockerException, InterruptedException;
+
   /**
    * Tag a docker image.
    *

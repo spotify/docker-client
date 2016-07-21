@@ -70,6 +70,10 @@ public class PushPullIT {
   private static final String LOCAL_AUTH_PASSWORD = "testpassword";
   private static final String LOCAL_IMAGE = "localhost:5000/testuser/test-image:latest";
 
+  private static final String LOCAL_AUTH_USERNAME_2 = "testusertwo";
+  private static final String LOCAL_AUTH_PASSWORD_2 = "testpasswordtwo";
+  private static final String LOCAL_IMAGE_2 = "localhost:5000/testusertwo/test-image:latest";
+
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
   private static final String HUB_AUTH_EMAIL = "dxia+4@spotify.com";
@@ -149,9 +153,19 @@ public class PushPullIT {
     // Push an image to the private registry and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
+    client.tag(LOCAL_IMAGE, LOCAL_IMAGE_2);
     client.push(LOCAL_IMAGE);
+
+    // Push the same image again under a different user
+    final AuthConfig authConfig = AuthConfig.builder()
+    .username(LOCAL_AUTH_USERNAME_2)
+    .password(LOCAL_AUTH_PASSWORD_2)
+    .build();
+    client.push(LOCAL_IMAGE_2, authConfig);
+
     // We should be able to pull it again
     client.pull(LOCAL_IMAGE);
+    client.pull(LOCAL_IMAGE_2);
   }
 
   @Test
@@ -273,6 +287,11 @@ public class PushPullIT {
             Resources.getResource("dockerRegistry/auth").getPath() + ":/auth",
             Resources.getResource("dockerRegistry/certs").getPath() + ":/certs"
         ))
+        /*
+         *  Mounting volumes requires special permissions on Docker >= 1.10.
+         *  Until a proper Seccomp profile is in place, run container privileged.
+         */
+        .privileged(true)
         .build();
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
