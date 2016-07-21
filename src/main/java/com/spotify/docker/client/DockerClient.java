@@ -44,8 +44,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -925,7 +923,7 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  TarArchiveInputStream archiveContainer(String containerId, String path)
+  InputStream archiveContainer(String containerId, String path)
       throws DockerException, InterruptedException;
 
   /**

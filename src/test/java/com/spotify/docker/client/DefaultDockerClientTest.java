@@ -960,7 +960,7 @@ public class DefaultDockerClientTest {
 
     final ImmutableSet.Builder<String> files = ImmutableSet.builder();
     try (final TarArchiveInputStream tarStream =
-        sut.archiveContainer(id, "/bin")) {
+        new TarArchiveInputStream(sut.archiveContainer(id, "/bin"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
         files.add(entry.getName());
@@ -1182,10 +1182,10 @@ public class DefaultDockerClientTest {
 
       // Copy the same files from container
       final ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
-      try (TarArchiveInputStream tarStream =
+      try (TarArchiveInputStream tarStream = new TarArchiveInputStream(
                dockerApiVersionLessThan("1.24") ?
-               new TarArchiveInputStream(sut.copyContainer(id, "/tmp")) :
-               sut.archiveContainer(id, "/tmp")) {
+               sut.copyContainer(id, "/tmp") :
+               sut.archiveContainer(id, "/tmp"))) {
         TarArchiveEntry entry;
         while ((entry = tarStream.getNextTarEntry()) != null) {
           filesDownloaded.add(entry.getName());
