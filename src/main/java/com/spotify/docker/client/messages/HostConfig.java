@@ -54,6 +54,7 @@ public class HostConfig {
   @JsonProperty("Devices") private ImmutableList<Device> devices;
   @JsonProperty("Memory") private Long memory;
   @JsonProperty("MemorySwap") private Long memorySwap;
+  @JsonProperty("MemoryReservation") private Long memoryReservation;
   @JsonProperty("CpuShares") private Long cpuShares;
   @JsonProperty("CpusetCpus") private String cpusetCpus;
   @JsonProperty("CpuQuota") private Long cpuQuota;
@@ -84,6 +85,7 @@ public class HostConfig {
     this.devices = builder.devices;
     this.memory = builder.memory;
     this.memorySwap = builder.memorySwap;
+    this.memoryReservation = builder.memoryReservation;
     this.cpuShares = builder.cpuShares;
     this.cpusetCpus = builder.cpusetCpus;
     this.cpuQuota = builder.cpuQuota;
@@ -165,6 +167,10 @@ public class HostConfig {
     return memorySwap;
   }
 
+  public Long getMemoryReservation() {
+    return memoryReservation;
+  }
+
   public Long cpuShares() {
     return cpuShares;
   }
@@ -222,6 +228,7 @@ public class HostConfig {
         Objects.equals(this.devices, that.devices) &&
         Objects.equals(this.memory, that.memory) &&
         Objects.equals(this.memorySwap, that.memorySwap) &&
+        Objects.equals(this.memoryReservation, that.memoryReservation) &&
         Objects.equals(this.cpuShares, that.cpuShares) &&
         Objects.equals(this.cpusetCpus, that.cpusetCpus) &&
         Objects.equals(this.cpuQuota, that.cpuQuota) &&
@@ -236,8 +243,8 @@ public class HostConfig {
     return Objects.hash(binds, containerIDFile, lxcConf, privileged, portBindings, links,
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
-                        cpuShares, cpusetCpus, cpuQuota, cgroupParent, restartPolicy, logConfig,
-                        ipcMode);
+                        memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
+                        restartPolicy, logConfig, ipcMode);
   }
 
   @Override
@@ -261,6 +268,7 @@ public class HostConfig {
         .add("devices", devices)
         .add("memory", memory)
         .add("memorySwap", memorySwap)
+        .add("memoryReservation", memoryReservation)
         .add("cpuShares", cpuShares)
         .add("cpusetCpus", cpusetCpus)
         .add("cpuQuota", cpuQuota)
@@ -409,6 +417,7 @@ public class HostConfig {
     private ImmutableList<Device> devices;
     public Long memory;
     public Long memorySwap;
+    public Long memoryReservation;
     public Long cpuShares;
     public String cpusetCpus;
     public Long cpuQuota;
@@ -439,6 +448,7 @@ public class HostConfig {
       this.devices = hostConfig.devices;
       this.memory = hostConfig.memory;
       this.memorySwap = hostConfig.memorySwap;
+      this.memoryReservation = hostConfig.memoryReservation;
       this.cpuShares = hostConfig.cpuShares;
       this.cpusetCpus = hostConfig.cpusetCpus;
       this.cpuQuota = hostConfig.cpuQuota;
@@ -818,6 +828,15 @@ public class HostConfig {
 
     public Long memorySwap() {
       return memorySwap;
+    }
+
+    public Builder memoryReservation(final Long memoryReservation) {
+      this.memoryReservation = memoryReservation;
+      return this;
+    }
+
+    public Long memoryReservation() {
+      return memoryReservation;
     }
 
     public Builder cpuShares(final Long cpuShares) {
