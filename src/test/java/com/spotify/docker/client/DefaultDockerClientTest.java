@@ -1013,6 +1013,32 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCopyFromContainer() throws Exception {
+    requireDockerApiVersionAtLeast("1.20", "copyFromContainer");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder().image(BUSYBOX_LATEST).build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String containerId = creation.id();
+
+    final ImmutableSet.Builder<String> files = ImmutableSet.builder();
+    try (final TarArchiveInputStream tarStream =
+             new TarArchiveInputStream(sut.copyFromContainer(containerId, "/bin"))) {
+      TarArchiveEntry entry;
+      while ((entry = tarStream.getNextTarEntry()) != null) {
+        files.add(entry.getName());
+      }
+    }
+
+    // Check that some common files exist
+    assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
+  }
+
+  @Test
   public void testCommitContainer() throws Exception {
     // Pull image
     sut.pull(BUSYBOX_LATEST);
