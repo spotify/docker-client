@@ -210,7 +210,7 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * Creates a single image from a tarball. This method also tags the image
    * with the given image name upon loading completion.
    *
    * @param image        the name to assign to the image.
@@ -218,13 +218,17 @@ public interface DockerClient extends Closeable {
    *                     file).
    * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
+   * {@link #create(String, InputStream)} to create a single image from the contents of a tarball.
    */
+  @Deprecated
   void load(String image, InputStream imagePayload)
       throws DockerException, InterruptedException;
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * Creates a single image from a tarball. This method also tags the image
    * with the given image name upon loading completion.
    *
    * @param image        the name to assign to the image.
@@ -234,13 +238,18 @@ public interface DockerClient extends Closeable {
    *                     Docker.
    * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
+   * {@link #create(String, InputStream, ProgressHandler)} to create a single image from the
+   * contents of a tarball.
    */
+  @Deprecated
   void load(String image, InputStream imagePayload, ProgressHandler handler)
       throws DockerException, InterruptedException;
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * Creates a single image from a tarball. This method also tags the image
    * with the given image name upon loading completion.
    *
    * @param image        the name to assign to the image.
@@ -249,13 +258,17 @@ public interface DockerClient extends Closeable {
    * @param authConfig   The authentication config needed to pull the image.
    * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
+   * {@link #create(String, InputStream)} to create a single image from the contents of a tarball.
    */
+  @Deprecated
   void load(String image, InputStream imagePayload, AuthConfig authConfig)
       throws DockerException, InterruptedException;
 
 
   /**
-   * Loads an image (the given input stream is closed internally). This method also tags the image
+   * Creates a single image from a tarball. This method also tags the image
    * with the given image name upon loading completion.
    *
    * @param image        the name to assign to the image.
@@ -266,20 +279,62 @@ public interface DockerClient extends Closeable {
    *                     Docker.
    * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
+   * {@link #create(String, InputStream, ProgressHandler)} to create a single image from the
+   * contents of a tarball.
    */
+  @Deprecated
   void load(String image, InputStream imagePayload, AuthConfig authConfig,
             ProgressHandler handler) throws DockerException, InterruptedException;
 
+  /**
+   * Load a set of images and tags from a tarball.
+   *
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void load(InputStream imagePayload) throws DockerException, InterruptedException;
 
   /**
-   * @param image the name of the image to save.
-   * @return the image's .tar stream.
+   * Creates a single image from a tarball. This method also tags the image
+   * with the given image name upon loading completion.
+   *
+   * @param image        the name to assign to the image.
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void create(String image, InputStream imagePayload)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Creates a single image from a tarball. This method also tags the image
+   * with the given image name upon loading completion.
+   *
+   * @param image        the name to assign to the image.
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @param handler      The handler to use for processing each progress message received from
+   *                     Docker.
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void create(String image, InputStream imagePayload, ProgressHandler handler)
+          throws DockerException, InterruptedException;
+
+  /**
+   * @param images the name(s) of one or more images to save.
+   * @return the images' .tar streams.
    * @throws DockerException      if a server error occurred (500).
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    */
-  InputStream save(String image) throws DockerException, IOException, InterruptedException;
+  InputStream save(String... images) throws DockerException, IOException, InterruptedException;
 
   /**
    * @param image      the name of the image to save.
@@ -289,7 +344,10 @@ public interface DockerClient extends Closeable {
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
+   *
+   * @deprecated AuthConfig is not required. Use {@link #save(String...)}.
    */
+  @Deprecated
   InputStream save(String image, AuthConfig authConfig)
       throws DockerException, IOException, InterruptedException;
 
