@@ -37,6 +37,7 @@ public class Image {
   @JsonProperty("Id") private String id;
   @JsonProperty("ParentId") private String parentId;
   @JsonProperty("RepoTags") private ImmutableList<String> repoTags;
+  @JsonProperty("RepoDigests") private ImmutableList<String> repoDigests;
   @JsonProperty("Size") private Long size;
   @JsonProperty("VirtualSize") private Long virtualSize;
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
@@ -55,6 +56,10 @@ public class Image {
 
   public ImmutableList<String> repoTags() {
     return repoTags;
+  }
+
+  public ImmutableList<String> repoDigests() {
+    return repoDigests;
   }
 
   public Long size() {
@@ -85,6 +90,7 @@ public class Image {
         Objects.equals(this.id, that.id) &&
         Objects.equals(this.parentId, that.parentId) &&
         Objects.equals(this.repoTags, that.repoTags) &&
+        Objects.equals(this.repoDigests, that.repoDigests) &&
         Objects.equals(this.size, that.size) &&
         Objects.equals(this.virtualSize, that.virtualSize) &&
         Objects.equals(this.labels, that.labels);
@@ -92,7 +98,8 @@ public class Image {
 
   @Override
   public int hashCode() {
-    return Objects.hash(created, id, parentId, repoTags, size, virtualSize, labels);
+    return Objects.hash(created, id, parentId, repoTags, repoDigests,
+        size, virtualSize, labels);
   }
 
   @Override
@@ -102,6 +109,7 @@ public class Image {
         .add("id", id)
         .add("parentId", parentId)
         .add("repoTags", repoTags)
+        .add("repoDigests", repoDigests)
         .add("size", size)
         .add("virtualSize", virtualSize)
         .add("labels", labels)

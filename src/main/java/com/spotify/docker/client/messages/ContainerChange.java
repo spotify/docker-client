@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Spotify AB.
+ * Copyright (c) 2016 Spotify AB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,9 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
@@ -29,58 +27,52 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class CpuUsage {
+public class ContainerChange {
+  @JsonProperty("Path") private String path;
+  @JsonProperty("Kind") private Integer kind;
 
-  @JsonProperty("total_usage") private Long totalUsage;
-  @JsonProperty("percpu_usage") private ImmutableList<Long> percpuUsage;
-  @JsonProperty("usage_in_kernelmode") private Long usageInKernelmode;
-  @JsonProperty("usage_in_usermode") private Long usageInUsermode;
-
-  public Long totalUsage() {
-    return totalUsage;
+  public String path() {
+    return path;
   }
 
-  public ImmutableList<Long> percpuUsage() {
-    return percpuUsage;
+  public void path(final String path) {
+    this.path = path;
   }
 
-  public Long usageInKernelmode() {
-    return usageInKernelmode;
+  public Integer kind() {
+    return kind;
   }
 
-  public Long usageInUsermode() {
-    return usageInUsermode;
+  public void kind(final Integer kind) {
+    this.kind = kind;
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
+
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
-    final CpuUsage that = (CpuUsage) o;
+    final ContainerChange that = (ContainerChange) o;
 
-    return Objects.equals(this.totalUsage, that.totalUsage) &&
-        Objects.equals(this.percpuUsage, that.percpuUsage) &&
-        Objects.equals(this.usageInKernelmode, that.usageInKernelmode) &&
-        Objects.equals(this.usageInUsermode, that.usageInUsermode);
+    return Objects.equals(this.path, that.path) &&
+        Objects.equals(this.kind, that.kind);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(totalUsage, percpuUsage, usageInKernelmode, usageInUsermode);
+    return Objects.hash(path, kind);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("percpuUsage", percpuUsage)
-        .add("totalUsage", totalUsage)
-        .add("usageInKernelmode", usageInKernelmode)
-        .add("usageInUsermode", usageInUsermode)
+        .add("path", path)
+        .add("kind", kind)
         .toString();
   }
 }

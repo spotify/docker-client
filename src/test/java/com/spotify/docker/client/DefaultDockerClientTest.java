@@ -17,10 +17,13 @@
 
 package com.spotify.docker.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
+import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -34,6 +37,7 @@ import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
@@ -41,10 +45,13 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerMount;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.Event;
+import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.HostConfig.Bind;
+import com.spotify.docker.client.messages.HostConfig.Ulimit;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
@@ -143,6 +150,7 @@ import static com.spotify.docker.client.DockerClient.ListContainersParam.withSta
 import static com.spotify.docker.client.DockerClient.ListImagesParam.allImages;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.byName;
 import static com.spotify.docker.client.DockerClient.ListImagesParam.danglingImages;
+import static com.spotify.docker.client.DockerClient.ListImagesParam.digests;
 import static com.spotify.docker.client.DockerClient.LogsParam.follow;
 import static com.spotify.docker.client.DockerClient.LogsParam.since;
 import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
@@ -1452,11 +1460,20 @@ public class DefaultDockerClientTest {
     final boolean privileged = true;
     final boolean publishAllPorts = true;
     final String dns = "1.2.3.4";
+    final List<Ulimit> ulimits =
+        Lists.newArrayList(
+            Ulimit.builder()
+                .name("nofile")
+                .soft(1024)
+                .hard(2048)
+                .build()
+        );
     final HostConfig expected = HostConfig.builder()
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
         .cpuShares((long) 4096)
+        .ulimits(ulimits)
         .build();
 
     final ContainerConfig config = ContainerConfig.builder()
@@ -1475,6 +1492,7 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+    assertEquals(ulimits, actual.ulimits());
   }
 
   @Test
@@ -1580,6 +1598,8 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
 
+    assumeTrue("Sometimes there are no events, and it is unclear why.", eventStream.hasNext());
+
     final Event createEvent = eventStream.next();
     assertThat(createEvent.status(), equalTo("create"));
     assertThat(createEvent.id(), equalTo(container.id()));
@@ -1659,17 +1679,41 @@ public class DefaultDockerClientTest {
     assertThat(images.size(), greaterThan(0));
 
     // Verify that image contains valid values
-    final Image image = images.get(0);
-    assertThat(image.virtualSize(), greaterThan(0L));
-    assertThat(image.created(), not(isEmptyOrNullString()));
-    assertThat(image.id(), not(isEmptyOrNullString()));
-    assertThat(image.parentId(), not(isEmptyOrNullString()));
+    Image busybox = null;
+    for (final Image image : images) {
+      if (image.repoTags() != null && image.repoTags().contains(BUSYBOX_LATEST)) {
+        busybox = image;
+      }
+    }
+    assertNotNull(busybox);
+    assertThat(busybox.virtualSize(), greaterThan(0L));
+    assertThat(busybox.created(), not(isEmptyOrNullString()));
+    assertThat(busybox.id(), not(isEmptyOrNullString()));
+    assertThat(busybox.repoTags(), notNullValue());
+    assertThat(busybox.repoTags().size(), greaterThan(0));
+    assertThat(BUSYBOX_LATEST, isIn(busybox.repoTags()));
+    if (dockerApiVersionLessThan("1.22")) {
+      assertThat(busybox.parentId(), not(isEmptyOrNullString()));
+    }
+
+    final List<Image> imagesWithDigests = sut.listImages(digests());
+    assertThat(imagesWithDigests.size(), greaterThan(0));
+    busybox = null;
+    for (final Image image : imagesWithDigests) {
+      if (image.repoTags() != null && image.repoTags().contains(BUSYBOX_LATEST)) {
+        busybox = image;
+      }
+    }
+    assertNotNull(busybox);
+    if (dockerApiVersionLessThan("1.22")) {
+      assertThat(busybox.repoDigests(), notNullValue());
+    }
 
     // Using allImages() should give us more images
     final List<Image> allImages = sut.listImages(allImages());
     assertThat(allImages.size(), greaterThan(images.size()));
 
-    // Including just dangling images should give us less images
+    // Including just dangling images should give us fewer images
     final List<Image> danglingImages = sut.listImages(danglingImages());
     assertThat(danglingImages.size(), lessThan(images.size()));
 
@@ -1921,6 +1965,8 @@ public class DefaultDockerClientTest {
     // we got back contains our expected path.
     final String expectedLocalPath = "/local/path";
     assertThat(volumeContainer.volumes().values(), hasItem(containsString(expectedLocalPath)));
+
+    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
   }
 
   @Test
@@ -1971,6 +2017,8 @@ public class DefaultDockerClientTest {
                       }
                     });
     assertThat(expectedSources, everyItem(isIn(actualSources)));
+
+    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
   }
 
   @Test
@@ -2321,9 +2369,12 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(containerId);
 
-    final String execId = sut.execCreate(containerId, new String[] {"ls", "-la"},
-                                         ExecCreateParam.attachStdout(),
-                                         ExecCreateParam.attachStderr());
+    final ExecCreation execCreation = sut.execCreate(
+        containerId,
+        new String[] {"ls", "-la"},
+        ExecCreateParam.attachStdout(),
+        ExecCreateParam.attachStderr());
+    final String execId = execCreation.id();
 
     log.info("execId = {}", execId);
 
@@ -2364,9 +2415,10 @@ public class DefaultDockerClientTest {
       createParams.add(ExecCreateParam.user("1000"));
     }
 
-    final String execId = sut.execCreate(
+    final ExecCreation execCreation = sut.execCreate(
         containerId, new String[]{"sh", "-c", "exit 2"},
         createParams.toArray(new ExecCreateParam[createParams.size()]));
+    final String execId = execCreation.id();
 
     log.info("execId = {}", execId);
     try (final LogStream stream = sut.execStart(execId)) {
@@ -2842,6 +2894,88 @@ public class DefaultDockerClientTest {
     } catch (ContainerNotFoundException e) {
       assertThat(e.getContainerId(), equalTo(badId));
     }
+  }
+
+  @Test
+  public void testInspectContainerChanges() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("/bin/sh", "-c", "echo foo > /tmp/foo.txt")
+        .build();
+    final ContainerCreation creation = sut.createContainer(config);
+    final String id = creation.id();
+    sut.startContainer(id);
+
+    final ContainerChange expected = new ContainerChange();
+    expected.kind(1);
+    expected.path("/tmp/foo.txt");
+
+    assertThat(expected, isIn(sut.inspectContainerChanges(id)));
+  }
+
+  @Test
+  public void testResizeTty() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("/bin/sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final ContainerCreation creation = sut.createContainer(config);
+    final String id = creation.id();
+
+    try {
+      sut.resizeTty(id, 100, 0);
+      fail("Should get an exception resizing TTY with width=0");
+    } catch (BadParamException e) {
+      final Map<String, String> params = e.getParams();
+      assertThat(params, hasKey("w"));
+      assertEquals("0", params.get("w"));
+    }
+
+    try {
+      sut.resizeTty(id, 100, 80);
+      fail("Should get an exception resizing TTY for non-running container");
+    } catch (DockerRequestException e) {
+      if (dockerApiVersionLessThan("1.20")) {
+        assertEquals(
+            String.format("Cannot resize container %s, container is not running\n", id),
+            e.message());
+      } else if (dockerApiVersionLessThan("1.24")) {
+        assertEquals(String.format("Container %s is not running\n", id),
+            e.message());
+      } else {
+        final ObjectMapper mapper = new ObjectMapper();
+        final Map<String, String> jsonMessage =
+                mapper.readValue(e.message(), new TypeReference<Map<String, String>>(){});
+        assertThat(jsonMessage, hasKey("message"));
+        assertEquals(String.format("Container %s is not running", id),
+                jsonMessage.get("message"));
+      }
+    }
+
+    sut.startContainer(id);
+
+    sut.resizeTty(id, 100, 80);
+
+    // We didn't get an exception, so everything went fine
+  }
+
+  @Test
+  public void testHistory() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    final List<ImageHistory> imageHistoryList = sut.history(BUSYBOX_LATEST);
+    assertThat(imageHistoryList, hasSize(2));
+
+    final ImageHistory busyboxHistory = imageHistoryList.get(0);
+    assertThat(busyboxHistory.id(), not(isEmptyOrNullString()));
+    assertNotNull(busyboxHistory.created());
+    assertEquals("/bin/sh -c #(nop) CMD [\"sh\"]", busyboxHistory.createdBy());
+    assertThat(BUSYBOX_LATEST, isIn(busyboxHistory.tags()));
+    assertEquals(0L, busyboxHistory.size().longValue());
+    assertThat(busyboxHistory.comment(), isEmptyOrNullString());
   }
 
   private static Matcher<String> equalToIgnoreLeadingSlash(final String expected) {

@@ -20,13 +20,16 @@ package com.spotify.docker.client;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
@@ -40,6 +43,7 @@ import com.spotify.docker.client.messages.Version;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -272,7 +276,12 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * @param image the name of the image to save.
+   * Get a tarball containing all images and metadata for the repository specified.
+   * @param image the name or id of the image to save. If a specific name and tag
+   *              (e.g. ubuntu:latest), then only that image (and its parents) are returned.
+   *              If an image ID, similarly only that image (and its parents) are returned,
+   *              but with the exclusion of the 'repositories' file in the tarball,
+   *              as there were no image names referenced.
    * @return the image's .tar stream.
    * @throws DockerException      if a server error occurred (500).
    * @throws IOException          if the server started returning, but an I/O error occurred in the
@@ -282,7 +291,12 @@ public interface DockerClient extends Closeable {
   InputStream save(String image) throws DockerException, IOException, InterruptedException;
 
   /**
-   * @param image      the name of the image to save.
+   * Get a tarball containing all images and metadata for the repository specified.
+   * @param image the name or id of the image to save. If a specific name and tag
+   *              (e.g. ubuntu:latest), then only that image (and its parents) are returned.
+   *              If an image ID, similarly only that image (and its parents) are returned,
+   *              but with the exclusion of the 'repositories' file in the tarball,
+   *              as there were no image names referenced.
    * @param authConfig The authentication config needed to pull the image.
    * @return the image's .tar stream.
    * @throws DockerException      if a server error occurred (500).
@@ -291,6 +305,22 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   InputStream save(String image, AuthConfig authConfig)
+      throws DockerException, IOException, InterruptedException;
+
+  /**
+   * Get a tarball containing all images and metadata for one or more repositories.
+   * @param images the name or id of the image to save.
+   *               if it is a specific name and tag (e.g. ubuntu:latest), then only that image
+   *               (and its parents) are returned; if it is an image ID, similarly only that
+   *               image (and its parents) are returned and there would be no names referenced
+   *               in the 'repositories' file for this image ID.
+   * @return a tar stream containing the image(s)
+   * @throws DockerException      if a server error occurred (500).
+   * @throws IOException          if the server started returning, but an I/O error occurred in the
+   *                              context of processing it on the client-side.
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  InputStream saveMultiple(String... images)
       throws DockerException, IOException, InterruptedException;
 
   /**
@@ -590,6 +620,80 @@ public interface DockerClient extends Closeable {
       return create("pull", "true");
     }
 
+    /**
+     * Repository name (and optionally a tag) to be applied to the
+     * resulting image in case of success.
+     *
+     * You could also pass the name explicitly to {@link #build(Path, String, BuildParam...)}
+     * or one of the other build methods that takes an explicit name.
+     * @param name A name to apply to the image
+     * @return BuildParam
+     */
+    public static BuildParam name(final String name) {
+      return create("t", name);
+    }
+
+    /**
+     * path within the build context to the Dockerfile. This is ignored
+     * if {@link #remote(URI)} is specified and points to an individual filename.
+     *
+     * You could also pass the dockerfile path explicitly to
+     * {@link #build(Path, String, String, ProgressHandler, BuildParam...)}
+     * or one of the other build methods that takes an explicit dockerfile path.
+     * @param dockerfile Path to the dockerfile in the build context.
+     * @return BuildParam
+     */
+    public static BuildParam dockerfile(final Path dockerfile) {
+      return create("dockerfile", dockerfile.toString());
+    }
+
+    /**
+     * A Git repository URI or HTTP/HTTPS URI build source. If the URI
+     * specifies a filename, the file's contents are placed into a file called `Dockerfile`.
+     *
+     * @param remote A Git repository URI or HTTP/HTTPS URI build source.
+     * @return BuildParam
+     */
+    public static BuildParam remote(final URI remote) {
+      return create("remote", remote.toString());
+    }
+
+    /**
+     * Set memory limit for build.
+     * @param memory Memory limit for build, in bytes.
+     * @return BuildParam
+     */
+    public static BuildParam memory(final Integer memory) {
+      return create("memory", memory.toString());
+    }
+
+    /**
+     * Total memory (memory + swap). Set to -1 to enable unlimited swap.
+     * @param totalMemory Total memory (memory + swap) in bytes.
+     * @return BuildParam
+     */
+    public static BuildParam totalMemory(final Integer totalMemory) {
+      return create("memoryswap", totalMemory.toString());
+    }
+
+    /**
+     * CPU shares (relative weight).
+     * @param cpuShares CPU shares (relative weight).
+     * @return BuildParam
+     */
+    public static BuildParam cpuShares(final Integer cpuShares) {
+      return create("cpushares", cpuShares.toString());
+    }
+
+    /**
+     * CPUs in which to allow execution, e.g. <code>0-3</code>, <code>0,1</code>.
+     * @param cpusetCpus CPUs in which to allow execution
+     * @return BuildParam
+     */
+    public static BuildParam cpusetCpus(final Integer cpusetCpus) {
+      return create("cpusetcpus", cpusetCpus.toString());
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -610,6 +714,15 @@ public interface DockerClient extends Closeable {
       return Objects.hash(name, value);
     }
   }
+
+  /**
+   * Return the history of the image.
+   * @param image An image name or ID.
+   * @return List<ImageHistory>
+   * @throws DockerException  if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<ImageHistory> history(final String image) throws InterruptedException, DockerException;
 
   /**
    * Create a docker container.
@@ -741,6 +854,9 @@ public interface DockerClient extends Closeable {
 
   /**
    * Kill a docker container.
+   * Note: This implementation deviates from the Docker Remote API. The
+   * latter accepts the kill signal as an argument. This implementation does
+   * not accept the signal argument; instead, the default SIGKILL is sent.
    *
    * @param containerId The id of the container to kill.
    * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
@@ -951,6 +1067,20 @@ public interface DockerClient extends Closeable {
   void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException;
 
+
+  /**
+   * Inspect changes on a container's filesystem.
+   *
+   * @param containerId The id of the container.
+   * @return A list of the changes to the container file system.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<ContainerChange> inspectContainerChanges(String containerId)
+      throws DockerException, InterruptedException;
+
   /**
    * Get docker container logs.
    *
@@ -987,11 +1117,11 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container
    * @param cmd         shell command
    * @param params      Exec params
-   * @return exec id
+   * @return {@link ExecCreation}
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  String execCreate(String containerId, String[] cmd, ExecCreateParam... params)
+  ExecCreation execCreate(String containerId, String[] cmd, ExecCreateParam... params)
       throws DockerException, InterruptedException;
 
   /**
@@ -1030,6 +1160,25 @@ public interface DockerClient extends Closeable {
   }
 
   /**
+   * Resizes the tty session used by an exec command.
+   * This API is valid only if <code>tty</code> was specified as part
+   * of {@link #execCreate(String, String[], ExecCreateParam...) creating} and
+   * {@link #execStart(String, ExecStartParameter...) starting} the exec command.
+   * @param execId exec id
+   * @param height height of tty session
+   * @param width width of tty session
+   *
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                              if both height and width are null or zero
+   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
+   *                              if exec instance is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void execResizeTty(String execId, Integer height, Integer width)
+          throws DockerException, InterruptedException;
+
+  /**
    * Inspects a running or previously run exec instance id.
    *
    * @param execId exec id
@@ -1052,6 +1201,24 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerStats stats(String containerId) throws DockerException, InterruptedException;
+
+  /**
+   * Resize container TTY
+   * This API is valid only if <code>tty</code> was specified as
+   * part of {@link #createContainer(ContainerConfig) creating} the container.
+   *
+   * @param containerId The id of the container whose TTY will be resized.
+   * @param height New height of TTY
+   * @param width New width of TTY
+   * @throws com.spotify.docker.client.exceptions.BadParamException
+   *                              if both height and width are null or zero
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void resizeTty(String containerId, Integer height, Integer width)
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -1739,6 +1906,15 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Show digests.
+     *
+     * @return ListImagesParam
+     */
+    public static ListImagesParam digests() {
+      return create("digests", "1");
+    }
+
+    /**
      * Show dangling images only. A dangling image is one which does not have a repository name. By
      * default both dangling and non-dangling will be shown.
      *
@@ -1804,12 +1980,12 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #events(EventsParam...)}
    */
-  public static class EventsParam {
+  class EventsParam {
 
     private final String name;
     private final String value;
 
-    protected EventsParam(final String name, final String value) {
+    private EventsParam(final String name, final String value) {
       this.name = name;
       this.value = value;
     }
@@ -1859,16 +2035,99 @@ public interface DockerClient extends Closeable {
      * @param value Value
      * @return {@link EventsParam}
      */
-    public static EventsParam filter(String name, String value) {
+    private static EventsParam filter(String name, String value) {
       return new EventsFilterParam(name, value);
     }
 
+    /**
+     * Show only certain events. For example, "event=pull" for image pull events.
+     * @param event Type of event to show
+     * @return EventsParam
+     */
+    public static EventsParam event(final String event) {
+      return filter("event", event);
+    }
+
+    /**
+     * Show events for an image.
+     * @param image An image tag or id
+     * @return EventsParam
+     */
+    public static EventsParam image(final String image) {
+      return filter("image", image);
+    }
+
+    /**
+     * Show events for a container.
+     * @param container A container name or id
+     * @return EventsParam
+     */
+    public static EventsParam container(final String container) {
+      return filter("container", container);
+    }
+
+    /**
+     * Show events for a volume.
+     * @param volume A volume name or id
+     * @return EventsParam
+     */
+    public static EventsParam volume(final String volume) {
+      return filter("volume", volume);
+    }
+
+    /**
+     * Show events for a network.
+     * @param network A network name or id
+     * @return EventsParam
+     */
+    public static EventsParam network(final String network) {
+      return filter("network", network);
+    }
+
+    /**
+     * Show events for a daemon.
+     * @param daemon A daemon name or id
+     * @return EventsParam
+     */
+    public static EventsParam daemon(final String daemon) {
+      return filter("daemon", daemon);
+    }
+
+    /**
+     * Show events of a given type. For instance, "type=image" for all image events.
+     * @param type A type of event. Possible values: container, image, volume, network, or daemon
+     * @return EventsParam
+     */
+    public static EventsParam type(final String type) {
+      return filter("type", type);
+    }
+
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
+     * @param value The value of the label
+     * @return EventsParam
+     */
+    public static EventsParam label(final String label, final String value) {
+      return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
+    }
+
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
+     * @return EventsParam
+     */
+    public static EventsParam label(final String label) {
+      return label(label, null);
+    }
   }
 
   /**
    * Filter parameter for {@link #events(EventsParam...)}. This should be used by EventsParam only.
    */
-  static class EventsFilterParam extends EventsParam {
+  class EventsFilterParam extends EventsParam {
 
     public EventsFilterParam(String name, String value) {
       super(name, value);

@@ -42,13 +42,16 @@ import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
@@ -142,6 +145,7 @@ import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -213,6 +217,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       new GenericType<List<Container>>() {
       };
 
+  private static final GenericType<List<ContainerChange>> CONTAINER_CHANGE_LIST =
+      new GenericType<List<ContainerChange>>() {
+      };
+
   private static final GenericType<List<Image>> IMAGE_LIST =
       new GenericType<List<Image>>() {
       };
@@ -227,6 +235,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<RemovedImage>> REMOVED_IMAGE_LIST =
       new GenericType<List<RemovedImage>>() {
+      };
+
+  private static final GenericType<List<ImageHistory>> IMAGE_HISTORY_LIST =
+      new GenericType<List<ImageHistory>>() {
       };
 
   private static final Supplier<ClientBuilder> DEFAULT_BUILDER_SUPPLIER =
@@ -846,6 +858,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public List<ContainerChange> inspectContainerChanges(final String containerId)
+      throws DockerException, InterruptedException {
+    try {
+      final WebTarget resource = resource().path("containers").path(containerId).path("changes");
+      return request(GET, CONTAINER_CHANGE_LIST, resource,
+          resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public ContainerInfo inspectContainer(final String containerId)
       throws DockerException, InterruptedException {
     try {
@@ -877,8 +906,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource()
         .path("commit")
         .queryParam("container", containerId)
-        .queryParam("repo", repo)
-        .queryParam("comment", comment);
+        .queryParam("repo", repo);
 
     if (!isNullOrEmpty(author)) {
       resource = resource.queryParam("author", author);
@@ -1011,6 +1039,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public InputStream saveMultiple(final String... images)
+      throws DockerException, IOException, InterruptedException {
+
+    final WebTarget resource = resource().path("images").path("get");
+    if (images != null) {
+      for (final String image : images) {
+        resource.queryParam("names", urlEncode(image));
+      }
+    }
+
+    return request(
+        GET,
+        InputStream.class,
+        resource,
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
+    );
+  }
+
+  @Override
   public void pull(final String image) throws DockerException, InterruptedException {
     pull(image, new LoggingPullHandler(image));
   }
@@ -1087,6 +1134,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       push.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ImageNotFoundException(image, e);
+      }
     }
   }
 
@@ -1250,6 +1302,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public List<ImageHistory> history(final String image)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource()
+        .path("images")
+        .path(image)
+        .path("history");
+    try {
+      return request(GET, IMAGE_HISTORY_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ImageNotFoundException(image, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public LogStream logs(final String containerId, final LogsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource()
@@ -1338,9 +1409,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public String execCreate(final String containerId,
-                           final String[] cmd,
-                           final ExecCreateParam... params)
+  public ExecCreation execCreate(final String containerId,
+                                 final String[] cmd,
+                                 final ExecCreateParam... params)
       throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
@@ -1369,9 +1440,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     }
 
-    final String response;
     try {
-      response = request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+      return request(POST, ExecCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
                          Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -1382,13 +1452,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         default:
           throw e;
       }
-    }
-
-    try {
-      final JsonNode json = objectMapper().readTree(response);
-      return json.findValue("Id").textValue();
-    } catch (IOException e) {
-      throw new DockerException(e);
     }
   }
 
@@ -1430,6 +1493,33 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void execResizeTty(final String execId,
+                            final Integer height,
+                            final Integer width)
+          throws DockerException, InterruptedException {
+    checkTtyParams(height, width);
+
+    WebTarget resource = resource().path("exec").path(execId).path("resize");
+    if (height != null && height > 0) {
+      resource = resource.queryParam("h", height);
+    }
+    if (width != null && width > 0) {
+      resource = resource.queryParam("w", width);
+    }
+
+    try {
+      request(POST, resource, resource.request(TEXT_PLAIN_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ExecNotFoundException(execId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public ExecState execInspect(final String execId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("exec").path(execId).path("json");
 
@@ -1460,6 +1550,41 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         default:
           throw e;
       }
+    }
+  }
+
+  @Override
+  public void resizeTty(final String containerId, final Integer height, final Integer width)
+      throws DockerException, InterruptedException {
+    checkTtyParams(height, width);
+
+    WebTarget resource = resource().path("containers").path(containerId).path("resize");
+    if (height != null && height > 0) {
+      resource = resource.queryParam("h", height);
+    }
+    if (width != null && width > 0) {
+      resource = resource.queryParam("w", width);
+    }
+
+    try {
+      request(POST, resource, resource.request(TEXT_PLAIN_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  private void checkTtyParams(final Integer height, final Integer width) throws BadParamException {
+    if ((height == null && width == null) || (height != null && height == 0) ||
+            (width != null && width == 0)) {
+      final Map<String, String> paramMap = Maps.newHashMap();
+      paramMap.put("h", height == null ? null : height.toString());
+      paramMap.put("w", width == null ? null : width.toString());
+      throw new BadParamException(paramMap, "Either width or height must be non-null and > 0");
     }
   }
 
