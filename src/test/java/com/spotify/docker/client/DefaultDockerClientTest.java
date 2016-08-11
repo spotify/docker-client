@@ -178,6 +178,7 @@ import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
@@ -1113,7 +1114,7 @@ public class DefaultDockerClientTest {
     // between sleeps
     assertThat(topResults.processes(), hasSize(greaterThanOrEqualTo(1)));
 
-    assertThat(topResults.titles(), hasItem("CMD"));
+    assertThat(topResults.titles(), either(hasItem("CMD")).or(hasItem("COMMAND")));
 
     final List<String> firstProcessStatus = topResults.processes().get(0);
     assertThat("All processes will run as 'root'", firstProcessStatus, hasItem("root"));
