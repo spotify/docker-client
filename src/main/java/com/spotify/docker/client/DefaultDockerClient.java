@@ -747,7 +747,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     // Version above 1.24
     if (versionComparison >= 0) {
-      throw new UnsupportedApiVersionException(apiVersion);
+      // fall back to archive added in 1.20
+      // as copy has been removed in 1.24
+      return archiveContainer(containerId, path);
     }
 
     final WebTarget resource = resource()
