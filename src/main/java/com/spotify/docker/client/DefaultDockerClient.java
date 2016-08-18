@@ -1887,6 +1887,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificates dockerCertificates;
+    private boolean dockerAuth;
     private AuthConfig authConfig;
     private Map<String, Object> headers = new HashMap<>();
 
@@ -1989,6 +1990,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return this;
     }
 
+    public boolean dockerAuth() {
+      return dockerAuth;
+    }
+
+    /**
+     * Allows reusing Docker auth info
+     *
+     * @param dockerAuth tells if Docker auth info should be used
+     * @return Builder
+     */
+    public Builder dockerAuth(final boolean dockerAuth) {
+      this.dockerAuth = dockerAuth;
+      return this;
+    }
+
     public AuthConfig authConfig() {
       return authConfig;
     }
@@ -2005,6 +2021,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     public DefaultDockerClient build() {
+      if (dockerAuth) {
+        try {
+          this.authConfig = AuthConfig.fromDockerConfig().build();
+        } catch (IOException e) {
+          log.warn("Unable to use Docker auth info", e);
+        }
+      }
       return new DefaultDockerClient(this);
     }
 
