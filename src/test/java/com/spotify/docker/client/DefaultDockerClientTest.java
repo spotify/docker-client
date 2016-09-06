@@ -2994,14 +2994,14 @@ public class DefaultDockerClientTest {
   @Test
   public void testCreateVolume() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "volumes");
-    // Create bare volume
-    final Volume volume = sut.createVolume();
-    assertThat(volume, not(nullValue()));
-    sut.removeVolume(volume);
 
-    final ImmutableMap<String, String> labels = ImmutableMap.of("foo", "bar");
+    // Create bare volume
+    final Volume blankVolume = sut.createVolume();
+    assertThat(blankVolume, not(nullValue()));
+    sut.removeVolume(blankVolume);
 
     // Create volume with attributes
+    final ImmutableMap<String, String> labels = ImmutableMap.of("foo", "bar");
     final String volName = randomName();
     final Volume toCreate;
     if (dockerApiVersionLessThan("1.23")) {
@@ -3025,7 +3025,11 @@ public class DefaultDockerClientTest {
     assertNotEquals(toCreate.mountpoint(), created.mountpoint());
 
     if (dockerApiVersionAtLeast("1.23")) {
-      assertEquals(labels, volume.labels());
+      assertEquals(labels, created.labels());
+    }
+
+    if (dockerApiVersionAtLeast("1.24")) {
+      assertEquals("local", created.scope());
     }
 
     sut.removeVolume(created);
@@ -3091,6 +3095,11 @@ public class DefaultDockerClientTest {
         }
       }
       assertThat(volume, isIn(volumeListByDriver.volumes()));
+    }
+
+    if (dockerApiVersionAtLeast("1.24")) {
+      assertEquals("local", volume.scope());
+      assertThat(volume.status(), is(anything())); // I don't know what is in the status object - JF
     }
 
     sut.removeVolume(volume);

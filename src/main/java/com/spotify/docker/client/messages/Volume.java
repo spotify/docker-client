@@ -35,6 +35,8 @@ public class Volume {
   @JsonProperty("DriverOpts") private ImmutableMap<String, String> driverOpts;
   @JsonProperty("Labels") private ImmutableMap<String, String> labels;
   @JsonProperty("Mountpoint") private String mountpoint;
+  @JsonProperty("Scope") private String scope;
+  @JsonProperty("Status") private ImmutableMap<String, String> status;
 
   private Volume() {}
 
@@ -44,6 +46,7 @@ public class Volume {
     this.driverOpts = builder.driverOpts;
     this.labels = builder.labels;
     this.mountpoint = builder.mountpoint;
+    this.scope = builder.scope;
   }
 
   public static Builder builder() {
@@ -74,6 +77,14 @@ public class Volume {
     return mountpoint;
   }
 
+  public String scope() {
+    return scope;
+  }
+
+  public Map<String, String> status() {
+    return status;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -89,12 +100,14 @@ public class Volume {
         Objects.equals(this.driver, that.driver) &&
         Objects.equals(this.driverOpts, that.driverOpts) &&
         Objects.equals(this.labels, that.labels) &&
-        Objects.equals(this.mountpoint, that.mountpoint);
+        Objects.equals(this.mountpoint, that.mountpoint) &&
+        Objects.equals(this.scope, that.scope) &&
+        Objects.equals(this.status, that.status);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, driver, driverOpts, mountpoint);
+    return Objects.hash(name, driver, driverOpts, labels, mountpoint, scope, status);
   }
 
   @Override
@@ -105,6 +118,8 @@ public class Volume {
         .add("driverOpts", driverOpts)
         .add("labels", labels)
         .add("mountpoint", mountpoint)
+        .add("scope", scope)
+        .add("status", status)
         .toString();
   }
 
@@ -114,6 +129,7 @@ public class Volume {
     private ImmutableMap<String, String> driverOpts;
     private ImmutableMap<String, String> labels;
     private String mountpoint;
+    private String scope;
 
     private Builder() {}
 
@@ -123,6 +139,7 @@ public class Volume {
       this.driverOpts = volume.driverOpts;
       this.labels = volume.labels;
       this.mountpoint = volume.mountpoint;
+      this.scope = volume.scope;
     }
 
     public Volume build() {
@@ -146,6 +163,11 @@ public class Volume {
 
     public Builder labels(final Map<String, String> labels) {
       this.labels = ImmutableMap.copyOf(labels);
+      return this;
+    }
+
+    public Builder scope(final String scope) {
+      this.scope = scope;
       return this;
     }
   }
