@@ -9,3 +9,4 @@ pom.xml.versionsBackup
 .DS_Store
 dependency-reduced-pom.xml
 .checkstyle
+/bin/
