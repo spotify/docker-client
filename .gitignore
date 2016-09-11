@@ -10,3 +10,5 @@ pom.xml.versionsBackup
 dependency-reduced-pom.xml
 .checkstyle
 /bin/
+/build/
+/.gradle/
