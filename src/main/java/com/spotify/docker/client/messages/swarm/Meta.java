@@ -43,11 +43,11 @@ public class Meta {
     }
 
     public Date createdAt() {
-        return createdAt;
+        return new Date(createdAt.getTime());
     }
 
     public Date updatedAt() {
-        return updatedAt;
+        return new Date(updatedAt.getTime());
     }
 
     @Override
