@@ -19,7 +19,6 @@ package com.spotify.docker.client;
 import java.util.List;
 
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ServiceListOptions;
 import com.spotify.docker.client.messages.swarm.Service;
 
 /**
@@ -28,12 +27,22 @@ import com.spotify.docker.client.messages.swarm.Service;
 public interface SwarmModeDockerClient extends DockerClient {
 
     /**
-     * List services based on the given options.
-     *
-     * @return List of matching services.
-     * @throws DockerException if a server error occurred (500)
-     * @throws InterruptedException If the thread is interrupted
+     * List all services.
+     * 
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
      */
-    List<Service> listServices(ServiceListOptions options)
+    List<Service> listServices() throws DockerException, InterruptedException;
+
+    /**
+     * List services that match the given criteria.
+     * 
+     * @param criteria
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    List<Service> listServices(Service.Criteria criteria)
             throws DockerException, InterruptedException;
 }

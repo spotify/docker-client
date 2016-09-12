@@ -495,7 +495,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @return String
    * @throws DockerException if there's an IOException
    */
-  private String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
+  protected String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
     try {
       final String unencodedFilters = objectMapper().writeValueAsString(filters);
       if (!unencodedFilters.isEmpty()) {

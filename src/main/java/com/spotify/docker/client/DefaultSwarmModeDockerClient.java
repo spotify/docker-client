@@ -22,7 +22,10 @@ import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -30,7 +33,6 @@ import javax.ws.rs.core.GenericType;
 
 import com.google.common.base.Supplier;
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ServiceListOptions;
 import com.spotify.docker.client.messages.swarm.Service;
 
 /**
@@ -68,12 +70,30 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
 
     /* (non-Javadoc)
      * 
-     * @see com.spotify.docker.client.SwarmModeDockerClient#listServices(com.spotify.docker.client.
-     * messages.ServiceListOptions) */
+     * @see com.spotify.docker.client.SwarmModeDockerClient#listServices() */
     @Override
-    public List<Service> listServices(ServiceListOptions options)
-            throws DockerException, InterruptedException {
+    public List<Service> listServices() throws DockerException, InterruptedException {
         final WebTarget resource = resource().path("services");
+        return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    /* (non-Javadoc)
+     * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#listServices(com.spotify.docker.client.
+     * messages.swarm.Service.Criteria) */
+    public List<Service> listServices(Service.Criteria criteria)
+            throws DockerException, InterruptedException {
+        WebTarget resource = resource().path("services");
+        Map<String, List<String>> filters = new HashMap<String, List<String>>();
+
+        if (criteria.getServiceId() != null) {
+            filters.put("id", Collections.singletonList(criteria.getServiceId()));
+        }
+        if (criteria.getServiceName() != null) {
+            filters.put("name", Collections.singletonList(criteria.getServiceName()));
+        }
+
+        resource = resource.queryParam("filters", urlEncodeFilters(filters));
         return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
     }
 

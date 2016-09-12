@@ -5,7 +5,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.spotify.docker.client.messages.ServiceListOptions;
 import com.spotify.docker.client.messages.swarm.Service;
 
 public class SwarmModeDockerClientTest {
@@ -29,9 +28,27 @@ public class SwarmModeDockerClientTest {
 
     @Test
     public void testListServices() throws Exception {
-        List<Service> services = client.listServices(new ServiceListOptions());
+        List<Service> services = client.listServices();
         for (Service service : services) {
-            System.out.println("Service:\n\n" + service.toString() + "\n\n");
+            System.out.println(service.toString());
+        }
+    }
+
+    @Test
+    public void testListServicesFilterById() throws Exception {
+        List<Service> services = client.listServices(
+                Service.newCriteriaBuilder().forServiceId("7spwad2wl02cdogg6bylyr90g").build());
+        for (Service service : services) {
+            System.out.println(service.toString());
+        }
+    }
+
+    @Test
+    public void testListServicesFilterByName() throws Exception {
+        List<Service> services =
+                client.listServices(Service.newCriteriaBuilder().forServiceName("ping00").build());
+        for (Service service : services) {
+            System.out.println(service.toString());
         }
     }
 }

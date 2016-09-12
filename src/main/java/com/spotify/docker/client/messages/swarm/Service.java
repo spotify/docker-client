@@ -77,6 +77,55 @@ public class Service {
         return updateStatus;
     }
 
+    public static class Criteria {
+
+        /** Filter by service id */
+        String serviceId;
+
+        /** Filter by service name */
+        String serviceName;
+
+        public String getServiceId() {
+            return serviceId;
+        }
+
+        public void setServiceId(String serviceId) {
+            this.serviceId = serviceId;
+        }
+
+        public String getServiceName() {
+            return serviceName;
+        }
+
+        public void setServiceName(String serviceName) {
+            this.serviceName = serviceName;
+        }
+    }
+
+    public static class CriteriaBuilder {
+
+        /** Criteria being built */
+        private Criteria criteria = new Criteria();
+
+        public CriteriaBuilder forServiceId(String serviceId) {
+            criteria.setServiceId(serviceId);
+            return this;
+        }
+
+        public CriteriaBuilder forServiceName(String serviceName) {
+            criteria.setServiceName(serviceName);
+            return this;
+        }
+
+        public Criteria build() {
+            return criteria;
+        }
+    }
+
+    public static CriteriaBuilder newCriteriaBuilder() {
+        return new Service.CriteriaBuilder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
