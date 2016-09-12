@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages.swarm;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -26,34 +27,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class UpdateStatus {
+public class Driver {
 
-    @JsonProperty("State")
-    private String state;
+    @JsonProperty("Name")
+    private String name;
 
-    @JsonProperty("StartedAt")
-    private String startedAt;
+    @JsonProperty("Options")
+    private Map<String, String> options;
 
-    @JsonProperty("CompletedAt")
-    private String completedAt;
-
-    @JsonProperty("Message")
-    private String message;
-
-    public String state() {
-        return state;
+    public String name() {
+        return name;
     }
 
-    public String startedAt() {
-        return startedAt;
-    }
-
-    public String completedAt() {
-        return completedAt;
-    }
-
-    public String message() {
-        return message;
+    public Map<String, String> options() {
+        return options;
     }
 
     @Override
@@ -65,22 +52,19 @@ public class UpdateStatus {
             return false;
         }
 
-        final UpdateStatus that = (UpdateStatus) o;
+        final Driver that = (Driver) o;
 
-        return Objects.equals(this.state, that.state)
-                && Objects.equals(this.startedAt, that.startedAt)
-                && Objects.equals(this.completedAt, that.completedAt)
-                && Objects.equals(this.message, that.message);
+        return Objects.equals(this.name, that.name) && Objects.equals(this.options, that.options);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(state, startedAt, completedAt, message);
+        return Objects.hash(name, options);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("state", state).add("startedAt", startedAt)
-                .add("completedAt", completedAt).add("message", message).toString();
+        return MoreObjects.toStringHelper(this).add("name", name).add("options", options)
+                .toString();
     }
 }

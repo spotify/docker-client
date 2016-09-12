@@ -19,35 +19,22 @@ package com.spotify.docker.client.messages.swarm;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
-import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Meta {
+public class Placement {
 
-    @JsonProperty("Version")
-    private Version version;
+    @JsonProperty("Constraints")
+    private ImmutableList<String> constraints;
 
-    @JsonProperty("CreatedAt")
-    private Date createdAt;
-
-    @JsonProperty("UpdatedAt")
-    private Date updatedAt;
-
-    public Version version() {
-        return version;
-    }
-
-    public Date createdAt() {
-        return new Date(createdAt.getTime());
-    }
-
-    public Date updatedAt() {
-        return new Date(updatedAt.getTime());
+    public List<String> constraints() {
+        return constraints;
     }
 
     @Override
@@ -59,21 +46,18 @@ public class Meta {
             return false;
         }
 
-        final Meta that = (Meta) o;
+        final Placement that = (Placement) o;
 
-        return Objects.equals(this.version, that.version)
-                && Objects.equals(this.createdAt, that.createdAt)
-                && Objects.equals(this.updatedAt, that.updatedAt);
+        return Objects.equals(this.constraints, that.constraints);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(version, createdAt, updatedAt);
+        return Objects.hash(constraints);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("version", version).add("createdAt", createdAt)
-                .add("updatedAt", updatedAt).toString();
+        return MoreObjects.toStringHelper(this).add("constraints", constraints).toString();
     }
 }

@@ -73,7 +73,19 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
     @Override
     public List<Service> listServices(ServiceListOptions options)
             throws DockerException, InterruptedException {
-        final WebTarget resource = resource().path("info");
+        final WebTarget resource = resource().path("services");
         return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    public static DefaultSwarmModeDockerClient.Builder builder() {
+        return new DefaultSwarmModeDockerClient.Builder();
+    }
+
+    public static class Builder extends DefaultDockerClient.Builder {
+
+        @Override
+        public DefaultSwarmModeDockerClient build() {
+            return new DefaultSwarmModeDockerClient(this);
+        }
     }
 }

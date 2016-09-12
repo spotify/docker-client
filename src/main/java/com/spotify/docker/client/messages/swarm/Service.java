@@ -31,8 +31,14 @@ public class Service {
     @JsonProperty("ID")
     private String id;
 
-    @JsonProperty("Meta")
-    private Meta meta;
+    @JsonProperty("Version")
+    private Version version;
+
+    @JsonProperty("CreatedAt")
+    private String createdAt;
+
+    @JsonProperty("UpdatedAt")
+    private String updatedAt;
 
     @JsonProperty("Spec")
     private ServiceSpec spec;
@@ -47,8 +53,16 @@ public class Service {
         return id;
     }
 
-    public Meta meta() {
-        return meta;
+    public Version version() {
+        return version;
+    }
+
+    public String createdAt() {
+        return createdAt;
+    }
+
+    public String updatedAt() {
+        return updatedAt;
     }
 
     public ServiceSpec spec() {
@@ -74,7 +88,9 @@ public class Service {
 
         final Service that = (Service) o;
 
-        return Objects.equals(this.id, that.id) && Objects.equals(this.meta, that.meta)
+        return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
+                && Objects.equals(this.createdAt, that.createdAt)
+                && Objects.equals(this.updatedAt, that.updatedAt)
                 && Objects.equals(this.spec, that.spec)
                 && Objects.equals(this.endpoint, that.endpoint)
                 && Objects.equals(this.updateStatus, that.updateStatus);
@@ -82,12 +98,13 @@ public class Service {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, meta, spec, endpoint, updateStatus);
+        return Objects.hash(id, version, createdAt, updatedAt, spec, endpoint, updateStatus);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("id", id).add("meta", meta).add("spec", spec)
+        return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
+                .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", spec)
                 .add("endpoint", endpoint).add("updateStatus", updateStatus).toString();
     }
 }

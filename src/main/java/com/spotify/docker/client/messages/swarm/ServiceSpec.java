@@ -20,6 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -30,8 +31,11 @@ import com.google.common.collect.ImmutableList;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ServiceSpec {
 
-    @JsonProperty("Annotations")
-    private Annotations annotations;
+    @JsonProperty("Name")
+    private String name;
+
+    @JsonProperty("Labels")
+    private Map<String, String> labels;
 
     @JsonProperty("TaskTemplate")
     private TaskSpec taskTemplate;
@@ -48,8 +52,12 @@ public class ServiceSpec {
     @JsonProperty("EndpointSpec")
     private EndpointSpec endpointSpec;
 
-    public Annotations annotations() {
-        return annotations;
+    public String name() {
+        return name;
+    }
+
+    public Map<String, String> labels() {
+        return labels;
     }
 
     public TaskSpec taskTemplate() {
@@ -83,7 +91,7 @@ public class ServiceSpec {
 
         final ServiceSpec that = (ServiceSpec) o;
 
-        return Objects.equals(this.annotations, that.annotations)
+        return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
                 && Objects.equals(this.taskTemplate, that.taskTemplate)
                 && Objects.equals(this.mode, that.mode)
                 && Objects.equals(this.updateConfig, that.updateConfig)
@@ -93,12 +101,12 @@ public class ServiceSpec {
 
     @Override
     public int hashCode() {
-        return Objects.hash(annotations, taskTemplate, mode, updateConfig, networks, endpointSpec);
+        return Objects.hash(name, labels, taskTemplate, mode, updateConfig, networks, endpointSpec);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("annotations", annotations)
+        return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
                 .add("taskTemplate", taskTemplate).add("mode", mode)
                 .add("updateConfig", updateConfig).add("networks", networks)
                 .add("endpointSpec", endpointSpec).toString();

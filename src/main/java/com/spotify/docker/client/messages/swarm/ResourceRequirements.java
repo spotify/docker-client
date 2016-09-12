@@ -26,34 +26,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class UpdateStatus {
+public class ResourceRequirements {
 
-    @JsonProperty("State")
-    private String state;
+    @JsonProperty("Limits")
+    private Resources limits;
 
-    @JsonProperty("StartedAt")
-    private String startedAt;
+    @JsonProperty("Reservations")
+    private Resources reservations;
 
-    @JsonProperty("CompletedAt")
-    private String completedAt;
-
-    @JsonProperty("Message")
-    private String message;
-
-    public String state() {
-        return state;
+    public Resources limits() {
+        return limits;
     }
 
-    public String startedAt() {
-        return startedAt;
-    }
-
-    public String completedAt() {
-        return completedAt;
-    }
-
-    public String message() {
-        return message;
+    public Resources reservations() {
+        return reservations;
     }
 
     @Override
@@ -65,22 +51,20 @@ public class UpdateStatus {
             return false;
         }
 
-        final UpdateStatus that = (UpdateStatus) o;
+        final ResourceRequirements that = (ResourceRequirements) o;
 
-        return Objects.equals(this.state, that.state)
-                && Objects.equals(this.startedAt, that.startedAt)
-                && Objects.equals(this.completedAt, that.completedAt)
-                && Objects.equals(this.message, that.message);
+        return Objects.equals(this.limits, that.limits)
+                && Objects.equals(this.reservations, that.reservations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(state, startedAt, completedAt, message);
+        return Objects.hash(limits, reservations);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("state", state).add("startedAt", startedAt)
-                .add("completedAt", completedAt).add("message", message).toString();
+        return MoreObjects.toStringHelper(this).add("limits", limits)
+                .add("reservations", reservations).toString();
     }
 }

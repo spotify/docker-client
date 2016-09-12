@@ -26,34 +26,38 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class UpdateStatus {
+public class RestartPolicy {
 
-    @JsonProperty("State")
-    private String state;
+    public static final String RESTART_POLICY_NONE = "none";
+    public static final String RESTART_POLICY_ON_FAILURE = "on-failure";
+    public static final String RESTART_POLICY_ANY = "any";
 
-    @JsonProperty("StartedAt")
-    private String startedAt;
+    @JsonProperty("Condition")
+    private String condition;
 
-    @JsonProperty("CompletedAt")
-    private String completedAt;
+    @JsonProperty("Delay")
+    private Long delay;
 
-    @JsonProperty("Message")
-    private String message;
+    @JsonProperty("MaxAttempts")
+    private Integer maxAttempts;
 
-    public String state() {
-        return state;
+    @JsonProperty("Window")
+    private Long window;
+
+    public String condition() {
+        return condition;
     }
 
-    public String startedAt() {
-        return startedAt;
+    public Long delay() {
+        return delay;
     }
 
-    public String completedAt() {
-        return completedAt;
+    public Integer maxAttempts() {
+        return maxAttempts;
     }
 
-    public String message() {
-        return message;
+    public Long window() {
+        return window;
     }
 
     @Override
@@ -65,22 +69,22 @@ public class UpdateStatus {
             return false;
         }
 
-        final UpdateStatus that = (UpdateStatus) o;
+        final RestartPolicy that = (RestartPolicy) o;
 
-        return Objects.equals(this.state, that.state)
-                && Objects.equals(this.startedAt, that.startedAt)
-                && Objects.equals(this.completedAt, that.completedAt)
-                && Objects.equals(this.message, that.message);
+        return Objects.equals(this.condition, that.condition)
+                && Objects.equals(this.delay, that.delay)
+                && Objects.equals(this.maxAttempts, that.maxAttempts)
+                && Objects.equals(this.window, that.window);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(state, startedAt, completedAt, message);
+        return Objects.hash(condition, delay, maxAttempts, window);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("state", state).add("startedAt", startedAt)
-                .add("completedAt", completedAt).add("message", message).toString();
+        return MoreObjects.toStringHelper(this).add("condition", condition).add("delay", delay)
+                .add("maxAttempts", maxAttempts).add("window", window).toString();
     }
 }

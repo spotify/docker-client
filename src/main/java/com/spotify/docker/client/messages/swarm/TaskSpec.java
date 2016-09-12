@@ -19,9 +19,89 @@ package com.spotify.docker.client.messages.swarm;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import java.util.List;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class TaskSpec {
 
+    @JsonProperty("ContainerSpec")
+    private ContainerSpec containerSpec;
+
+    @JsonProperty("Resources")
+    private ResourceRequirements resources;
+
+    @JsonProperty("RestartPolicy")
+    private RestartPolicy restartPolicy;
+
+    @JsonProperty("Placement")
+    private Placement placement;
+
+    @JsonProperty("Networks")
+    private ImmutableList<NetworkAttachmentConfig> networks;
+
+    @JsonProperty("LogDriver")
+    private Driver logDriver;
+
+    public ContainerSpec containerSpec() {
+        return containerSpec;
+    }
+
+    public ResourceRequirements resources() {
+        return resources;
+    }
+
+    public RestartPolicy restartPolicy() {
+        return restartPolicy;
+    }
+
+    public Placement placement() {
+        return placement;
+    }
+
+    public List<NetworkAttachmentConfig> networks() {
+        return networks;
+    }
+
+    public Driver logDriver() {
+        return logDriver;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final TaskSpec that = (TaskSpec) o;
+
+        return Objects.equals(this.containerSpec, that.containerSpec)
+                && Objects.equals(this.resources, that.resources)
+                && Objects.equals(this.restartPolicy, that.restartPolicy)
+                && Objects.equals(this.placement, that.placement)
+                && Objects.equals(this.networks, that.networks)
+                && Objects.equals(this.logDriver, that.logDriver);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(containerSpec, resources, restartPolicy, placement, networks,
+                logDriver);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).add("containerSpec", containerSpec)
+                .add("resources", resources).add("restartPolicy", restartPolicy)
+                .add("placement", placement).add("networks", networks).add("logDriver", logDriver)
+                .toString();
+    }
 }
