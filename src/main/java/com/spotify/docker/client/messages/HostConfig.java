@@ -64,6 +64,7 @@ public class HostConfig {
   @JsonProperty("IpcMode") private String ipcMode;
   @JsonProperty("Ulimits") private ImmutableList<Ulimit> ulimits;
   @JsonProperty("PidMode") private String pidMode;
+  @JsonProperty("ShmSize") private Long shmSize;
 
   private HostConfig() {
   }
@@ -97,6 +98,7 @@ public class HostConfig {
     this.ipcMode = builder.ipcMode;
     this.ulimits = builder.ulimits;
     this.pidMode = builder.pidMode;
+    this.shmSize = builder.shmSize;
   }
 
   public List<String> binds() {
@@ -207,6 +209,10 @@ public class HostConfig {
     return ulimits;
   }
 
+  public Long shmSize() {
+    return shmSize;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -253,7 +259,7 @@ public class HostConfig {
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
-                        restartPolicy, logConfig, ipcMode, ulimits, pidMode);
+                        restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize);
   }
 
   @Override
@@ -287,6 +293,7 @@ public class HostConfig {
         .add("ipcMode", ipcMode)
         .add("ulimits", ulimits)
         .add("pidMode", pidMode)
+        .add("shmSize", shmSize)
         .toString();
   }
 
@@ -438,6 +445,7 @@ public class HostConfig {
     private String ipcMode;
     private ImmutableList<Ulimit> ulimits;
     private String pidMode;
+    private Long shmSize;
 
     private Builder() {
     }
@@ -471,6 +479,7 @@ public class HostConfig {
       this.ipcMode = hostConfig.ipcMode;
       this.ulimits = hostConfig.ulimits;
       this.pidMode = hostConfig.pidMode;
+      this.shmSize = hostConfig.shmSize;
     }
 
     /**
@@ -943,6 +952,15 @@ public class HostConfig {
     public Builder hostPidMode() {
       this.pidMode = "host";
       return this;
+    }
+
+    public Builder shmSize(final Long shmSize) {
+      this.shmSize = shmSize;
+      return this;
+    }
+
+    public Long shmSize() {
+      return shmSize;
     }
 
     public HostConfig build() {
