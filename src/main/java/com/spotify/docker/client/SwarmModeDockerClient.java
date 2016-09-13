@@ -63,6 +63,15 @@ public interface SwarmModeDockerClient extends DockerClient {
             throws DockerException, InterruptedException;
 
     /**
+     * Remove an existing service.
+     * 
+     * @param serviceId
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    void removeService(String serviceId) throws DockerException, InterruptedException;
+
+    /**
      * List all tasks.
      * 
      * @return

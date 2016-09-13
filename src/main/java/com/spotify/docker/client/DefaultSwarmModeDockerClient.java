@@ -18,6 +18,7 @@
  */
 package com.spotify.docker.client;
 
+import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -34,6 +35,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 
 import com.google.common.base.Supplier;
+import com.spotify.docker.client.DockerClient.RemoveContainerParam;
+import com.spotify.docker.client.exceptions.BadParamException;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.DockerRequestException;
 import com.spotify.docker.client.messages.ServiceCreateOptions;
@@ -130,6 +134,24 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
 
         resource = resource.queryParam("filters", urlEncodeFilters(filters));
         return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    /* (non-Javadoc)
+     * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#removeService(java.lang.String) */
+    @Override
+    public void removeService(String serviceId) throws DockerException, InterruptedException {
+        try {
+            WebTarget resource = resource().path("services").path(serviceId);
+            request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+        } catch (DockerRequestException e) {
+            switch (e.status()) {
+            case 404:
+                throw new DockerException("Service not found.");
+            default:
+                throw e;
+            }
+        }
     }
 
     /* (non-Javadoc)

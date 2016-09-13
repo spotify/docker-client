@@ -9,6 +9,8 @@ import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
+import com.spotify.docker.client.messages.swarm.EndpointSpec;
+import com.spotify.docker.client.messages.swarm.PortConfig;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.Resources;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
@@ -51,7 +53,15 @@ public class SwarmModeDockerClientTest {
                         .build())
                 .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
                         .withDelay(10000000).withMaxAttempts(10).build())
-                .build()).withServiceMode(ServiceMode.withReplicas(4)).build();
+                .build())
+                .withServiceMode(ServiceMode.withReplicas(4))
+                .withEndpointSpec(
+                        EndpointSpec.builder()
+                                .withPorts(new PortConfig[] {PortConfig.builder().withName("web")
+                                        .withProtocol("tcp").withPublishedPort(8080)
+                                        .withTargetPort(80).build()})
+                                .build())
+                .build();
         ServiceCreateResponse response = client.createService(spec, new ServiceCreateOptions());
         System.out.println("Started service: " + response.id());
     }
@@ -79,6 +89,15 @@ public class SwarmModeDockerClientTest {
                 client.listServices(Service.find().withServiceName("ping00").build());
         for (Service service : services) {
             System.out.println(service.toString());
+        }
+    }
+
+    @Test
+    public void testRemoveService() throws Exception {
+        List<Service> services = client.listServices();
+        if (services.size() > 0) {
+            client.removeService(services.get(0).id());
+            System.out.println("Removed service: " + services.get(0).spec().name());
         }
     }
 
