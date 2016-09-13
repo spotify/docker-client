@@ -14,7 +14,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.spotify.docker.client.messages.swarm;
+package com.spotify.docker.client.messages;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
@@ -26,43 +26,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ResourceRequirements {
+public class ServiceCreateResponse {
 
-    @JsonProperty("Limits")
-    private Resources limits;
+    @JsonProperty("ID")
+    private String id;
 
-    @JsonProperty("Reservations")
-    private Resources reservations;
-
-    public Resources limits() {
-        return limits;
-    }
-
-    public Resources reservations() {
-        return reservations;
-    }
-
-    public static class Builder {
-
-        private ResourceRequirements req = new ResourceRequirements();
-
-        public Builder withLimits(Resources limits) {
-            req.limits = limits;
-            return this;
-        }
-
-        public Builder withReservations(Resources reservations) {
-            req.reservations = reservations;
-            return this;
-        }
-
-        public ResourceRequirements build() {
-            return req;
-        }
-    }
-
-    public static ResourceRequirements.Builder builder() {
-        return new ResourceRequirements.Builder();
+    public String id() {
+        return id;
     }
 
     @Override
@@ -74,20 +44,18 @@ public class ResourceRequirements {
             return false;
         }
 
-        final ResourceRequirements that = (ResourceRequirements) o;
+        final ServiceCreateResponse that = (ServiceCreateResponse) o;
 
-        return Objects.equals(this.limits, that.limits)
-                && Objects.equals(this.reservations, that.reservations);
+        return Objects.equals(this.id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(limits, reservations);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("limits", limits)
-                .add("reservations", reservations).toString();
+        return MoreObjects.toStringHelper(this).add("id", id).toString();
     }
 }

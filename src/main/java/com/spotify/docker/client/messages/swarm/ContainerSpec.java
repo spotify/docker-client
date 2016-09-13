@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages.swarm;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -107,6 +108,82 @@ public class ContainerSpec {
 
     public Long stopGracePeriod() {
         return stopGracePeriod;
+    }
+
+    public static class Builder {
+
+        private ContainerSpec spec = new ContainerSpec();
+
+        public Builder withImage(String image) {
+            spec.image = image;
+            return this;
+        }
+
+        public Builder withLabel(String label, String value) {
+            if (spec.labels == null) {
+                spec.labels = new HashMap<String, String>();
+            }
+            spec.labels.put(label, value);
+            return this;
+        }
+
+        public Builder withCommands(String[] commands) {
+            spec.command = ImmutableList.copyOf(commands);
+            return this;
+        }
+
+        public Builder withArgs(String[] args) {
+            spec.args = ImmutableList.copyOf(args);
+            return this;
+        }
+
+        public Builder withEnv(String[] env) {
+            spec.env = ImmutableList.copyOf(env);
+            return this;
+        }
+
+        public Builder withDir(String dir) {
+            spec.dir = dir;
+            return this;
+        }
+
+        public Builder withUser(String user) {
+            spec.user = user;
+            return this;
+        }
+
+        public Builder withGroups(String[] groups) {
+            spec.groups = ImmutableList.copyOf(groups);
+            return this;
+        }
+
+        public Builder withTty() {
+            spec.tty = true;
+            return this;
+        }
+
+        public Builder withTty(boolean tty) {
+            spec.tty = tty;
+            return this;
+        }
+
+        public Builder withMounts(Mount[] mounts) {
+            spec.mounts = ImmutableList.copyOf(mounts);
+            return this;
+        }
+
+        public Builder withStopGracePeriod(long stopGracePeriod) {
+            spec.stopGracePeriod = stopGracePeriod;
+            return this;
+        }
+
+        public ContainerSpec build() {
+            return spec;
+        }
+    }
+
+    public static ContainerSpec.Builder builder() {
+        return new ContainerSpec.Builder();
     }
 
     @Override

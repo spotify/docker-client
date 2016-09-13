@@ -19,6 +19,7 @@
 package com.spotify.docker.client;
 
 import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.net.URI;
@@ -28,12 +29,17 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 
 import com.google.common.base.Supplier;
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.DockerRequestException;
+import com.spotify.docker.client.messages.ServiceCreateOptions;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.Task.Criteria;
 
@@ -72,6 +78,30 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
 
     private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() {
     };
+
+    /* (non-Javadoc)
+     * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#createService(com.spotify.docker.client.
+     * messages.swarm.ServiceSpec, com.spotify.docker.client.messages.ServiceCreateOptions) */
+    @Override
+    public ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
+            throws DockerException, InterruptedException {
+        WebTarget resource = resource().path("services").path("create");
+
+        try {
+            return request(POST, ServiceCreateResponse.class, resource,
+                    resource.request(APPLICATION_JSON_TYPE), Entity.json(spec));
+        } catch (DockerRequestException e) {
+            switch (e.status()) {
+            case 406:
+                throw new DockerException("Server error or node is not part of swarm.", e);
+            case 409:
+                throw new DockerException("Name conflicts with an existing object.", e);
+            default:
+                throw e;
+            }
+        }
+    }
 
     /* (non-Javadoc)
      * 

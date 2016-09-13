@@ -60,6 +60,39 @@ public class RestartPolicy {
         return window;
     }
 
+    public static class Builder {
+
+        private RestartPolicy restart = new RestartPolicy();
+
+        public Builder withCondition(String condition) {
+            restart.condition = condition;
+            return this;
+        }
+
+        public Builder withDelay(long delay) {
+            restart.delay = delay;
+            return this;
+        }
+
+        public Builder withMaxAttempts(int maxAttempts) {
+            restart.maxAttempts = maxAttempts;
+            return this;
+        }
+
+        public Builder withWindow(long window) {
+            restart.window = window;
+            return this;
+        }
+
+        public RestartPolicy build() {
+            return restart;
+        }
+    }
+
+    public static RestartPolicy.Builder builder() {
+        return new RestartPolicy.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

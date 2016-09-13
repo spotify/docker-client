@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages.mount;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -41,6 +42,32 @@ public class Driver {
 
     public Map<String, String> options() {
         return options;
+    }
+
+    public static class Builder {
+
+        private Driver driver = new Driver();
+
+        public Builder withName(String name) {
+            driver.name = name;
+            return this;
+        }
+
+        public Builder withOption(String name, String value) {
+            if (driver.options == null) {
+                driver.options = new HashMap<String, String>();
+            }
+            driver.options.put(name, value);
+            return this;
+        }
+
+        public Driver build() {
+            return driver;
+        }
+    }
+
+    public static Driver.Builder builder() {
+        return new Driver.Builder();
     }
 
     @Override

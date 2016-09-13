@@ -42,6 +42,29 @@ public class Resources {
         return memoryBytes;
     }
 
+    public static class Builder {
+
+        private Resources resources = new Resources();
+
+        public Builder withNanoCpus(int nanoCpus) {
+            resources.nanoCpus = nanoCpus;
+            return this;
+        }
+
+        public Builder withMemoryBytes(int memoryBytes) {
+            resources.memoryBytes = memoryBytes;
+            return this;
+        }
+
+        public Resources build() {
+            return resources;
+        }
+    }
+
+    public static Resources.Builder builder() {
+        return new Resources.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

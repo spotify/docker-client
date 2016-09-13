@@ -47,6 +47,34 @@ public class EndpointSpec {
         return ports;
     }
 
+    public static class Builder {
+
+        private EndpointSpec spec = new EndpointSpec();
+
+        public Builder withVipMode() {
+            spec.mode = RESOLUTION_MODE_VIP;
+            return this;
+        }
+
+        public Builder withDnsrrMode() {
+            spec.mode = RESOLUTION_MODE_DNSRR;
+            return this;
+        }
+
+        public Builder withPorts(PortConfig[] ports) {
+            spec.ports = ImmutableList.copyOf(ports);
+            return this;
+        }
+
+        public EndpointSpec build() {
+            return spec;
+        }
+    }
+
+    public static EndpointSpec.Builder builder() {
+        return new EndpointSpec.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

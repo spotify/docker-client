@@ -5,8 +5,18 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.spotify.docker.client.messages.ServiceCreateOptions;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
+import com.spotify.docker.client.messages.swarm.ContainerSpec;
+import com.spotify.docker.client.messages.swarm.Driver;
+import com.spotify.docker.client.messages.swarm.ResourceRequirements;
+import com.spotify.docker.client.messages.swarm.Resources;
+import com.spotify.docker.client.messages.swarm.RestartPolicy;
 import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceMode;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.TaskStatus;
 
 public class SwarmModeDockerClientTest {
@@ -26,6 +36,24 @@ public class SwarmModeDockerClientTest {
         this.version = client.version().apiVersion();
 
         System.out.printf("Connected to Docker version %s\n", version);
+    }
+
+    @Test
+    public void testCreateService() throws Exception {
+        ServiceSpec spec = ServiceSpec.builder().withName("ping00").withTaskTemplate(TaskSpec
+                .builder()
+                .withContainerSpec(ContainerSpec.builder().withImage("alpine")
+                        .withCommands(new String[] {"ping", "192.168.171.135"}).build())
+                .withLogDriver(Driver.builder().withName("json-file").withOption("max-file", "3")
+                        .withOption("max-size", "10M").build())
+                .withResources(ResourceRequirements.builder()
+                        .withLimits(Resources.builder().withMemoryBytes(10 * 1024 * 1024).build())
+                        .build())
+                .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
+                        .withDelay(10000000).withMaxAttempts(10).build())
+                .build()).withServiceMode(ServiceMode.withReplicas(4)).build();
+        ServiceCreateResponse response = client.createService(spec, new ServiceCreateOptions());
+        System.out.println("Started service: " + response.id());
     }
 
     @Test

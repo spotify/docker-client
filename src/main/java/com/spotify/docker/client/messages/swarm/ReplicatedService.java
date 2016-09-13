@@ -35,6 +35,24 @@ public class ReplicatedService {
         return replicas;
     }
 
+    public static class Builder {
+
+        private ReplicatedService replicated = new ReplicatedService();
+
+        public Builder withReplicas(long replicas) {
+            replicated.replicas = replicas;
+            return this;
+        }
+
+        public ReplicatedService build() {
+            return replicated;
+        }
+    }
+
+    public static ReplicatedService.Builder builder() {
+        return new ReplicatedService.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

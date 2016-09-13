@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages.swarm;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,12 +73,65 @@ public class ServiceSpec {
         return updateConfig;
     }
 
+    @Deprecated
     public List<NetworkAttachmentConfig> networks() {
         return networks;
     }
 
     public EndpointSpec endpointSpec() {
         return endpointSpec;
+    }
+
+    public static class Builder {
+
+        private ServiceSpec spec = new ServiceSpec();
+
+        public Builder withName(String name) {
+            spec.name = name;
+            return this;
+        }
+
+        public Builder withLabel(String label, String value) {
+            if (spec.labels == null) {
+                spec.labels = new HashMap<String, String>();
+            }
+            spec.labels.put(label, value);
+            return this;
+        }
+
+        public Builder withTaskTemplate(TaskSpec taskTemplate) {
+            spec.taskTemplate = taskTemplate;
+            return this;
+        }
+
+        public Builder withServiceMode(ServiceMode mode) {
+            spec.mode = mode;
+            return this;
+        }
+
+        public Builder withUpdateConfig(UpdateConfig updateConfig) {
+            spec.updateConfig = updateConfig;
+            return this;
+        }
+
+        @Deprecated
+        public Builder withNetworks(NetworkAttachmentConfig[] networks) {
+            spec.networks = ImmutableList.copyOf(networks);
+            return this;
+        }
+
+        public Builder withEndpointSpec(EndpointSpec endpointSpec) {
+            spec.endpointSpec = endpointSpec;
+            return this;
+        }
+
+        public ServiceSpec build() {
+            return spec;
+        }
+    }
+
+    public static ServiceSpec.Builder builder() {
+        return new ServiceSpec.Builder();
     }
 
     @Override

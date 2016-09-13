@@ -19,13 +19,28 @@ package com.spotify.docker.client;
 import java.util.List;
 
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.messages.ServiceCreateOptions;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 
 /**
  * Extends standard Docker client with "Swarm Mode" extensions.
  */
 public interface SwarmModeDockerClient extends DockerClient {
+
+    /**
+     * Create a new service.
+     * 
+     * @param spec
+     * @param options
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
+            throws DockerException, InterruptedException;
 
     /**
      * List all services.

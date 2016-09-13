@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages.mount;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -48,6 +49,42 @@ public class VolumeOptions {
 
     public Driver driverConfig() {
         return driverConfig;
+    }
+
+    public static class Builder {
+
+        private VolumeOptions volume = new VolumeOptions();
+
+        public Builder withNoCopy() {
+            volume.noCopy = true;
+            return this;
+        }
+
+        public Builder withNoCopy(boolean noCopy) {
+            volume.noCopy = noCopy;
+            return this;
+        }
+
+        public Builder withLabel(String label, String value) {
+            if (volume.labels == null) {
+                volume.labels = new HashMap<String, String>();
+            }
+            volume.labels.put(label, value);
+            return this;
+        }
+
+        public Builder withDriverConfig(Driver driverConfig) {
+            volume.driverConfig = driverConfig;
+            return this;
+        }
+
+        public VolumeOptions build() {
+            return volume;
+        }
+    }
+
+    public static VolumeOptions.Builder builder() {
+        return new VolumeOptions.Builder();
     }
 
     @Override

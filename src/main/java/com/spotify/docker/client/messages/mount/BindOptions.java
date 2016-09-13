@@ -35,6 +35,24 @@ public class BindOptions {
         return propagation;
     }
 
+    public static class Builder {
+
+        private BindOptions bind = new BindOptions();
+
+        public Builder withPropagation(String propagation) {
+            bind.propagation = propagation;
+            return this;
+        }
+
+        public BindOptions build() {
+            return bind;
+        }
+    }
+
+    public static BindOptions.Builder builder() {
+        return new BindOptions.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

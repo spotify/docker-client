@@ -59,6 +59,39 @@ public class PortConfig {
         return publishedPort;
     }
 
+    public static class Builder {
+
+        private PortConfig config = new PortConfig();
+
+        public Builder withName(String name) {
+            config.name = name;
+            return this;
+        }
+
+        public Builder withProtocol(String protocol) {
+            config.protocol = protocol;
+            return this;
+        }
+
+        public Builder withTargetPort(int targetPort) {
+            config.targetPort = targetPort;
+            return this;
+        }
+
+        public Builder withPublishedPort(int publishedPort) {
+            config.publishedPort = publishedPort;
+            return this;
+        }
+
+        public PortConfig build() {
+            return config;
+        }
+    }
+
+    public static PortConfig.Builder builder() {
+        return new PortConfig.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

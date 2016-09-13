@@ -72,6 +72,49 @@ public class TaskSpec {
         return logDriver;
     }
 
+    public static class Builder {
+
+        private TaskSpec spec = new TaskSpec();
+
+        public Builder withContainerSpec(ContainerSpec containerSpec) {
+            spec.containerSpec = containerSpec;
+            return this;
+        }
+
+        public Builder withResources(ResourceRequirements resources) {
+            spec.resources = resources;
+            return this;
+        }
+
+        public Builder withRestartPolicy(RestartPolicy restartPolicy) {
+            spec.restartPolicy = restartPolicy;
+            return this;
+        }
+
+        public Builder withPlacement(Placement placement) {
+            spec.placement = placement;
+            return this;
+        }
+
+        public Builder withNetworks(NetworkAttachmentConfig[] networks) {
+            spec.networks = ImmutableList.copyOf(networks);
+            return this;
+        }
+
+        public Builder withLogDriver(Driver logDriver) {
+            spec.logDriver = logDriver;
+            return this;
+        }
+
+        public TaskSpec build() {
+            return spec;
+        }
+    }
+
+    public static TaskSpec.Builder builder() {
+        return new TaskSpec.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

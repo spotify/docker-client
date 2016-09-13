@@ -70,6 +70,54 @@ public class Mount {
         return volumeOptions;
     }
 
+    public static class Builder {
+
+        private Mount mount = new Mount();
+
+        public Builder withType(String type) {
+            mount.type = type;
+            return this;
+        }
+
+        public Builder withSource(String source) {
+            mount.source = source;
+            return this;
+        }
+
+        public Builder withTarget(String target) {
+            mount.target = target;
+            return this;
+        }
+
+        public Builder makeReadOnly() {
+            mount.readOnly = true;
+            return this;
+        }
+
+        public Builder makeReadOnly(boolean readOnly) {
+            mount.readOnly = readOnly;
+            return this;
+        }
+
+        public Builder withBindOptions(BindOptions bindOptions) {
+            mount.bindOptions = bindOptions;
+            return this;
+        }
+
+        public Builder withVolumeOptions(VolumeOptions volumeOptions) {
+            mount.volumeOptions = volumeOptions;
+            return this;
+        }
+
+        public Mount build() {
+            return mount;
+        }
+    }
+
+    public static Mount.Builder builder() {
+        return new Mount.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

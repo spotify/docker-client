@@ -42,6 +42,39 @@ public class ServiceMode {
         return global;
     }
 
+    public static ServiceMode withReplicas(long replicas) {
+        return ServiceMode.builder()
+                .withReplicatedService(ReplicatedService.builder().withReplicas(replicas).build())
+                .build();
+    }
+
+    public static ServiceMode withGlobal() {
+        return ServiceMode.builder().withGlobalService(new GlobalService()).build();
+    }
+
+    public static class Builder {
+
+        private ServiceMode mode = new ServiceMode();
+
+        public Builder withReplicatedService(ReplicatedService replicated) {
+            mode.replicated = replicated;
+            return this;
+        }
+
+        public Builder withGlobalService(GlobalService global) {
+            mode.global = global;
+            return this;
+        }
+
+        public ServiceMode build() {
+            return mode;
+        }
+    }
+
+    public static ServiceMode.Builder builder() {
+        return new ServiceMode.Builder();
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
