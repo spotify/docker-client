@@ -37,10 +37,13 @@ import javax.ws.rs.core.GenericType;
 import com.google.common.base.Supplier;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.DockerRequestException;
+import com.spotify.docker.client.exceptions.ServiceNotFoundException;
+import com.spotify.docker.client.exceptions.TaskNotFoundException;
 import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.Task.Criteria;
 
@@ -82,6 +85,15 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
 
     /* (non-Javadoc)
      * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#inspectSwarm() */
+    @Override
+    public Swarm inspectSwarm() throws DockerException, InterruptedException {
+        final WebTarget resource = resource().path("swarm");
+        return request(GET, Swarm.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    /* (non-Javadoc)
+     * 
      * @see com.spotify.docker.client.SwarmModeDockerClient#createService(com.spotify.docker.client.
      * messages.swarm.ServiceSpec, com.spotify.docker.client.messages.ServiceCreateOptions) */
     @Override
@@ -109,8 +121,39 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
      * @see com.spotify.docker.client.SwarmModeDockerClient#inspectService(java.lang.String) */
     @Override
     public Service inspectService(String serviceId) throws DockerException, InterruptedException {
-        final WebTarget resource = resource().path("services").path(serviceId);
-        return request(GET, Service.class, resource, resource.request(APPLICATION_JSON_TYPE));
+        try {
+            final WebTarget resource = resource().path("services").path(serviceId);
+            return request(GET, Service.class, resource, resource.request(APPLICATION_JSON_TYPE));
+        } catch (DockerRequestException e) {
+            switch (e.status()) {
+            case 404:
+                throw new ServiceNotFoundException(serviceId);
+            default:
+                throw e;
+            }
+        }
+    }
+
+    /* (non-Javadoc)
+     * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#updateService(java.lang.String,
+     * java.lang.String, com.spotify.docker.client.messages.swarm.ServiceSpec) */
+    @Override
+    public void updateService(String serviceId, String version, ServiceSpec spec)
+            throws DockerException, InterruptedException {
+        try {
+            WebTarget resource = resource().path("services").path(serviceId).path("update");
+            resource = resource.queryParam("version", version);
+            request(POST, Void.class, resource, resource.request(APPLICATION_JSON_TYPE),
+                    Entity.json(spec));
+        } catch (DockerRequestException e) {
+            switch (e.status()) {
+            case 404:
+                throw new ServiceNotFoundException(serviceId);
+            default:
+                throw e;
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -153,7 +196,7 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
         } catch (DockerRequestException e) {
             switch (e.status()) {
             case 404:
-                throw new DockerException("Service not found.");
+                throw new ServiceNotFoundException(serviceId);
             default:
                 throw e;
             }
@@ -165,8 +208,17 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
      * @see com.spotify.docker.client.SwarmModeDockerClient#inspectTask(java.lang.String) */
     @Override
     public Task inspectTask(String taskId) throws DockerException, InterruptedException {
-        final WebTarget resource = resource().path("tasks").path(taskId);
-        return request(GET, Task.class, resource, resource.request(APPLICATION_JSON_TYPE));
+        try {
+            final WebTarget resource = resource().path("tasks").path(taskId);
+            return request(GET, Task.class, resource, resource.request(APPLICATION_JSON_TYPE));
+        } catch (DockerRequestException e) {
+            switch (e.status()) {
+            case 404:
+                throw new TaskNotFoundException(taskId);
+            default:
+                throw e;
+            }
+        }
     }
 
     /* (non-Javadoc)

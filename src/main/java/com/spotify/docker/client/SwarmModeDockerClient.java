@@ -23,12 +23,22 @@ import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 
 /**
  * Extends standard Docker client with "Swarm Mode" extensions.
  */
 public interface SwarmModeDockerClient extends DockerClient {
+
+    /**
+     * Inspect the Swarm cluster.
+     * 
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    Swarm inspectSwarm() throws DockerException, InterruptedException;
 
     /**
      * Create a new service.
@@ -51,6 +61,18 @@ public interface SwarmModeDockerClient extends DockerClient {
      * @throws InterruptedException
      */
     Service inspectService(String serviceId) throws DockerException, InterruptedException;
+
+    /**
+     * Update an existing service.
+     * 
+     * @param serviceId
+     * @param version
+     * @param spec
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    void updateService(String serviceId, String version, ServiceSpec spec)
+            throws DockerException, InterruptedException;
 
     /**
      * List all services.

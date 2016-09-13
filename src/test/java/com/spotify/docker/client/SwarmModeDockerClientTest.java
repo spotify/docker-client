@@ -1,7 +1,9 @@
 package com.spotify.docker.client;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +19,7 @@ import com.spotify.docker.client.messages.swarm.RestartPolicy;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.TaskStatus;
@@ -35,9 +38,18 @@ public class SwarmModeDockerClientTest {
 
         builder.uri("http://192.168.171.135:2375");
         this.client = builder.build();
+        Logger logger = Logger.getLogger(SwarmModeDockerClientTest.class.getName());
+        client.getClient().register(new LoggingFilter(logger, true));
+
         this.version = client.version().apiVersion();
 
-        System.out.printf("Connected to Docker version %s\n", version);
+        System.out.printf("Connected to Docker API version %s\n", version);
+    }
+
+    @Test
+    public void testInspectSwarm() throws Exception {
+        Swarm swarm = client.inspectSwarm();
+        System.out.println(swarm.toString());
     }
 
     @Test
@@ -70,6 +82,13 @@ public class SwarmModeDockerClientTest {
     public void testInspectService() throws Exception {
         Service service = client.inspectService("6k8oteesq47dzkei1s2d0f061");
         System.out.println(service.toString());
+    }
+
+    @Test
+    public void testUpdateService() throws Exception {
+        client.updateService("6k8oteesq47dzkei1s2d0f061", "851",
+                ServiceSpec.builder().withServiceMode(ServiceMode.withReplicas(5)).build());
+        System.out.println("Successfully updated service.");
     }
 
     @Test
