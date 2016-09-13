@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.Task;
 
 /**
  * Extends standard Docker client with "Swarm Mode" extensions.
@@ -45,4 +46,13 @@ public interface SwarmModeDockerClient extends DockerClient {
      */
     List<Service> listServices(Service.Criteria criteria)
             throws DockerException, InterruptedException;
+
+    /**
+     * List all tasks.
+     * 
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    List<Task> listTasks() throws DockerException, InterruptedException;
 }

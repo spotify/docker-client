@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.Task;
 
 public class SwarmModeDockerClientTest {
 
@@ -49,6 +50,14 @@ public class SwarmModeDockerClientTest {
                 client.listServices(Service.newCriteriaBuilder().forServiceName("ping00").build());
         for (Service service : services) {
             System.out.println(service.toString());
+        }
+    }
+
+    @Test
+    public void testListTasks() throws Exception {
+        List<Task> tasks = client.listTasks();
+        for (Task task : tasks) {
+            System.out.println(task.toString());
         }
     }
 }

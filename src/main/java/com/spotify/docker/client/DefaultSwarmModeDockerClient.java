@@ -34,6 +34,7 @@ import javax.ws.rs.core.GenericType;
 import com.google.common.base.Supplier;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.Task;
 
 /**
  * Extends standard Docker client with "Swarm Mode" features.
@@ -68,6 +69,9 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
             new GenericType<List<Service>>() {
             };
 
+    private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() {
+    };
+
     /* (non-Javadoc)
      * 
      * @see com.spotify.docker.client.SwarmModeDockerClient#listServices() */
@@ -95,6 +99,15 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
 
         resource = resource.queryParam("filters", urlEncodeFilters(filters));
         return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    /* (non-Javadoc)
+     * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#listTasks() */
+    @Override
+    public List<Task> listTasks() throws DockerException, InterruptedException {
+        final WebTarget resource = resource().path("tasks");
+        return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
     }
 
     public static DefaultSwarmModeDockerClient.Builder builder() {
