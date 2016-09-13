@@ -67,6 +67,12 @@ public class SwarmModeDockerClientTest {
     }
 
     @Test
+    public void testInspectService() throws Exception {
+        Service service = client.inspectService("6k8oteesq47dzkei1s2d0f061");
+        System.out.println(service.toString());
+    }
+
+    @Test
     public void testListServices() throws Exception {
         List<Service> services = client.listServices();
         for (Service service : services) {
@@ -99,6 +105,12 @@ public class SwarmModeDockerClientTest {
             client.removeService(services.get(0).id());
             System.out.println("Removed service: " + services.get(0).spec().name());
         }
+    }
+
+    @Test
+    public void testInspectTask() throws Exception {
+        Task task = client.inspectTask("1dzn0uomkbdv81xybcyev5cyt");
+        System.out.println(task.toString());
     }
 
     @Test

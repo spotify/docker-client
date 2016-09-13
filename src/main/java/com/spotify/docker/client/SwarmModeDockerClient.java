@@ -43,6 +43,16 @@ public interface SwarmModeDockerClient extends DockerClient {
             throws DockerException, InterruptedException;
 
     /**
+     * Inspect an existing service.
+     * 
+     * @param serviceId
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    Service inspectService(String serviceId) throws DockerException, InterruptedException;
+
+    /**
      * List all services.
      * 
      * @return
@@ -70,6 +80,16 @@ public interface SwarmModeDockerClient extends DockerClient {
      * @throws InterruptedException
      */
     void removeService(String serviceId) throws DockerException, InterruptedException;
+
+    /**
+     * Inspect an existing task.
+     * 
+     * @param taskId
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    Task inspectTask(String taskId) throws DockerException, InterruptedException;
 
     /**
      * List all tasks.

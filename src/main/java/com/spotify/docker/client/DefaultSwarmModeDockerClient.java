@@ -35,9 +35,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 
 import com.google.common.base.Supplier;
-import com.spotify.docker.client.DockerClient.RemoveContainerParam;
-import com.spotify.docker.client.exceptions.BadParamException;
-import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.DockerRequestException;
 import com.spotify.docker.client.messages.ServiceCreateOptions;
@@ -109,6 +106,15 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
 
     /* (non-Javadoc)
      * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#inspectService(java.lang.String) */
+    @Override
+    public Service inspectService(String serviceId) throws DockerException, InterruptedException {
+        final WebTarget resource = resource().path("services").path(serviceId);
+        return request(GET, Service.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    /* (non-Javadoc)
+     * 
      * @see com.spotify.docker.client.SwarmModeDockerClient#listServices() */
     @Override
     public List<Service> listServices() throws DockerException, InterruptedException {
@@ -152,6 +158,15 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
                 throw e;
             }
         }
+    }
+
+    /* (non-Javadoc)
+     * 
+     * @see com.spotify.docker.client.SwarmModeDockerClient#inspectTask(java.lang.String) */
+    @Override
+    public Task inspectTask(String taskId) throws DockerException, InterruptedException {
+        final WebTarget resource = resource().path("tasks").path(taskId);
+        return request(GET, Task.class, resource, resource.request(APPLICATION_JSON_TYPE));
     }
 
     /* (non-Javadoc)
