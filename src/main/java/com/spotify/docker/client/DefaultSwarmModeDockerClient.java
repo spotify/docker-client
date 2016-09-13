@@ -35,6 +35,7 @@ import com.google.common.base.Supplier;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.Task.Criteria;
 
 /**
  * Extends standard Docker client with "Swarm Mode" features.
@@ -107,6 +108,39 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
     @Override
     public List<Task> listTasks() throws DockerException, InterruptedException {
         final WebTarget resource = resource().path("tasks");
+        return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    }
+
+    /* (non-Javadoc)
+     * 
+     * @see
+     * com.spotify.docker.client.SwarmModeDockerClient#listTasks(com.spotify.docker.client.messages.
+     * swarm.Task.Criteria) */
+    @Override
+    public List<Task> listTasks(Criteria criteria) throws DockerException, InterruptedException {
+        WebTarget resource = resource().path("tasks");
+        Map<String, List<String>> filters = new HashMap<String, List<String>>();
+
+        if (criteria.getTaskId() != null) {
+            filters.put("id", Collections.singletonList(criteria.getTaskId()));
+        }
+        if (criteria.getTaskName() != null) {
+            filters.put("name", Collections.singletonList(criteria.getTaskName()));
+        }
+        if (criteria.getServiceName() != null) {
+            filters.put("service", Collections.singletonList(criteria.getServiceName()));
+        }
+        if (criteria.getNodeId() != null) {
+            filters.put("node", Collections.singletonList(criteria.getNodeId()));
+        }
+        if (criteria.getLabel() != null) {
+            filters.put("label", Collections.singletonList(criteria.getLabel()));
+        }
+        if (criteria.getDesiredState() != null) {
+            filters.put("desired-state", Collections.singletonList(criteria.getDesiredState()));
+        }
+
+        resource = resource.queryParam("filters", urlEncodeFilters(filters));
         return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
     }
 

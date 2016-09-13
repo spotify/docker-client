@@ -55,4 +55,14 @@ public interface SwarmModeDockerClient extends DockerClient {
      * @throws InterruptedException
      */
     List<Task> listTasks() throws DockerException, InterruptedException;
+
+    /**
+     * List tasks that match the given criteria.
+     * 
+     * @param criteria
+     * @return
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    List<Task> listTasks(Task.Criteria criteria) throws DockerException, InterruptedException;
 }

@@ -107,12 +107,12 @@ public class Service {
         /** Criteria being built */
         private Criteria criteria = new Criteria();
 
-        public CriteriaBuilder forServiceId(String serviceId) {
+        public CriteriaBuilder withServiceId(String serviceId) {
             criteria.setServiceId(serviceId);
             return this;
         }
 
-        public CriteriaBuilder forServiceName(String serviceName) {
+        public CriteriaBuilder withServiceName(String serviceName) {
             criteria.setServiceName(serviceName);
             return this;
         }
@@ -122,7 +122,7 @@ public class Service {
         }
     }
 
-    public static CriteriaBuilder newCriteriaBuilder() {
+    public static CriteriaBuilder find() {
         return new Service.CriteriaBuilder();
     }
 
