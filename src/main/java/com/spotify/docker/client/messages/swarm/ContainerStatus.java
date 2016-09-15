@@ -37,7 +37,8 @@ public class ContainerStatus {
     @JsonProperty("ExitCode")
     private Integer exitCode;
 
-    public String containerId() {
+    // Checkstyle complains if using containerId()
+    public String containerID() {
         return containerId;
     }
 
