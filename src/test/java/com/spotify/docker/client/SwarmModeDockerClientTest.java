@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.glassfish.jersey.filter.LoggingFilter;
-import org.junit.Before;
-import org.junit.Test;
 
 import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
@@ -48,7 +46,6 @@ public class SwarmModeDockerClientTest {
     /** Docker version */
     String version;
 
-    @Before
     public void setup() throws Exception {
         final DefaultSwarmModeDockerClient.Builder builder = DefaultSwarmModeDockerClient.builder();
 
@@ -62,13 +59,11 @@ public class SwarmModeDockerClientTest {
         System.out.printf("Connected to Docker API version %s\n", version);
     }
 
-    @Test
     public void testInspectSwarm() throws Exception {
         final Swarm swarm = client.inspectSwarm();
         System.out.println(swarm.toString());
     }
 
-    @Test
     public void testCreateService() throws Exception {
         final ServiceSpec spec = ServiceSpec.builder().withName("ping00").withTaskTemplate(TaskSpec
                 .builder()
@@ -95,20 +90,17 @@ public class SwarmModeDockerClientTest {
         System.out.println("Started service: " + response.id());
     }
 
-    @Test
     public void testInspectService() throws Exception {
         final Service service = client.inspectService("6k8oteesq47dzkei1s2d0f061");
         System.out.println(service.toString());
     }
 
-    @Test
     public void testUpdateService() throws Exception {
         client.updateService("6k8oteesq47dzkei1s2d0f061", "851",
                 ServiceSpec.builder().withServiceMode(ServiceMode.withReplicas(5)).build());
         System.out.println("Successfully updated service.");
     }
 
-    @Test
     public void testListServices() throws Exception {
         final List<Service> services = client.listServices();
         for (final Service service : services) {
@@ -116,7 +108,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testListServicesFilterById() throws Exception {
         final List<Service> services = client
                 .listServices(Service.find().withServiceId("7spwad2wl02cdogg6bylyr90g").build());
@@ -125,7 +116,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testListServicesFilterByName() throws Exception {
         final List<Service> services =
                 client.listServices(Service.find().withServiceName("ping00").build());
@@ -134,7 +124,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testRemoveService() throws Exception {
         final List<Service> services = client.listServices();
         if (services.size() > 0) {
@@ -143,13 +132,11 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testInspectTask() throws Exception {
         final Task task = client.inspectTask("1dzn0uomkbdv81xybcyev5cyt");
         System.out.println(task.toString());
     }
 
-    @Test
     public void testListTasks() throws Exception {
         final List<Task> tasks = client.listTasks();
         for (final Task task : tasks) {
@@ -157,7 +144,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testListTaskWithId() throws Exception {
         final List<Task> tasks =
                 client.listTasks(Task.find().withTaskId("bj8rh5auppiejwi9prvhlcdpa").build());
@@ -166,7 +152,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testListTasksForServiceName() throws Exception {
         final List<Task> tasks = client.listTasks(Task.find().withServiceName("ping00").build());
         for (final Task task : tasks) {
@@ -174,7 +159,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testListTasksWithDesiredState() throws Exception {
         final List<Task> tasks = client
                 .listTasks(Task.find().withDesiredState(TaskStatus.TASK_STATE_SHUTDOWN).build());
@@ -183,7 +167,6 @@ public class SwarmModeDockerClientTest {
         }
     }
 
-    @Test
     public void testListTasksWithMultipleCriteria() throws Exception {
         final List<Task> tasks = client.listTasks(Task.find().withServiceName("ping00")
                 .withDesiredState(TaskStatus.TASK_STATE_RUNNING).build());
