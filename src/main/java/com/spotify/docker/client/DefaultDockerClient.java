@@ -495,7 +495,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @return String
    * @throws DockerException if there's an IOException
    */
-  private String urlEncodeFilters(final Map<String, List<String>> filters) throws DockerException {
+  protected String urlEncodeFilters(final Map<String, List<String>> filters) 
+      throws DockerException {
     try {
       final String unencodedFilters = objectMapper().writeValueAsString(filters);
       if (!unencodedFilters.isEmpty()) {
@@ -1676,7 +1677,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private WebTarget resource() {
+  protected WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
       return target.path(apiVersion);
@@ -1684,7 +1685,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return target;
   }
 
-  private WebTarget noTimeoutResource() {
+  protected WebTarget noTimeoutResource() {
     final WebTarget target = noTimeoutClient.target(uri);
     if (!isNullOrEmpty(apiVersion)) {
       return target.path(apiVersion);
@@ -1692,7 +1693,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return target;
   }
 
-  private <T> T request(final String method, final GenericType<T> type,
+  protected <T> T request(final String method, final GenericType<T> type,
                         final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
@@ -1702,7 +1703,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private <T> T request(final String method, final Class<T> clazz,
+  protected <T> T request(final String method, final Class<T> clazz,
                         final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     try {
@@ -1712,7 +1713,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private <T> T request(final String method, final Class<T> clazz,
+  protected <T> T request(final String method, final Class<T> clazz,
                         final WebTarget resource, final Invocation.Builder request,
                         final Entity<?> entity)
       throws DockerException, InterruptedException {
@@ -1723,7 +1724,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private void request(final String method,
+  protected void request(final String method,
                        final WebTarget resource,
                        final Invocation.Builder request)
       throws DockerException, InterruptedException {
