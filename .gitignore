@@ -12,3 +12,4 @@ dependency-reduced-pom.xml
 /bin/
 /build/
 /.gradle/
+build.gradle

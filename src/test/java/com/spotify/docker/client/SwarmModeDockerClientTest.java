@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014 Spotify AB.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.spotify.docker.client;
 
 import java.util.List;
@@ -38,7 +54,7 @@ public class SwarmModeDockerClientTest {
 
         builder.uri("http://192.168.171.135:2375");
         this.client = builder.build();
-        Logger logger = Logger.getLogger(SwarmModeDockerClientTest.class.getName());
+        final Logger logger = Logger.getLogger(SwarmModeDockerClientTest.class.getName());
         client.getClient().register(new LoggingFilter(logger, true));
 
         this.version = client.version().apiVersion();
@@ -48,13 +64,13 @@ public class SwarmModeDockerClientTest {
 
     @Test
     public void testInspectSwarm() throws Exception {
-        Swarm swarm = client.inspectSwarm();
+        final Swarm swarm = client.inspectSwarm();
         System.out.println(swarm.toString());
     }
 
     @Test
     public void testCreateService() throws Exception {
-        ServiceSpec spec = ServiceSpec.builder().withName("ping00").withTaskTemplate(TaskSpec
+        final ServiceSpec spec = ServiceSpec.builder().withName("ping00").withTaskTemplate(TaskSpec
                 .builder()
                 .withContainerSpec(ContainerSpec.builder().withImage("alpine")
                         .withCommands(new String[] {"ping", "192.168.171.135"}).build())
@@ -74,13 +90,14 @@ public class SwarmModeDockerClientTest {
                                         .withTargetPort(80).build()})
                                 .build())
                 .build();
-        ServiceCreateResponse response = client.createService(spec, new ServiceCreateOptions());
+        final ServiceCreateResponse response =
+                client.createService(spec, new ServiceCreateOptions());
         System.out.println("Started service: " + response.id());
     }
 
     @Test
     public void testInspectService() throws Exception {
-        Service service = client.inspectService("6k8oteesq47dzkei1s2d0f061");
+        final Service service = client.inspectService("6k8oteesq47dzkei1s2d0f061");
         System.out.println(service.toString());
     }
 
@@ -93,33 +110,33 @@ public class SwarmModeDockerClientTest {
 
     @Test
     public void testListServices() throws Exception {
-        List<Service> services = client.listServices();
-        for (Service service : services) {
+        final List<Service> services = client.listServices();
+        for (final Service service : services) {
             System.out.println(service.toString());
         }
     }
 
     @Test
     public void testListServicesFilterById() throws Exception {
-        List<Service> services = client
+        final List<Service> services = client
                 .listServices(Service.find().withServiceId("7spwad2wl02cdogg6bylyr90g").build());
-        for (Service service : services) {
+        for (final Service service : services) {
             System.out.println(service.toString());
         }
     }
 
     @Test
     public void testListServicesFilterByName() throws Exception {
-        List<Service> services =
+        final List<Service> services =
                 client.listServices(Service.find().withServiceName("ping00").build());
-        for (Service service : services) {
+        for (final Service service : services) {
             System.out.println(service.toString());
         }
     }
 
     @Test
     public void testRemoveService() throws Exception {
-        List<Service> services = client.listServices();
+        final List<Service> services = client.listServices();
         if (services.size() > 0) {
             client.removeService(services.get(0).id());
             System.out.println("Removed service: " + services.get(0).spec().name());
@@ -128,49 +145,49 @@ public class SwarmModeDockerClientTest {
 
     @Test
     public void testInspectTask() throws Exception {
-        Task task = client.inspectTask("1dzn0uomkbdv81xybcyev5cyt");
+        final Task task = client.inspectTask("1dzn0uomkbdv81xybcyev5cyt");
         System.out.println(task.toString());
     }
 
     @Test
     public void testListTasks() throws Exception {
-        List<Task> tasks = client.listTasks();
-        for (Task task : tasks) {
+        final List<Task> tasks = client.listTasks();
+        for (final Task task : tasks) {
             System.out.println(task.toString());
         }
     }
 
     @Test
     public void testListTaskWithId() throws Exception {
-        List<Task> tasks =
+        final List<Task> tasks =
                 client.listTasks(Task.find().withTaskId("bj8rh5auppiejwi9prvhlcdpa").build());
-        for (Task task : tasks) {
+        for (final Task task : tasks) {
             System.out.println(task.toString());
         }
     }
 
     @Test
     public void testListTasksForServiceName() throws Exception {
-        List<Task> tasks = client.listTasks(Task.find().withServiceName("ping00").build());
-        for (Task task : tasks) {
+        final List<Task> tasks = client.listTasks(Task.find().withServiceName("ping00").build());
+        for (final Task task : tasks) {
             System.out.println(task.toString());
         }
     }
 
     @Test
     public void testListTasksWithDesiredState() throws Exception {
-        List<Task> tasks = client
+        final List<Task> tasks = client
                 .listTasks(Task.find().withDesiredState(TaskStatus.TASK_STATE_SHUTDOWN).build());
-        for (Task task : tasks) {
+        for (final Task task : tasks) {
             System.out.println(task.toString());
         }
     }
 
     @Test
     public void testListTasksWithMultipleCriteria() throws Exception {
-        List<Task> tasks = client.listTasks(Task.find().withServiceName("ping00")
+        final List<Task> tasks = client.listTasks(Task.find().withServiceName("ping00")
                 .withDesiredState(TaskStatus.TASK_STATE_RUNNING).build());
-        for (Task task : tasks) {
+        for (final Task task : tasks) {
             System.out.println(task.toString());
         }
     }

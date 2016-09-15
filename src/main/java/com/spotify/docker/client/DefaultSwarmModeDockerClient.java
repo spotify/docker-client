@@ -99,7 +99,7 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
     @Override
     public ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
             throws DockerException, InterruptedException {
-        WebTarget resource = resource().path("services").path("create");
+        final WebTarget resource = resource().path("services").path("create");
 
         try {
             return request(POST, ServiceCreateResponse.class, resource,
@@ -172,7 +172,7 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
     public List<Service> listServices(Service.Criteria criteria)
             throws DockerException, InterruptedException {
         WebTarget resource = resource().path("services");
-        Map<String, List<String>> filters = new HashMap<String, List<String>>();
+        final Map<String, List<String>> filters = new HashMap<String, List<String>>();
 
         if (criteria.getServiceId() != null) {
             filters.put("id", Collections.singletonList(criteria.getServiceId()));
@@ -191,7 +191,7 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
     @Override
     public void removeService(String serviceId) throws DockerException, InterruptedException {
         try {
-            WebTarget resource = resource().path("services").path(serviceId);
+            final WebTarget resource = resource().path("services").path(serviceId);
             request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
         } catch (DockerRequestException e) {
             switch (e.status()) {
@@ -238,7 +238,7 @@ public class DefaultSwarmModeDockerClient extends DefaultDockerClient
     @Override
     public List<Task> listTasks(Criteria criteria) throws DockerException, InterruptedException {
         WebTarget resource = resource().path("tasks");
-        Map<String, List<String>> filters = new HashMap<String, List<String>>();
+        final Map<String, List<String>> filters = new HashMap<String, List<String>>();
 
         if (criteria.getTaskId() != null) {
             filters.put("id", Collections.singletonList(criteria.getTaskId()));
