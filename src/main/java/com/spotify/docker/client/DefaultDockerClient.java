@@ -973,29 +973,46 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  @Deprecated
   public void load(final String image, final InputStream imagePayload)
       throws DockerException, InterruptedException {
-    load(image, imagePayload, authConfig, new LoggingPullHandler("image stream"));
+    create(image, imagePayload);
   }
 
   @Override
+  @Deprecated
   public void load(final String image, final InputStream imagePayload,
                    final AuthConfig authConfig)
       throws DockerException, InterruptedException {
-    load(image, imagePayload, authConfig, new LoggingPullHandler("image stream"));
+    create(image, imagePayload);
   }
 
   @Override
+  @Deprecated
   public void load(final String image, final InputStream imagePayload,
                    final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    load(image, imagePayload, authConfig, handler);
+    create(image, imagePayload, handler);
   }
 
   @Override
+  @Deprecated
   public void load(final String image, final InputStream imagePayload,
                    final AuthConfig authConfig, final ProgressHandler handler)
       throws DockerException, InterruptedException {
+    create(image, imagePayload, handler);
+  }
+
+  @Override
+  public void create(final String image, final InputStream imagePayload)
+          throws DockerException, InterruptedException {
+    create(image, imagePayload, new LoggingPullHandler("image stream"));
+  }
+
+  @Override
+  public void create(final String image, final InputStream imagePayload,
+                     final ProgressHandler handler)
+          throws DockerException, InterruptedException {
     WebTarget resource = resource().path("images").path("create");
 
     resource = resource
@@ -1007,9 +1024,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                                      MediaType.APPLICATION_OCTET_STREAM);
     try (final ProgressStream load =
              request(POST, ProgressStream.class, resource,
-                     resource
-                         .request(APPLICATION_JSON_TYPE)
-                         .header("X-Registry-Auth", authHeader(authConfig)), entity)) {
+                     resource.request(APPLICATION_JSON_TYPE), entity)) {
       load.tail(loadProgressHandler, POST, resource.getUri());
       tag(loadProgressHandler.getImageId(), image, true);
     } catch (IOException e) {
@@ -1020,22 +1035,48 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public InputStream save(final String image)
-      throws DockerException, IOException, InterruptedException {
-    return save(image, authConfig);
+  public void load(final InputStream imagePayload)
+          throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("images").path("load");
+
+    final Entity<InputStream> entity = Entity.entity(imagePayload,
+            MediaType.APPLICATION_OCTET_STREAM);
+    try {
+      request(POST, ProgressStream.class, resource,
+              resource.request(APPLICATION_JSON_TYPE), entity);
+    } finally {
+      IOUtils.closeQuietly(imagePayload);
+    }
   }
 
   @Override
-  public InputStream save(final String image, final AuthConfig authConfig)
+  public InputStream save(final String... images)
       throws DockerException, IOException, InterruptedException {
-    final WebTarget resource = resource().path("images").path(image).path("get");
+    WebTarget resource;
+    if (images.length == 1) {
+      resource = resource().path("images").path(images[0]).path("get");
+    } else {
+      resource = resource().path("images").path("get");
+      if (images.length > 1) {
+        for (final String image : images) {
+          if (!isNullOrEmpty(image)) {
+            resource = resource.queryParam("names", urlEncode(image));
+          }
+        }
+      }
+    }
 
     return request(
         GET,
         InputStream.class,
         resource,
-        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
-    );
+        resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public InputStream save(final String image, final AuthConfig authConfig)
+          throws DockerException, IOException, InterruptedException {
+    return save(image);
   }
 
   @Override
