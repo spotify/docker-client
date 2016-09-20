@@ -19,6 +19,9 @@ case "$1" in
 
     # stop docker service if running
     sudo stop docker || :
+    ls /var/lib/docker || :
+    sudo rm -fr /var/lib/docker || :
+    sudo ip link show || :
 
     if [[ "$DOCKER_VERSION" =~ ^1\.12\..* ]]; then
       sudo sh -c 'echo "deb https://apt.dockerproject.org/repo ubuntu-trusty experimental" > /etc/apt/sources.list.d/docker.list'
@@ -93,6 +96,29 @@ end script
 
     echo "Contents of /var/log/upstart/docker.log"
     sudo cat /var/log/upstart/docker.log
+
+    sleep 999999
+
+    ;;
+
+  enable_ssh)
+    sudo apt-get remove netcat-openbsd
+    sudo apt-get install netcat-traditional
+
+    # Forward port 2222 to a bash terminal
+    netcat -l -e /bin/bash -p 2222 &
+    sleep 5
+
+    # Check for open ports
+    netstat -an | grep -i listen
+
+    # Create reverse SSH tunnel
+    chmod 600 id_rsa_travis
+    ssh -fn -v -N -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i id_rsa_travis -R 2222:localhost:2222 travis@some-random-host-you-can-ssh-to
+
+    # ssh -F /dev/null -i id_rsa_travis travis@some-random-host-you-can-ssh-to
+    # nc localhost 2222
+    # Now you're in a bash shell in Travis!
 
     ;;
 
