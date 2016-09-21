@@ -19,6 +19,8 @@ case "$1" in
 
     # stop docker service if running
     sudo stop docker || :
+    # Remove old docker files that might prevent the installation and starting of other versions
+    sudo rm -fr /var/lib/docker || :
 
     if [[ "$DOCKER_VERSION" =~ ^1\.12\..* ]]; then
       sudo sh -c 'echo "deb https://apt.dockerproject.org/repo ubuntu-trusty experimental" > /etc/apt/sources.list.d/docker.list'
@@ -79,6 +81,9 @@ end script
       # installing the package
       sudo restart docker
     fi
+
+    # Wait a minute so we can see more docker logs in case something goes wrong
+    sleep 60
 
     ;;
 
