@@ -14,17 +14,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.spotify.docker.client.exceptions;
 
-public class UnsupportedApiVersionException extends DockerException {
+public class TaskNotFoundException extends NotFoundException {
 
-  public UnsupportedApiVersionException(final String version, final Throwable cause) {
-    super("Unsupported Api Version: " + version, cause);
-  }
+    private static final long serialVersionUID = 4974524646762384518L;
 
-  public UnsupportedApiVersionException(final String version) {
-    this(version, null);
-  }
+    private final String taskId;
 
+    public TaskNotFoundException(final String taskId, final Throwable cause) {
+        super("Task not found: " + taskId, cause);
+        this.taskId = taskId;
+    }
+
+    public TaskNotFoundException(final String taskId) {
+        this(taskId, null);
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
 }

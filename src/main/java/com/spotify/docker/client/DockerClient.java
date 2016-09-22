@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 Spotify AB.
+ * Copyright (c) 2016 ThoughtWorks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +38,16 @@ import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.ServiceCreateOptions;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.Task;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -1206,6 +1213,111 @@ public interface DockerClient extends Closeable {
    */
   LogStream execStart(String execId, ExecStartParameter... params)
       throws DockerException, InterruptedException;
+
+  /**
+   * Inspect the Swarm cluster. Only available in Docker API &gt;= 1.24.
+   *
+   * @return Info about a swarm
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  Swarm inspectSwarm() throws DockerException, InterruptedException;
+
+  /**
+   * Create a new service. Only available in Docker API &gt;= 1.24.
+   *
+   * @param spec the service spec
+   * @param options the service creation parameters
+   * @return Service creation result with service id.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Inspect an existing service. Only available in Docker API &gt;= 1.24.
+   *
+   * @param serviceId the id of the service to inspect
+   * @return Info about the service
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  Service inspectService(String serviceId) throws DockerException, InterruptedException;
+
+  /**
+   * Update an existing service. Only available in Docker API &gt;= 1.24.
+   *
+   * @param serviceId the identifier of the service
+   * @param version the version of the service
+   * @param spec the new service spec
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void updateService(String serviceId, Long version, ServiceSpec spec)
+          throws DockerException, InterruptedException;
+
+  /**
+   * List all services. Only available in Docker API &gt;= 1.24.
+   *
+   * @return A list of services.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<Service> listServices() throws DockerException, InterruptedException;
+
+  /**
+   * List services that match the given criteria. Only available in Docker API &gt;= 1.24.
+   *
+   * @param criteria Service listing and filtering options.
+   * @return
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<Service> listServices(Service.Criteria criteria)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Remove an existing service. Only available in Docker API &gt;= 1.24.
+   *
+   * @param serviceId the id of the service to remove
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void removeService(String serviceId)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Inspect an existing task. Only available in Docker API &gt;= 1.24.
+   *
+   * @param taskId the id of the task to inspect
+   * @return Info about the task
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  Task inspectTask(String taskId)
+          throws DockerException, InterruptedException;
+
+  /**
+   * List all tasks. Only available in Docker API &gt;= 1.24.
+   *
+   * @return A list of tasks.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<Task> listTasks()
+          throws DockerException, InterruptedException;
+
+  /**
+   * List tasks that match the given criteria. Only available in Docker API &gt;= 1.24.
+   *
+   * @param criteria
+   * @return A list of tasks.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<Task> listTasks(Task.Criteria criteria)
+          throws DockerException, InterruptedException;
 
   /**
    * Supported parameters for {@link #execStart}
