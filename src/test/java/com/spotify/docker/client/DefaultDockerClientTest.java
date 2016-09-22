@@ -3041,6 +3041,24 @@ public class DefaultDockerClientTest {
 
   }
 
+  @Test
+  public void testShmSize() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "ShmSize");
+
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .hostConfig(HostConfig.builder()
+                    .shmSize(10000000L)
+                    .build())
+            .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().shmSize(), is(10000000L));
+
+  }
+
   private String randomName() {
     return nameTag + '-' + toHexString(ThreadLocalRandom.current().nextLong());
   }
