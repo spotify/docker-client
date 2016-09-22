@@ -326,7 +326,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPullWithTag() throws Exception {
-    sut.pull("busybox:buildroot-2014.02");
+    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
   }
 
   @Test(expected = ImageNotFoundException.class)
@@ -364,7 +364,7 @@ public class DefaultDockerClientTest {
     // I.e. check that we are not leaking connections.
     for (int i = 0; i < 10; i++) {
       try {
-        sut.pull("busybox:" + randomName());
+        sut.pull(BUSYBOX + ":" + randomName());
       } catch (ImageNotFoundException ignored) {
       }
       log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
@@ -599,13 +599,14 @@ public class DefaultDockerClientTest {
   @Test
   public void testTagForce() throws Exception {
     sut.pull(BUSYBOX_LATEST);
+    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
 
     final String name = "test-repo/tag-force:sometag";
     // Assign name to first image
     sut.tag(BUSYBOX_LATEST, name);
 
     // Force-re-assign tag to another image
-    sut.tag("busybox:buildroot-2014.02", name, true);
+    sut.tag(BUSYBOX_BUILDROOT_2013_08_1, name, true);
 
     // Verify that re-tagging was successful
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(name));
@@ -1076,10 +1077,10 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testTopProcessesOfContainer() throws Exception {
-    sut.pull("busybox");
+    sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
-        .image("busybox")
+        .image(BUSYBOX_LATEST)
         // make sure the container's busy doing something upon startup
         .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
@@ -3038,7 +3039,6 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(containerId);
 
     assertThat(info.hostConfig().ipcMode(), is("host"));
-
   }
 
   @Test
