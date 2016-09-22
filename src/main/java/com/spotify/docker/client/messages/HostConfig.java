@@ -65,6 +65,8 @@ public class HostConfig {
   @JsonProperty("Ulimits") private ImmutableList<Ulimit> ulimits;
   @JsonProperty("PidMode") private String pidMode;
   @JsonProperty("ShmSize") private Long shmSize;
+  @JsonProperty("OomKillDisable") private Boolean oomKillDisable;
+  @JsonProperty("OomScoreAdj") private Integer oomScoreAdj;
 
   private HostConfig() {
   }
@@ -99,6 +101,8 @@ public class HostConfig {
     this.ulimits = builder.ulimits;
     this.pidMode = builder.pidMode;
     this.shmSize = builder.shmSize;
+    this.oomKillDisable = builder.oomKillDisable;
+    this.oomScoreAdj = builder.oomScoreAdj;
   }
 
   public List<String> binds() {
@@ -213,6 +217,14 @@ public class HostConfig {
     return shmSize;
   }
 
+  public Boolean oomKillDisable() {
+    return oomKillDisable;
+  }
+
+  public Integer oomScoreAdj() {
+    return oomScoreAdj;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -250,7 +262,9 @@ public class HostConfig {
         Objects.equals(this.restartPolicy, that.restartPolicy) &&
         Objects.equals(this.logConfig, that.logConfig) &&
         Objects.equals(this.ipcMode, that.ipcMode) &&
-        Objects.equals(this.ulimits, that.ulimits);
+        Objects.equals(this.ulimits, that.ulimits) &&
+        Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
+        Objects.equals(this.oomScoreAdj, that.oomScoreAdj);
   }
 
   @Override
@@ -259,7 +273,8 @@ public class HostConfig {
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
-                        restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize);
+                        restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
+                        oomKillDisable, oomScoreAdj);
   }
 
   @Override
@@ -294,6 +309,8 @@ public class HostConfig {
         .add("ulimits", ulimits)
         .add("pidMode", pidMode)
         .add("shmSize", shmSize)
+        .add("oomKillDisable", oomKillDisable)
+        .add("oomScoreAdj", oomScoreAdj)
         .toString();
   }
 
@@ -446,6 +463,8 @@ public class HostConfig {
     private ImmutableList<Ulimit> ulimits;
     private String pidMode;
     private Long shmSize;
+    private Boolean oomKillDisable;
+    private Integer oomScoreAdj;
 
     private Builder() {
     }
@@ -480,6 +499,8 @@ public class HostConfig {
       this.ulimits = hostConfig.ulimits;
       this.pidMode = hostConfig.pidMode;
       this.shmSize = hostConfig.shmSize;
+      this.oomKillDisable = hostConfig.oomKillDisable;
+      this.oomScoreAdj = hostConfig.oomScoreAdj;
     }
 
     /**
@@ -961,6 +982,24 @@ public class HostConfig {
 
     public Long shmSize() {
       return shmSize;
+    }
+
+    public Builder oomKillDisable(final Boolean oomKillDisable) {
+      this.oomKillDisable = oomKillDisable;
+      return this;
+    }
+
+    public Boolean oomKillDisable() {
+      return oomKillDisable;
+    }
+
+    public Builder oomScoreAdj(final Integer oomScoreAdj) {
+      this.oomScoreAdj = oomScoreAdj;
+      return this;
+    }
+
+    public Integer oomScoreAdj() {
+      return oomScoreAdj;
     }
 
     public HostConfig build() {

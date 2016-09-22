@@ -3045,18 +3045,60 @@ public class DefaultDockerClientTest {
   public void testShmSize() throws Exception {
     requireDockerApiVersionAtLeast("1.22", "ShmSize");
 
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .shmSize(10000000L)
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().shmSize(), is(10000000L));
+  }
+
+  @Test
+  public void testOomKillDisable() throws Exception {
+    requireDockerApiVersionAtLeast("1.20", "OomKillDisable");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
     final ContainerConfig config = ContainerConfig.builder()
             .image(BUSYBOX_LATEST)
             .hostConfig(HostConfig.builder()
-                    .shmSize(10000000L)
+                    .oomKillDisable(true) // Defaults to false
                     .build())
             .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
 
-    assertThat(info.hostConfig().shmSize(), is(10000000L));
+    assertThat(info.hostConfig().oomKillDisable(), is(true));
+  }
 
+  @Test
+  public void testOomScoreAdj() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "OomScoreAdj");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .oomScoreAdj(500) // Defaults to 0
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().oomScoreAdj(), is(500));
   }
 
   private String randomName() {
