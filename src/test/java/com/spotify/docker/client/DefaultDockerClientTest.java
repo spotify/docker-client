@@ -3041,16 +3041,24 @@ public class DefaultDockerClientTest {
     final Volume volume = sut.createVolume();
 
     assertEquals(volume, sut.inspectVolume(volume.name()));
+    sut.removeVolume(volume);
 
     final String badVolumeName = "this-is-a-very-unlikely-volume-name";
-    try {
-      sut.inspectVolume(badVolumeName);
-      fail("We should not have found a volume with name " + badVolumeName);
-    } catch (VolumeNotFoundException e) {
-      assertEquals(badVolumeName, e.getVolumeName());
-    }
 
-    sut.removeVolume(volume);
+    exception.expect(VolumeNotFoundException.class);
+    exception.expect(volumeNotFoundExceptionWithName(badVolumeName));
+    sut.inspectVolume(badVolumeName);
+  }
+
+  private static Matcher<VolumeNotFoundException>
+  volumeNotFoundExceptionWithName(final String volumeName) {
+    final String description = "for volume name " + volumeName;
+    return new CustomTypeSafeMatcher<VolumeNotFoundException>(description) {
+      @Override
+      protected boolean matchesSafely(final VolumeNotFoundException e) {
+        return e.getVolumeName().equals(volumeName);
+      }
+    };
   }
 
   @Test
@@ -3113,12 +3121,9 @@ public class DefaultDockerClientTest {
     sut.removeVolume(volume1);
 
     // Remove non-existent volume
-    try {
-      sut.removeVolume(volume1);
-      fail("Should not be able to remove a non-existent volume.");
-    } catch (VolumeNotFoundException e) {
-      assertEquals(volume1.name(), e.getVolumeName());
-    }
+    exception.expect(VolumeNotFoundException.class);
+    exception.expect(volumeNotFoundExceptionWithName(volume1.name()));
+    sut.removeVolume(volume1);
 
     // Create a volume, assign it to a container, and try to remove it.
     // Should get a ConflictException.
@@ -3131,12 +3136,11 @@ public class DefaultDockerClientTest {
         .hostConfig(hostConfig)
         .build();
     final ContainerCreation container = sut.createContainer(config);
-    try {
-      sut.removeVolume(volume2);
-      fail("Should not be able to remove a volume in use by a container.");
-    } catch (ConflictException ignored) {
-      // pass
-    }
+
+    exception.expect(ConflictException.class);
+    sut.removeVolume(volume2);
+
+    // Clean up
     sut.removeContainer(container.id());
     sut.removeVolume(volume2);
   }
