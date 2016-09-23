@@ -906,8 +906,6 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testCopyContainer() throws Exception {
-    requireDockerApiVersionLessThan("1.24", "failCopyToContainer");
-
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
@@ -930,26 +928,6 @@ public class DefaultDockerClientTest {
 
     // Check that some common files exist
     assertThat(files.build(), both(hasItem("bin/")).and(hasItem("bin/wc")));
-  }
-
-  @Test
-  public void testFailCopyContainer() throws Exception {
-    requireDockerApiVersionAtLeast("1.24", "failCopyToContainer");
-
-    exception.expect(UnsupportedApiVersionException.class);
-
-    // Pull image
-    sut.pull(BUSYBOX_LATEST);
-
-    // Create container
-    final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .build();
-    final String name = randomName();
-    final ContainerCreation creation = sut.createContainer(config, name);
-    final String id = creation.id();
-
-    sut.copyContainer(id, "/bin");
   }
 
   @Test

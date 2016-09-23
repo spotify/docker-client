@@ -1076,11 +1076,14 @@ public interface DockerClient extends Closeable {
    * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
    * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
    * tar archive containing a single folder named after the container ID.
+   * @deprecated Removed in Docker Remote API 1.24. Use
+   * {@link #archiveContainer(String, String)} instead.
    * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
+  @Deprecated
   InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
 
