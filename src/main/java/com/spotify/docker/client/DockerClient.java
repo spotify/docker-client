@@ -1080,7 +1080,9 @@ public interface DockerClient extends Closeable {
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @deprecated Replaced by {@link #archiveContainer(String, String)}
+   * @throws com.spotify.docker.client.exceptions.UnsupportedApiVersionException
+   *                              If client API is greater than or equal to 1.24
+   * @deprecated Replaced by {@link #archiveContainer(String, String)} in API 1.20, removed in 1.24.
    */
   @Deprecated
   InputStream copyContainer(String containerId, String path)

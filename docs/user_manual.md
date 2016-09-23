@@ -485,7 +485,7 @@ try (InputStream imageInput = docker.saveMultiple("image0", "image1")) {
 
 ### Load a tarball with a set of images and tags into docker
 
-```
+```java
 final File tarFileWithMultipleImages = new File("/path/to/tarball");
 try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(tarFileWithMultipleImages))) {
   docker.load(InputStream imagePayload);
