@@ -138,7 +138,9 @@ final ContainerInfo info = docker.inspectContainer("containerID");
 
 ### List processes running inside a container
 
-Not implemented. PRs welcome.
+```java
+final TopResults topResults = docker.topContainer("containerID", "ps_args");
+```
 
 ### Get container logs
 
@@ -151,7 +153,9 @@ try (LogStream stream = client.logs("containerID", LogsParam.stdout(), LogsParam
 
 ### Inspect changes on a container's filesystem
 
-Not implemented. PRs welcome.
+```java
+final List<ContainerChange> changes = docker.inspectContainerChanges("containerId");
+```
 
 ### Export a container
 
@@ -173,7 +177,11 @@ final ContainerStats stats = docker.stats("containerID");
 
 ### Resize a container TTY
 
-Not implemented. PRs welcome.
+```java
+final int height = 10;
+final int width = 10;
+docker.resizeTty("containerID", height, width);
+```
 
 ### Start a container
 
@@ -242,6 +250,8 @@ docker.removeContainer("containerID");
 
 ### Copy files or folders from a container
 
+_NOTE: deprecated in favor of [archive](#get-an-archive-of-a-filesystem-resource-in-a-container)_
+
 ```java
 ImmutableSet.Builder<String> files = ImmutableSet.builder();
 try (TarArchiveInputStream tarStream =
@@ -253,6 +263,26 @@ try (TarArchiveInputStream tarStream =
 }
 ```
 
+### Retrieving information about files and folders in a container
+
+Not implemented. PRs welcome.
+
+### Get an archive of a filesystem resource in a container
+
+```java
+try (final TarArchiveInputStream tarStream = new TarArchiveInputStream(docker.archiveContainer("containerID", "/file/path"))) {
+  TarArchiveEntry entry;
+  while ((entry = tarStream.getNextTarEntry()) != null) {
+    // Do stuff with the files in the stream
+  }
+}
+```
+
+### Extract an archive of files or folders to a directory in a container
+
+```java
+docker.copyToContainer("/local/path", "containerID", "/path/in/container");
+```
 
 ## Images
 
@@ -292,7 +322,7 @@ docker.pull("dxia2/scratch-private:latest", authConfig);
 final File imageFile = new File("/path/to/image/file");
 final String image = "busybox-test" + System.nanoTime();
 try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(imageFile))) {
-  docker.load(image, imagePayload);
+  docker.create(image, imagePayload);
 }
 ```
 
@@ -304,7 +334,9 @@ final ImageInfo info = docker.inspectImage("imageID")
 
 ### Get the history of an image
 
-Not implemented yet. PRs welcome.
+```java
+final List<ImageHistory> imageHistoryList = docker.history("imageID");
+```
 
 ### Push an image on the registry
 
@@ -432,7 +464,7 @@ final byte[] buffer = new byte[2048];
 int read;
 
 try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(imageFile))) {
-  try (InputStream imageInput = docker.save("busybox", authConfig)) {
+  try (InputStream imageInput = docker.save("busybox")) {
     while ((read = imageInput.read(buffer)) > -1) {
       imageOutput.write(buffer, 0, read);
     }
@@ -443,11 +475,22 @@ try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(im
 
 ### Get a tarball containing all images.
 
-Not implemented yet. PRs welcome.
+```java
+try (InputStream imageInput = docker.saveMultiple("image0", "image1")) {
+    while ((read = imageInput.read(buffer)) > -1) {
+      // Do stuff with the tar stream of images
+    }
+}
+```
 
 ### Load a tarball with a set of images and tags into docker
 
-Not implemented yet. PRs welcome.
+```java
+final File tarFileWithMultipleImages = new File("/path/to/tarball");
+try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(tarFileWithMultipleImages))) {
+  docker.load(InputStream imagePayload);
+}
+```
 
 ### Exec Create
 
@@ -474,20 +517,24 @@ See [example above](#exec-create).
 
 ### Exec Resize
 
-Not implemented yet. PRs welcome.
+```java
+final int height = 10;
+final int width = 10;
+docker.execResizeTty("execID", height, width);
+```
 
 ### Exec Inspect
 
 See [example above](#exec-create).
 
-### Mounting volumes in a container
+### Mounting directories in a container
 To mount a host directory into a container, create the container with a `HostConfig`.
 You can set the local path and remote path in the `binds()` method on the `HostConfig.Builder`.
 There are two ways to make a bind:
-1. Pass `binds()` a set of strings of the form `"local_path:container_path"`.
-2. Create a `Bind` object and pass it to `binds()`.
+1. Pass `binds()` a set of strings of the form `"local_path:container_path"` for read/write or `"local_path:container_path:ro"` for read only.
+2. Create a `Bind` object and pass it to `binds()` (or `appendBinds()` if you want to incrementally add multiple `Bind`s).
 
-If you only need to create a volume in a container, and you don't need it to mount any
+If you only need to create a volume to be mounted in a container, but you don't need it to be bound to any
 particular directory on the host, you can use the `volumes()` method on the
 `ContainerConfig.Builder`.
 

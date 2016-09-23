@@ -905,6 +905,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testCopyContainer() throws Exception {
     requireDockerApiVersionLessThan("1.24", "failCopyToContainer");
 
@@ -933,6 +934,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testFailCopyContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "failCopyToContainer");
 
@@ -1144,6 +1146,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void integrationTest() throws Exception {
     // Pull image
     sut.pull(BUSYBOX_LATEST);
@@ -1930,6 +1933,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testContainerVolumesOldStyle() throws Exception {
     requireDockerApiVersionLessThan("1.20",
         "Creating a container with volumes and inspecting volumes in old style");

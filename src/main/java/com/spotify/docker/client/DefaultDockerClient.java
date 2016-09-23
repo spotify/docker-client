@@ -740,6 +740,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
 
   @Override
+  @Deprecated
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
     final String apiVersion = version().apiVersion();
@@ -1074,6 +1075,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  @Deprecated
   public InputStream save(final String image, final AuthConfig authConfig)
           throws DockerException, IOException, InterruptedException {
     return save(image);

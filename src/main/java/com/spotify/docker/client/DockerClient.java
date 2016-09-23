@@ -1080,7 +1080,11 @@ public interface DockerClient extends Closeable {
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
+   * @throws com.spotify.docker.client.exceptions.UnsupportedApiVersionException
+   *                              If client API is greater than or equal to 1.24
+   * @deprecated Replaced by {@link #archiveContainer(String, String)} in API 1.20, removed in 1.24.
    */
+  @Deprecated
   InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
 
@@ -1102,6 +1106,7 @@ public interface DockerClient extends Closeable {
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
+   * @since 1.20
    */
   InputStream archiveContainer(String containerId, String path)
       throws DockerException, InterruptedException;
@@ -1121,6 +1126,7 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    * @throws IOException          If IOException
+   * @since 1.20
    */
   void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException;
