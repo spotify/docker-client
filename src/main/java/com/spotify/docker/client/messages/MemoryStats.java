@@ -22,6 +22,7 @@ import com.google.common.base.MoreObjects;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.math.BigInteger;
 import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -108,7 +109,7 @@ public class MemoryStats {
     @JsonProperty("total_writeback") private Long totalWriteback;
     @JsonProperty("total_inactive_anon") private Long totalInactiveAnon;
     @JsonProperty("rss_huge") private Long rssHuge;
-    @JsonProperty("hierarchical_memory_limit") private Long hierarchicalMemoryLimit;
+    @JsonProperty("hierarchical_memory_limit") private BigInteger hierarchicalMemoryLimit;
     @JsonProperty("total_pgfault") private Long totalPgfault;
     @JsonProperty("total_active_file") private Long totalActiveFile;
     @JsonProperty("active_anon") private Long activeAnon;
@@ -189,7 +190,7 @@ public class MemoryStats {
       return rssHuge;
     }
 
-    public Long hierarchicalMemoryLimit() {
+    public BigInteger hierarchicalMemoryLimit() {
       return hierarchicalMemoryLimit;
     }
 
