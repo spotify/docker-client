@@ -142,7 +142,6 @@ public class PushPullIT {
     client.build(Paths.get(dockerDirectory), LOCAL_IMAGE);
 
     exception.expect(ImagePushFailedException.class);
-    exception.expectMessage("Authentication is required");
     client.push(LOCAL_IMAGE);
   }
 
