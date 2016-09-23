@@ -39,6 +39,8 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
+import com.spotify.docker.client.messages.Volume;
+import com.spotify.docker.client.messages.VolumeList;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -2194,6 +2196,118 @@ public interface DockerClient extends Closeable {
   class EventsFilterParam extends EventsParam {
 
     public EventsFilterParam(String name, String value) {
+      super(name, value);
+    }
+  }
+
+  Volume createVolume() throws DockerException, InterruptedException;
+
+  Volume createVolume(Volume volume) throws DockerException, InterruptedException;
+
+  Volume inspectVolume(String volumeName) throws DockerException, InterruptedException;
+
+  void removeVolume(Volume volume) throws DockerException, InterruptedException;
+
+  void removeVolume(String volumeName) throws DockerException, InterruptedException;
+
+  VolumeList listVolumes(ListVolumesParam... params)
+    throws DockerException, InterruptedException;
+
+  /**
+   * Parameters for {@link #listVolumes(ListVolumesParam...)}.
+   * @since Docker 1.9, API version 1.21
+   */
+  class ListVolumesParam {
+    private final String name;
+    private final String value;
+
+    private ListVolumesParam(final String name, final String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     *
+     * @return name of parameter
+     * @since Docker 1.9, API version 1.21
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     * @since Docker 1.9, API version 1.21
+     */
+    public String value() {
+      return value;
+    }
+
+    /**
+     * Create a custom filter.
+     *
+     * @param name  of filter
+     * @param value of filter
+     * @return ListVolumesParam
+     * @since Docker 1.9, API version 1.21
+     */
+    public static ListVolumesParam filter(final String name, final String value) {
+      return new ListVolumesFilterParam(name, value);
+    }
+
+    /**
+     * Show dangling volumes only.
+     * A dangling volume is one which is not referenced by any container.
+     * By default both dangling and non-dangling will be shown.
+     *
+     * @return ListVolumesParam
+     * @since Docker 1.9, API version 1.21
+     */
+    public static ListVolumesParam dangling() {
+      return dangling(true);
+    }
+
+    /**
+     * Enable or disable dangling volume filter.
+     *
+     * @param dangling Whether to list dangling images
+     * @return ListVolumesParam
+     */
+    public static ListVolumesParam dangling(final Boolean dangling) {
+      return filter("dangling", dangling.toString());
+    }
+
+    /**
+     * Filter volumes by name.
+     * @param name Matches all or part of a volume name.
+     * @return ListVolumesParam
+     * @since Docker 1.11, API version 1.23
+     */
+    public static ListVolumesParam name(final String name) {
+      return filter("name", name);
+    }
+
+    /**
+     * Filter volumes by volume driver.
+     * @param driver Matches all or part of a volume driver name.
+     * @return ListVolumesParam
+     * @since Docker 1.11, API version 1.23
+     */
+    public static ListVolumesParam driver(final String driver) {
+      return filter("driver", driver);
+    }
+  }
+
+  /**
+   * Filter parameter for {@link #listVolumes(ListVolumesParam...)}. This should be used by
+   * ListVolumesParam only.
+   * @since Docker 1.9, API version 1.21
+   */
+  class ListVolumesFilterParam extends ListVolumesParam {
+    public ListVolumesFilterParam(String name, String value) {
       super(name, value);
     }
   }

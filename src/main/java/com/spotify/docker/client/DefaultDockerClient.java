@@ -35,6 +35,7 @@ import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
+import com.spotify.docker.client.exceptions.VolumeNotFoundException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
 
@@ -62,6 +63,8 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
+import com.spotify.docker.client.messages.Volume;
+import com.spotify.docker.client.messages.VolumeList;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -1717,6 +1720,91 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw e;
       }
     }
+  }
+
+  @Override
+  public Volume createVolume() throws DockerException, InterruptedException {
+    return createVolume(Volume.builder().build());
+  }
+
+  @Override
+  public Volume createVolume(final Volume volume) throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("volumes").path("create");
+
+      return request(POST, Volume.class, resource,
+          resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(volume));
+  }
+
+  @Override
+  public Volume inspectVolume(final String volumeName)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("volumes").path(volumeName);
+    try {
+      return request(GET, Volume.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new VolumeNotFoundException(volumeName, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void removeVolume(final Volume volume)
+      throws DockerException, InterruptedException {
+    removeVolume(volume.name());
+  }
+
+  @Override
+  public void removeVolume(final String volumeName)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("volumes").path(volumeName);
+    try {
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new VolumeNotFoundException(volumeName, e);
+        case 409:
+          throw new ConflictException("Volume is in use and cannot be removed", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public VolumeList listVolumes(ListVolumesParam... params)
+      throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("volumes");
+
+    final Map<String, List<String>> filters = newHashMap();
+    for (final ListVolumesParam param : params) {
+      if (param instanceof ListVolumesFilterParam) {
+        List<String> filterValueList;
+        if (filters.containsKey(param.name())) {
+          filterValueList = filters.get(param.name());
+        } else {
+          filterValueList = Lists.newArrayList();
+        }
+        filterValueList.add(param.value());
+        filters.put(param.name(), filterValueList);
+      } else {
+        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
+      }
+    }
+
+    if (!filters.isEmpty()) {
+      // If filters were specified, we must put them in a JSON object and pass them using the
+      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+      resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    }
+
+    return request(GET, VolumeList.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
   private WebTarget resource() {

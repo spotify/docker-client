@@ -527,16 +527,60 @@ docker.execResizeTty("execID", height, width);
 
 See [example above](#exec-create).
 
-### Mounting directories in a container
+## Volumes
+
+### List volumes
+
+```java
+final VolumeList volumeList = docker.listVolumes();
+final List<String> warnings = volumeList.warnings();
+final List<Volume> volumes = volumeList.volumes();
+```
+
+### Create a volume
+Create a volume with specified properties:
+```java
+final Volume toCreate = Volume.builder()
+              .name("volumeName")
+              .driver("local")
+              .labels(ImmutableMap.of("foo", "bar"))
+              .build();
+final Volume created = docker.createVolume(toCreate);
+```
+
+Or create an anonymous volume:
+```java
+final Volume created = docker.createVolume();
+```
+
+### Inspect a volume
+
+```java
+final Volume volume = docker.inspectVolume("volumeName");
+```
+
+### Remove a volume
+By name
+```java
+docker.removeVolume("volumeName");
+```
+
+Or by object reference
+```java
+docker.removeVolume(volume);
+```
+
+# Going Further
+## Mounting directories in a container
 To mount a host directory into a container, create the container with a `HostConfig`.
 You can set the local path and remote path in the `binds()` method on the `HostConfig.Builder`.
 There are two ways to make a bind:
 1. Pass `binds()` a set of strings of the form `"local_path:container_path"` for read/write or `"local_path:container_path:ro"` for read only.
 2. Create a `Bind` object and pass it to `binds()` (or `appendBinds()` if you want to incrementally add multiple `Bind`s).
 
-If you only need to create a volume to be mounted in a container, but you don't need it to be bound to any
-particular directory on the host, you can use the `volumes()` method on the
-`ContainerConfig.Builder`.
+When you create a `Bind`, you are making a connection from outside the container to inside; as such, you must give a `Bind` object a `from` and a `to`. `from` can be given either by a `String` containing the path to a local file or directory, or a pre-existing `Volume` object. `to` must be a `String` containing the path to be bound inside the container.
+
+If you only need to create a volume to be mounted in a container, but you don't need it to be bound to any particular directory on the host, you can use the `ContainerConfig.Builder.volumes("/path")` method. The path you give to this method will be created inside the container, but does not correspond to anything outside.
 
 ```java
 final HostConfig hostConfig =
@@ -545,6 +589,10 @@ final HostConfig hostConfig =
     .appendBinds(Bind.from("/another/local/path")
                .to("/another/remote/path")
                .readOnly(true)
+               .build())
+    .appendBinds(Bind.from(aVolume)
+               .to("/yet/another/remote/path")
+               .readOnly(false)
                .build())
     .build();
 final ContainerConfig volumeConfig =
@@ -555,7 +603,7 @@ final ContainerConfig volumeConfig =
     .build();
 ```
 
-#### A note on mounts
+### A note on mounts
 Be aware that, starting with API version 1.20 (docker version 1.8.x), information
 about a container's volumes is returned with the key `"Mounts"`, not `"Volumes"`.
 As such, the `ContainerInfo.volumes()` method is deprecated. Instead, use

@@ -1026,6 +1026,10 @@ public class HostConfig {
       return new BuilderFrom(from);
     }
 
+    public static BuilderFrom from(final Volume volumeFrom) {
+      return new BuilderFrom(volumeFrom);
+    }
+
     public String toString() {
       if (to == null || to.equals("")) {
         return "";
@@ -1048,6 +1052,10 @@ public class HostConfig {
       public Builder from(final String from) {
         return new Builder(this, from);
       }
+
+      public Builder from(final Volume volumeFrom) {
+        return new Builder(this, volumeFrom);
+      }
     }
 
     public static class BuilderFrom {
@@ -1055,6 +1063,10 @@ public class HostConfig {
 
       public BuilderFrom(final String from) {
         this.from = from;
+      }
+
+      public BuilderFrom(final Volume volumeFrom) {
+        this.from = volumeFrom.name();
       }
 
       public Bind.Builder to(final String to) {
@@ -1074,6 +1086,11 @@ public class HostConfig {
         this.from = from;
       }
 
+      private Builder(final BuilderTo toBuilder, final Volume volumeFrom) {
+        this.to = toBuilder.to;
+        this.from = volumeFrom.name();
+      }
+
       private Builder(final BuilderFrom fromBuilder, final String to) {
         this.to = to;
         this.from = fromBuilder.from;
@@ -1090,6 +1107,11 @@ public class HostConfig {
 
       public Builder from(final String from) {
         this.from = from;
+        return this;
+      }
+
+      public Builder from(final Volume volumeFrom) {
+        this.from = volumeFrom.name();
         return this;
       }
 
