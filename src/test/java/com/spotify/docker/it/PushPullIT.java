@@ -26,7 +26,7 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
-import com.spotify.docker.client.exceptions.ImageNotFoundException;
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -51,6 +51,9 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.CoreMatchers.isA;
+
+import javax.ws.rs.NotAuthorizedException;
 
 /**
  * These integration tests check we can push images to and pull from a private registry running as a
@@ -242,13 +245,15 @@ public class PushPullIT {
     client.push(HUB_PRIVATE_IMAGE);
   }
 
-  @Test(expected = ImageNotFoundException.class)
+  @Test
   public void testPullPrivateRepoWithBadAuth() throws Exception {
     final AuthConfig badAuthConfig = AuthConfig.builder()
         .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password("foobar")
         .build();
+    exception.expect(DockerException.class);
+    exception.expectCause(isA(NotAuthorizedException.class));
     client.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
   }
 
