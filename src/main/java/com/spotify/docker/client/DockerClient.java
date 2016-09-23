@@ -1080,7 +1080,9 @@ public interface DockerClient extends Closeable {
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
+   * @deprecated Replaced by {@link #archiveContainer(String, String)}
    */
+  @Deprecated
   InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException;
 
@@ -1102,6 +1104,7 @@ public interface DockerClient extends Closeable {
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
+   * @since 1.20
    */
   InputStream archiveContainer(String containerId, String path)
       throws DockerException, InterruptedException;
@@ -1121,6 +1124,7 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    * @throws IOException          If IOException
+   * @since 1.20
    */
   void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException;
