@@ -16,8 +16,8 @@
 
 ## Software:
 
-- docker version: [Add docker version here, client and server]
-- docker-client version: [Add docker-client version here]
+- `docker version`: [Add the output of `docker version` here, both client and server]
+- Spotify's docker-client version: [Add docker-client version here]
 
 ## Full backtrace
 
