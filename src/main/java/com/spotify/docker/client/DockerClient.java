@@ -2284,7 +2284,7 @@ public interface DockerClient extends Closeable {
      * Filter volumes by name.
      * @param name Matches all or part of a volume name.
      * @return ListVolumesParam
-     * @since Docker 1.11, API version 1.23
+     * @since Docker 1.12, API version 1.24
      */
     public static ListVolumesParam name(final String name) {
       return filter("name", name);
@@ -2294,7 +2294,7 @@ public interface DockerClient extends Closeable {
      * Filter volumes by volume driver.
      * @param driver Matches all or part of a volume driver name.
      * @return ListVolumesParam
-     * @since Docker 1.11, API version 1.23
+     * @since Docker 1.12, API version 1.24
      */
     public static ListVolumesParam driver(final String driver) {
       return filter("driver", driver);

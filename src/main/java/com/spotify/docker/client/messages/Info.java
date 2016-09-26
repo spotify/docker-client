@@ -127,6 +127,11 @@ public class Info {
     return driverStatus;
   }
 
+  /**
+   * @deprecated Removed in API 1.24 https://github.com/docker/docker/pull/24501
+   * @return Execution Driver
+   */
+  @Deprecated
   public String executionDriver() {
     return executionDriver;
   }
