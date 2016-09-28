@@ -178,6 +178,7 @@ import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
@@ -482,6 +483,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMissingAuthParam() throws Exception {
+    requireDockerApiVersionNot("1.23", "https://github.com/docker/docker/issues/24093");
     requireDockerApiVersionNot("1.24", "https://github.com/docker/docker/issues/24093");
     final AuthConfig badAuthConfig = AuthConfig.builder()
         .email(AUTH_EMAIL)
@@ -492,6 +494,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testInfo() throws Exception {
     final Info info = sut.info();
     assertThat(info.containers(), is(anything()));
@@ -499,14 +502,18 @@ public class DefaultDockerClientTest {
     assertThat(info.dockerRootDir(), not(isEmptyOrNullString()));
     assertThat(info.storageDriver(), not(isEmptyOrNullString()));
     assertThat(info.driverStatus(), is(anything()));
-    if (dockerApiVersionNot("1.24")) {
+    if (dockerApiVersionLessThan("1.23")) {
+      // Execution driver was removed in 1.24 https://github.com/docker/docker/pull/24501
+      // But it also shows up as "" in 1.23, and I don't know why - JF
       assertThat(info.executionDriver(), not(isEmptyOrNullString()));
     }
     assertThat(info.id(), not(isEmptyOrNullString()));
     assertThat(info.ipv4Forwarding(), is(anything()));
     assertThat(info.images(), greaterThan(0));
     assertThat(info.indexServerAddress(), not(isEmptyOrNullString()));
-    if (dockerApiVersionNot("1.24")) {
+    if (dockerApiVersionLessThan("1.23")) {
+      // Init path seems to have been removed in API 1.23.
+      // Still documented as of 2016-09-26, but InitPath field is not in /info - JF
       assertThat(info.initPath(), not(isEmptyOrNullString()));
     }
     assertThat(info.initSha1(), is(anything()));
@@ -534,10 +541,7 @@ public class DefaultDockerClientTest {
     if (dockerApiVersionAtLeast("1.19")) {
       assertThat(info.cpuCfsPeriod(), is(anything()));
       assertThat(info.cpuCfsQuota(), is(anything()));
-      if (dockerApiVersionNot("1.24")) {
-        assertThat("Sorry if you're testing on an experimental build",
-            info.experimentalBuild(), is(false));
-      }
+      assertThat(info.experimentalBuild(), is(anything()));
       assertThat(info.oomKillDisable(), is(anything()));
     }
 
@@ -1113,7 +1117,7 @@ public class DefaultDockerClientTest {
     // between sleeps
     assertThat(topResults.processes(), hasSize(greaterThanOrEqualTo(1)));
 
-    assertThat(topResults.titles(), hasItem("CMD"));
+    assertThat(topResults.titles(), either(hasItem("CMD")).or(hasItem("COMMAND")));
 
     final List<String> firstProcessStatus = topResults.processes().get(0);
     assertThat("All processes will run as 'root'", firstProcessStatus, hasItem("root"));
@@ -3085,7 +3089,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(volume, isIn(volumeListWithDangling.volumes()));
 
-    if (dockerApiVersionAtLeast("1.23")) {
+    if (dockerApiVersionAtLeast("1.24")) {
       final VolumeList volumeListByName = sut.listVolumes(name(volumeName));
       if (volumeListByName.warnings() != null &&
           !volumeListByName.warnings().isEmpty()) {

@@ -22,8 +22,9 @@ case "$1" in
     # Remove old docker files that might prevent the installation and starting of other versions
     sudo rm -fr /var/lib/docker || :
 
-    if [[ "$DOCKER_VERSION" =~ ^1\.12\..* ]]; then
-      sudo sh -c 'echo "deb https://apt.dockerproject.org/repo ubuntu-trusty experimental" > /etc/apt/sources.list.d/docker.list'
+    if [[ "$RC" == "true" ]]; then
+        dist_version="$(lsb_release --codename | cut -f2)"
+        sudo sh -c "echo deb [arch=$(dpkg --print-architecture)] https://apt.dockerproject.org/repo ubuntu-${dist_version} testing >> /etc/apt/sources.list.d/docker.list"
     fi
     sudo apt-get -qq update
     sudo apt-get -q -y purge docker-engine
