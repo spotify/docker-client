@@ -1,7 +1,8 @@
 # Docker Client [![Build Status](https://travis-ci.org/spotify/docker-client.svg?branch=master)](https://travis-ci.org/spotify/docker-client) [![codecov.io](https://codecov.io/github/spotify/docker-client/coverage.svg?branch=master)](https://codecov.io/github/spotify/docker-client?branch=master)
 
 This is a simple [Docker](https://github.com/docker/docker) client written in Java.
-We build and test docker-client on Docker versions 1.6 - 1.10 (specifically the ones [here][1]).
+We build and test docker-client on Docker versions 1.6 - 1.12 (specifically the ones [here][1]).
+We upload the artifact tested on Docker 1.12.1.
 See [Docker docs on the mapping between Docker version and API version][3].
 
 * [Usage Example](#usage-example)
