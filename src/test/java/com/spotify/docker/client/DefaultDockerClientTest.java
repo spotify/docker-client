@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 Spotify AB.
+ * Copyright (c) 2016 ThoughtWorks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,20 @@ package com.spotify.docker.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
+import com.google.common.util.concurrent.SettableFuture;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
@@ -65,26 +80,24 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.ServiceCreateOptions;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
-
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
-import com.google.common.util.concurrent.SettableFuture;
-
+import com.spotify.docker.client.messages.swarm.ContainerSpec;
+import com.spotify.docker.client.messages.swarm.Driver;
+import com.spotify.docker.client.messages.swarm.EndpointSpec;
+import com.spotify.docker.client.messages.swarm.PortConfig;
+import com.spotify.docker.client.messages.swarm.ResourceRequirements;
+import com.spotify.docker.client.messages.swarm.RestartPolicy;
+import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceMode;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.TaskSpec;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -121,6 +134,7 @@ import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -267,11 +281,20 @@ public class DefaultDockerClientTest {
 
   @After
   public void tearDown() throws Exception {
+    if (dockerApiVersionAtLeast("1.24")) {
+      final List<Service> services = sut.listServices();
+      for (final Service service : services) {
+        if (service.spec().name().startsWith(nameTag)) {
+          sut.removeService(service.id());
+        }
+      }
+    }
+
     // Remove containers
     final List<Container> containers = sut.listContainers();
     for (final Container container : containers) {
       final ContainerInfo info = sut.inspectContainer(container.id());
-      if (info != null && info.name().contains(nameTag)) {
+      if (info != null && info.name().startsWith(nameTag)) {
         try {
           sut.killContainer(info.id());
         } catch (DockerRequestException e) {
@@ -3269,6 +3292,199 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(container.id());
 
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
+  }
+
+  @Test
+  public void testInspectSwarm() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final Swarm swarm = sut.inspectSwarm();
+    assertThat(swarm.createdAt(), is(notNullValue()));
+    assertThat(swarm.updatedAt(), is(notNullValue()));
+    assertThat(swarm.id(), is(not(isEmptyOrNullString())));
+    assertThat(swarm.joinTokens().worker(), is(not(isEmptyOrNullString())));
+    assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
+  }
+
+  @Test
+  public void testCreateService() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final ServiceSpec spec = createServiceSpec(randomName());
+
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    assertThat(response.id(), is(notNullValue()));
+  }
+
+  @Test
+  public void testInspectService() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final String[] commandLine = {"ping", "-c4", "localhost"};
+    final TaskSpec taskSpec = TaskSpec
+            .builder()
+            .withContainerSpec(ContainerSpec.builder().withImage("alpine")
+                    .withCommands(commandLine).build())
+            .withLogDriver(Driver.builder().withName("json-file").withOption("max-file", "3")
+                    .withOption("max-size", "10M").build())
+            .withResources(ResourceRequirements.builder()
+                    .withLimits(com.spotify.docker.client.messages.swarm.Resources.builder().
+                            withMemoryBytes(10 * 1024 * 1024).build())
+                    .build())
+            .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
+                    .withDelay(10000000).withMaxAttempts(10).build())
+            .build();
+
+    final EndpointSpec endpointSpec = EndpointSpec.builder()
+            .withPorts(new PortConfig[]{PortConfig.builder().withName("web")
+                    .withProtocol("tcp").withPublishedPort(8080)
+                    .withTargetPort(80).build()})
+            .build();
+    final ServiceMode serviceMode = ServiceMode.withReplicas(4);
+
+    final String serviceName = randomName();
+    final ServiceSpec spec = ServiceSpec.builder().withName(serviceName).withTaskTemplate(taskSpec)
+            .withServiceMode(serviceMode)
+            .withEndpointSpec(endpointSpec)
+            .build();
+
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+
+    final Service service = sut.inspectService(response.id());
+
+    assertThat(service.spec().name(), is(serviceName));
+    assertThat(service.spec().taskTemplate().containerSpec().image(), is("alpine"));
+    assertThat(service.spec().taskTemplate().containerSpec().command(),
+            equalTo(Arrays.asList(commandLine)));
+  }
+
+  @Test
+  public void testUpdateService() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final ServiceSpec spec = createServiceSpec(randomName());
+
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    assertThat(response.id(), is(notNullValue()));
+
+    Service service = sut.inspectService(response.id());
+    assertThat(service.spec().mode().replicated().replicas(), is(4L));
+
+    // update service with same spec, but bump the number of replicas by 1
+    sut.updateService(response.id(), service.version().index(), ServiceSpec.builder()
+            .withName(service.spec().name())
+            .withTaskTemplate(service.spec().taskTemplate())
+            .withServiceMode(ServiceMode.withReplicas(5))
+            .withEndpointSpec(service.spec().endpointSpec())
+            .withUpdateConfig(service.spec().updateConfig())
+            .build());
+    service = sut.inspectService(response.id());
+    assertThat(service.spec().mode().replicated().replicas(), is(5L));
+  }
+
+
+  @Test
+  public void testListServices() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    List<Service> services = sut.listServices();
+    assertThat(services, is(empty()));
+
+    final ServiceSpec spec = createServiceSpec(randomName());
+
+    sut.createService(spec, new ServiceCreateOptions());
+
+    services = sut.listServices();
+    assertThat(services.size(), is(1));
+  }
+
+  @Test
+  public void testListServicesFilterById() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final ServiceSpec spec = createServiceSpec(randomName());
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+
+    final List<Service> services = sut
+        .listServices(Service.find().withServiceId(response.id()).build());
+    assertThat(services.size(), is(1));
+    assertThat(services.get(0).id(), is(response.id()));
+  }
+
+  @Test
+  public void testListServicesFilterByName() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final String serviceName = randomName();
+    final ServiceSpec spec = createServiceSpec(serviceName);
+    sut.createService(spec, new ServiceCreateOptions());
+
+    final List<Service> services =
+            sut.listServices(Service.find().withServiceName(serviceName).build());
+    assertThat(services.size(), is(1));
+    assertThat(services.get(0).spec().name(), is(serviceName));
+  }
+
+  @Test
+  public void testRemoveService() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final ServiceSpec spec = createServiceSpec(randomName());
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    assertThat(sut.listServices(), is(not(empty())));
+    sut.removeService(response.id());
+    assertThat(sut.listServices(), is(empty()));
+  }
+
+  @Test
+  public void testInspectTask() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final ServiceSpec spec = createServiceSpec(randomName());
+    assertThat(sut.listTasks().size(), is(0));
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    Thread.sleep(2000); // to give it a while to spin containers
+    final Task task = sut.listTasks().get(0);
+    final Task inspectTask = sut.inspectTask(task.id());
+    assertThat(task, equalTo(inspectTask));
+  }
+
+  @Test
+  public void testListTasks() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final ServiceSpec spec = createServiceSpec(randomName());
+    assertThat(sut.listTasks().size(), is(0));
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    Thread.sleep(2000); // to give it a while to spin containers
+    assertThat(sut.listTasks().size(), is(4));
+  }
+
+  @Test
+  public void testListTaskWithCriteria() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final ServiceSpec spec = createServiceSpec(randomName());
+    assertThat(sut.listTasks().size(), is(0));
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    Thread.sleep(2000); // to give it a while to spin containers
+
+    final Task task = sut.listTasks().get(1);
+
+    final List<Task> tasksWithId = sut.listTasks(Task.find().withTaskId(task.id()).build());
+
+    assertThat(tasksWithId.size(), is(1));
+    assertThat(tasksWithId.get(0), equalTo(task));
+  }
+
+  private ServiceSpec createServiceSpec(String serviceName) {
+    final TaskSpec taskSpec = TaskSpec
+            .builder()
+            .withContainerSpec(ContainerSpec.builder().withImage("alpine")
+                    .withCommands(new String[]{"ping", "-c1000", "localhost"}).build())
+            .build();
+
+    final ServiceMode serviceMode = ServiceMode.withReplicas(4);
+
+    return ServiceSpec.builder().withName(serviceName).withTaskTemplate(taskSpec)
+            .withServiceMode(serviceMode)
+            .build();
   }
 
   private String randomName() {

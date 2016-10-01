@@ -2,6 +2,7 @@
  * Copyright (c) 2014 Spotify AB.
  * Copyright (c) 2014 Oleg Poleshuk.
  * Copyright (c) 2014 CyDesign Ltd.
+ * Copyright (c) 2016 ThoughtWorks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,19 @@
 
 package com.spotify.docker.client;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
@@ -34,14 +48,12 @@ import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
+import com.spotify.docker.client.exceptions.ServiceNotFoundException;
+import com.spotify.docker.client.exceptions.TaskNotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.exceptions.VolumeNotFoundException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.AuthRegistryConfig;
-
-import com.google.common.base.Strings;
-import com.google.common.io.CharStreams;
-
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -61,23 +73,16 @@ import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.ServiceCreateOptions;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.net.HostAndPort;
-
+import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -99,6 +104,17 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -112,6 +128,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -119,18 +136,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Optional.fromNullable;
@@ -149,6 +154,7 @@ import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -251,6 +257,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           return ClientBuilder.newBuilder();
         }
       };
+
+  private static final GenericType<List<Service>> SERVICE_LIST =
+          new GenericType<List<Service>>() {
+          };
+
+  private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() {
+  };
 
   private final Client client;
   private final Client noTimeoutClient;
@@ -1539,6 +1552,163 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public Swarm inspectSwarm() throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+
+    final WebTarget resource = resource().path("swarm");
+    return request(GET, Swarm.class, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
+          throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    final WebTarget resource = resource().path("services").path("create");
+
+    try {
+      return request(POST, ServiceCreateResponse.class, resource,
+              resource.request(APPLICATION_JSON_TYPE), Entity.json(spec));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 406:
+          throw new DockerException("Server error or node is not part of swarm.", e);
+        case 409:
+          throw new DockerException("Name conflicts with an existing object.", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public Service inspectService(String serviceId) throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("services").path(serviceId);
+      return request(GET, Service.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ServiceNotFoundException(serviceId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void updateService(String serviceId, Long version, ServiceSpec spec)
+          throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    try {
+      WebTarget resource = resource().path("services").path(serviceId).path("update");
+      resource = resource.queryParam("version", version);
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+              Entity.json(spec));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ServiceNotFoundException(serviceId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public List<Service> listServices() throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    final WebTarget resource = resource().path("services");
+    return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public List<Service> listServices(Service.Criteria criteria)
+          throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    WebTarget resource = resource().path("services");
+    final Map<String, List<String>> filters = new HashMap<String, List<String>>();
+
+    if (criteria.getServiceId() != null) {
+      filters.put("id", Collections.singletonList(criteria.getServiceId()));
+    }
+    if (criteria.getServiceName() != null) {
+      filters.put("name", Collections.singletonList(criteria.getServiceName()));
+    }
+
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public void removeService(String serviceId) throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("services").path(serviceId);
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ServiceNotFoundException(serviceId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public Task inspectTask(String taskId) throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("tasks").path(taskId);
+      return request(GET, Task.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new TaskNotFoundException(taskId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public List<Task> listTasks() throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    final WebTarget resource = resource().path("tasks");
+    return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public List<Task> listTasks(Task.Criteria criteria) throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    WebTarget resource = resource().path("tasks");
+    final Map<String, List<String>> filters = new HashMap<String, List<String>>();
+
+    if (criteria.getTaskId() != null) {
+      filters.put("id", Collections.singletonList(criteria.getTaskId()));
+    }
+    if (criteria.getTaskName() != null) {
+      filters.put("name", Collections.singletonList(criteria.getTaskName()));
+    }
+    if (criteria.getServiceName() != null) {
+      filters.put("service", Collections.singletonList(criteria.getServiceName()));
+    }
+    if (criteria.getNodeId() != null) {
+      filters.put("node", Collections.singletonList(criteria.getNodeId()));
+    }
+    if (criteria.getLabel() != null) {
+      filters.put("label", Collections.singletonList(criteria.getLabel()));
+    }
+    if (criteria.getDesiredState() != null) {
+      filters.put("desired-state", Collections.singletonList(criteria.getDesiredState()));
+    }
+
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
   public void execResizeTty(final String execId,
                             final Integer height,
                             final Integer width)
@@ -1960,6 +2130,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return authRegistryEncoded;
     } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
+    }
+  }
+
+  private void assertAPIVersionIsAbove(String minimumVersion)
+          throws DockerException, InterruptedException {
+    final String apiVersion = version().apiVersion();
+    final int versionComparison = compareVersion(apiVersion, minimumVersion);
+
+    // Version above minimumVersion
+    if (versionComparison < 0) {
+      throw new UnsupportedApiVersionException(apiVersion);
     }
   }
 

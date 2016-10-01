@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Spotify AB.
+ * Copyright (c) 2015 Spotify AB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package com.spotify.docker.client.messages.swarm;
 
-package com.spotify.docker.client.exceptions;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
-public class UnsupportedApiVersionException extends DockerException {
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
-  public UnsupportedApiVersionException(final String version, final Throwable cause) {
-    super("Unsupported Api Version: " + version, cause);
-  }
-
-  public UnsupportedApiVersionException(final String version) {
-    this(version, null);
-  }
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public class GlobalService {
 
 }
