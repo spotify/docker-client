@@ -19,6 +19,7 @@ package com.spotify.docker.client.messages;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -1011,11 +1012,13 @@ public class HostConfig {
     private String to;
     private String from;
     private Boolean readOnly;
+    private Boolean noCopy;
 
     private Bind(final Builder builder) {
       this.to = builder.to;
       this.from = builder.from;
       this.readOnly = builder.readOnly;
+      this.noCopy = builder.noCopy;
     }
 
     public static BuilderTo to(final String to) {
@@ -1035,11 +1038,21 @@ public class HostConfig {
         return "";
       } else if (from == null || from.equals("")) {
         return to;
-      } else if (readOnly == null || !readOnly) {
-        return from + ":" + to;
-      } else {
-        return from + ":" + to + ":ro";
+      } 
+      
+      final String bind = from + ":" + to;
+      
+      final List<String> options = new ArrayList<>();
+      if (readOnly != null && readOnly) {
+          options.add("ro");
       }
+      if (noCopy != null && noCopy) {
+          options.add("nocopy");
+      }
+
+      final String optionsValue = Joiner.on(',').join(options);
+      
+      return (optionsValue.isEmpty()) ? bind : bind + ":" + optionsValue;
     }
 
     public static class BuilderTo {
@@ -1078,6 +1091,7 @@ public class HostConfig {
       private String to;
       private String from;
       private Boolean readOnly = false;
+      private Boolean noCopy;
 
       private Builder() {}
 
@@ -1126,6 +1140,15 @@ public class HostConfig {
 
       public Boolean readOnly() {
         return readOnly;
+      }
+
+      public Builder noCopy(final Boolean noCopy) {
+        this.noCopy = noCopy;
+        return this;
+      }
+
+      public Boolean noCopy() {
+        return noCopy;
       }
 
       public Bind build() {

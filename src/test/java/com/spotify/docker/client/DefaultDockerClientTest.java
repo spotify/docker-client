@@ -79,6 +79,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -1986,6 +1987,65 @@ public class DefaultDockerClientTest {
     assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
   }
 
+  @Test
+  public void testContainerVolumeNoCopy() throws Exception {
+    requireDockerApiVersionAtLeast(
+        "1.23", "Creating a container with volumes with nocopy mode");
+    
+    sut.pull(BUSYBOX_LATEST);
+    
+    sut.createVolume(Volume.builder().name("avolume").build());
+    sut.createVolume(Volume.builder().name("avolume2").build());
+    
+    final Bind bind1 =
+            Bind.from("avolume")
+                .to("/some/other/path")
+                .readOnly(true)
+                .build();
+    
+    final Bind bind2 =
+            Bind.from("avolume2")
+                .to("/some/other/path2")
+                .noCopy(true)
+                .build();
+    
+    final HostConfig hostConfig = HostConfig.builder()
+            .appendBinds(bind1, bind2)
+            .build();
+    
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .hostConfig(hostConfig)
+            .build();
+    
+    final String id = sut.createContainer(config).id();
+    final ContainerInfo info = sut.inspectContainer(id);
+    
+    final List<ContainerMount> mounts = info.mounts();
+    
+    assertThat(mounts.size(), equalTo(2));
+    
+    assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
+        @Override
+        public boolean apply(ContainerMount mount) {
+            return mount.source().contains("/avolume/") 
+                    && "/some/other/path".equals(mount.destination())
+                    && !mount.rw();
+        }
+    }, null), notNullValue());
+    
+    assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
+        @Override
+        public boolean apply(ContainerMount mount) {
+            return mount.source().contains("/avolume2/") 
+                    && "/some/other/path2".equals(mount.destination())
+                    && mount.rw()
+                    && "nocopy".equals(mount.mode());
+        }
+    }, null), notNullValue());
+    
+  }
+  
   @Test
   public void testContainerVolumes() throws Exception {
     requireDockerApiVersionAtLeast(
