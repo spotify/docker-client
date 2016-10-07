@@ -1560,14 +1560,15 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
+  public ServiceCreateResponse createService(final ServiceSpec spec,
+                                             final ServiceCreateOptions options)
           throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services").path("create");
 
     try {
       return request(POST, ServiceCreateResponse.class, resource,
-              resource.request(APPLICATION_JSON_TYPE), Entity.json(spec));
+                     resource.request(APPLICATION_JSON_TYPE), Entity.json(spec));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 406:
@@ -1581,7 +1582,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public Service inspectService(String serviceId) throws DockerException, InterruptedException {
+  public Service inspectService(final String serviceId)
+      throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     try {
       final WebTarget resource = resource().path("services").path(serviceId);
@@ -1597,8 +1599,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public void updateService(String serviceId, Long version, ServiceSpec spec)
-          throws DockerException, InterruptedException {
+  public void updateService(final String serviceId, final Long version, final ServiceSpec spec)
+      throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     try {
       WebTarget resource = resource().path("services").path(serviceId).path("update");
@@ -1623,11 +1625,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public List<Service> listServices(Service.Criteria criteria)
-          throws DockerException, InterruptedException {
+  public List<Service> listServices(final Service.Criteria criteria)
+      throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     WebTarget resource = resource().path("services");
-    final Map<String, List<String>> filters = new HashMap<String, List<String>>();
+    final Map<String, List<String>> filters = new HashMap<>();
 
     if (criteria.getServiceId() != null) {
       filters.put("id", Collections.singletonList(criteria.getServiceId()));
@@ -1641,7 +1643,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public void removeService(String serviceId) throws DockerException, InterruptedException {
+  public void removeService(final String serviceId) throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     try {
       final WebTarget resource = resource().path("services").path(serviceId);
@@ -1657,7 +1659,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public Task inspectTask(String taskId) throws DockerException, InterruptedException {
+  public Task inspectTask(final String taskId) throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     try {
       final WebTarget resource = resource().path("tasks").path(taskId);
@@ -1680,7 +1682,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public List<Task> listTasks(Task.Criteria criteria) throws DockerException, InterruptedException {
+  public List<Task> listTasks(final Task.Criteria criteria)
+      throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     WebTarget resource = resource().path("tasks");
     final Map<String, List<String>> filters = new HashMap<String, List<String>>();

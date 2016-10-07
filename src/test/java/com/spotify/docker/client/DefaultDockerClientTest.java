@@ -3533,7 +3533,7 @@ public class DefaultDockerClientTest {
     assertThat(tasksWithId.get(0), equalTo(task));
   }
 
-  private ServiceSpec createServiceSpec(String serviceName) {
+  private ServiceSpec createServiceSpec(final String serviceName) {
     final TaskSpec taskSpec = TaskSpec
             .builder()
             .withContainerSpec(ContainerSpec.builder().withImage("alpine")

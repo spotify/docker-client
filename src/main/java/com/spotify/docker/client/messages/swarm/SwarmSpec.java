@@ -27,7 +27,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Spec {
+public class SwarmSpec {
 
     @JsonProperty("Name")
     private String name;
@@ -87,7 +87,7 @@ public class Spec {
             return false;
         }
 
-        final Spec that = (Spec) o;
+        final SwarmSpec that = (SwarmSpec) o;
 
         return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
                 && Objects.equals(this.orchestration, that.orchestration)

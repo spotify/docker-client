@@ -126,114 +126,102 @@ public class Task {
     public static class Criteria {
 
         /** Filter by task id */
-        String taskId;
-
+        private String taskId;
         /** Filter by task name */
-        String taskName;
-
+        private String taskName;
         /** Filter by service name */
-        String serviceName;
-
+        private String serviceName;
         /** Filter by node id */
-        String nodeId;
-
+        private String nodeId;
         /** Filter by label */
-        String label;
-
+        private String label;
         /** Filter by desired state */
-        String desiredState;
+        private String desiredState;
+
+        private Criteria(final Builder builder) {
+            this.taskId = builder.taskId;
+            this.taskName = builder.taskName;
+            this.serviceName = builder.serviceName;
+            this.nodeId = builder.nodeId;
+            this.label = builder.label;
+            this.desiredState = builder.desiredState;
+        }
 
         public String getTaskId() {
             return taskId;
-        }
-
-        public void setTaskId(String taskId) {
-            this.taskId = taskId;
         }
 
         public String getTaskName() {
             return taskName;
         }
 
-        public void setTaskName(String taskName) {
-            this.taskName = taskName;
-        }
-
         public String getServiceName() {
             return serviceName;
-        }
-
-        public void setServiceName(String serviceName) {
-            this.serviceName = serviceName;
         }
 
         public String getNodeId() {
             return nodeId;
         }
 
-        public void setNodeId(String nodeId) {
-            this.nodeId = nodeId;
-        }
-
         public String getLabel() {
             return label;
-        }
-
-        public void setLabel(String label) {
-            this.label = label;
         }
 
         public String getDesiredState() {
             return desiredState;
         }
 
-        public void setDesiredState(String desiredState) {
-            this.desiredState = desiredState;
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+
+            private String taskId;
+            private String taskName;
+            private String serviceName;
+            private String nodeId;
+            private String label;
+            private String desiredState;
+
+            public Builder withTaskId(final String taskId) {
+                this.taskId = taskId;
+                return this;
+            }
+
+            public Builder withTaskName(final String taskName) {
+                this.taskName = taskName;
+                return this;
+            }
+
+            public Builder withServiceName(final String serviceName) {
+                this.serviceName = serviceName;
+                return this;
+            }
+
+            public Builder withNodeId(final String nodeId) {
+                this.nodeId = nodeId;
+                return this;
+            }
+
+            public Builder withLabel(final String label) {
+                this.label = label;
+                return this;
+            }
+
+            public Builder withDesiredState(final String desiredState) {
+                this.desiredState = desiredState;
+                return this;
+            }
+
+            public Criteria build() {
+                return new Criteria(this);
+            }
         }
     }
 
-    public static class CriteriaBuilder {
-
-        /** Criteria being built */
-        private Criteria criteria = new Criteria();
-
-        public CriteriaBuilder withTaskId(String taskId) {
-            criteria.setTaskId(taskId);
-            return this;
-        }
-
-        public CriteriaBuilder withTaskName(String taskName) {
-            criteria.setTaskName(taskName);
-            return this;
-        }
-
-        public CriteriaBuilder withServiceName(String serviceName) {
-            criteria.setServiceName(serviceName);
-            return this;
-        }
-
-        public CriteriaBuilder withNodeId(String nodeId) {
-            criteria.setNodeId(nodeId);
-            return this;
-        }
-
-        public CriteriaBuilder withLabel(String label) {
-            criteria.setLabel(label);
-            return this;
-        }
-
-        public CriteriaBuilder withDesiredState(String desiredState) {
-            criteria.setDesiredState(desiredState);
-            return this;
-        }
-
-        public Criteria build() {
-            return criteria;
-        }
-    }
-
-    public static CriteriaBuilder find() {
-        return new Task.CriteriaBuilder();
+    public static Criteria.Builder find() {
+        return Task.Criteria.builder();
     }
 
     @Override

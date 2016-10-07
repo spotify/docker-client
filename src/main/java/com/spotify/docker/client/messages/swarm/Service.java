@@ -80,9 +80,13 @@ public class Service {
 
     public static class Criteria {
 
+        private Criteria(final Builder builder) {
+            this.serviceId = builder.serviceId;
+            this.serviceName = builder.serviceName;
+        }
+
         /** Filter by service id */
         String serviceId;
-
         /** Filter by service name */
         String serviceName;
 
@@ -90,41 +94,36 @@ public class Service {
             return serviceId;
         }
 
-        public void setServiceId(String serviceId) {
-            this.serviceId = serviceId;
-        }
-
         public String getServiceName() {
             return serviceName;
         }
 
-        public void setServiceName(String serviceName) {
-            this.serviceName = serviceName;
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private String serviceId;
+            private String serviceName;
+
+            public Builder withServiceId(final String serviceId) {
+                this.serviceId = serviceId;
+                return this;
+            }
+
+            public Builder withServiceName(final String serviceName) {
+                this.serviceName = serviceName;
+                return this;
+            }
+
+            public Criteria build() {
+                return new Criteria(this);
+            }
         }
     }
 
-    public static class CriteriaBuilder {
-
-        /** Criteria being built */
-        private Criteria criteria = new Criteria();
-
-        public CriteriaBuilder withServiceId(String serviceId) {
-            criteria.setServiceId(serviceId);
-            return this;
-        }
-
-        public CriteriaBuilder withServiceName(String serviceName) {
-            criteria.setServiceName(serviceName);
-            return this;
-        }
-
-        public Criteria build() {
-            return criteria;
-        }
-    }
-
-    public static CriteriaBuilder find() {
-        return new Service.CriteriaBuilder();
+    public static Criteria.Builder find() {
+        return Service.Criteria.builder();
     }
 
     @Override

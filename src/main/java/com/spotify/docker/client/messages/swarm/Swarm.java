@@ -42,7 +42,7 @@ public class Swarm {
     private Date updatedAt;
 
     @JsonProperty("Spec")
-    private Spec spec;
+    private SwarmSpec swarmSpec;
 
     @JsonProperty("JoinTokens")
     private JoinTokens joinTokens;
@@ -63,8 +63,8 @@ public class Swarm {
     return updatedAt == null ? null : new Date(updatedAt.getTime());
 }
 
-    public Spec spec() {
-        return spec;
+    public SwarmSpec spec() {
+        return swarmSpec;
     }
 
     public JoinTokens joinTokens() {
@@ -85,19 +85,19 @@ public class Swarm {
         return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
                 && Objects.equals(this.createdAt, that.createdAt)
                 && Objects.equals(this.updatedAt, that.updatedAt)
-                && Objects.equals(this.spec, that.spec)
+                && Objects.equals(this.swarmSpec, that.swarmSpec)
                 && Objects.equals(this.joinTokens, that.joinTokens);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, version, createdAt, updatedAt, spec, joinTokens);
+        return Objects.hash(id, version, createdAt, updatedAt, swarmSpec, joinTokens);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
-                .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", spec)
+                .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", swarmSpec)
                 .add("joinTokens", joinTokens).toString();
     }
 }
