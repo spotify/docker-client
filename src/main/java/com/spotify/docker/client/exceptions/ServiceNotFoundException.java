@@ -14,17 +14,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.spotify.docker.client.exceptions;
 
-public class UnsupportedApiVersionException extends DockerException {
+public class ServiceNotFoundException extends NotFoundException {
 
-  public UnsupportedApiVersionException(final String version, final Throwable cause) {
-    super("Unsupported Api Version: " + version, cause);
-  }
+    private static final long serialVersionUID = 124167900943701078L;
 
-  public UnsupportedApiVersionException(final String version) {
-    this(version, null);
-  }
+    private final String serviceId;
 
+    public ServiceNotFoundException(final String serviceId, final Throwable cause) {
+        super("Service not found: " + serviceId, cause);
+        this.serviceId = serviceId;
+    }
+
+    public ServiceNotFoundException(final String serviceId) {
+        this(serviceId, null);
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
 }
