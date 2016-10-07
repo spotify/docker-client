@@ -29,16 +29,16 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 public class Resources {
 
     @JsonProperty("NanoCPUs")
-    private Integer nanoCpus;
+    private Long nanoCpus;
 
     @JsonProperty("MemoryBytes")
-    private Integer memoryBytes;
+    private Long memoryBytes;
 
-    public Integer nanoCpus() {
+    public Long nanoCpus() {
         return nanoCpus;
     }
 
-    public Integer memoryBytes() {
+    public Long memoryBytes() {
         return memoryBytes;
     }
 
@@ -46,12 +46,12 @@ public class Resources {
 
         private Resources resources = new Resources();
 
-        public Builder withNanoCpus(int nanoCpus) {
+        public Builder withNanoCpus(Long nanoCpus) {
             resources.nanoCpus = nanoCpus;
             return this;
         }
 
-        public Builder withMemoryBytes(int memoryBytes) {
+        public Builder withMemoryBytes(Long memoryBytes) {
             resources.memoryBytes = memoryBytes;
             return this;
         }

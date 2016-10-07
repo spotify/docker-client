@@ -3389,7 +3389,7 @@ public class DefaultDockerClientTest {
                     .withOption("max-size", "10M").build())
             .withResources(ResourceRequirements.builder()
                     .withLimits(com.spotify.docker.client.messages.swarm.Resources.builder().
-                            withMemoryBytes(10 * 1024 * 1024).build())
+                            withMemoryBytes(10 * 1024 * 1024L).build())
                     .build())
             .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
                     .withDelay(10000000).withMaxAttempts(10).build())
