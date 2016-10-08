@@ -3072,7 +3072,7 @@ public class DefaultDockerClientTest {
     final ImageHistory busyboxHistory = imageHistoryList.get(0);
     assertThat(busyboxHistory.id(), not(isEmptyOrNullString()));
     assertNotNull(busyboxHistory.created());
-    assertEquals("/bin/sh -c #(nop) CMD [\"sh\"]", busyboxHistory.createdBy());
+    assertThat(busyboxHistory.createdBy(), startsWith("/bin/sh -c #(nop)"));
     assertThat(BUSYBOX_LATEST, isIn(busyboxHistory.tags()));
     assertEquals(0L, busyboxHistory.size().longValue());
     assertThat(busyboxHistory.comment(), isEmptyOrNullString());
