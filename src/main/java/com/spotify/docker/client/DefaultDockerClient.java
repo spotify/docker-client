@@ -82,6 +82,7 @@ import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -1552,10 +1553,61 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public String initializeSwarm() throws DockerException, InterruptedException {
+    return initializeSwarm(SwarmInitRequest.builder().build());
+  }
+
+  @Override
+  public String initializeSwarm(final SwarmInitRequest swarmInitRequest)
+      throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+    final WebTarget resource = resource().path("swarm").path("init");
+
+    try {
+      return request(POST, String.class, resource,
+                     resource.request(APPLICATION_JSON_TYPE), Entity.json(swarmInitRequest));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("Bad parameter", e);
+        case 406:
+          throw new DockerException("node is already part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void leaveSwarm(final boolean force) throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+
+    WebTarget resource = resource().path("swarm").path("leave");
+
+    if (force) {
+      resource = resource.queryParam("force", true);
+    }
+
+    try {
+      request(POST, resource, resource.request(TEXT_PLAIN_TYPE));
+    } catch (DockerRequestException e) {
+      // TODO (dxia) Why do we have this pattern of case/switch on DockerRequestException.
+      // Why not just let the original Exception propagate?
+      switch (e.status()) {
+        case 406:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public Swarm inspectSwarm() throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
 
     final WebTarget resource = resource().path("swarm");
+    // TODO (dxia) return null if not part of swarm or let DockerRequestException propagate?
     return request(GET, Swarm.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
@@ -2138,6 +2190,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private void assertAPIVersionIsAbove(String minimumVersion)
           throws DockerException, InterruptedException {
+    // TODO (dxia) Instead of calling the version endpoint and having to throw InterruptedException,
+    // we should store the version once when we construct an instance of this class.
     final String apiVersion = version().apiVersion();
     final int versionComparison = compareVersion(apiVersion, minimumVersion);
 
