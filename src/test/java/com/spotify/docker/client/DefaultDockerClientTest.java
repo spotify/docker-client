@@ -8,9 +8,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -207,6 +207,7 @@ import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.UpdateConfig;
@@ -281,6 +282,7 @@ public class DefaultDockerClientTest {
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
   private static final boolean TRAVIS = "true".equals(getenv("TRAVIS"));
 
+  private static final String AUTH_EMAIL = "dxia+2@spotify.com";
   private static final String AUTH_USERNAME = "dxia2";
   private static final String AUTH_PASSWORD = "Tv38KLPd]M";
 
@@ -320,6 +322,11 @@ public class DefaultDockerClientTest {
 
     dockerApiVersion = sut.version().apiVersion();
 
+    if (dockerApiVersionAtLeast("1.24")) {
+      // Make sure node isn't part of a swarm
+      leaveSwarm(sut, true);
+    }
+
     System.out.printf("- %s\n", testName.getMethodName());
   }
 
@@ -336,6 +343,8 @@ public class DefaultDockerClientTest {
       } catch (DockerException e) {
         log.warn("Ignoring DockerException in teardown", e);
       }
+      // No need to remove services in the swarm because leaving a swarm removes them automatically
+      leaveSwarm(sut, true);
     }
 
     // Remove containers
@@ -510,7 +519,7 @@ public class DefaultDockerClientTest {
     final File imageFile = save(BUSYBOX);
     assertTrue(imageFile.length() > 0);
   }
-  
+
   @Test
   public void testLoad() throws Exception {
     // Ensure the local Docker instance has the busybox image so that save() will work
@@ -3622,7 +3631,7 @@ public class DefaultDockerClientTest {
     sut.inspectNetwork(network.id());
 
   }
-  
+
   @Test
   public void testFilterNetworks() throws Exception {
     requireDockerApiVersionAtLeast("1.22", "networks");
@@ -3634,57 +3643,57 @@ public class DefaultDockerClientTest {
     final Network network1 = createNetwork(network1Config);
     final Network network2 = createNetwork(network2Config);
     final Network hostNetwork = getHostNetwork();
-    
+
     List<Network> networks;
-    
+
     // filter by id
     networks = sut.listNetworks(ListNetworksParam.byNetworkId(network1.id()));
     assertThat(networks, hasItem(network1));
     assertThat(networks, not(hasItem(network2)));
-    
+
     // filter by name
     networks = sut.listNetworks(ListNetworksParam.byNetworkName(network1.name()));
     assertThat(networks, hasItem(network1));
     assertThat(networks, not(hasItem(network2)));
-    
+
     // filter by type
     networks = sut.listNetworks(ListNetworksParam.withType(BUILTIN));
     assertThat(networks, hasItem(hostNetwork));
     assertThat(networks, not(hasItems(network1, network2)));
-    
+
     networks = sut.listNetworks(ListNetworksParam.builtInNetworks());
     assertThat(networks, hasItem(hostNetwork));
     assertThat(networks, not(hasItems(network1, network2)));
-    
+
     networks = sut.listNetworks(ListNetworksParam.customNetworks());
     assertThat(networks, not(hasItem(hostNetwork)));
     assertThat(networks, hasItems(network1, network2));
-    
+
     // filter by driver
     if (dockerApiVersionAtLeast("1.24")) {
       networks = sut.listNetworks(ListNetworksParam.withDriver("bridge"));
       assertThat(networks, not(hasItem(hostNetwork)));
       assertThat(networks, hasItems(network1, network2));
-      
+
       networks = sut.listNetworks(ListNetworksParam.withDriver("host"));
       assertThat(networks, hasItem(hostNetwork));
       assertThat(networks, not(hasItems(network1, network2)));
     }
-    
+
     // filter by label
     if (dockerApiVersionAtLeast("1.24")) {
       networks = sut.listNetworks(ListNetworksParam.withLabel("is-test"));
       assertThat(networks, not(hasItem(hostNetwork)));
       assertThat(networks, hasItems(network1, network2));
-      
+
       networks = sut.listNetworks(ListNetworksParam.withLabel("is-test", "true"));
       assertThat(networks, hasItem(network1));
       assertThat(networks, not(hasItem(network2)));
-      
+
       networks = sut.listNetworks(ListNetworksParam.withLabel("is-test", "false"));
       assertThat(networks, not(hasItems(network1, network2)));
     }
-    
+
     sut.removeNetwork(network1.id());
     sut.removeNetwork(network2.id());
   }
@@ -4326,12 +4335,27 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
   }
+  @Test
+  public void testInitInspectAndLeaveSwarm() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final String nodeId = initializeSwarm(sut);
+    assertThat(nodeId, is(notNullValue()));
+
+    final Swarm swarm = sut.inspectSwarm();
+    assertThat(swarm.createdAt(), is(notNullValue()));
+    assertThat(swarm.updatedAt(), is(notNullValue()));
+    assertThat(swarm.id(), is(not(isEmptyOrNullString())));
+    assertThat(swarm.joinTokens().worker(), is(not(isEmptyOrNullString())));
+    assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
+
+    sut.leaveSwarm(true);
+  }
 
   @Test
   public void testPidsLimit() throws Exception {
     if (OsUtils.isLinux()) {
       assumeTrue("Linux kernel must be at least 4.3.",
-                 compareVersion(System.getProperty("os.version"), "4.3") >= 0);
+              compareVersion(System.getProperty("os.version"), "4.3") >= 0);
     }
     requireDockerApiVersionAtLeast("1.23", "PidsLimit");
 
@@ -4339,11 +4363,11 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .hostConfig(HostConfig.builder()
-                        .pidsLimit(100) // Defaults to -1
-                        .build())
-        .build();
+            .image(BUSYBOX_LATEST)
+            .hostConfig(HostConfig.builder()
+                    .pidsLimit(100) // Defaults to -1
+                    .build())
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -4361,11 +4385,11 @@ public class DefaultDockerClientTest {
     final ImmutableMap<String, String> tmpfs = ImmutableMap.of("/tmp", "rw,noexec,nosuid,size=50m");
 
     final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .hostConfig(HostConfig.builder()
-                        .tmpfs(tmpfs)
-                        .build())
-        .build();
+            .image(BUSYBOX_LATEST)
+            .hostConfig(HostConfig.builder()
+                    .tmpfs(tmpfs)
+                    .build())
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -4379,11 +4403,11 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .hostConfig(HostConfig.builder()
-                        .readonlyRootfs(true) // Defaults to -1
-                        .build())
-        .build();
+            .image(BUSYBOX_LATEST)
+            .hostConfig(HostConfig.builder()
+                    .readonlyRootfs(true) // Defaults to -1
+                    .build())
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -4402,11 +4426,11 @@ public class DefaultDockerClientTest {
     final ImmutableMap<String, String> storageOpt = ImmutableMap.of("size", "20G");
 
     final ContainerConfig config = ContainerConfig.builder()
-                      .image(BUSYBOX_LATEST)
-                      .hostConfig(HostConfig.builder()
-                          .storageOpt(storageOpt)
-                          .build())
-                      .build();
+            .image(BUSYBOX_LATEST)
+            .hostConfig(HostConfig.builder()
+                    .storageOpt(storageOpt)
+                    .build())
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -4424,11 +4448,11 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .hostConfig(HostConfig.builder()
-                        .autoRemove(true) // Default is false
-                        .build())
-        .build();
+            .image(BUSYBOX_LATEST)
+            .hostConfig(HostConfig.builder()
+                    .autoRemove(true) // Default is false
+                    .build())
+            .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -4443,17 +4467,6 @@ public class DefaultDockerClientTest {
     sut.inspectContainer(container.id());
   }
 
-  @Test
-  public void testInspectSwarm() throws Exception {
-    requireDockerApiVersionAtLeast("1.24", "swarm support");
-
-    final Swarm swarm = sut.inspectSwarm();
-    assertThat(swarm.createdAt(), is(notNullValue()));
-    assertThat(swarm.updatedAt(), is(notNullValue()));
-    assertThat(swarm.id(), is(not(isEmptyOrNullString())));
-    assertThat(swarm.joinTokens().worker(), is(not(isEmptyOrNullString())));
-    assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
-  }
 
   @Test
   public void testCreateServiceWithNetwork() throws Exception {
@@ -4496,13 +4509,13 @@ public class DefaultDockerClientTest {
     final Service inspectService = sut.inspectService(serviceName);
     assertThat(inspectService.spec().networks().size(), is(1));
     assertThat(Iterables.find(inspectService.spec().networks(),
-        new Predicate<NetworkAttachmentConfig>() {
+            new Predicate<NetworkAttachmentConfig>() {
 
-          @Override
-          public boolean apply(NetworkAttachmentConfig config) {
-            return networkId.equals(config.target());
-          }
-        }, null), is(notNullValue()));
+              @Override
+              public boolean apply(NetworkAttachmentConfig config) {
+                return networkId.equals(config.target());
+              }
+            }, null), is(notNullValue()));
 
     sut.removeService(serviceName);
     sut.removeNetwork(networkName);
@@ -4511,6 +4524,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testCreateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
 
@@ -4528,7 +4542,7 @@ public class DefaultDockerClientTest {
     assertThat(sut.listSecrets().size(), equalTo(0));
 
     final String secretData = Base64.encodeAsString("testdata".getBytes());
-    
+
     final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
 
     final SecretSpec secretSpec = SecretSpec.builder()
@@ -4536,11 +4550,11 @@ public class DefaultDockerClientTest {
         .data(secretData)
         .labels(labels)
         .build();
-    
+
     final SecretCreateResponse response = sut.createSecret(secretSpec);
     final String secretId = response.id();
     assertThat(secretId, is(notNullValue()));
-    
+
     final SecretSpec secretSpecConflict = SecretSpec.builder()
         .name("asecret")
         .data(secretData)
@@ -4763,6 +4777,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
     final TaskSpec taskSpec = TaskSpec
@@ -4812,7 +4827,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectServiceEndpoint() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
-    
+
     final String name = randomName();
     final String imageName = "demo/test";
     final PortConfig.Builder portConfigBuilder = PortConfig.builder()
@@ -4878,6 +4893,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testUpdateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final ServiceSpec spec = createServiceSpec(randomName());
 
     final ServiceCreateResponse response = sut.createService(spec);
@@ -4902,6 +4918,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListServices() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     List<Service> services = sut.listServices();
     final int startingNumServices = services.size();
 
@@ -4916,6 +4933,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListServicesFilterById() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final ServiceSpec spec = createServiceSpec(randomName());
     final ServiceCreateResponse response = sut.createService(spec);
 
@@ -4928,6 +4946,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListServicesFilterByName() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final String serviceName = randomName();
     final ServiceSpec spec = createServiceSpec(serviceName);
     sut.createService(spec);
@@ -4937,23 +4956,23 @@ public class DefaultDockerClientTest {
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().name(), is(serviceName));
   }
-  
+
   @Test
   public void testListServicesFilterByLabel() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     final String serviceName = randomName();
-    
+
     Map<String, String> labels = new HashMap<>();
     labels.put("foo", "bar");
-    
+
     final ServiceSpec spec = createServiceSpec(serviceName, labels);
     sut.createService(spec);
 
     final List<Service> services = sut.listServices(Service.find().addLabel("foo", "bar").build());
-    
+
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().labels().get("foo"), is("bar"));
-    
+
     final List<Service> notFoundServices = sut.listServices(Service.find()
         .addLabel("bar", "foo").build());
     assertThat(notFoundServices.size(), is(0));
@@ -4962,6 +4981,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testRemoveService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     final ServiceCreateResponse response = sut.createService(spec);
@@ -4973,6 +4993,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectTask() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final Date start = new Date();
 
     final ServiceSpec serviceSpec = createServiceSpec(randomName());
@@ -5032,6 +5053,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListTasks() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
@@ -5066,6 +5088,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListTaskWithCriteria() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
@@ -5097,21 +5120,21 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     List<Node> nodes = sut.listNodes();
     assertThat(nodes.size(), greaterThanOrEqualTo(1));
-    
+
     Node nut = nodes.get(0);
     Date now = new Date();
     assertThat(nut.id(), allOf(notNullValue(), not("")));
     assertThat(nut.version().index(), allOf(notNullValue(), greaterThan(0L)));
     assertThat(nut.createdAt(), allOf(notNullValue(), lessThanOrEqualTo(now)));
     assertThat(nut.updatedAt(), allOf(notNullValue(), lessThanOrEqualTo(now)));
-    
+
     NodeSpec specs = nut.spec();
     assertThat(specs, notNullValue());
     assertThat(specs.name(), is(anything())); // Can be null if not set
     assertThat(specs.labels(), is(anything())); // Can be null if not set
     assertThat(specs.role(), isIn(new String [] {"manager", "worker"}));
     assertThat(specs.availability(), isIn(new String [] {"active", "pause", "drain"}));
-    
+
     NodeDescription desc = nut.description();
     assertThat(desc.hostname(), allOf(notNullValue(), not("")));
     assertThat(desc.platform(), notNullValue());
@@ -5120,19 +5143,19 @@ public class DefaultDockerClientTest {
     assertThat(desc.resources(), notNullValue());
     assertThat(desc.resources().memoryBytes(), greaterThan(0L));
     assertThat(desc.resources().nanoCpus(), greaterThan(0L));
-    
+
     EngineConfig engine = desc.engine();
     assertThat(engine, notNullValue());
     assertThat(engine.engineVersion(), allOf(notNullValue(), not("")));
     assertThat(engine.labels(), is(anything()));
     assertThat(engine.plugins().size(), greaterThanOrEqualTo(0));
-    
+
     for (EnginePlugin plugin : engine.plugins()) {
       assertThat(plugin.type(), allOf(notNullValue(), not("")));
       assertThat(plugin.name(), allOf(notNullValue(), not("")));
     }
   }
-  
+
   @SuppressWarnings("ConstantConditions")
   @Test
   public void testMountTmpfsOptions() throws Exception {
@@ -5179,10 +5202,10 @@ public class DefaultDockerClientTest {
   private ServiceSpec createServiceSpec(final String serviceName) {
     return this.createServiceSpec(serviceName, new HashMap<String, String>());
   }
-  
-  private ServiceSpec createServiceSpec(final String serviceName, 
+
+  private ServiceSpec createServiceSpec(final String serviceName,
       final Map<String, String> labels) {
-    
+
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder().image("alpine")
@@ -5311,5 +5334,22 @@ public class DefaultDockerClientTest {
                && publishModeMatcher.matches(portConfig.publishMode());
       }
     };
+  }
+
+  private static String initializeSwarm(final DefaultDockerClient client)
+          throws DockerException, InterruptedException {
+    final SwarmInitRequest swarmInitRequest = SwarmInitRequest.builder()
+            .advertiseAddr(client.getHost())
+            .build();
+    return client.initializeSwarm(swarmInitRequest);
+  }
+
+  private static void leaveSwarm(final DockerClient client, final boolean force)
+          throws InterruptedException {
+    try {
+      client.leaveSwarm(force);
+    } catch (DockerException e) {
+      // ignore
+    }
   }
 }

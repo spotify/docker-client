@@ -10,9 +10,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -113,6 +113,7 @@ import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
@@ -215,7 +216,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
   }
-  
+
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image names
    * of an image being loaded. Weirdly enough, Docker returns the name of a newly
@@ -250,7 +251,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         if (streamMatcher.matches()) {
           imageNames.add(streamMatcher.group("image"));
         }
-        
+
       }
     }
 
@@ -320,7 +321,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() { };
 
   private static final GenericType<List<Node>> NODE_LIST = new GenericType<List<Node>>() { };
-  
+
   private static final GenericType<List<Secret>> SECRET_LIST = new GenericType<List<Secret>>() { };
 
   private final Client client;
@@ -1083,7 +1084,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     create(image, imagePayload, handler);
   }
-  
+
   @Override
   public Set<String> load(final InputStream imagePayload)
       throws DockerException, InterruptedException {
@@ -1097,10 +1098,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
             .path("images")
             .path("load")
             .queryParam("quiet", "false");
-    
+
     final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-    
+
     try (final ProgressStream load =
             request(POST, ProgressStream.class, resource,
                     resource.request(APPLICATION_JSON_TYPE), entity)) {
@@ -1626,10 +1627,61 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public String initializeSwarm() throws DockerException, InterruptedException {
+    return initializeSwarm(SwarmInitRequest.builder().build());
+  }
+
+  @Override
+  public String initializeSwarm(final SwarmInitRequest swarmInitRequest)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+    final WebTarget resource = resource().path("swarm").path("init");
+
+    try {
+      return request(POST, String.class, resource,
+                     resource.request(APPLICATION_JSON_TYPE), Entity.json(swarmInitRequest));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("Bad parameter", e);
+        case 406:
+          throw new DockerException("node is already part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void leaveSwarm(final boolean force) throws DockerException, InterruptedException {
+    assertAPIVersionIsAbove("1.24");
+
+    WebTarget resource = resource().path("swarm").path("leave");
+
+    if (force) {
+      resource = resource.queryParam("force", true);
+    }
+
+    try {
+      request(POST, resource, resource.request(TEXT_PLAIN_TYPE));
+    } catch (DockerRequestException e) {
+      // TODO (dxia) Why do we have this pattern of case/switch on DockerRequestException.
+      // Why not just let the original Exception propagate?
+      switch (e.status()) {
+        case 406:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public Swarm inspectSwarm() throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.24");
 
     final WebTarget resource = resource().path("swarm");
+    // TODO (dxia) return null if not part of swarm or let DockerRequestException propagate?
     return request(GET, Swarm.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
@@ -1813,7 +1865,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("nodes");
     return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public void execResizeTty(final String execId,
                             final Integer height,
@@ -1917,7 +1969,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = addParameters(resource, params);
     return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path(networkId);
