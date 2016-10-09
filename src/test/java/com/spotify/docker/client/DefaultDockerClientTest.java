@@ -5337,15 +5337,15 @@ public class DefaultDockerClientTest {
   }
 
   private static String initializeSwarm(final DefaultDockerClient client)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     final SwarmInitRequest swarmInitRequest = SwarmInitRequest.builder()
-            .advertiseAddr(client.getHost())
-            .build();
+        .advertiseAddr(client.getHost())
+        .build();
     return client.initializeSwarm(swarmInitRequest);
   }
 
   private static void leaveSwarm(final DockerClient client, final boolean force)
-          throws InterruptedException {
+      throws InterruptedException {
     try {
       client.leaveSwarm(force);
     } catch (DockerException e) {
