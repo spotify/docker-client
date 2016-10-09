@@ -83,11 +83,6 @@ end script
       sudo restart docker
     fi
 
-    if [[ "$DOCKER_VERSION" =~ ^1\.12\..* ]]; then
-        # initialize docker swarm to be able to run docker tests
-        sudo docker swarm init --advertise-addr 127.0.0.1
-    fi
-
     # Wait a minute so we can see more docker logs in case something goes wrong
     sleep 60
 

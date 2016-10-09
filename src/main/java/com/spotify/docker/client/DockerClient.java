@@ -47,6 +47,7 @@ import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
 
 import java.io.Closeable;
@@ -1213,6 +1214,33 @@ public interface DockerClient extends Closeable {
    */
   LogStream execStart(String execId, ExecStartParameter... params)
       throws DockerException, InterruptedException;
+
+  /**
+   * Initialize a new swarm.
+   * @return node ID
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  String initializeSwarm() throws DockerException, InterruptedException;
+
+  /**
+   * Initialize a new swarm.
+   * @param swarmInitRequest {@link SwarmInitRequest}
+   * @return node ID
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  String initializeSwarm(SwarmInitRequest swarmInitRequest)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Leave a swarm.
+   * @param force Force leave swarm, even if this is the last manager or that it will break the
+   *              cluster.
+   * @throws DockerException
+   * @throws InterruptedException
+   */
+  void leaveSwarm(boolean force) throws DockerException, InterruptedException;
 
   /**
    * Inspect the Swarm cluster. Only available in Docker API &gt;= 1.24.

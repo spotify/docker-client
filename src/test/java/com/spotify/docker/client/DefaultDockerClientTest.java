@@ -97,6 +97,7 @@ import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -277,18 +278,19 @@ public class DefaultDockerClientTest {
 
     dockerApiVersion = sut.version().apiVersion();
 
+    if (dockerApiVersionAtLeast("1.24")) {
+      // Make sure node isn't part of a swarm
+      leaveSwarm(sut, true);
+    }
+
     System.out.printf("- %s\n", testName.getMethodName());
   }
 
   @After
   public void tearDown() throws Exception {
     if (dockerApiVersionAtLeast("1.24")) {
-      final List<Service> services = sut.listServices();
-      for (final Service service : services) {
-        if (service.spec().name().startsWith(nameTag)) {
-          sut.removeService(service.id());
-        }
-      }
+      // No need to remove services in the swarm because leaving a swarm removes them automatically
+      leaveSwarm(sut, true);
     }
 
     // Remove containers
@@ -3352,8 +3354,10 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testInspectSwarm() throws Exception {
+  public void testInitInspectAndLeaveSwarm() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final String nodeId = initializeSwarm(sut);
+    assertThat(nodeId, is(notNullValue()));
 
     final Swarm swarm = sut.inspectSwarm();
     assertThat(swarm.createdAt(), is(notNullValue()));
@@ -3361,11 +3365,14 @@ public class DefaultDockerClientTest {
     assertThat(swarm.id(), is(not(isEmptyOrNullString())));
     assertThat(swarm.joinTokens().worker(), is(not(isEmptyOrNullString())));
     assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
+
+    sut.leaveSwarm(true);
   }
 
   @Test
   public void testCreateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
 
@@ -3376,6 +3383,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
     final TaskSpec taskSpec = TaskSpec
@@ -3418,6 +3426,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testUpdateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final ServiceSpec spec = createServiceSpec(randomName());
 
     final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
@@ -3442,6 +3451,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListServices() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     List<Service> services = sut.listServices();
     assertThat(services, is(empty()));
 
@@ -3456,6 +3466,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListServicesFilterById() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final ServiceSpec spec = createServiceSpec(randomName());
     final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
 
@@ -3468,6 +3479,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListServicesFilterByName() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
     final String serviceName = randomName();
     final ServiceSpec spec = createServiceSpec(serviceName);
     sut.createService(spec, new ServiceCreateOptions());
@@ -3481,6 +3493,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testRemoveService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
@@ -3492,6 +3505,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectTask() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
@@ -3505,6 +3519,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testListTasks() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
@@ -3516,10 +3531,11 @@ public class DefaultDockerClientTest {
   @Test
   public void testListTaskWithCriteria() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    initializeSwarm(sut);
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    sut.createService(spec, new ServiceCreateOptions());
     Thread.sleep(2000); // to give it a while to spin containers
 
     final Task task = sut.listTasks().get(1);
@@ -3618,5 +3634,20 @@ public class DefaultDockerClientTest {
       }
     };
     return Lists.transform(images, imageToShortId);
+  }
+
+  private static String initializeSwarm(final DefaultDockerClient client)
+      throws DockerException, InterruptedException {
+    final SwarmInitRequest swarmInitRequest = SwarmInitRequest.builder().build();
+    return client.initializeSwarm(swarmInitRequest);
+  }
+
+  private static void leaveSwarm(final DockerClient client, final boolean force)
+      throws InterruptedException {
+    try {
+      client.leaveSwarm(force);
+    } catch (DockerException e) {
+      // ignore
+    }
   }
 }
