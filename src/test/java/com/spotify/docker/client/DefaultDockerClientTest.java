@@ -3641,9 +3641,7 @@ public class DefaultDockerClientTest {
 
   private static String initializeSwarm(final DefaultDockerClient client)
       throws DockerException, InterruptedException {
-    final SwarmInitRequest swarmInitRequest = SwarmInitRequest.builder()
-        .advertiseAddr(client.getHost())
-        .build();
+    final SwarmInitRequest swarmInitRequest = SwarmInitRequest.builder().build();
     return client.initializeSwarm(swarmInitRequest);
   }
 
