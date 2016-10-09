@@ -1,25 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.spotify</groupId>
+  <parent>
+    <groupId>com.spotify</groupId>
+    <artifactId>foss-root</artifactId>
+    <version>3</version>
+  </parent>
+
   <artifactId>docker-client</artifactId>
   <version>6.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client</description>
   <url>https://github.com/spotify/docker-client</url>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-  </properties>
-
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
-  </parent>
 
   <licenses>
     <license>
@@ -35,13 +28,6 @@
     <url>https://github.com/spotify/docker-client</url>
     <tag>HEAD</tag>
   </scm>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <developers>
     <developer>
@@ -195,28 +181,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.2</version>
-        <configuration>
-          <tagNameFormat>v@{project.version}</tagNameFormat>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.scm</groupId>
-            <artifactId>maven-scm-provider-gitexe</artifactId>
-            <version>1.9</version>
-          </dependency>
-        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.3</version>
         <configuration>
-          <compilerArgs>
-            <arg>-Xlint:all,-serial</arg>
-          </compilerArgs>
-          <showDeprecation>true</showDeprecation>
-          <showWarnings>true</showWarnings>
           <source>1.7</source>
           <target>1.7</target>
         </configuration>
@@ -293,23 +263,6 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.3</version>
-        <configuration>
-          <show>private</show>
-          <failOnError>false</failOnError>
-        </configuration>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.4.1</version>
         <configuration>
@@ -356,26 +309,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.19</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.5</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>${autoReleaseAfterClose}</autoReleaseAfterClose>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
