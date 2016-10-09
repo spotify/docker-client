@@ -28,34 +28,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class DispatcherConfig {
 
-    @JsonProperty("HeartbeatPeriod")
-    private Long heartbeatPeriod;
+  @JsonProperty("HeartbeatPeriod")
+  private Long heartbeatPeriod;
 
-    public Long heartbeatPeriod() {
-        return heartbeatPeriod;
+  public Long heartbeatPeriod() {
+    return heartbeatPeriod;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final DispatcherConfig that = (DispatcherConfig) o;
 
-        final DispatcherConfig that = (DispatcherConfig) o;
+    return Objects.equals(this.heartbeatPeriod, that.heartbeatPeriod);
+  }
 
-        return Objects.equals(this.heartbeatPeriod, that.heartbeatPeriod);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(heartbeatPeriod);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(heartbeatPeriod);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("heartbeatPeriod", heartbeatPeriod).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("heartbeatPeriod", heartbeatPeriod).toString();
+  }
 }

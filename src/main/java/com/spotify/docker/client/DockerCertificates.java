@@ -77,13 +77,13 @@ public class DockerCertificates {
     }
 
     try (InputStream caCertStream =
-                 Files.newInputStream(builder.caCertPath);
+             Files.newInputStream(builder.caCertPath);
          InputStream clientCertStream =
-                 Files.newInputStream(builder.clientCertPath);
+             Files.newInputStream(builder.clientCertPath);
          BufferedReader clientKeyStream =
-                 Files.newBufferedReader(builder.clientKeyPath, Charset.defaultCharset());
+             Files.newBufferedReader(builder.clientKeyPath, Charset.defaultCharset());
          PEMParser pemParser = new PEMParser(clientKeyStream);
-      ) {
+    ) {
       final CertificateFactory cf = CertificateFactory.getInstance("X.509");
       final Certificate caCert = cf.generateCertificate(caCertStream);
       final Certificate clientCert = cf.generateCertificate(clientCertStream);

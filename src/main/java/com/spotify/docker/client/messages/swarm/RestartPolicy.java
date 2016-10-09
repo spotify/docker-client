@@ -28,96 +28,96 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class RestartPolicy {
 
-    public static final String RESTART_POLICY_NONE = "none";
-    public static final String RESTART_POLICY_ON_FAILURE = "on-failure";
-    public static final String RESTART_POLICY_ANY = "any";
+  public static final String RESTART_POLICY_NONE = "none";
+  public static final String RESTART_POLICY_ON_FAILURE = "on-failure";
+  public static final String RESTART_POLICY_ANY = "any";
 
-    @JsonProperty("Condition")
-    private String condition;
+  @JsonProperty("Condition")
+  private String condition;
 
-    @JsonProperty("Delay")
-    private Long delay;
+  @JsonProperty("Delay")
+  private Long delay;
 
-    @JsonProperty("MaxAttempts")
-    private Integer maxAttempts;
+  @JsonProperty("MaxAttempts")
+  private Integer maxAttempts;
 
-    @JsonProperty("Window")
-    private Long window;
+  @JsonProperty("Window")
+  private Long window;
 
-    public String condition() {
-        return condition;
+  public String condition() {
+    return condition;
+  }
+
+  public Long delay() {
+    return delay;
+  }
+
+  public Integer maxAttempts() {
+    return maxAttempts;
+  }
+
+  public Long window() {
+    return window;
+  }
+
+  public static class Builder {
+
+    private RestartPolicy restart = new RestartPolicy();
+
+    public Builder withCondition(String condition) {
+      restart.condition = condition;
+      return this;
     }
 
-    public Long delay() {
-        return delay;
+    public Builder withDelay(long delay) {
+      restart.delay = delay;
+      return this;
     }
 
-    public Integer maxAttempts() {
-        return maxAttempts;
+    public Builder withMaxAttempts(int maxAttempts) {
+      restart.maxAttempts = maxAttempts;
+      return this;
     }
 
-    public Long window() {
-        return window;
+    public Builder withWindow(long window) {
+      restart.window = window;
+      return this;
     }
 
-    public static class Builder {
+    public RestartPolicy build() {
+      return restart;
+    }
+  }
 
-        private RestartPolicy restart = new RestartPolicy();
+  public static RestartPolicy.Builder builder() {
+    return new RestartPolicy.Builder();
+  }
 
-        public Builder withCondition(String condition) {
-            restart.condition = condition;
-            return this;
-        }
-
-        public Builder withDelay(long delay) {
-            restart.delay = delay;
-            return this;
-        }
-
-        public Builder withMaxAttempts(int maxAttempts) {
-            restart.maxAttempts = maxAttempts;
-            return this;
-        }
-
-        public Builder withWindow(long window) {
-            restart.window = window;
-            return this;
-        }
-
-        public RestartPolicy build() {
-            return restart;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static RestartPolicy.Builder builder() {
-        return new RestartPolicy.Builder();
-    }
+    final RestartPolicy that = (RestartPolicy) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.condition, that.condition)
+           && Objects.equals(this.delay, that.delay)
+           && Objects.equals(this.maxAttempts, that.maxAttempts)
+           && Objects.equals(this.window, that.window);
+  }
 
-        final RestartPolicy that = (RestartPolicy) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(condition, delay, maxAttempts, window);
+  }
 
-        return Objects.equals(this.condition, that.condition)
-                && Objects.equals(this.delay, that.delay)
-                && Objects.equals(this.maxAttempts, that.maxAttempts)
-                && Objects.equals(this.window, that.window);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(condition, delay, maxAttempts, window);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("condition", condition).add("delay", delay)
-                .add("maxAttempts", maxAttempts).add("window", window).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("condition", condition).add("delay", delay)
+        .add("maxAttempts", maxAttempts).add("window", window).toString();
+  }
 }

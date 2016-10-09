@@ -30,43 +30,43 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class IpamOptions {
 
-    @JsonProperty("Driver")
-    private Driver driver;
+  @JsonProperty("Driver")
+  private Driver driver;
 
-    @JsonProperty("Configs")
-    private ImmutableList<IpamConfig> configs;
+  @JsonProperty("Configs")
+  private ImmutableList<IpamConfig> configs;
 
-    public Driver driver() {
-        return driver;
+  public Driver driver() {
+    return driver;
+  }
+
+  public List<IpamConfig> configs() {
+    return configs;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public List<IpamConfig> configs() {
-        return configs;
-    }
+    final IpamOptions that = (IpamOptions) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.driver, that.driver)
+           && Objects.equals(this.configs, that.configs);
+  }
 
-        final IpamOptions that = (IpamOptions) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(driver, configs);
+  }
 
-        return Objects.equals(this.driver, that.driver)
-                && Objects.equals(this.configs, that.configs);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(driver, configs);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("driver", driver).add("configs", configs)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("driver", driver).add("configs", configs)
+        .toString();
+  }
 }

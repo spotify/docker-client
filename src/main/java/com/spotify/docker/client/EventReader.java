@@ -19,6 +19,7 @@ package com.spotify.docker.client;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.spotify.docker.client.messages.Event;
 
 import org.apache.http.client.methods.CloseableHttpResponse;

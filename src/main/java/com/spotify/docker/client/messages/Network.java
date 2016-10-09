@@ -31,13 +31,20 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Network {
 
-  @JsonProperty("Name") private String name;
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Scope") private String scope;
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("IPAM") private Ipam ipam;
-  @JsonProperty("Containers") Map<String, Container> containers;
-  @JsonProperty("Options") private Map<String, String> options;
+  @JsonProperty("Name")
+  private String name;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Scope")
+  private String scope;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("IPAM")
+  private Ipam ipam;
+  @JsonProperty("Containers")
+  Map<String, Container> containers;
+  @JsonProperty("Options")
+  private Map<String, String> options;
 
   public String name() {
     return name;
@@ -79,12 +86,12 @@ public class Network {
     final Network that = (Network) o;
 
     return Objects.equals(this.name, that.name) &&
-        Objects.equals(this.id, that.id) &&
-        Objects.equals(this.scope, that.scope) &&
-        Objects.equals(this.driver, that.driver) &&
-        Objects.equals(this.ipam, that.ipam) &&
-        Objects.equals(this.containers, that.containers) &&
-        Objects.equals(this.options, that.options);
+           Objects.equals(this.id, that.id) &&
+           Objects.equals(this.scope, that.scope) &&
+           Objects.equals(this.driver, that.driver) &&
+           Objects.equals(this.ipam, that.ipam) &&
+           Objects.equals(this.containers, that.containers) &&
+           Objects.equals(this.options, that.options);
   }
 
   @Override
@@ -107,10 +114,15 @@ public class Network {
 
   @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
   public static class Container {
-    @JsonProperty("EndpointID") private String endpointId;
-    @JsonProperty("MacAddress") private String macAddress;
-    @JsonProperty("IPv4Address") private String ipv4address;
-    @JsonProperty("IPv6Address") private String ipv6address;
+
+    @JsonProperty("EndpointID")
+    private String endpointId;
+    @JsonProperty("MacAddress")
+    private String macAddress;
+    @JsonProperty("IPv4Address")
+    private String ipv4address;
+    @JsonProperty("IPv6Address")
+    private String ipv6address;
 
     public String endpointId() {
       return endpointId;
@@ -140,9 +152,9 @@ public class Network {
       final Container that = (Container) o;
 
       return Objects.equals(this.endpointId, that.endpointId) &&
-          Objects.equals(this.macAddress, that.macAddress) &&
-          Objects.equals(this.ipv4address, that.ipv4address) &&
-          Objects.equals(this.ipv6address, that.ipv6address);
+             Objects.equals(this.macAddress, that.macAddress) &&
+             Objects.equals(this.ipv4address, that.ipv4address) &&
+             Objects.equals(this.ipv6address, that.ipv6address);
     }
 
     @Override

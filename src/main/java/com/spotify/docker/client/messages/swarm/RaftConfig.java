@@ -28,70 +28,70 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class RaftConfig {
 
-    @JsonProperty("SnapshotInterval")
-    private Integer snapshotInterval;
+  @JsonProperty("SnapshotInterval")
+  private Integer snapshotInterval;
 
-    @JsonProperty("KeepOldSnapshots")
-    private Integer keepOldSnapshots;
+  @JsonProperty("KeepOldSnapshots")
+  private Integer keepOldSnapshots;
 
-    @JsonProperty("LogEntriesForSlowFollowers")
-    private Integer logEntriesForSlowFollowers;
+  @JsonProperty("LogEntriesForSlowFollowers")
+  private Integer logEntriesForSlowFollowers;
 
-    @JsonProperty("ElectionTick")
-    private Integer electionTick;
+  @JsonProperty("ElectionTick")
+  private Integer electionTick;
 
-    @JsonProperty("HeartbeatTick")
-    private Integer heartbeatTick;
+  @JsonProperty("HeartbeatTick")
+  private Integer heartbeatTick;
 
-    public Integer snapshotInterval() {
-        return snapshotInterval;
+  public Integer snapshotInterval() {
+    return snapshotInterval;
+  }
+
+  public Integer keepOldSnapshots() {
+    return keepOldSnapshots;
+  }
+
+  public Integer logEntriesForSlowFollowers() {
+    return logEntriesForSlowFollowers;
+  }
+
+  public Integer electionTick() {
+    return electionTick;
+  }
+
+  public Integer heartbeatTick() {
+    return heartbeatTick;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Integer keepOldSnapshots() {
-        return keepOldSnapshots;
-    }
+    final RaftConfig that = (RaftConfig) o;
 
-    public Integer logEntriesForSlowFollowers() {
-        return logEntriesForSlowFollowers;
-    }
+    return Objects.equals(this.snapshotInterval, that.snapshotInterval)
+           && Objects.equals(this.keepOldSnapshots, that.keepOldSnapshots)
+           && Objects.equals(this.logEntriesForSlowFollowers, that.logEntriesForSlowFollowers)
+           && Objects.equals(this.electionTick, that.electionTick)
+           && Objects.equals(this.heartbeatTick, that.heartbeatTick);
+  }
 
-    public Integer electionTick() {
-        return electionTick;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(snapshotInterval, keepOldSnapshots, logEntriesForSlowFollowers,
+                        electionTick, heartbeatTick);
+  }
 
-    public Integer heartbeatTick() {
-        return heartbeatTick;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final RaftConfig that = (RaftConfig) o;
-
-        return Objects.equals(this.snapshotInterval, that.snapshotInterval)
-                && Objects.equals(this.keepOldSnapshots, that.keepOldSnapshots)
-                && Objects.equals(this.logEntriesForSlowFollowers, that.logEntriesForSlowFollowers)
-                && Objects.equals(this.electionTick, that.electionTick)
-                && Objects.equals(this.heartbeatTick, that.heartbeatTick);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(snapshotInterval, keepOldSnapshots, logEntriesForSlowFollowers,
-                electionTick, heartbeatTick);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("snapshotInterval", snapshotInterval)
-                .add("keepOldSnapshots", keepOldSnapshots)
-                .add("logEntriesForSlowFollowers", logEntriesForSlowFollowers)
-                .add("electionTick", electionTick).add("heartbeatTick", heartbeatTick).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("snapshotInterval", snapshotInterval)
+        .add("keepOldSnapshots", keepOldSnapshots)
+        .add("logEntriesForSlowFollowers", logEntriesForSlowFollowers)
+        .add("electionTick", electionTick).add("heartbeatTick", heartbeatTick).toString();
+  }
 }

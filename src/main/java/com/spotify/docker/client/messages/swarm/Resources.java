@@ -28,66 +28,66 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Resources {
 
-    @JsonProperty("NanoCPUs")
-    private Long nanoCpus;
+  @JsonProperty("NanoCPUs")
+  private Long nanoCpus;
 
-    @JsonProperty("MemoryBytes")
-    private Long memoryBytes;
+  @JsonProperty("MemoryBytes")
+  private Long memoryBytes;
 
-    public Long nanoCpus() {
-        return nanoCpus;
+  public Long nanoCpus() {
+    return nanoCpus;
+  }
+
+  public Long memoryBytes() {
+    return memoryBytes;
+  }
+
+  public static class Builder {
+
+    private Resources resources = new Resources();
+
+    public Builder withNanoCpus(Long nanoCpus) {
+      resources.nanoCpus = nanoCpus;
+      return this;
     }
 
-    public Long memoryBytes() {
-        return memoryBytes;
+    public Builder withMemoryBytes(Long memoryBytes) {
+      resources.memoryBytes = memoryBytes;
+      return this;
     }
 
-    public static class Builder {
+    public Resources build() {
+      return resources;
+    }
+  }
 
-        private Resources resources = new Resources();
+  public static Resources.Builder builder() {
+    return new Resources.Builder();
+  }
 
-        public Builder withNanoCpus(Long nanoCpus) {
-            resources.nanoCpus = nanoCpus;
-            return this;
-        }
-
-        public Builder withMemoryBytes(Long memoryBytes) {
-            resources.memoryBytes = memoryBytes;
-            return this;
-        }
-
-        public Resources build() {
-            return resources;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static Resources.Builder builder() {
-        return new Resources.Builder();
-    }
+    final Resources that = (Resources) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.nanoCpus, that.nanoCpus)
+           && Objects.equals(this.memoryBytes, that.memoryBytes);
+  }
 
-        final Resources that = (Resources) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(nanoCpus, memoryBytes);
+  }
 
-        return Objects.equals(this.nanoCpus, that.nanoCpus)
-                && Objects.equals(this.memoryBytes, that.memoryBytes);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(nanoCpus, memoryBytes);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("nanoCpus", nanoCpus)
-                .add("memoryBytes", memoryBytes).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("nanoCpus", nanoCpus)
+        .add("memoryBytes", memoryBytes).toString();
+  }
 }

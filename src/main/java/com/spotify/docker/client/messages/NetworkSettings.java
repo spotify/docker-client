@@ -35,14 +35,22 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkSettings {
 
-  @JsonProperty("IPAddress") private String ipAddress;
-  @JsonProperty("IPPrefixLen") private Integer ipPrefixLen;
-  @JsonProperty("Gateway") private String gateway;
-  @JsonProperty("Bridge") private String bridge;
-  @JsonProperty("PortMapping") private ImmutableMap<String, Map<String, String>> portMapping;
-  @JsonProperty("Ports") private Map<String, List<PortBinding>> ports;
-  @JsonProperty("MacAddress") private String macAddress;
-  @JsonProperty("Networks") private ImmutableMap<String, AttachedNetwork> networks;
+  @JsonProperty("IPAddress")
+  private String ipAddress;
+  @JsonProperty("IPPrefixLen")
+  private Integer ipPrefixLen;
+  @JsonProperty("Gateway")
+  private String gateway;
+  @JsonProperty("Bridge")
+  private String bridge;
+  @JsonProperty("PortMapping")
+  private ImmutableMap<String, Map<String, String>> portMapping;
+  @JsonProperty("Ports")
+  private Map<String, List<PortBinding>> ports;
+  @JsonProperty("MacAddress")
+  private String macAddress;
+  @JsonProperty("Networks")
+  private ImmutableMap<String, AttachedNetwork> networks;
 
   private NetworkSettings(final Builder builder) {
     this.ipAddress = builder.ipAddress;
@@ -103,13 +111,13 @@ public class NetworkSettings {
     final NetworkSettings that = (NetworkSettings) o;
 
     return Objects.equals(this.ipAddress, that.ipAddress) &&
-        Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
-        Objects.equals(this.gateway, that.gateway) &&
-        Objects.equals(this.bridge, that.bridge) &&
-        Objects.equals(this.portMapping, that.portMapping) &&
-        Objects.equals(this.ports, that.ports) &&
-        Objects.equals(this.macAddress, that.macAddress) &&
-        Objects.equals(this.networks, that.networks);
+           Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
+           Objects.equals(this.gateway, that.gateway) &&
+           Objects.equals(this.bridge, that.bridge) &&
+           Objects.equals(this.portMapping, that.portMapping) &&
+           Objects.equals(this.ports, that.ports) &&
+           Objects.equals(this.macAddress, that.macAddress) &&
+           Objects.equals(this.networks, that.networks);
   }
 
   @Override

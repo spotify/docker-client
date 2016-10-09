@@ -28,94 +28,94 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class PortConfig {
 
-    public static final String PROTOCOL_TCP = "tcp";
-    public static final String PROTOCOL_UDP = "udp";
+  public static final String PROTOCOL_TCP = "tcp";
+  public static final String PROTOCOL_UDP = "udp";
 
-    @JsonProperty("Name")
-    private String name;
+  @JsonProperty("Name")
+  private String name;
 
-    @JsonProperty("Protocol")
-    private String protocol;
+  @JsonProperty("Protocol")
+  private String protocol;
 
-    @JsonProperty("TargetPort")
-    private Integer targetPort;
+  @JsonProperty("TargetPort")
+  private Integer targetPort;
 
-    @JsonProperty("PublishedPort")
-    private Integer publishedPort;
+  @JsonProperty("PublishedPort")
+  private Integer publishedPort;
 
-    public String name() {
-        return name;
+  public String name() {
+    return name;
+  }
+
+  public String protocol() {
+    return protocol;
+  }
+
+  public Integer targetPort() {
+    return targetPort;
+  }
+
+  public Integer publishedPort() {
+    return publishedPort;
+  }
+
+  public static class Builder {
+
+    private PortConfig config = new PortConfig();
+
+    public Builder withName(String name) {
+      config.name = name;
+      return this;
     }
 
-    public String protocol() {
-        return protocol;
+    public Builder withProtocol(String protocol) {
+      config.protocol = protocol;
+      return this;
     }
 
-    public Integer targetPort() {
-        return targetPort;
+    public Builder withTargetPort(int targetPort) {
+      config.targetPort = targetPort;
+      return this;
     }
 
-    public Integer publishedPort() {
-        return publishedPort;
+    public Builder withPublishedPort(int publishedPort) {
+      config.publishedPort = publishedPort;
+      return this;
     }
 
-    public static class Builder {
+    public PortConfig build() {
+      return config;
+    }
+  }
 
-        private PortConfig config = new PortConfig();
+  public static PortConfig.Builder builder() {
+    return new PortConfig.Builder();
+  }
 
-        public Builder withName(String name) {
-            config.name = name;
-            return this;
-        }
-
-        public Builder withProtocol(String protocol) {
-            config.protocol = protocol;
-            return this;
-        }
-
-        public Builder withTargetPort(int targetPort) {
-            config.targetPort = targetPort;
-            return this;
-        }
-
-        public Builder withPublishedPort(int publishedPort) {
-            config.publishedPort = publishedPort;
-            return this;
-        }
-
-        public PortConfig build() {
-            return config;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static PortConfig.Builder builder() {
-        return new PortConfig.Builder();
-    }
+    final PortConfig that = (PortConfig) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.name, that.name) && Objects.equals(this.protocol, that.protocol)
+           && Objects.equals(this.targetPort, that.targetPort)
+           && Objects.equals(this.publishedPort, that.publishedPort);
+  }
 
-        final PortConfig that = (PortConfig) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, protocol, targetPort, publishedPort);
+  }
 
-        return Objects.equals(this.name, that.name) && Objects.equals(this.protocol, that.protocol)
-                && Objects.equals(this.targetPort, that.targetPort)
-                && Objects.equals(this.publishedPort, that.publishedPort);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, protocol, targetPort, publishedPort);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", name).add("protocol", protocol)
-                .add("targetPort", targetPort).add("publishedPort", publishedPort).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("name", name).add("protocol", protocol)
+        .add("targetPort", targetPort).add("publishedPort", publishedPort).toString();
+  }
 }

@@ -35,8 +35,7 @@ public class AuthRegistryConfig {
 
   private final Map<String, String> properties = new HashMap<String, String>();
 
-  private final Map<String, Map<String, String>> configs =
-      new HashMap<String, Map<String, String>>();
+  private final Map<String, Map<String, String>> configs = new HashMap<>();
   private final String repository;
   private final String username;
   private final String password;
@@ -110,11 +109,11 @@ public class AuthRegistryConfig {
     final AuthRegistryConfig that = (AuthRegistryConfig) o;
 
     return Objects.equals(this.repository, that.repository) &&
-        Objects.equals(this.username, that.username) &&
-        Objects.equals(this.password, that.password) &&
-        Objects.equals(this.auth, that.auth) &&
-        Objects.equals(this.email, that.email) &&
-        Objects.equals(this.serverAddress, that.serverAddress);
+           Objects.equals(this.username, that.username) &&
+           Objects.equals(this.password, that.password) &&
+           Objects.equals(this.auth, that.auth) &&
+           Objects.equals(this.email, that.email) &&
+           Objects.equals(this.serverAddress, that.serverAddress);
   }
 
   @Override

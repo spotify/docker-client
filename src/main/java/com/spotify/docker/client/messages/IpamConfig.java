@@ -30,9 +30,12 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class IpamConfig {
 
-  @JsonProperty("Subnet") private String subnet;
-  @JsonProperty("IPRange") private String ipRange;
-  @JsonProperty("Gateway") private String gateway;
+  @JsonProperty("Subnet")
+  private String subnet;
+  @JsonProperty("IPRange")
+  private String ipRange;
+  @JsonProperty("Gateway")
+  private String gateway;
 
   public String subnet() {
     return subnet;
@@ -70,8 +73,8 @@ public class IpamConfig {
     final IpamConfig that = (IpamConfig) o;
 
     return Objects.equals(this.subnet, that.subnet) &&
-         Objects.equals(this.ipRange, that.ipRange) &&
-         Objects.equals(this.gateway, that.gateway);
+           Objects.equals(this.ipRange, that.ipRange) &&
+           Objects.equals(this.gateway, that.gateway);
   }
 
   @Override

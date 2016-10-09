@@ -30,7 +30,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerExit {
 
-  @JsonProperty("StatusCode") private Integer statusCode;
+  @JsonProperty("StatusCode")
+  private Integer statusCode;
 
   public ContainerExit() {
   }

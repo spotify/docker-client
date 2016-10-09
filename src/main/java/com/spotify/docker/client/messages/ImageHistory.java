@@ -30,12 +30,18 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageHistory {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Created") private Long created;
-  @JsonProperty("CreatedBy") private String createdBy;
-  @JsonProperty("Tags") private ImmutableList<String> tags;
-  @JsonProperty("Size") private Long size;
-  @JsonProperty("Comment") private String comment;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Created")
+  private Long created;
+  @JsonProperty("CreatedBy")
+  private String createdBy;
+  @JsonProperty("Tags")
+  private ImmutableList<String> tags;
+  @JsonProperty("Size")
+  private Long size;
+  @JsonProperty("Comment")
+  private String comment;
 
   public String id() {
     return id;
@@ -73,11 +79,11 @@ public class ImageHistory {
     final ImageHistory that = (ImageHistory) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.created, that.created) &&
-        Objects.equals(this.createdBy, that.createdBy) &&
-        Objects.equals(this.tags, that.tags) &&
-        Objects.equals(this.size, that.size) &&
-        Objects.equals(this.comment, that.comment);
+           Objects.equals(this.created, that.created) &&
+           Objects.equals(this.createdBy, that.createdBy) &&
+           Objects.equals(this.tags, that.tags) &&
+           Objects.equals(this.size, that.size) &&
+           Objects.equals(this.comment, that.comment);
   }
 
   @Override

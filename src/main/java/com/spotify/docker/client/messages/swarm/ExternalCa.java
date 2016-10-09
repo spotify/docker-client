@@ -29,52 +29,52 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ExternalCa {
 
-    public static final String PROTOCOL_CFSSL = "cfssl";
+  public static final String PROTOCOL_CFSSL = "cfssl";
 
-    @JsonProperty("Protocol")
-    private String protocol;
+  @JsonProperty("Protocol")
+  private String protocol;
 
-    @JsonProperty("URL")
-    private String url;
+  @JsonProperty("URL")
+  private String url;
 
-    @JsonProperty("Options")
-    private Map<String, String> options;
+  @JsonProperty("Options")
+  private Map<String, String> options;
 
-    public String protocol() {
-        return protocol;
+  public String protocol() {
+    return protocol;
+  }
+
+  public String url() {
+    return url;
+  }
+
+  public Map<String, String> options() {
+    return options;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public String url() {
-        return url;
-    }
+    final ExternalCa that = (ExternalCa) o;
 
-    public Map<String, String> options() {
-        return options;
-    }
+    return Objects.equals(this.protocol, that.protocol) && Objects.equals(this.url, that.url)
+           && Objects.equals(this.options, that.options);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    return Objects.hash(protocol, url, options);
+  }
 
-        final ExternalCa that = (ExternalCa) o;
-
-        return Objects.equals(this.protocol, that.protocol) && Objects.equals(this.url, that.url)
-                && Objects.equals(this.options, that.options);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(protocol, url, options);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("protocol", protocol).add("url", url)
-                .add("options", options).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("protocol", protocol).add("url", url)
+        .add("options", options).toString();
+  }
 }

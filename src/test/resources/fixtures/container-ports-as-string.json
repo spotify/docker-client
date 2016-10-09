@@ -1,1 +1,19 @@
-{"Id":"1009","Names": ["test", "ports"], "Image":"ports as string test", "Command": "test", "Created": 1, "Status": "testing", "Ports":[{"PrivatePort": 80, "PublicPort":88, "Type":"tcp", "IP":"0.0.0.0"}]}
+{
+  "Id": "1009",
+  "Names": [
+    "test",
+    "ports"
+  ],
+  "Image": "ports as string test",
+  "Command": "test",
+  "Created": 1,
+  "Status": "testing",
+  "Ports": [
+    {
+      "PrivatePort": 80,
+      "PublicPort": 88,
+      "Type": "tcp",
+      "IP": "0.0.0.0"
+    }
+  ]
+}

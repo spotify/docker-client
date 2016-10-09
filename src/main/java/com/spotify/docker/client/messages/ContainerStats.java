@@ -33,13 +33,20 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerStats {
 
-  @JsonProperty("read") private Date read;
-  @JsonProperty("network") private NetworkStats network;
-  @JsonProperty("networks") private ImmutableMap<String, NetworkStats> networks;
-  @JsonProperty("memory_stats") private MemoryStats memoryStats;
-  @JsonProperty("blkio_stats") private BlockIoStats blockIoStats;
-  @JsonProperty("cpu_stats") private CpuStats cpuStats;
-  @JsonProperty("precpu_stats") private CpuStats precpuStats;
+  @JsonProperty("read")
+  private Date read;
+  @JsonProperty("network")
+  private NetworkStats network;
+  @JsonProperty("networks")
+  private ImmutableMap<String, NetworkStats> networks;
+  @JsonProperty("memory_stats")
+  private MemoryStats memoryStats;
+  @JsonProperty("blkio_stats")
+  private BlockIoStats blockIoStats;
+  @JsonProperty("cpu_stats")
+  private CpuStats cpuStats;
+  @JsonProperty("precpu_stats")
+  private CpuStats precpuStats;
 
   public Date read() {
     return new Date(read.getTime());
@@ -81,18 +88,18 @@ public class ContainerStats {
     final ContainerStats that = (ContainerStats) o;
 
     return Objects.equals(this.read, that.read) &&
-        Objects.equals(this.network, that.network) &&
-        Objects.equals(this.networks, that.networks) &&
-        Objects.equals(this.memoryStats, that.memoryStats) &&
-        Objects.equals(this.blockIoStats, that.blockIoStats) &&
-        Objects.equals(this.cpuStats, that.cpuStats) &&
-        Objects.equals(this.precpuStats, that.precpuStats);
+           Objects.equals(this.network, that.network) &&
+           Objects.equals(this.networks, that.networks) &&
+           Objects.equals(this.memoryStats, that.memoryStats) &&
+           Objects.equals(this.blockIoStats, that.blockIoStats) &&
+           Objects.equals(this.cpuStats, that.cpuStats) &&
+           Objects.equals(this.precpuStats, that.precpuStats);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(cpuStats, memoryStats, network, networks,
-        blockIoStats, precpuStats, read);
+                        blockIoStats, precpuStats, read);
   }
 
   @Override

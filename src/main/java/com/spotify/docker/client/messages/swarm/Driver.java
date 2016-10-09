@@ -30,68 +30,68 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Driver {
 
-    @JsonProperty("Name")
-    private String name;
+  @JsonProperty("Name")
+  private String name;
 
-    @JsonProperty("Options")
-    private Map<String, String> options;
+  @JsonProperty("Options")
+  private Map<String, String> options;
 
-    public String name() {
-        return name;
+  public String name() {
+    return name;
+  }
+
+  public Map<String, String> options() {
+    return options;
+  }
+
+  public static class Builder {
+
+    private Driver driver = new Driver();
+
+    public Builder withName(String name) {
+      driver.name = name;
+      return this;
     }
 
-    public Map<String, String> options() {
-        return options;
+    public Builder withOption(String name, String value) {
+      if (driver.options == null) {
+        driver.options = new HashMap<String, String>();
+      }
+      driver.options.put(name, value);
+      return this;
     }
 
-    public static class Builder {
+    public Driver build() {
+      return driver;
+    }
+  }
 
-        private Driver driver = new Driver();
+  public static Driver.Builder builder() {
+    return new Driver.Builder();
+  }
 
-        public Builder withName(String name) {
-            driver.name = name;
-            return this;
-        }
-
-        public Builder withOption(String name, String value) {
-            if (driver.options == null) {
-                driver.options = new HashMap<String, String>();
-            }
-            driver.options.put(name, value);
-            return this;
-        }
-
-        public Driver build() {
-            return driver;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static Driver.Builder builder() {
-        return new Driver.Builder();
-    }
+    final Driver that = (Driver) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.name, that.name) && Objects.equals(this.options, that.options);
+  }
 
-        final Driver that = (Driver) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, options);
+  }
 
-        return Objects.equals(this.name, that.name) && Objects.equals(this.options, that.options);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, options);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", name).add("options", options)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("name", name).add("options", options)
+        .toString();
+  }
 }

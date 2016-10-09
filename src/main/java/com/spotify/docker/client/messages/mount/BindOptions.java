@@ -28,52 +28,52 @@ import com.google.common.base.MoreObjects;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class BindOptions {
 
-    @JsonProperty("Propagation")
-    private String propagation;
+  @JsonProperty("Propagation")
+  private String propagation;
 
-    public String propagation() {
-        return propagation;
+  public String propagation() {
+    return propagation;
+  }
+
+  public static class Builder {
+
+    private BindOptions bind = new BindOptions();
+
+    public Builder withPropagation(String propagation) {
+      bind.propagation = propagation;
+      return this;
     }
 
-    public static class Builder {
+    public BindOptions build() {
+      return bind;
+    }
+  }
 
-        private BindOptions bind = new BindOptions();
+  public static BindOptions.Builder builder() {
+    return new BindOptions.Builder();
+  }
 
-        public Builder withPropagation(String propagation) {
-            bind.propagation = propagation;
-            return this;
-        }
-
-        public BindOptions build() {
-            return bind;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static BindOptions.Builder builder() {
-        return new BindOptions.Builder();
-    }
+    final BindOptions that = (BindOptions) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.propagation, that.propagation);
+  }
 
-        final BindOptions that = (BindOptions) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(propagation);
+  }
 
-        return Objects.equals(this.propagation, that.propagation);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(propagation);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("propagation", propagation).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("propagation", propagation).toString();
+  }
 }

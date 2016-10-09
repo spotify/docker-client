@@ -25,14 +25,22 @@ import java.util.Objects;
 
 public class Version {
 
-  @JsonProperty("ApiVersion") private String apiVersion;
-  @JsonProperty("Arch") private String arch;
-  @JsonProperty("BuildTime") private String buildTime;
-  @JsonProperty("GitCommit") private String gitCommit;
-  @JsonProperty("GoVersion") private String goVersion;
-  @JsonProperty("KernelVersion") private String kernelVersion;
-  @JsonProperty("Os") private String os;
-  @JsonProperty("Version") private String version;
+  @JsonProperty("ApiVersion")
+  private String apiVersion;
+  @JsonProperty("Arch")
+  private String arch;
+  @JsonProperty("BuildTime")
+  private String buildTime;
+  @JsonProperty("GitCommit")
+  private String gitCommit;
+  @JsonProperty("GoVersion")
+  private String goVersion;
+  @JsonProperty("KernelVersion")
+  private String kernelVersion;
+  @JsonProperty("Os")
+  private String os;
+  @JsonProperty("Version")
+  private String version;
 
   public String apiVersion() {
     return apiVersion;
@@ -78,19 +86,19 @@ public class Version {
     final Version that = (Version) o;
 
     return Objects.equals(this.apiVersion, that.apiVersion) &&
-        Objects.equals(this.arch, that.arch) &&
-        Objects.equals(this.buildTime, that.buildTime) &&
-        Objects.equals(this.gitCommit, that.gitCommit) &&
-        Objects.equals(this.goVersion, that.goVersion) &&
-        Objects.equals(this.kernelVersion, that.kernelVersion) &&
-        Objects.equals(this.os, that.os) &&
-        Objects.equals(this.version, that.version);
+           Objects.equals(this.arch, that.arch) &&
+           Objects.equals(this.buildTime, that.buildTime) &&
+           Objects.equals(this.gitCommit, that.gitCommit) &&
+           Objects.equals(this.goVersion, that.goVersion) &&
+           Objects.equals(this.kernelVersion, that.kernelVersion) &&
+           Objects.equals(this.os, that.os) &&
+           Objects.equals(this.version, that.version);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(apiVersion, arch, buildTime, gitCommit,
-        goVersion, kernelVersion, os, version);
+                        goVersion, kernelVersion, os, version);
   }
 
   @Override

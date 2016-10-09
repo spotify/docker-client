@@ -29,85 +29,85 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkSpec {
 
-    @JsonProperty("Name")
-    private String name;
+  @JsonProperty("Name")
+  private String name;
 
-    @JsonProperty("Labels")
-    private Map<String, String> labels;
+  @JsonProperty("Labels")
+  private Map<String, String> labels;
 
-    @JsonProperty("DriverConfiguration")
-    private Driver driverConfiguration;
+  @JsonProperty("DriverConfiguration")
+  private Driver driverConfiguration;
 
-    @JsonProperty("IPv6Enabled")
-    private Boolean ipv6Enabled;
+  @JsonProperty("IPv6Enabled")
+  private Boolean ipv6Enabled;
 
-    @JsonProperty("Internal")
-    private Boolean internal;
+  @JsonProperty("Internal")
+  private Boolean internal;
 
-    @JsonProperty("Attachable")
-    private Boolean attachable;
+  @JsonProperty("Attachable")
+  private Boolean attachable;
 
-    @JsonProperty("IPAMOptions")
-    private IpamOptions ipamOptions;
+  @JsonProperty("IPAMOptions")
+  private IpamOptions ipamOptions;
 
-    public String name() {
-        return name;
+  public String name() {
+    return name;
+  }
+
+  public Map<String, String> labels() {
+    return labels;
+  }
+
+  public Driver driverConfiguration() {
+    return driverConfiguration;
+  }
+
+  public Boolean ipv6Enabled() {
+    return ipv6Enabled;
+  }
+
+  public Boolean internal() {
+    return internal;
+  }
+
+  public Boolean attachable() {
+    return attachable;
+  }
+
+  public IpamOptions ipamOptions() {
+    return ipamOptions;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Map<String, String> labels() {
-        return labels;
-    }
+    final NetworkSpec that = (NetworkSpec) o;
 
-    public Driver driverConfiguration() {
-        return driverConfiguration;
-    }
+    return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.driverConfiguration, that.driverConfiguration)
+           && Objects.equals(this.ipv6Enabled, that.ipv6Enabled)
+           && Objects.equals(this.internal, that.internal)
+           && Objects.equals(this.attachable, that.attachable)
+           && Objects.equals(this.ipamOptions, that.ipamOptions);
+  }
 
-    public Boolean ipv6Enabled() {
-        return ipv6Enabled;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, labels, driverConfiguration, ipv6Enabled, internal, attachable,
+                        ipamOptions);
+  }
 
-    public Boolean internal() {
-        return internal;
-    }
-
-    public Boolean attachable() {
-        return attachable;
-    }
-
-    public IpamOptions ipamOptions() {
-        return ipamOptions;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final NetworkSpec that = (NetworkSpec) o;
-
-        return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
-                && Objects.equals(this.driverConfiguration, that.driverConfiguration)
-                && Objects.equals(this.ipv6Enabled, that.ipv6Enabled)
-                && Objects.equals(this.internal, that.internal)
-                && Objects.equals(this.attachable, that.attachable)
-                && Objects.equals(this.ipamOptions, that.ipamOptions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, labels, driverConfiguration, ipv6Enabled, internal, attachable,
-                ipamOptions);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
-                .add("driverConfiguration", driverConfiguration).add("ipv6Enabled", ipv6Enabled)
-                .add("internal", internal).add("attachable", attachable)
-                .add("ipamOptions", ipamOptions).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
+        .add("driverConfiguration", driverConfiguration).add("ipv6Enabled", ipv6Enabled)
+        .add("internal", internal).add("attachable", attachable)
+        .add("ipamOptions", ipamOptions).toString();
+  }
 }

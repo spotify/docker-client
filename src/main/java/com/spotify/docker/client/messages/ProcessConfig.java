@@ -30,11 +30,16 @@ import java.util.Objects;
  */
 public class ProcessConfig {
 
-  @JsonProperty("privileged") private Boolean privileged;
-  @JsonProperty("user") private String user;
-  @JsonProperty("tty") private Boolean tty;
-  @JsonProperty("entrypoint") private String entrypoint;
-  @JsonProperty("arguments") private List<String> arguments;
+  @JsonProperty("privileged")
+  private Boolean privileged;
+  @JsonProperty("user")
+  private String user;
+  @JsonProperty("tty")
+  private Boolean tty;
+  @JsonProperty("entrypoint")
+  private String entrypoint;
+  @JsonProperty("arguments")
+  private List<String> arguments;
 
   public Boolean privileged() {
     return privileged;
@@ -68,10 +73,10 @@ public class ProcessConfig {
     final ProcessConfig that = (ProcessConfig) o;
 
     return Objects.equals(this.privileged, that.privileged) &&
-        Objects.equals(this.user, that.user) &&
-        Objects.equals(this.tty, that.tty) &&
-        Objects.equals(this.entrypoint, that.entrypoint) &&
-        Objects.equals(this.arguments, that.arguments);
+           Objects.equals(this.user, that.user) &&
+           Objects.equals(this.tty, that.tty) &&
+           Objects.equals(this.entrypoint, that.entrypoint) &&
+           Objects.equals(this.arguments, that.arguments);
   }
 
   @Override

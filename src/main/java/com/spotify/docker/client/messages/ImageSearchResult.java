@@ -33,11 +33,16 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageSearchResult {
 
-  @JsonProperty("description") private String description;
-  @JsonProperty("is_official") private boolean official;
-  @JsonProperty("is_automated") private boolean automated;
-  @JsonProperty("name") private String name;
-  @JsonProperty("star_count") private int starCount;
+  @JsonProperty("description")
+  private String description;
+  @JsonProperty("is_official")
+  private boolean official;
+  @JsonProperty("is_automated")
+  private boolean automated;
+  @JsonProperty("name")
+  private String name;
+  @JsonProperty("star_count")
+  private int starCount;
 
   /**
    * @return the description
@@ -86,10 +91,10 @@ public class ImageSearchResult {
     final ImageSearchResult that = (ImageSearchResult) o;
 
     return Objects.equals(this.description, that.description) &&
-        Objects.equals(this.official, that.official) &&
-        Objects.equals(this.automated, that.automated) &&
-        Objects.equals(this.name, that.name) &&
-        Objects.equals(this.starCount, that.starCount);
+           Objects.equals(this.official, that.official) &&
+           Objects.equals(this.automated, that.automated) &&
+           Objects.equals(this.name, that.name) &&
+           Objects.equals(this.starCount, that.starCount);
   }
 
   @Override

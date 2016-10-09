@@ -33,8 +33,10 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class LogConfig {
 
-  @JsonProperty("Type") private String logType;
-  @JsonProperty("Config") private Map<String, String> logOptions;
+  @JsonProperty("Type")
+  private String logType;
+  @JsonProperty("Config")
+  private Map<String, String> logOptions;
 
   @SuppressWarnings("unused")
   private LogConfig() {
@@ -73,7 +75,7 @@ public class LogConfig {
     final LogConfig that = (LogConfig) o;
 
     return Objects.equals(this.logType, that.logType) &&
-        Objects.equals(this.logOptions, that.logOptions);
+           Objects.equals(this.logOptions, that.logOptions);
   }
 
   @Override

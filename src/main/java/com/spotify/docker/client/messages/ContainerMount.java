@@ -30,10 +30,14 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerMount {
 
-  @JsonProperty("Source") private String source;
-  @JsonProperty("Destination") private String destination;
-  @JsonProperty("Mode") private String mode;
-  @JsonProperty("RW") private Boolean rw;
+  @JsonProperty("Source")
+  private String source;
+  @JsonProperty("Destination")
+  private String destination;
+  @JsonProperty("Mode")
+  private String mode;
+  @JsonProperty("RW")
+  private Boolean rw;
 
   public String source() {
     return source;
@@ -63,9 +67,9 @@ public class ContainerMount {
     final ContainerMount that = (ContainerMount) o;
 
     return Objects.equals(this.source, that.source) &&
-        Objects.equals(this.destination, that.destination) &&
-        Objects.equals(this.mode, that.mode) &&
-        Objects.equals(this.rw, that.rw);
+           Objects.equals(this.destination, that.destination) &&
+           Objects.equals(this.mode, that.mode) &&
+           Objects.equals(this.rw, that.rw);
   }
 
   @Override

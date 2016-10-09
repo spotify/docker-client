@@ -73,7 +73,7 @@ public class RemovedImage {
     final RemovedImage that = (RemovedImage) o;
 
     return Objects.equals(this.type, that.type) &&
-        Objects.equals(this.imageId, that.imageId);
+           Objects.equals(this.imageId, that.imageId);
   }
 
   @Override

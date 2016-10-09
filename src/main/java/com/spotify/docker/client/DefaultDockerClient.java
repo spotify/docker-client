@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
+
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
@@ -83,6 +84,7 @@ import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -113,8 +115,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -152,6 +154,7 @@ import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 
@@ -166,7 +169,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * also weirdly enough, the pull operation with the <code>fromSrc</code> parameter does not
    * support the <code>tag</code> parameter. By retrieving the ID/digest, the image can be tagged
    * with its image name, given its ID/digest.
-   *
    */
   private static class LoadProgressHandler implements ProgressHandler {
 
@@ -259,8 +261,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       };
 
   private static final GenericType<List<Service>> SERVICE_LIST =
-          new GenericType<List<Service>>() {
-          };
+      new GenericType<List<Service>>() {
+      };
 
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() {
   };
@@ -743,7 +745,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .path("containers").path(containerId).path("export");
     try {
       return request(GET, InputStream.class, resource,
-                   resource.request(APPLICATION_OCTET_STREAM_TYPE));
+                     resource.request(APPLICATION_OCTET_STREAM_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -776,8 +778,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       return request(POST, InputStream.class, resource,
-          resource.request(APPLICATION_OCTET_STREAM_TYPE),
-          Entity.json(params));
+                     resource.request(APPLICATION_OCTET_STREAM_TYPE),
+                     Entity.json(params));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -805,7 +807,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       return request(GET, InputStream.class, resource,
-          resource.request(APPLICATION_OCTET_STREAM_TYPE));
+                     resource.request(APPLICATION_OCTET_STREAM_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -856,9 +858,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
 
     try {
-       request(PUT, String.class, resource,
-          resource.request(APPLICATION_OCTET_STREAM_TYPE),
-          Entity.entity(fileStream, "application/tar"));
+      request(PUT, String.class, resource,
+              resource.request(APPLICATION_OCTET_STREAM_TYPE),
+              Entity.entity(fileStream, "application/tar"));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 400:
@@ -880,7 +882,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       final WebTarget resource = resource().path("containers").path(containerId).path("changes");
       return request(GET, CONTAINER_CHANGE_LIST, resource,
-          resource.request(APPLICATION_JSON_TYPE));
+                     resource.request(APPLICATION_JSON_TYPE));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -1022,14 +1024,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void create(final String image, final InputStream imagePayload)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     create(image, imagePayload, new LoggingPullHandler("image stream"));
   }
 
   @Override
   public void create(final String image, final InputStream imagePayload,
                      final ProgressHandler handler)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     WebTarget resource = resource().path("images").path("create");
 
     resource = resource
@@ -1038,7 +1040,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload,
-                                                     MediaType.APPLICATION_OCTET_STREAM);
+                                                     APPLICATION_OCTET_STREAM);
     try (final ProgressStream load =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE), entity)) {
@@ -1053,11 +1055,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void load(final InputStream imagePayload)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("images").path("load");
 
-    final Entity<InputStream> entity = Entity.entity(imagePayload,
-            MediaType.APPLICATION_OCTET_STREAM);
+    final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
     try {
       request(POST, ProgressStream.class, resource,
               resource.request(APPLICATION_JSON_TYPE), entity);
@@ -1093,7 +1094,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   @Deprecated
   public InputStream save(final String image, final AuthConfig authConfig)
-          throws DockerException, IOException, InterruptedException {
+      throws DockerException, IOException, InterruptedException {
     return save(image);
   }
 
@@ -1501,7 +1502,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       return request(POST, ExecCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
-                         Entity.json(writer.toString()));
+                     Entity.json(writer.toString()));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -1562,7 +1563,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public ServiceCreateResponse createService(final ServiceSpec spec,
                                              final ServiceCreateOptions options)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services").path("create");
 
@@ -1715,7 +1716,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void execResizeTty(final String execId,
                             final Integer height,
                             final Integer width)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     checkTtyParams(height, width);
 
     WebTarget resource = resource().path("exec").path(execId).path("resize");
@@ -1799,7 +1800,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private void checkTtyParams(final Integer height, final Integer width) throws BadParamException {
     if ((height == null && width == null) || (height != null && height == 0) ||
-            (width != null && width == 0)) {
+        (width != null && width == 0)) {
       final Map<String, String> paramMap = Maps.newHashMap();
       paramMap.put("h", height == null ? null : height.toString());
       paramMap.put("w", width == null ? null : width.toString());
@@ -1835,7 +1836,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       return request(POST, NetworkCreation.class, resource, resource.request(APPLICATION_JSON_TYPE),
-          Entity.json(networkConfig));
+                     Entity.json(networkConfig));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
@@ -1882,12 +1883,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try {
       request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
-          Entity.json(request));
+              Entity.json(request));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 404:
           final String message = String.format("Container %s or network %s not found.",
-              containerId, networkId);
+                                               containerId, networkId);
           throw new NotFoundException(message, e);
         case 500:
           throw e;
@@ -1904,9 +1905,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public Volume createVolume(final Volume volume) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("volumes").path("create");
 
-      return request(POST, Volume.class, resource,
-          resource.request(APPLICATION_JSON_TYPE),
-          Entity.json(volume));
+    return request(POST, Volume.class, resource,
+                   resource.request(APPLICATION_JSON_TYPE),
+                   Entity.json(volume));
   }
 
   @Override
@@ -2137,7 +2138,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private void assertAPIVersionIsAbove(String minimumVersion)
-          throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException {
     final String apiVersion = version().apiVersion();
     final int versionComparison = compareVersion(apiVersion, minimumVersion);
 

@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.spotify.docker.client.ObjectMapperProvider;
 
 import org.junit.Before;

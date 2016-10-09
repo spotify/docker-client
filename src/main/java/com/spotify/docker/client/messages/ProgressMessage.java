@@ -32,12 +32,18 @@ public class ProgressMessage {
   private static final String STATUS_DIGEST_PREFIX_18 = "digest: ";
   private static final String STATUS_SIZE_PREFIX_18 = "size: ";
 
-  @JsonProperty private String id;
-  @JsonProperty private String status;
-  @JsonProperty private String stream;
-  @JsonProperty private String error;
-  @JsonProperty private String progress;
-  @JsonProperty private ProgressDetail progressDetail;
+  @JsonProperty
+  private String id;
+  @JsonProperty
+  private String status;
+  @JsonProperty
+  private String stream;
+  @JsonProperty
+  private String error;
+  @JsonProperty
+  private String progress;
+  @JsonProperty
+  private ProgressDetail progressDetail;
 
   public String id() {
     return id;

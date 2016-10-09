@@ -34,9 +34,12 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)
 public class Event {
 
-  @JsonProperty("status") private String status;
-  @JsonProperty("id") private String id;
-  @JsonProperty("from") private String from;
+  @JsonProperty("status")
+  private String status;
+  @JsonProperty("id")
+  private String id;
+  @JsonProperty("from")
+  private String from;
 
   @JsonProperty("time")
   @JsonDeserialize(using = UnixTimestampDeserializer.class)
@@ -70,9 +73,9 @@ public class Event {
     final Event that = (Event) o;
 
     return Objects.equals(this.status, that.status) &&
-        Objects.equals(this.id, that.id) &&
-        Objects.equals(this.from, that.from) &&
-        Objects.equals(this.time, that.time);
+           Objects.equals(this.id, that.id) &&
+           Objects.equals(this.from, that.from) &&
+           Objects.equals(this.time, that.time);
 
   }
 

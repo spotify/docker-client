@@ -47,7 +47,7 @@ public class UnixTimestampDeserializerTest {
 
   }
 
-   private String toJson(String format) {
+  private String toJson(String format) {
     return String.format(format, referenceDateTime.getMillis() / 1000);
   }
 

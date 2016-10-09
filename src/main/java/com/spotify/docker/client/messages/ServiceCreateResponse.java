@@ -28,34 +28,34 @@ import com.google.common.base.MoreObjects;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ServiceCreateResponse {
 
-    @JsonProperty("ID")
-    private String id;
+  @JsonProperty("ID")
+  private String id;
 
-    public String id() {
-        return id;
+  public String id() {
+    return id;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final ServiceCreateResponse that = (ServiceCreateResponse) o;
 
-        final ServiceCreateResponse that = (ServiceCreateResponse) o;
+    return Objects.equals(this.id, that.id);
+  }
 
-        return Objects.equals(this.id, that.id);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(id);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("id", id).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("id", id).toString();
+  }
 }

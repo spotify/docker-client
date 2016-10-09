@@ -30,8 +30,11 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class VolumeList {
-  @JsonProperty("Volumes") private ImmutableList<Volume> volumes;
-  @JsonProperty("Warnings") private ImmutableList<String> warnings;
+
+  @JsonProperty("Volumes")
+  private ImmutableList<Volume> volumes;
+  @JsonProperty("Warnings")
+  private ImmutableList<String> warnings;
 
   public List<Volume> volumes() {
     return volumes;
@@ -53,7 +56,7 @@ public class VolumeList {
     final VolumeList that = (VolumeList) o;
 
     return Objects.equals(this.volumes, that.volumes) &&
-        Objects.equals(this.warnings, that.warnings);
+           Objects.equals(this.warnings, that.warnings);
   }
 
   @Override

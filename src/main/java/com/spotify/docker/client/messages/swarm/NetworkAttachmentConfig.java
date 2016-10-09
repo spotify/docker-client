@@ -30,43 +30,43 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkAttachmentConfig {
 
-    @JsonProperty("Target")
-    private String target;
+  @JsonProperty("Target")
+  private String target;
 
-    @JsonProperty("Aliases")
-    private ImmutableList<String> aliases;
+  @JsonProperty("Aliases")
+  private ImmutableList<String> aliases;
 
-    public String target() {
-        return target;
+  public String target() {
+    return target;
+  }
+
+  public List<String> aliases() {
+    return aliases;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public List<String> aliases() {
-        return aliases;
-    }
+    final NetworkAttachmentConfig that = (NetworkAttachmentConfig) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.target, that.target)
+           && Objects.equals(this.aliases, that.aliases);
+  }
 
-        final NetworkAttachmentConfig that = (NetworkAttachmentConfig) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(target, aliases);
+  }
 
-        return Objects.equals(this.target, that.target)
-                && Objects.equals(this.aliases, that.aliases);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(target, aliases);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("target", target).add("aliases", aliases)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("target", target).add("aliases", aliases)
+        .toString();
+  }
 }

@@ -28,43 +28,43 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class EndpointVirtualIp {
 
-    @JsonProperty("NetworkID")
-    private String networkId;
+  @JsonProperty("NetworkID")
+  private String networkId;
 
-    @JsonProperty("Addr")
-    private String addr;
+  @JsonProperty("Addr")
+  private String addr;
 
-    public String networkId() {
-        return networkId;
+  public String networkId() {
+    return networkId;
+  }
+
+  public String addr() {
+    return addr;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public String addr() {
-        return addr;
-    }
+    final EndpointVirtualIp that = (EndpointVirtualIp) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.networkId, that.networkId)
+           && Objects.equals(this.addr, that.addr);
+  }
 
-        final EndpointVirtualIp that = (EndpointVirtualIp) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(networkId, addr);
+  }
 
-        return Objects.equals(this.networkId, that.networkId)
-                && Objects.equals(this.addr, that.addr);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(networkId, addr);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("networkId", networkId).add("addr", addr)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("networkId", networkId).add("addr", addr)
+        .toString();
+  }
 }

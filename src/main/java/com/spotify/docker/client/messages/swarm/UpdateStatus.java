@@ -29,59 +29,59 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class UpdateStatus {
 
-    @JsonProperty("State")
-    private String state;
+  @JsonProperty("State")
+  private String state;
 
-    @JsonProperty("StartedAt")
-    private Date startedAt;
+  @JsonProperty("StartedAt")
+  private Date startedAt;
 
-    @JsonProperty("CompletedAt")
-    private Date completedAt;
+  @JsonProperty("CompletedAt")
+  private Date completedAt;
 
-    @JsonProperty("Message")
-    private String message;
+  @JsonProperty("Message")
+  private String message;
 
-    public String state() {
-        return state;
-    }
+  public String state() {
+    return state;
+  }
 
-    public Date startedAt() {
+  public Date startedAt() {
     return startedAt == null ? null : new Date(startedAt.getTime());
-}
+  }
 
-    public Date completedAt() {
+  public Date completedAt() {
     return completedAt == null ? null : new Date(completedAt.getTime());
-}
+  }
 
-    public String message() {
-        return message;
+  public String message() {
+    return message;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final UpdateStatus that = (UpdateStatus) o;
 
-        final UpdateStatus that = (UpdateStatus) o;
+    return Objects.equals(this.state, that.state)
+           && Objects.equals(this.startedAt, that.startedAt)
+           && Objects.equals(this.completedAt, that.completedAt)
+           && Objects.equals(this.message, that.message);
+  }
 
-        return Objects.equals(this.state, that.state)
-                && Objects.equals(this.startedAt, that.startedAt)
-                && Objects.equals(this.completedAt, that.completedAt)
-                && Objects.equals(this.message, that.message);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(state, startedAt, completedAt, message);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(state, startedAt, completedAt, message);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("state", state).add("startedAt", startedAt)
-                .add("completedAt", completedAt).add("message", message).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("state", state).add("startedAt", startedAt)
+        .add("completedAt", completedAt).add("message", message).toString();
+  }
 }

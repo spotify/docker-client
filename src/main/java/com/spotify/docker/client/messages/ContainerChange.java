@@ -28,8 +28,11 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerChange {
-  @JsonProperty("Path") private String path;
-  @JsonProperty("Kind") private Integer kind;
+
+  @JsonProperty("Path")
+  private String path;
+  @JsonProperty("Kind")
+  private Integer kind;
 
   public String path() {
     return path;
@@ -60,7 +63,7 @@ public class ContainerChange {
     final ContainerChange that = (ContainerChange) o;
 
     return Objects.equals(this.path, that.path) &&
-        Objects.equals(this.kind, that.kind);
+           Objects.equals(this.kind, that.kind);
   }
 
   @Override

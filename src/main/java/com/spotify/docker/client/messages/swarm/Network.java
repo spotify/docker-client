@@ -29,83 +29,83 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Network {
 
-    @JsonProperty("ID")
-    private String id;
+  @JsonProperty("ID")
+  private String id;
 
-    @JsonProperty("Version")
-    private Version version;
+  @JsonProperty("Version")
+  private Version version;
 
-    @JsonProperty("CreatedAt")
-    private Date createdAt;
+  @JsonProperty("CreatedAt")
+  private Date createdAt;
 
-    @JsonProperty("UpdatedAt")
-    private Date updatedAt;
+  @JsonProperty("UpdatedAt")
+  private Date updatedAt;
 
-    @JsonProperty("Spec")
-    private NetworkSpec spec;
+  @JsonProperty("Spec")
+  private NetworkSpec spec;
 
-    @JsonProperty("DriverState")
-    private Driver driverState;
+  @JsonProperty("DriverState")
+  private Driver driverState;
 
-    @JsonProperty("IPAMOptions")
-    private IpamOptions ipamOptions;
+  @JsonProperty("IPAMOptions")
+  private IpamOptions ipamOptions;
 
-    public String id() {
-        return id;
-    }
+  public String id() {
+    return id;
+  }
 
-    public Version version() {
-        return version;
-    }
+  public Version version() {
+    return version;
+  }
 
-    public Date createdAt() {
+  public Date createdAt() {
     return createdAt == null ? null : new Date(createdAt.getTime());
-}
+  }
 
-    public Date updatedAt() {
+  public Date updatedAt() {
     return updatedAt == null ? null : new Date(updatedAt.getTime());
-}
+  }
 
-    public NetworkSpec spec() {
-        return spec;
+  public NetworkSpec spec() {
+    return spec;
+  }
+
+  public Driver driverState() {
+    return driverState;
+  }
+
+  public IpamOptions ipamOptions() {
+    return ipamOptions;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Driver driverState() {
-        return driverState;
-    }
+    final Network that = (Network) o;
 
-    public IpamOptions ipamOptions() {
-        return ipamOptions;
-    }
+    return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
+           && Objects.equals(this.createdAt, that.createdAt)
+           && Objects.equals(this.updatedAt, that.updatedAt)
+           && Objects.equals(this.spec, that.spec)
+           && Objects.equals(this.driverState, that.driverState)
+           && Objects.equals(this.ipamOptions, that.ipamOptions);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, version, createdAt, updatedAt, spec, driverState, ipamOptions);
+  }
 
-        final Network that = (Network) o;
-
-        return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
-                && Objects.equals(this.createdAt, that.createdAt)
-                && Objects.equals(this.updatedAt, that.updatedAt)
-                && Objects.equals(this.spec, that.spec)
-                && Objects.equals(this.driverState, that.driverState)
-                && Objects.equals(this.ipamOptions, that.ipamOptions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, version, createdAt, updatedAt, spec, driverState, ipamOptions);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
-                .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", spec)
-                .add("driverState", driverState).add("ipamOptions", ipamOptions).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
+        .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", spec)
+        .add("driverState", driverState).add("ipamOptions", ipamOptions).toString();
+  }
 }

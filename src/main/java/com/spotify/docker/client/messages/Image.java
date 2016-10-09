@@ -33,14 +33,22 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Image {
 
-  @JsonProperty("Created") private String created;
-  @JsonProperty("Id") private String id;
-  @JsonProperty("ParentId") private String parentId;
-  @JsonProperty("RepoTags") private ImmutableList<String> repoTags;
-  @JsonProperty("RepoDigests") private ImmutableList<String> repoDigests;
-  @JsonProperty("Size") private Long size;
-  @JsonProperty("VirtualSize") private Long virtualSize;
-  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
+  @JsonProperty("Created")
+  private String created;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("ParentId")
+  private String parentId;
+  @JsonProperty("RepoTags")
+  private ImmutableList<String> repoTags;
+  @JsonProperty("RepoDigests")
+  private ImmutableList<String> repoDigests;
+  @JsonProperty("Size")
+  private Long size;
+  @JsonProperty("VirtualSize")
+  private Long virtualSize;
+  @JsonProperty("Labels")
+  private ImmutableMap<String, String> labels;
 
   public String created() {
     return created;
@@ -87,19 +95,19 @@ public class Image {
     final Image that = (Image) o;
 
     return Objects.equals(this.created, that.created) &&
-        Objects.equals(this.id, that.id) &&
-        Objects.equals(this.parentId, that.parentId) &&
-        Objects.equals(this.repoTags, that.repoTags) &&
-        Objects.equals(this.repoDigests, that.repoDigests) &&
-        Objects.equals(this.size, that.size) &&
-        Objects.equals(this.virtualSize, that.virtualSize) &&
-        Objects.equals(this.labels, that.labels);
+           Objects.equals(this.id, that.id) &&
+           Objects.equals(this.parentId, that.parentId) &&
+           Objects.equals(this.repoTags, that.repoTags) &&
+           Objects.equals(this.repoDigests, that.repoDigests) &&
+           Objects.equals(this.size, that.size) &&
+           Objects.equals(this.virtualSize, that.virtualSize) &&
+           Objects.equals(this.labels, that.labels);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(created, id, parentId, repoTags, repoDigests,
-        size, virtualSize, labels);
+                        size, virtualSize, labels);
   }
 
   @Override

@@ -21,6 +21,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.spotify.docker.client.messages.Event;
 
 import org.apache.http.client.methods.CloseableHttpResponse;

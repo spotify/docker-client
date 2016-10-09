@@ -30,43 +30,43 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkAttachment {
 
-    @JsonProperty("Network")
-    private Network network;
+  @JsonProperty("Network")
+  private Network network;
 
-    @JsonProperty("Addresses")
-    private ImmutableList<String> addresses;
+  @JsonProperty("Addresses")
+  private ImmutableList<String> addresses;
 
-    public Network network() {
-        return network;
+  public Network network() {
+    return network;
+  }
+
+  public List<String> addresses() {
+    return addresses;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public List<String> addresses() {
-        return addresses;
-    }
+    final NetworkAttachment that = (NetworkAttachment) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.network, that.network)
+           && Objects.equals(this.addresses, that.addresses);
+  }
 
-        final NetworkAttachment that = (NetworkAttachment) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(network, addresses);
+  }
 
-        return Objects.equals(this.network, that.network)
-                && Objects.equals(this.addresses, that.addresses);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(network, addresses);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("network", network).add("addresses", addresses)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("network", network).add("addresses", addresses)
+        .toString();
+  }
 }

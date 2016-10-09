@@ -28,52 +28,52 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerStatus {
 
-    @JsonProperty("ContainerID")
-    private String containerId;
+  @JsonProperty("ContainerID")
+  private String containerId;
 
-    @JsonProperty("PID")
-    private Integer pid;
+  @JsonProperty("PID")
+  private Integer pid;
 
-    @JsonProperty("ExitCode")
-    private Integer exitCode;
+  @JsonProperty("ExitCode")
+  private Integer exitCode;
 
-    // Checkstyle complains if using containerId()
-    public String containerID() {
-        return containerId;
+  // Checkstyle complains if using containerId()
+  public String containerID() {
+    return containerId;
+  }
+
+  public Integer pid() {
+    return pid;
+  }
+
+  public Integer exitCode() {
+    return exitCode;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Integer pid() {
-        return pid;
-    }
+    final ContainerStatus that = (ContainerStatus) o;
 
-    public Integer exitCode() {
-        return exitCode;
-    }
+    return Objects.equals(this.containerId, that.containerId)
+           && Objects.equals(this.pid, that.pid)
+           && Objects.equals(this.exitCode, that.exitCode);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    return Objects.hash(containerId, pid, exitCode);
+  }
 
-        final ContainerStatus that = (ContainerStatus) o;
-
-        return Objects.equals(this.containerId, that.containerId)
-                && Objects.equals(this.pid, that.pid)
-                && Objects.equals(this.exitCode, that.exitCode);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(containerId, pid, exitCode);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("containerId", containerId).add("pid", pid)
-                .add("exitCode", exitCode).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("containerId", containerId).add("pid", pid)
+        .add("exitCode", exitCode).toString();
+  }
 }

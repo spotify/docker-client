@@ -102,7 +102,6 @@ public class DefaultDockerClientUnitTest {
     final Future<Info> futureMock = Futures.immediateFuture(new Info());
     when(asyncInvoker.method(anyString(), any(Class.class))).thenReturn(futureMock);
 
-
     builder = DefaultDockerClient.builder();
     builder.uri("https://perdu.com:2375");
   }

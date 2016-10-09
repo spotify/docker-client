@@ -24,9 +24,13 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 public class Device {
-  @JsonProperty("PathOnHost") private String pathOnHost;
-  @JsonProperty("PathInContainer") private String pathInContainer;
-  @JsonProperty("CgroupPermissions") private String cGroupPermissions;
+
+  @JsonProperty("PathOnHost")
+  private String pathOnHost;
+  @JsonProperty("PathInContainer")
+  private String pathInContainer;
+  @JsonProperty("CgroupPermissions")
+  private String cGroupPermissions;
 
   public Device() {
   }
@@ -39,16 +43,16 @@ public class Device {
   }
 
   public String pathOnHost() {
-        return pathOnHost;
-    }
+    return pathOnHost;
+  }
 
   public String pathInContainer() {
-        return pathInContainer;
-    }
+    return pathInContainer;
+  }
 
   public String cGroupPermissions() {
-        return cGroupPermissions;
-    }
+    return cGroupPermissions;
+  }
 
   @Override
   public boolean equals(final Object o) {
@@ -62,14 +66,14 @@ public class Device {
     final Device that = (Device) o;
 
     return Objects.equals(this.pathOnHost, that.pathOnHost) &&
-        Objects.equals(this.pathInContainer, that.pathInContainer) &&
-        Objects.equals(this.cGroupPermissions, that.cGroupPermissions);
+           Objects.equals(this.pathInContainer, that.pathInContainer) &&
+           Objects.equals(this.cGroupPermissions, that.cGroupPermissions);
   }
 
   @Override
   public int hashCode() {
-        return Objects.hash(pathOnHost, pathInContainer, cGroupPermissions);
-    }
+    return Objects.hash(pathOnHost, pathInContainer, cGroupPermissions);
+  }
 
   @Override
   public String toString() {

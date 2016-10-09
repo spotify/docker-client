@@ -30,81 +30,81 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class EndpointSpec {
 
-    public static final String RESOLUTION_MODE_VIP = "vip";
-    public static final String RESOLUTION_MODE_DNSRR = "dnsrr";
+  public static final String RESOLUTION_MODE_VIP = "vip";
+  public static final String RESOLUTION_MODE_DNSRR = "dnsrr";
 
-    @JsonProperty("Mode")
-    private String mode;
+  @JsonProperty("Mode")
+  private String mode;
 
-    @JsonProperty("Ports")
-    private ImmutableList<PortConfig> ports;
+  @JsonProperty("Ports")
+  private ImmutableList<PortConfig> ports;
 
-    public String mode() {
-        return mode;
+  public String mode() {
+    return mode;
+  }
+
+  public List<PortConfig> ports() {
+    return ports;
+  }
+
+  public static class Builder {
+
+    private EndpointSpec spec = new EndpointSpec();
+
+    public Builder withVipMode() {
+      spec.mode = RESOLUTION_MODE_VIP;
+      return this;
     }
 
-    public List<PortConfig> ports() {
-        return ports;
+    public Builder withDnsrrMode() {
+      spec.mode = RESOLUTION_MODE_DNSRR;
+      return this;
     }
 
-    public static class Builder {
-
-        private EndpointSpec spec = new EndpointSpec();
-
-        public Builder withVipMode() {
-            spec.mode = RESOLUTION_MODE_VIP;
-            return this;
-        }
-
-        public Builder withDnsrrMode() {
-            spec.mode = RESOLUTION_MODE_DNSRR;
-            return this;
-        }
-
-        public Builder withPorts(PortConfig... ports) {
-            if (ports != null && ports.length > 0) {
-                spec.ports = ImmutableList.copyOf(ports);
-            }
-            return this;
-        }
-
-        public Builder withPorts(List<PortConfig> ports) {
-            if (ports != null && !ports.isEmpty()) {
-                spec.ports = ImmutableList.copyOf(ports);
-            }
-            return this;
-        }
-
-        public EndpointSpec build() {
-            return spec;
-        }
+    public Builder withPorts(PortConfig... ports) {
+      if (ports != null && ports.length > 0) {
+        spec.ports = ImmutableList.copyOf(ports);
+      }
+      return this;
     }
 
-    public static EndpointSpec.Builder builder() {
-        return new EndpointSpec.Builder();
+    public Builder withPorts(List<PortConfig> ports) {
+      if (ports != null && !ports.isEmpty()) {
+        spec.ports = ImmutableList.copyOf(ports);
+      }
+      return this;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    public EndpointSpec build() {
+      return spec;
+    }
+  }
 
-        final EndpointSpec that = (EndpointSpec) o;
+  public static EndpointSpec.Builder builder() {
+    return new EndpointSpec.Builder();
+  }
 
-        return Objects.equals(this.mode, that.mode) && Objects.equals(this.ports, that.ports);
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(mode, ports);
-    }
+    final EndpointSpec that = (EndpointSpec) o;
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("mode", mode).add("ports", ports).toString();
-    }
+    return Objects.equals(this.mode, that.mode) && Objects.equals(this.ports, that.ports);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mode, ports);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("mode", mode).add("ports", ports).toString();
+  }
 }

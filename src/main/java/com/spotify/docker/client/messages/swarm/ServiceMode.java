@@ -28,76 +28,76 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ServiceMode {
 
-    @JsonProperty("Replicated")
-    private ReplicatedService replicated;
+  @JsonProperty("Replicated")
+  private ReplicatedService replicated;
 
-    @JsonProperty("Global")
-    private GlobalService global;
+  @JsonProperty("Global")
+  private GlobalService global;
 
-    public ReplicatedService replicated() {
-        return replicated;
+  public ReplicatedService replicated() {
+    return replicated;
+  }
+
+  public GlobalService global() {
+    return global;
+  }
+
+  public static ServiceMode withReplicas(long replicas) {
+    return ServiceMode.builder()
+        .withReplicatedService(ReplicatedService.builder().withReplicas(replicas).build())
+        .build();
+  }
+
+  public static ServiceMode withGlobal() {
+    return ServiceMode.builder().withGlobalService(new GlobalService()).build();
+  }
+
+  public static class Builder {
+
+    private ServiceMode mode = new ServiceMode();
+
+    public Builder withReplicatedService(ReplicatedService replicated) {
+      mode.replicated = replicated;
+      return this;
     }
 
-    public GlobalService global() {
-        return global;
+    public Builder withGlobalService(GlobalService global) {
+      mode.global = global;
+      return this;
     }
 
-    public static ServiceMode withReplicas(long replicas) {
-        return ServiceMode.builder()
-                .withReplicatedService(ReplicatedService.builder().withReplicas(replicas).build())
-                .build();
+    public ServiceMode build() {
+      return mode;
+    }
+  }
+
+  public static ServiceMode.Builder builder() {
+    return new ServiceMode.Builder();
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static ServiceMode withGlobal() {
-        return ServiceMode.builder().withGlobalService(new GlobalService()).build();
-    }
+    final ServiceMode that = (ServiceMode) o;
 
-    public static class Builder {
+    return Objects.equals(this.replicated, that.replicated)
+           && Objects.equals(this.global, that.global);
+  }
 
-        private ServiceMode mode = new ServiceMode();
+  @Override
+  public int hashCode() {
+    return Objects.hash(replicated, global);
+  }
 
-        public Builder withReplicatedService(ReplicatedService replicated) {
-            mode.replicated = replicated;
-            return this;
-        }
-
-        public Builder withGlobalService(GlobalService global) {
-            mode.global = global;
-            return this;
-        }
-
-        public ServiceMode build() {
-            return mode;
-        }
-    }
-
-    public static ServiceMode.Builder builder() {
-        return new ServiceMode.Builder();
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final ServiceMode that = (ServiceMode) o;
-
-        return Objects.equals(this.replicated, that.replicated)
-                && Objects.equals(this.global, that.global);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(replicated, global);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("replicated", replicated).add("global", global)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("replicated", replicated).add("global", global)
+        .toString();
+  }
 }
