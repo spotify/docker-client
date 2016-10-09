@@ -1986,7 +1986,7 @@ public class DefaultDockerClientTest {
         .volumes("/foo")
         .hostConfig(hostConfig)
         .build();
-    final String id = sut.createContainer(volumeConfig).id();
+    final String id = sut.createContainer(volumeConfig, randomName()).id();
     final ContainerInfo volumeContainer = sut.inspectContainer(id);
 
     final List<String> expectedDestinations = Lists.newArrayList("/foo", "/remote/path");
@@ -2041,7 +2041,7 @@ public class DefaultDockerClientTest {
             .hostConfig(hostConfig)
             .build();
     
-    final String id = sut.createContainer(config).id();
+    final String id = sut.createContainer(config, randomName()).id();
     final ContainerInfo info = sut.inspectContainer(id);
     
     final List<ContainerMount> mounts = info.mounts();
@@ -2090,7 +2090,7 @@ public class DefaultDockerClientTest {
             .volumes("/foo")
             .hostConfig(hostConfig)
             .build();
-    final String id = sut.createContainer(volumeConfig).id();
+    final String id = sut.createContainer(volumeConfig, randomName()).id();
     final ContainerInfo volumeContainer = sut.inspectContainer(id);
     final List<ContainerMount> containerMounts = volumeContainer.mounts();
 
@@ -3004,7 +3004,7 @@ public class DefaultDockerClientTest {
         .image(BUSYBOX_LATEST)
         .cmd("/bin/sh", "-c", "echo foo > /tmp/foo.txt")
         .build();
-    final ContainerCreation creation = sut.createContainer(config);
+    final ContainerCreation creation = sut.createContainer(config, randomName());
     final String id = creation.id();
     sut.startContainer(id);
 
@@ -3023,7 +3023,7 @@ public class DefaultDockerClientTest {
         .image(BUSYBOX_LATEST)
         .cmd("/bin/sh", "-c", "while :; do sleep 1; done")
         .build();
-    final ContainerCreation creation = sut.createContainer(config);
+    final ContainerCreation creation = sut.createContainer(config, randomName());
     final String id = creation.id();
 
     try {
@@ -3222,7 +3222,7 @@ public class DefaultDockerClientTest {
         .image(BUSYBOX)
         .hostConfig(hostConfig)
         .build();
-    final ContainerCreation container = sut.createContainer(config);
+    final ContainerCreation container = sut.createContainer(config, randomName());
 
     exception.expect(ConflictException.class);
     sut.removeVolume(volume2);
