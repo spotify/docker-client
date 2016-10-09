@@ -1576,9 +1576,6 @@ public class DefaultDockerClientTest {
 
     final List<Container> containers = sut.listContainers(allContainers(), withStatusExited());
 
-    System.out.println("ID TO LOOK FOR: " + id);
-    System.out.println("CONTAINERS LISTED: " + containers);
-
     Container targetCont = null;
     for (final Container container : containers) {
       if (container.id().equals(id)) {
