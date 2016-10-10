@@ -69,4 +69,35 @@ public class NetworkAttachmentConfig {
     return MoreObjects.toStringHelper(this).add("target", target).add("aliases", aliases)
         .toString();
   }
+
+  public static NetworkAttachmentConfig.Builder builder() {
+    return new NetworkAttachmentConfig.Builder();
+  }
+    
+  public static class Builder {
+    private NetworkAttachmentConfig config = new NetworkAttachmentConfig();
+
+    public Builder withTarget(String target) {
+      config.target = target;
+      return this;
+    }
+
+    public Builder withAliases(String... aliases) {
+      if (aliases != null && aliases.length > 0) {
+        config.aliases = ImmutableList.copyOf(aliases);
+      }
+      return this;
+    }
+    
+    public Builder withAliases(List<String> aliases) {
+      if (aliases != null && !aliases.isEmpty()) {
+        config.aliases = ImmutableList.copyOf(aliases);
+      }
+      return this;
+    }
+
+    public NetworkAttachmentConfig build() {
+      return config;
+    }
+  }
 }

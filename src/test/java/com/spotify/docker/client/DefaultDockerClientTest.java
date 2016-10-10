@@ -91,6 +91,7 @@ import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
 import com.spotify.docker.client.messages.swarm.EndpointSpec;
+import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.PortConfig;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
@@ -3366,6 +3367,52 @@ public class DefaultDockerClientTest {
     assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
   }
 
+  @Test
+  public void testCreateServiceWithNetwork() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final String networkName = randomName();
+    final String serviceName = randomName();
+
+    final NetworkCreation networkCreation = sut
+            .createNetwork(NetworkConfig.builder().driver("overlay")
+                    // TODO: workaround for https://github.com/docker/docker/issues/25735
+                    .ipam(Ipam.builder().driver("default").build())
+                    //
+                    .name(networkName).build());
+
+    final String networkId = networkCreation.id();
+    
+    assertThat(networkId, is(notNullValue()));
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+            .withContainerSpec(ContainerSpec.builder().withImage("alpine")
+                    .withCommands(new String[] { "ping", "-c1000", "localhost" }).build())
+            .build();
+
+    final ServiceSpec spec = ServiceSpec.builder().withName(serviceName)
+            .withTaskTemplate(taskSpec).withServiceMode(ServiceMode.withReplicas(1L))
+            .withNetworks(NetworkAttachmentConfig.builder().withTarget(networkName).build())
+            .build();
+
+    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    assertThat(response.id(), is(notNullValue()));
+
+    final Service inspectService = sut.inspectService(serviceName);
+    assertThat(inspectService.spec().networks().size(), is(1));
+    assertThat(Iterables.find(inspectService.spec().networks(), 
+      new Predicate<NetworkAttachmentConfig>() {
+
+      @Override
+      public boolean apply(NetworkAttachmentConfig config) {
+        return networkId.equals(config.target());
+      }
+    }, null), is(notNullValue()));
+    
+    sut.removeService(serviceName);
+    sut.removeNetwork(networkName);
+  }
+  
   @Test
   public void testCreateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
