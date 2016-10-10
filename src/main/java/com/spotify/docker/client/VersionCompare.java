@@ -24,9 +24,10 @@ public final class VersionCompare {
   }
 
   /**
-   * Compares two version strings. <p>
-   *   https://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
-   * </p> Use this instead of String.compareTo() for a non-lexicographical comparison that works for
+   * Compares two version strings.
+   * <p>
+   * https://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
+   * <p>Use this instead of String.compareTo() for a non-lexicographical comparison that works for
    * version strings. e.g. "1.10".compareTo("1.6").
    *
    * @param str1 a string of ordinal numbers separated by decimal points.

@@ -28,66 +28,66 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ResourceRequirements {
 
-    @JsonProperty("Limits")
-    private Resources limits;
+  @JsonProperty("Limits")
+  private Resources limits;
 
-    @JsonProperty("Reservations")
-    private Resources reservations;
+  @JsonProperty("Reservations")
+  private Resources reservations;
 
-    public Resources limits() {
-        return limits;
+  public Resources limits() {
+    return limits;
+  }
+
+  public Resources reservations() {
+    return reservations;
+  }
+
+  public static class Builder {
+
+    private ResourceRequirements req = new ResourceRequirements();
+
+    public Builder withLimits(Resources limits) {
+      req.limits = limits;
+      return this;
     }
 
-    public Resources reservations() {
-        return reservations;
+    public Builder withReservations(Resources reservations) {
+      req.reservations = reservations;
+      return this;
     }
 
-    public static class Builder {
+    public ResourceRequirements build() {
+      return req;
+    }
+  }
 
-        private ResourceRequirements req = new ResourceRequirements();
+  public static ResourceRequirements.Builder builder() {
+    return new ResourceRequirements.Builder();
+  }
 
-        public Builder withLimits(Resources limits) {
-            req.limits = limits;
-            return this;
-        }
-
-        public Builder withReservations(Resources reservations) {
-            req.reservations = reservations;
-            return this;
-        }
-
-        public ResourceRequirements build() {
-            return req;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static ResourceRequirements.Builder builder() {
-        return new ResourceRequirements.Builder();
-    }
+    final ResourceRequirements that = (ResourceRequirements) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.limits, that.limits)
+           && Objects.equals(this.reservations, that.reservations);
+  }
 
-        final ResourceRequirements that = (ResourceRequirements) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(limits, reservations);
+  }
 
-        return Objects.equals(this.limits, that.limits)
-                && Objects.equals(this.reservations, that.reservations);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(limits, reservations);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("limits", limits)
-                .add("reservations", reservations).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("limits", limits)
+        .add("reservations", reservations).toString();
+  }
 }

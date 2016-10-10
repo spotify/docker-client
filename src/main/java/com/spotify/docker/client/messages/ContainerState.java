@@ -31,21 +31,31 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerState {
 
-  @JsonProperty("Status") private String status;
-  @JsonProperty("Running") private Boolean running;
-  @JsonProperty("Paused") private Boolean paused;
-  @JsonProperty("Restarting") private Boolean restarting;
-  @JsonProperty("Pid") private Integer pid;
-  @JsonProperty("ExitCode") private Integer exitCode;
-  @JsonProperty("StartedAt") private Date startedAt;
-  @JsonProperty("FinishedAt") private Date finishedAt;
-  @JsonProperty("Error") private String error;
-  @JsonProperty("OOMKilled") private Boolean oomKilled;
+  @JsonProperty("Status")
+  private String status;
+  @JsonProperty("Running")
+  private Boolean running;
+  @JsonProperty("Paused")
+  private Boolean paused;
+  @JsonProperty("Restarting")
+  private Boolean restarting;
+  @JsonProperty("Pid")
+  private Integer pid;
+  @JsonProperty("ExitCode")
+  private Integer exitCode;
+  @JsonProperty("StartedAt")
+  private Date startedAt;
+  @JsonProperty("FinishedAt")
+  private Date finishedAt;
+  @JsonProperty("Error")
+  private String error;
+  @JsonProperty("OOMKilled")
+  private Boolean oomKilled;
 
   public String status() {
     return status;
   }
-  
+
   public Boolean running() {
     return running;
   }
@@ -94,15 +104,15 @@ public class ContainerState {
     final ContainerState that = (ContainerState) o;
 
     return Objects.equals(this.status, that.status) &&
-        Objects.equals(this.running, that.running) &&
-        Objects.equals(this.paused, that.paused) &&
-        Objects.equals(this.restarting, that.restarting) &&
-        Objects.equals(this.pid, that.pid) &&
-        Objects.equals(this.exitCode, that.exitCode) &&
-        Objects.equals(this.startedAt, that.startedAt) &&
-        Objects.equals(this.finishedAt, that.finishedAt) &&
-        Objects.equals(this.error, that.error) &&
-        Objects.equals(this.oomKilled, that.oomKilled);
+           Objects.equals(this.running, that.running) &&
+           Objects.equals(this.paused, that.paused) &&
+           Objects.equals(this.restarting, that.restarting) &&
+           Objects.equals(this.pid, that.pid) &&
+           Objects.equals(this.exitCode, that.exitCode) &&
+           Objects.equals(this.startedAt, that.startedAt) &&
+           Objects.equals(this.finishedAt, that.finishedAt) &&
+           Objects.equals(this.error, that.error) &&
+           Objects.equals(this.oomKilled, that.oomKilled);
   }
 
   @Override

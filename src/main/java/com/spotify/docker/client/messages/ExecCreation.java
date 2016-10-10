@@ -31,8 +31,10 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ExecCreation {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Warnings") private ImmutableList<String> warnings;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Warnings")
+  private ImmutableList<String> warnings;
 
   public ExecCreation() {
   }
@@ -61,7 +63,7 @@ public class ExecCreation {
     final ExecCreation that = (ExecCreation) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.warnings, that.warnings);
+           Objects.equals(this.warnings, that.warnings);
   }
 
   @Override

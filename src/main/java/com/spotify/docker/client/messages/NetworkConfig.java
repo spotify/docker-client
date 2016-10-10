@@ -32,11 +32,16 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkConfig {
 
-  @JsonProperty("Name") private String name;
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("IPAM") private Ipam ipam;
-  @JsonProperty("Options") private Map<String, String> options;
-  @JsonProperty("CheckDuplicate") private boolean checkDuplicate;
+  @JsonProperty("Name")
+  private String name;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("IPAM")
+  private Ipam ipam;
+  @JsonProperty("Options")
+  private Map<String, String> options;
+  @JsonProperty("CheckDuplicate")
+  private boolean checkDuplicate;
 
   private NetworkConfig(final Builder builder) {
     this.name = builder.name;
@@ -78,10 +83,10 @@ public class NetworkConfig {
     final NetworkConfig that = (NetworkConfig) o;
 
     return Objects.equals(this.checkDuplicate, that.checkDuplicate) &&
-        Objects.equals(this.name, that.name) &&
-        Objects.equals(this.driver, that.driver) &&
-        Objects.equals(this.ipam, that.ipam) &&
-        Objects.equals(this.options, that.options);
+           Objects.equals(this.name, that.name) &&
+           Objects.equals(this.driver, that.driver) &&
+           Objects.equals(this.ipam, that.ipam) &&
+           Objects.equals(this.options, that.options);
   }
 
   @Override

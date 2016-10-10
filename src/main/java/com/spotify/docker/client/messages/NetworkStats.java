@@ -30,14 +30,22 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkStats {
 
-  @JsonProperty("rx_bytes") private Long rxBytes;
-  @JsonProperty("rx_packets") private Long rxPackets;
-  @JsonProperty("rx_dropped") private Long rxDropped;
-  @JsonProperty("rx_errors") private Long rxErrors;
-  @JsonProperty("tx_bytes") private Long txBytes;
-  @JsonProperty("tx_packets") private Long txPackets;
-  @JsonProperty("tx_dropped") private Long txDropped;
-  @JsonProperty("tx_errors") private Long txErrors;
+  @JsonProperty("rx_bytes")
+  private Long rxBytes;
+  @JsonProperty("rx_packets")
+  private Long rxPackets;
+  @JsonProperty("rx_dropped")
+  private Long rxDropped;
+  @JsonProperty("rx_errors")
+  private Long rxErrors;
+  @JsonProperty("tx_bytes")
+  private Long txBytes;
+  @JsonProperty("tx_packets")
+  private Long txPackets;
+  @JsonProperty("tx_dropped")
+  private Long txDropped;
+  @JsonProperty("tx_errors")
+  private Long txErrors;
 
   public Long rxBytes() {
     return rxBytes;
@@ -83,13 +91,13 @@ public class NetworkStats {
     final NetworkStats that = (NetworkStats) o;
 
     return Objects.equals(this.rxBytes, that.rxBytes) &&
-        Objects.equals(this.rxPackets, that.rxPackets) &&
-        Objects.equals(this.rxDropped, that.rxDropped) &&
-        Objects.equals(this.rxErrors, that.rxErrors) &&
-        Objects.equals(this.txBytes, that.txBytes) &&
-        Objects.equals(this.txPackets, that.txPackets) &&
-        Objects.equals(this.txDropped, that.txDropped) &&
-        Objects.equals(this.txErrors, that.txErrors);
+           Objects.equals(this.rxPackets, that.rxPackets) &&
+           Objects.equals(this.rxDropped, that.rxDropped) &&
+           Objects.equals(this.rxErrors, that.rxErrors) &&
+           Objects.equals(this.txBytes, that.txBytes) &&
+           Objects.equals(this.txPackets, that.txPackets) &&
+           Objects.equals(this.txDropped, that.txDropped) &&
+           Objects.equals(this.txErrors, that.txErrors);
   }
 
   @Override

@@ -28,34 +28,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class TaskDefaults {
 
-    @JsonProperty("LogDriver")
-    private Driver logDriver;
+  @JsonProperty("LogDriver")
+  private Driver logDriver;
 
-    public Driver logDriver() {
-        return logDriver;
+  public Driver logDriver() {
+    return logDriver;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final TaskDefaults that = (TaskDefaults) o;
 
-        final TaskDefaults that = (TaskDefaults) o;
+    return Objects.equals(this.logDriver, that.logDriver);
+  }
 
-        return Objects.equals(this.logDriver, that.logDriver);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(logDriver);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(logDriver);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("logDriver", logDriver).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("logDriver", logDriver).toString();
+  }
 }

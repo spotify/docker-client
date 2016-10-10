@@ -30,34 +30,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Placement {
 
-    @JsonProperty("Constraints")
-    private ImmutableList<String> constraints;
+  @JsonProperty("Constraints")
+  private ImmutableList<String> constraints;
 
-    public List<String> constraints() {
-        return constraints;
+  public List<String> constraints() {
+    return constraints;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final Placement that = (Placement) o;
 
-        final Placement that = (Placement) o;
+    return Objects.equals(this.constraints, that.constraints);
+  }
 
-        return Objects.equals(this.constraints, that.constraints);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(constraints);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(constraints);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("constraints", constraints).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("constraints", constraints).toString();
+  }
 }

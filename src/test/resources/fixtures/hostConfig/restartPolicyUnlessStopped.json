@@ -1,3 +1,5 @@
 {
-  "RestartPolicy": { "Name": "unless-stopped" }
+  "RestartPolicy": {
+    "Name": "unless-stopped"
+  }
 }

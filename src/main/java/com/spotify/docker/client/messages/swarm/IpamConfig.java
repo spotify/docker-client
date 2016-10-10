@@ -28,50 +28,50 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class IpamConfig {
 
-    @JsonProperty("Subnet")
-    private String subnet;
+  @JsonProperty("Subnet")
+  private String subnet;
 
-    @JsonProperty("Range")
-    private String range;
+  @JsonProperty("Range")
+  private String range;
 
-    @JsonProperty("Gateway")
-    private String gateway;
+  @JsonProperty("Gateway")
+  private String gateway;
 
-    public String subnet() {
-        return subnet;
+  public String subnet() {
+    return subnet;
+  }
+
+  public String range() {
+    return range;
+  }
+
+  public String gateway() {
+    return gateway;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public String range() {
-        return range;
-    }
+    final IpamConfig that = (IpamConfig) o;
 
-    public String gateway() {
-        return gateway;
-    }
+    return Objects.equals(this.subnet, that.subnet) && Objects.equals(this.range, that.range)
+           && Objects.equals(this.gateway, that.gateway);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    return Objects.hash(subnet, range, gateway);
+  }
 
-        final IpamConfig that = (IpamConfig) o;
-
-        return Objects.equals(this.subnet, that.subnet) && Objects.equals(this.range, that.range)
-                && Objects.equals(this.gateway, that.gateway);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(subnet, range, gateway);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("subnet", subnet).add("range", range)
-                .add("gateway", gateway).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("subnet", subnet).add("range", range)
+        .add("gateway", gateway).toString();
+  }
 }

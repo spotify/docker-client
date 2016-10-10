@@ -22,9 +22,7 @@ public class VolumeNotFoundException extends DockerException {
   private final String volumeName;
 
   public VolumeNotFoundException(final String name, final Throwable cause) {
-    super(String.format("Cannot remove volume %s. No such volume or volume driver.",
-            name),
-        cause);
+    super(String.format("Cannot remove volume %s. No such volume or volume driver.", name), cause);
     this.volumeName = name;
   }
 

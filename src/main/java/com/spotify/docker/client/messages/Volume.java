@@ -30,15 +30,24 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Volume {
-  @JsonProperty("Name") private String name;
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("DriverOpts") private ImmutableMap<String, String> driverOpts;
-  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
-  @JsonProperty("Mountpoint") private String mountpoint;
-  @JsonProperty("Scope") private String scope;
-  @JsonProperty("Status") private ImmutableMap<String, String> status;
 
-  private Volume() {}
+  @JsonProperty("Name")
+  private String name;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("DriverOpts")
+  private ImmutableMap<String, String> driverOpts;
+  @JsonProperty("Labels")
+  private ImmutableMap<String, String> labels;
+  @JsonProperty("Mountpoint")
+  private String mountpoint;
+  @JsonProperty("Scope")
+  private String scope;
+  @JsonProperty("Status")
+  private ImmutableMap<String, String> status;
+
+  private Volume() {
+  }
 
   private Volume(final Builder builder) {
     this.name = builder.name;
@@ -97,12 +106,12 @@ public class Volume {
     final Volume that = (Volume) o;
 
     return Objects.equals(this.name, that.name) &&
-        Objects.equals(this.driver, that.driver) &&
-        Objects.equals(this.driverOpts, that.driverOpts) &&
-        Objects.equals(this.labels, that.labels) &&
-        Objects.equals(this.mountpoint, that.mountpoint) &&
-        Objects.equals(this.scope, that.scope) &&
-        Objects.equals(this.status, that.status);
+           Objects.equals(this.driver, that.driver) &&
+           Objects.equals(this.driverOpts, that.driverOpts) &&
+           Objects.equals(this.labels, that.labels) &&
+           Objects.equals(this.mountpoint, that.mountpoint) &&
+           Objects.equals(this.scope, that.scope) &&
+           Objects.equals(this.status, that.status);
   }
 
   @Override
@@ -124,6 +133,7 @@ public class Volume {
   }
 
   public static class Builder {
+
     private String name;
     private String driver;
     private ImmutableMap<String, String> driverOpts;
@@ -131,7 +141,8 @@ public class Volume {
     private String mountpoint;
     private String scope;
 
-    private Builder() {}
+    private Builder() {
+    }
 
     private Builder(final Volume volume) {
       this.name = volume.name;

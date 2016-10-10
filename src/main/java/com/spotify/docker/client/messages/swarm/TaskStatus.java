@@ -28,81 +28,81 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class TaskStatus {
 
-    public static final String TASK_STATE_NEW = "new";
-    public static final String TASK_STATE_ALLOCATED = "allocated";
-    public static final String TASK_STATE_PENDING = "pending";
-    public static final String TASK_STATE_ASSIGNED = "assigned";
-    public static final String TASK_STATE_ACCEPTED = "accepted";
-    public static final String TASK_STATE_PREPARING = "preparing";
-    public static final String TASK_STATE_READY = "ready";
-    public static final String TASK_STATE_STARTING = "starting";
-    public static final String TASK_STATE_RUNNING = "running";
-    public static final String TASK_STATE_COMPLETE = "complete";
-    public static final String TASK_STATE_SHUTDOWN = "shutdown";
-    public static final String TASK_STATE_FAILED = "failed";
-    public static final String TASK_STATE_REJECTED = "rejected";
+  public static final String TASK_STATE_NEW = "new";
+  public static final String TASK_STATE_ALLOCATED = "allocated";
+  public static final String TASK_STATE_PENDING = "pending";
+  public static final String TASK_STATE_ASSIGNED = "assigned";
+  public static final String TASK_STATE_ACCEPTED = "accepted";
+  public static final String TASK_STATE_PREPARING = "preparing";
+  public static final String TASK_STATE_READY = "ready";
+  public static final String TASK_STATE_STARTING = "starting";
+  public static final String TASK_STATE_RUNNING = "running";
+  public static final String TASK_STATE_COMPLETE = "complete";
+  public static final String TASK_STATE_SHUTDOWN = "shutdown";
+  public static final String TASK_STATE_FAILED = "failed";
+  public static final String TASK_STATE_REJECTED = "rejected";
 
-    @JsonProperty("Timestamp")
-    private String timestamp;
+  @JsonProperty("Timestamp")
+  private String timestamp;
 
-    @JsonProperty("State")
-    private String state;
+  @JsonProperty("State")
+  private String state;
 
-    @JsonProperty("Message")
-    private String message;
+  @JsonProperty("Message")
+  private String message;
 
-    @JsonProperty("Err")
-    private String err;
+  @JsonProperty("Err")
+  private String err;
 
-    @JsonProperty("ContainerStatus")
-    private ContainerStatus containerStatus;
+  @JsonProperty("ContainerStatus")
+  private ContainerStatus containerStatus;
 
-    public String timestamp() {
-        return timestamp;
+  public String timestamp() {
+    return timestamp;
+  }
+
+  public String state() {
+    return state;
+  }
+
+  public String message() {
+    return message;
+  }
+
+  public String err() {
+    return err;
+  }
+
+  public ContainerStatus containerStatus() {
+    return containerStatus;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public String state() {
-        return state;
-    }
+    final TaskStatus that = (TaskStatus) o;
 
-    public String message() {
-        return message;
-    }
+    return Objects.equals(this.timestamp, that.timestamp)
+           && Objects.equals(this.state, that.state)
+           && Objects.equals(this.message, that.message) && Objects.equals(this.err, that.err)
+           && Objects.equals(this.containerStatus, that.containerStatus);
+  }
 
-    public String err() {
-        return err;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(timestamp, state, message, err, containerStatus);
+  }
 
-    public ContainerStatus containerStatus() {
-        return containerStatus;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final TaskStatus that = (TaskStatus) o;
-
-        return Objects.equals(this.timestamp, that.timestamp)
-                && Objects.equals(this.state, that.state)
-                && Objects.equals(this.message, that.message) && Objects.equals(this.err, that.err)
-                && Objects.equals(this.containerStatus, that.containerStatus);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(timestamp, state, message, err, containerStatus);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("timestamp", timestamp).add("state", state)
-                .add("message", message).add("err", err).add("containerStatus", containerStatus)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("timestamp", timestamp).add("state", state)
+        .add("message", message).add("err", err).add("containerStatus", containerStatus)
+        .toString();
+  }
 }

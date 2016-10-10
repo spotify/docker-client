@@ -30,8 +30,10 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class PortBinding {
 
-  @JsonProperty("HostIp") private String hostIp;
-  @JsonProperty("HostPort") private String hostPort;
+  @JsonProperty("HostIp")
+  private String hostIp;
+  @JsonProperty("HostPort")
+  private String hostPort;
 
   public String hostIp() {
     return hostIp;
@@ -76,7 +78,7 @@ public class PortBinding {
     final PortBinding that = (PortBinding) o;
 
     return Objects.equals(this.hostIp, that.hostIp) &&
-        Objects.equals(this.hostPort, that.hostPort);
+           Objects.equals(this.hostPort, that.hostPort);
   }
 
   @Override

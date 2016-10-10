@@ -18,6 +18,7 @@
 package com.spotify.docker.client.messages;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.spotify.docker.client.ObjectMapperProvider;
 
 import org.junit.Test;

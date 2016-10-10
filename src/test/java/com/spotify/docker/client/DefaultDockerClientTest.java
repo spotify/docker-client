@@ -35,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
+
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
@@ -99,6 +100,7 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -1007,7 +1009,7 @@ public class DefaultDockerClientTest {
 
     final ImmutableSet.Builder<String> files = ImmutableSet.builder();
     try (final TarArchiveInputStream tarStream =
-        new TarArchiveInputStream(sut.archiveContainer(id, "/bin"))) {
+             new TarArchiveInputStream(sut.archiveContainer(id, "/bin"))) {
       TarArchiveEntry entry;
       while ((entry = tarStream.getNextTarEntry()) != null) {
         files.add(entry.getName());
@@ -1231,9 +1233,9 @@ public class DefaultDockerClientTest {
       // Copy the same files from container
       final ImmutableSet.Builder<String> filesDownloaded = ImmutableSet.builder();
       try (TarArchiveInputStream tarStream = new TarArchiveInputStream(
-               dockerApiVersionLessThan("1.24") ?
-               sut.copyContainer(id, "/tmp") :
-               sut.archiveContainer(id, "/tmp"))) {
+          dockerApiVersionLessThan("1.24") ?
+          sut.copyContainer(id, "/tmp") :
+          sut.archiveContainer(id, "/tmp"))) {
         TarArchiveEntry entry;
         while ((entry = tarStream.getNextTarEntry()) != null) {
           filesDownloaded.add(entry.getName());
@@ -1968,15 +1970,15 @@ public class DefaultDockerClientTest {
   @Test
   @SuppressWarnings("deprecation")
   public void testContainerVolumesOldStyle() throws Exception {
-    requireDockerApiVersionLessThan("1.20",
-        "Creating a container with volumes and inspecting volumes in old style");
+    requireDockerApiVersionLessThan(
+        "1.20", "Creating a container with volumes and inspecting volumes in old style");
 
     sut.pull(BUSYBOX_LATEST);
 
     final HostConfig hostConfig = HostConfig.builder()
         .binds(Bind.from("/local/path")
-            .to("/remote/path")
-            .build())
+                   .to("/remote/path")
+                   .build())
         .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -2011,61 +2013,61 @@ public class DefaultDockerClientTest {
   public void testContainerVolumeNoCopy() throws Exception {
     requireDockerApiVersionAtLeast(
         "1.23", "Creating a container with volumes with nocopy mode");
-    
+
     sut.pull(BUSYBOX_LATEST);
-    
+
     sut.createVolume(Volume.builder().name("avolume").build());
     sut.createVolume(Volume.builder().name("avolume2").build());
-    
+
     final Bind bind1 =
-            Bind.from("avolume")
-                .to("/some/other/path")
-                .readOnly(true)
-                .build();
-    
+        Bind.from("avolume")
+            .to("/some/other/path")
+            .readOnly(true)
+            .build();
+
     final Bind bind2 =
-            Bind.from("avolume2")
-                .to("/some/other/path2")
-                .noCopy(true)
-                .build();
-    
+        Bind.from("avolume2")
+            .to("/some/other/path2")
+            .noCopy(true)
+            .build();
+
     final HostConfig hostConfig = HostConfig.builder()
-            .appendBinds(bind1, bind2)
-            .build();
-    
+        .appendBinds(bind1, bind2)
+        .build();
+
     final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .hostConfig(hostConfig)
-            .build();
-    
+        .image(BUSYBOX_LATEST)
+        .hostConfig(hostConfig)
+        .build();
+
     final String id = sut.createContainer(config, randomName()).id();
     final ContainerInfo info = sut.inspectContainer(id);
-    
+
     final List<ContainerMount> mounts = info.mounts();
-    
+
     assertThat(mounts.size(), equalTo(2));
-    
+
     assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
-        @Override
-        public boolean apply(ContainerMount mount) {
-            return mount.source().contains("/avolume/") 
-                    && "/some/other/path".equals(mount.destination())
-                    && !mount.rw();
-        }
+      @Override
+      public boolean apply(ContainerMount mount) {
+        return mount.source().contains("/avolume/")
+               && "/some/other/path".equals(mount.destination())
+               && !mount.rw();
+      }
     }, null), notNullValue());
-    
+
     assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
-        @Override
-        public boolean apply(ContainerMount mount) {
-            return mount.source().contains("/avolume2/") 
-                    && "/some/other/path2".equals(mount.destination())
-                    && mount.rw()
-                    && "nocopy".equals(mount.mode());
-        }
+      @Override
+      public boolean apply(ContainerMount mount) {
+        return mount.source().contains("/avolume2/")
+               && "/some/other/path2".equals(mount.destination())
+               && mount.rw()
+               && "nocopy".equals(mount.mode());
+      }
     }, null), notNullValue());
-    
+
   }
-  
+
   @Test
   public void testContainerVolumes() throws Exception {
     requireDockerApiVersionAtLeast(
@@ -2074,45 +2076,45 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final Bind bind =
-            Bind.from("/some/path")
-                .to("/some/other/path")
-                .readOnly(true)
-                .build();
+        Bind.from("/some/path")
+            .to("/some/other/path")
+            .readOnly(true)
+            .build();
     final HostConfig hostConfig = HostConfig.builder()
-            .appendBinds("/local/path:/remote/path")
-            .appendBinds(bind)
-            .build();
+        .appendBinds("/local/path:/remote/path")
+        .appendBinds(bind)
+        .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .volumes("/foo")
-            .hostConfig(hostConfig)
-            .build();
+        .image(BUSYBOX_LATEST)
+        .volumes("/foo")
+        .hostConfig(hostConfig)
+        .build();
     final String id = sut.createContainer(volumeConfig, randomName()).id();
     final ContainerInfo volumeContainer = sut.inspectContainer(id);
     final List<ContainerMount> containerMounts = volumeContainer.mounts();
 
     final List<String> expectedDesintations =
-            Lists.newArrayList("/foo", "/remote/path", "/some/other/path");
+        Lists.newArrayList("/foo", "/remote/path", "/some/other/path");
     final List<String> actualDesintations =
-            Lists.transform(Lists.newArrayList(containerMounts),
-                    new Function<ContainerMount, String>() {
-                      @Override
-                      public String apply(ContainerMount containerMount) {
-                        return containerMount.destination();
-                      }
-                    });
+        Lists.transform(Lists.newArrayList(containerMounts),
+                        new Function<ContainerMount, String>() {
+                          @Override
+                          public String apply(ContainerMount containerMount) {
+                            return containerMount.destination();
+                          }
+                        });
     assertThat(expectedDesintations, everyItem(isIn(actualDesintations)));
 
     final List<String> expectedSources =
-            Lists.newArrayList("/local/path", "/some/path");
+        Lists.newArrayList("/local/path", "/some/path");
     final List<String> actualSources =
-            Lists.transform(Lists.newArrayList(containerMounts),
-                    new Function<ContainerMount, String>() {
-                      @Override
-                      public String apply(ContainerMount containerMount) {
-                        return containerMount.source();
-                      }
-                    });
+        Lists.transform(Lists.newArrayList(containerMounts),
+                        new Function<ContainerMount, String>() {
+                          @Override
+                          public String apply(ContainerMount containerMount) {
+                            return containerMount.source();
+                          }
+                        });
     assertThat(expectedSources, everyItem(isIn(actualSources)));
 
     assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
@@ -2513,7 +2515,7 @@ public class DefaultDockerClientTest {
     }
 
     final ExecCreation execCreation = sut.execCreate(
-        containerId, new String[]{"sh", "-c", "exit 2"},
+        containerId, new String[] {"sh", "-c", "exit 2"},
         createParams.toArray(new ExecCreateParam[createParams.size()]));
     final String execId = execCreation.id();
 
@@ -2572,8 +2574,8 @@ public class DefaultDockerClientTest {
     // did not exist in docker prior to 1.8.0
     final DockerClient.ListContainersParam[] createdParams =
         dockerApiVersionAtLeast("1.20")
-        ? new DockerClient.ListContainersParam[]{allContainers(), withStatusCreated()}
-        : new DockerClient.ListContainersParam[]{allContainers()};
+        ? new DockerClient.ListContainersParam[] {allContainers(), withStatusCreated()}
+        : new DockerClient.ListContainersParam[] {allContainers()};
 
     final List<Container> created = sut.listContainers(createdParams);
     assertThat("listContainers is unexpectedly empty", created, not(empty()));
@@ -2725,8 +2727,8 @@ public class DefaultDockerClientTest {
         ListImagesParam.withLabel("name"));
     final List<String> nameIds =
         dockerApiVersionLessThan("1.22") ?
-            imagesToShortIds(nameImages) :
-            imagesToShortIdsAndRemoveSha256(nameImages);
+        imagesToShortIds(nameImages) :
+        imagesToShortIdsAndRemoveSha256(nameImages);
 
     assertThat(barId, isIn(nameIds));
     assertThat(bazId, isIn(nameIds));
@@ -2736,8 +2738,8 @@ public class DefaultDockerClientTest {
         ListImagesParam.withLabel("foo", "bar"));
     final List<String> barIds =
         dockerApiVersionLessThan("1.22") ?
-            imagesToShortIds(barImages) :
-            imagesToShortIdsAndRemoveSha256(barImages);
+        imagesToShortIds(barImages) :
+        imagesToShortIdsAndRemoveSha256(barImages);
     assertThat(barId, isIn(barIds));
 
     // Check that we find the first image again when searching with the full
@@ -2747,8 +2749,8 @@ public class DefaultDockerClientTest {
         ListImagesParam.withLabel("name", "testtesttest"));
     final List<String> barIds2 =
         dockerApiVersionLessThan("1.22") ?
-            imagesToShortIds(barImages2) :
-            imagesToShortIdsAndRemoveSha256(barImages2);
+        imagesToShortIds(barImages2) :
+        imagesToShortIdsAndRemoveSha256(barImages2);
     assertThat(barId, isIn(barIds2));
 
     // Check that the second image is listed when we filter with a "foo=baz" label
@@ -2756,8 +2758,8 @@ public class DefaultDockerClientTest {
         ListImagesParam.withLabel("foo", "baz"));
     final List<String> bazIds =
         dockerApiVersionLessThan("1.22") ?
-            imagesToShortIds(bazImages) :
-            imagesToShortIdsAndRemoveSha256(bazImages);
+        imagesToShortIds(bazImages) :
+        imagesToShortIdsAndRemoveSha256(bazImages);
     assertThat(bazId, isIn(bazIds));
 
     // Check that no containers are listed when we filter with a "foo=qux" label
@@ -3042,14 +3044,15 @@ public class DefaultDockerClientTest {
             e.message());
       } else if (dockerApiVersionLessThan("1.24")) {
         assertEquals(String.format("Container %s is not running\n", id),
-            e.message());
+                     e.message());
       } else {
         final ObjectMapper mapper = new ObjectMapper();
         final Map<String, String> jsonMessage =
-                mapper.readValue(e.message(), new TypeReference<Map<String, String>>(){});
+            mapper.readValue(e.message(), new TypeReference<Map<String, String>>() {
+            });
         assertThat(jsonMessage, hasKey("message"));
         assertEquals(String.format("Container %s is not running", id),
-                jsonMessage.get("message"));
+                     jsonMessage.get("message"));
       }
     }
 
@@ -3273,14 +3276,14 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.18", "IpcMode");
 
     final HostConfig hostConfig = HostConfig.builder()
-            .ipcMode("host")
-            .build();
+        .ipcMode("host")
+        .build();
 
     final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .cmd("sh", "-c", "while :; do sleep 1; done")
-            .hostConfig(hostConfig)
-            .build();
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .hostConfig(hostConfig)
+        .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final String containerId = container.id();
@@ -3319,11 +3322,11 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .hostConfig(HostConfig.builder()
-                    .oomKillDisable(true) // Defaults to false
-                    .build())
-            .build();
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .oomKillDisable(true) // Defaults to false
+                        .build())
+        .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -3379,31 +3382,31 @@ public class DefaultDockerClientTest {
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
     final TaskSpec taskSpec = TaskSpec
-            .builder()
-            .withContainerSpec(ContainerSpec.builder().withImage("alpine")
-                    .withCommands(commandLine).build())
-            .withLogDriver(Driver.builder().withName("json-file").withOption("max-file", "3")
-                    .withOption("max-size", "10M").build())
-            .withResources(ResourceRequirements.builder()
-                    .withLimits(com.spotify.docker.client.messages.swarm.Resources.builder().
-                            withMemoryBytes(10 * 1024 * 1024L).build())
-                    .build())
-            .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
-                    .withDelay(10000000).withMaxAttempts(10).build())
-            .build();
+        .builder()
+        .withContainerSpec(ContainerSpec.builder().withImage("alpine")
+                               .withCommands(commandLine).build())
+        .withLogDriver(Driver.builder().withName("json-file").withOption("max-file", "3")
+                           .withOption("max-size", "10M").build())
+        .withResources(ResourceRequirements.builder()
+                           .withLimits(com.spotify.docker.client.messages.swarm.Resources.builder().
+                               withMemoryBytes(10 * 1024 * 1024L).build())
+                           .build())
+        .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
+                               .withDelay(10000000).withMaxAttempts(10).build())
+        .build();
 
     final EndpointSpec endpointSpec = EndpointSpec.builder()
-            .withPorts(new PortConfig[]{PortConfig.builder().withName("web")
-                    .withProtocol("tcp").withPublishedPort(8080)
-                    .withTargetPort(80).build()})
-            .build();
+        .withPorts(new PortConfig[] {PortConfig.builder().withName("web")
+                                         .withProtocol("tcp").withPublishedPort(8080)
+                                         .withTargetPort(80).build()})
+        .build();
     final ServiceMode serviceMode = ServiceMode.withReplicas(4);
 
     final String serviceName = randomName();
     final ServiceSpec spec = ServiceSpec.builder().withName(serviceName).withTaskTemplate(taskSpec)
-            .withServiceMode(serviceMode)
-            .withEndpointSpec(endpointSpec)
-            .build();
+        .withServiceMode(serviceMode)
+        .withEndpointSpec(endpointSpec)
+        .build();
 
     final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
 
@@ -3412,7 +3415,7 @@ public class DefaultDockerClientTest {
     assertThat(service.spec().name(), is(serviceName));
     assertThat(service.spec().taskTemplate().containerSpec().image(), is("alpine"));
     assertThat(service.spec().taskTemplate().containerSpec().command(),
-            equalTo(Arrays.asList(commandLine)));
+               equalTo(Arrays.asList(commandLine)));
   }
 
   @Test
@@ -3428,12 +3431,12 @@ public class DefaultDockerClientTest {
 
     // update service with same spec, but bump the number of replicas by 1
     sut.updateService(response.id(), service.version().index(), ServiceSpec.builder()
-            .withName(service.spec().name())
-            .withTaskTemplate(service.spec().taskTemplate())
-            .withServiceMode(ServiceMode.withReplicas(5))
-            .withEndpointSpec(service.spec().endpointSpec())
-            .withUpdateConfig(service.spec().updateConfig())
-            .build());
+        .withName(service.spec().name())
+        .withTaskTemplate(service.spec().taskTemplate())
+        .withServiceMode(ServiceMode.withReplicas(5))
+        .withEndpointSpec(service.spec().endpointSpec())
+        .withUpdateConfig(service.spec().updateConfig())
+        .build());
     service = sut.inspectService(response.id());
     assertThat(service.spec().mode().replicated().replicas(), is(5L));
   }
@@ -3473,7 +3476,7 @@ public class DefaultDockerClientTest {
     sut.createService(spec, new ServiceCreateOptions());
 
     final List<Service> services =
-            sut.listServices(Service.find().withServiceName(serviceName).build());
+        sut.listServices(Service.find().withServiceName(serviceName).build());
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().name(), is(serviceName));
   }
@@ -3532,16 +3535,16 @@ public class DefaultDockerClientTest {
 
   private ServiceSpec createServiceSpec(final String serviceName) {
     final TaskSpec taskSpec = TaskSpec
-            .builder()
-            .withContainerSpec(ContainerSpec.builder().withImage("alpine")
-                    .withCommands(new String[]{"ping", "-c1000", "localhost"}).build())
-            .build();
+        .builder()
+        .withContainerSpec(ContainerSpec.builder().withImage("alpine")
+                               .withCommands(new String[] {"ping", "-c1000", "localhost"}).build())
+        .build();
 
     final ServiceMode serviceMode = ServiceMode.withReplicas(4);
 
     return ServiceSpec.builder().withName(serviceName).withTaskTemplate(taskSpec)
-            .withServiceMode(serviceMode)
-            .build();
+        .withServiceMode(serviceMode)
+        .build();
   }
 
   private String randomName() {

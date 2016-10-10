@@ -35,36 +35,61 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)
 public class ContainerInfo {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Created") private Date created;
-  @JsonProperty("Path") private String path;
-  @JsonProperty("Args") private ImmutableList<String> args;
-  @JsonProperty("Config") private ContainerConfig config;
-  @JsonProperty("HostConfig") private HostConfig hostConfig;
-  @JsonProperty("State") private ContainerState state;
-  @JsonProperty("Image") private String image;
-  @JsonProperty("NetworkSettings") private NetworkSettings networkSettings;
-  @JsonProperty("ResolvConfPath") private String resolvConfPath;
-  @JsonProperty("HostnamePath") private String hostnamePath;
-  @JsonProperty("HostsPath") private String hostsPath;
-  @JsonProperty("Name") private String name;
-  @JsonProperty("Driver") private String driver;
-  @JsonProperty("ExecDriver") private String execDriver;
-  @JsonProperty("ProcessLabel") private String processLabel;
-  @JsonProperty("MountLabel") private String mountLabel;
-  @JsonProperty("Volumes") private ImmutableMap<String, String> volumes;
-  @JsonProperty("VolumesRW") private ImmutableMap<String, Boolean> volumesRW;
-  @JsonProperty("AppArmorProfile") private String appArmorProfile;
-  @JsonProperty("ExecIDs") private ImmutableList<String> execId;
-  @JsonProperty("LogPath") private String logPath;
-  @JsonProperty("RestartCount") private Long restartCount;
-  @JsonProperty("Mounts") private ImmutableList<ContainerMount> mounts;
-  
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Created")
+  private Date created;
+  @JsonProperty("Path")
+  private String path;
+  @JsonProperty("Args")
+  private ImmutableList<String> args;
+  @JsonProperty("Config")
+  private ContainerConfig config;
+  @JsonProperty("HostConfig")
+  private HostConfig hostConfig;
+  @JsonProperty("State")
+  private ContainerState state;
+  @JsonProperty("Image")
+  private String image;
+  @JsonProperty("NetworkSettings")
+  private NetworkSettings networkSettings;
+  @JsonProperty("ResolvConfPath")
+  private String resolvConfPath;
+  @JsonProperty("HostnamePath")
+  private String hostnamePath;
+  @JsonProperty("HostsPath")
+  private String hostsPath;
+  @JsonProperty("Name")
+  private String name;
+  @JsonProperty("Driver")
+  private String driver;
+  @JsonProperty("ExecDriver")
+  private String execDriver;
+  @JsonProperty("ProcessLabel")
+  private String processLabel;
+  @JsonProperty("MountLabel")
+  private String mountLabel;
+  @JsonProperty("Volumes")
+  private ImmutableMap<String, String> volumes;
+  @JsonProperty("VolumesRW")
+  private ImmutableMap<String, Boolean> volumesRW;
+  @JsonProperty("AppArmorProfile")
+  private String appArmorProfile;
+  @JsonProperty("ExecIDs")
+  private ImmutableList<String> execId;
+  @JsonProperty("LogPath")
+  private String logPath;
+  @JsonProperty("RestartCount")
+  private Long restartCount;
+  @JsonProperty("Mounts")
+  private ImmutableList<ContainerMount> mounts;
+
   /**
    * This field is an extension defined by the Docker Swarm API, therefore it will only be populated
    * when communicating with a Swarm cluster.
    */
-  @JsonProperty("Node") private Node node;
+  @JsonProperty("Node")
+  private Node node;
 
   public String id() {
     return id;
@@ -137,8 +162,8 @@ public class ContainerInfo {
   /**
    * Volumes returned by execInspect
    *
-   * @return A map of volumes where the key is the source path on the local file system,
-   * and the key is the target path on the Docker host.
+   * @return A map of volumes where the key is the source path on the local file system, and the key
+   * is the target path on the Docker host.
    * @deprecated Replaced by {@link #mounts()} in API 1.20.
    */
   @Deprecated
@@ -149,8 +174,8 @@ public class ContainerInfo {
   /**
    * Volumes returned by execInspect
    *
-   * @return A map of volumes where the key is the source path on the local file system,
-   * and the key is the target path on the Docker host.
+   * @return A map of volumes where the key is the source path on the local file system, and the key
+   * is the target path on the Docker host.
    * @deprecated Replaced by {@link #mounts()} in API 1.20.
    */
   @Deprecated
@@ -174,29 +199,29 @@ public class ContainerInfo {
     final ContainerInfo that = (ContainerInfo) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.created, that.created) &&
-        Objects.equals(this.path, that.path) &&
-        Objects.equals(this.args, that.args) &&
-        Objects.equals(this.config, that.config) &&
-        Objects.equals(this.hostConfig, that.hostConfig) &&
-        Objects.equals(this.state, that.state) &&
-        Objects.equals(this.image, that.image) &&
-        Objects.equals(this.networkSettings, that.networkSettings) &&
-        Objects.equals(this.resolvConfPath, that.resolvConfPath) &&
-        Objects.equals(this.hostnamePath, that.hostnamePath) &&
-        Objects.equals(this.hostsPath, that.hostsPath) &&
-        Objects.equals(this.name, that.name) &&
-        Objects.equals(this.driver, that.driver) &&
-        Objects.equals(this.execDriver, that.execDriver) &&
-        Objects.equals(this.processLabel, that.processLabel) &&
-        Objects.equals(this.mountLabel, that.mountLabel) &&
-        Objects.equals(this.volumes, that.volumes) &&
-        Objects.equals(this.volumesRW, that.volumesRW) &&
-        Objects.equals(this.appArmorProfile, that.appArmorProfile) &&
-        Objects.equals(this.execId, that.execId) &&
-        Objects.equals(this.logPath, that.logPath) &&
-        Objects.equals(this.restartCount, that.restartCount) &&
-        Objects.equals(this.mounts, that.mounts);
+           Objects.equals(this.created, that.created) &&
+           Objects.equals(this.path, that.path) &&
+           Objects.equals(this.args, that.args) &&
+           Objects.equals(this.config, that.config) &&
+           Objects.equals(this.hostConfig, that.hostConfig) &&
+           Objects.equals(this.state, that.state) &&
+           Objects.equals(this.image, that.image) &&
+           Objects.equals(this.networkSettings, that.networkSettings) &&
+           Objects.equals(this.resolvConfPath, that.resolvConfPath) &&
+           Objects.equals(this.hostnamePath, that.hostnamePath) &&
+           Objects.equals(this.hostsPath, that.hostsPath) &&
+           Objects.equals(this.name, that.name) &&
+           Objects.equals(this.driver, that.driver) &&
+           Objects.equals(this.execDriver, that.execDriver) &&
+           Objects.equals(this.processLabel, that.processLabel) &&
+           Objects.equals(this.mountLabel, that.mountLabel) &&
+           Objects.equals(this.volumes, that.volumes) &&
+           Objects.equals(this.volumesRW, that.volumesRW) &&
+           Objects.equals(this.appArmorProfile, that.appArmorProfile) &&
+           Objects.equals(this.execId, that.execId) &&
+           Objects.equals(this.logPath, that.logPath) &&
+           Objects.equals(this.restartCount, that.restartCount) &&
+           Objects.equals(this.mounts, that.mounts);
   }
 
   @Override
@@ -241,10 +266,14 @@ public class ContainerInfo {
 
   public static class Node {
 
-    @JsonProperty("Id") private String id;
-    @JsonProperty("Ip") private String ip;
-    @JsonProperty("Addr") private String addr;
-    @JsonProperty("Name") private String name;
+    @JsonProperty("Id")
+    private String id;
+    @JsonProperty("Ip")
+    private String ip;
+    @JsonProperty("Addr")
+    private String addr;
+    @JsonProperty("Name")
+    private String name;
 
     public String getId() {
       return id;
@@ -277,9 +306,9 @@ public class ContainerInfo {
       final Node that = (Node) o;
 
       return Objects.equals(this.id, that.id) &&
-          Objects.equals(this.ip, that.ip) &&
-          Objects.equals(this.addr, that.addr) &&
-          Objects.equals(this.name, that.name);
+             Objects.equals(this.ip, that.ip) &&
+             Objects.equals(this.addr, that.addr) &&
+             Objects.equals(this.name, that.name);
     }
 
     @Override

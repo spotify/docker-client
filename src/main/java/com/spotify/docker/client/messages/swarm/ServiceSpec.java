@@ -32,149 +32,149 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ServiceSpec {
 
-    @JsonProperty("Name")
-    private String name;
+  @JsonProperty("Name")
+  private String name;
 
-    @JsonProperty("Labels")
-    private Map<String, String> labels;
+  @JsonProperty("Labels")
+  private Map<String, String> labels;
 
-    @JsonProperty("TaskTemplate")
-    private TaskSpec taskTemplate;
+  @JsonProperty("TaskTemplate")
+  private TaskSpec taskTemplate;
 
-    @JsonProperty("Mode")
-    private ServiceMode mode;
+  @JsonProperty("Mode")
+  private ServiceMode mode;
 
-    @JsonProperty("UpdateConfig")
-    private UpdateConfig updateConfig;
+  @JsonProperty("UpdateConfig")
+  private UpdateConfig updateConfig;
 
-    @JsonProperty("Networks")
-    private ImmutableList<NetworkAttachmentConfig> networks;
+  @JsonProperty("Networks")
+  private ImmutableList<NetworkAttachmentConfig> networks;
 
-    @JsonProperty("EndpointSpec")
-    private EndpointSpec endpointSpec;
+  @JsonProperty("EndpointSpec")
+  private EndpointSpec endpointSpec;
 
-    public String name() {
-        return name;
+  public String name() {
+    return name;
+  }
+
+  public Map<String, String> labels() {
+    return labels;
+  }
+
+  public TaskSpec taskTemplate() {
+    return taskTemplate;
+  }
+
+  public ServiceMode mode() {
+    return mode;
+  }
+
+  public UpdateConfig updateConfig() {
+    return updateConfig;
+  }
+
+  public List<NetworkAttachmentConfig> networks() {
+    return networks;
+  }
+
+  public EndpointSpec endpointSpec() {
+    return endpointSpec;
+  }
+
+  public static class Builder {
+
+    private ServiceSpec spec = new ServiceSpec();
+
+    public Builder withName(String name) {
+      spec.name = name;
+      return this;
     }
 
-    public Map<String, String> labels() {
-        return labels;
+    public Builder withLabel(String label, String value) {
+      if (spec.labels == null) {
+        spec.labels = new HashMap<String, String>();
+      }
+      spec.labels.put(label, value);
+      return this;
     }
 
-    public TaskSpec taskTemplate() {
-        return taskTemplate;
+    public Builder withLabels(Map<String, String> labels) {
+      if (spec.labels == null) {
+        spec.labels = new HashMap<String, String>();
+      }
+
+      spec.labels.putAll(labels);
+      return this;
     }
 
-    public ServiceMode mode() {
-        return mode;
+    public Builder withTaskTemplate(TaskSpec taskTemplate) {
+      spec.taskTemplate = taskTemplate;
+      return this;
     }
 
-    public UpdateConfig updateConfig() {
-        return updateConfig;
+    public Builder withServiceMode(ServiceMode mode) {
+      spec.mode = mode;
+      return this;
     }
 
-    public List<NetworkAttachmentConfig> networks() {
-        return networks;
+    public Builder withUpdateConfig(UpdateConfig updateConfig) {
+      spec.updateConfig = updateConfig;
+      return this;
     }
 
-    public EndpointSpec endpointSpec() {
-        return endpointSpec;
+    public Builder withNetworks(NetworkAttachmentConfig... networks) {
+      spec.networks = ImmutableList.copyOf(networks);
+      return this;
     }
 
-    public static class Builder {
-
-        private ServiceSpec spec = new ServiceSpec();
-
-        public Builder withName(String name) {
-            spec.name = name;
-            return this;
-        }
-
-        public Builder withLabel(String label, String value) {
-            if (spec.labels == null) {
-                spec.labels = new HashMap<String, String>();
-            }
-            spec.labels.put(label, value);
-            return this;
-        }
-
-        public Builder withLabels(Map<String, String> labels) {
-            if (spec.labels == null) {
-                spec.labels = new HashMap<String, String>();
-            }
-
-            spec.labels.putAll(labels);
-            return this;
-        }
-
-        public Builder withTaskTemplate(TaskSpec taskTemplate) {
-            spec.taskTemplate = taskTemplate;
-            return this;
-        }
-
-        public Builder withServiceMode(ServiceMode mode) {
-            spec.mode = mode;
-            return this;
-        }
-
-        public Builder withUpdateConfig(UpdateConfig updateConfig) {
-            spec.updateConfig = updateConfig;
-            return this;
-        }
-
-        public Builder withNetworks(NetworkAttachmentConfig... networks) {
-            spec.networks = ImmutableList.copyOf(networks);
-            return this;
-        }
-
-        public Builder withNetworks(List<NetworkAttachmentConfig> networks) {
-            spec.networks = ImmutableList.copyOf(networks);
-            return this;
-        }
-
-        public Builder withEndpointSpec(EndpointSpec endpointSpec) {
-            spec.endpointSpec = endpointSpec;
-            return this;
-        }
-
-        public ServiceSpec build() {
-            return spec;
-        }
+    public Builder withNetworks(List<NetworkAttachmentConfig> networks) {
+      spec.networks = ImmutableList.copyOf(networks);
+      return this;
     }
 
-    public static ServiceSpec.Builder builder() {
-        return new ServiceSpec.Builder();
+    public Builder withEndpointSpec(EndpointSpec endpointSpec) {
+      spec.endpointSpec = endpointSpec;
+      return this;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    public ServiceSpec build() {
+      return spec;
+    }
+  }
 
-        final ServiceSpec that = (ServiceSpec) o;
+  public static ServiceSpec.Builder builder() {
+    return new ServiceSpec.Builder();
+  }
 
-        return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
-                && Objects.equals(this.taskTemplate, that.taskTemplate)
-                && Objects.equals(this.mode, that.mode)
-                && Objects.equals(this.updateConfig, that.updateConfig)
-                && Objects.equals(this.networks, that.networks)
-                && Objects.equals(this.endpointSpec, that.endpointSpec);
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, labels, taskTemplate, mode, updateConfig, networks, endpointSpec);
-    }
+    final ServiceSpec that = (ServiceSpec) o;
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
-                .add("taskTemplate", taskTemplate).add("mode", mode)
-                .add("updateConfig", updateConfig).add("networks", networks)
-                .add("endpointSpec", endpointSpec).toString();
-    }
+    return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.taskTemplate, that.taskTemplate)
+           && Objects.equals(this.mode, that.mode)
+           && Objects.equals(this.updateConfig, that.updateConfig)
+           && Objects.equals(this.networks, that.networks)
+           && Objects.equals(this.endpointSpec, that.endpointSpec);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, labels, taskTemplate, mode, updateConfig, networks, endpointSpec);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
+        .add("taskTemplate", taskTemplate).add("mode", mode)
+        .add("updateConfig", updateConfig).add("networks", networks)
+        .add("endpointSpec", endpointSpec).toString();
+  }
 }

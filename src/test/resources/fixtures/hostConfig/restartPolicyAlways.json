@@ -1,3 +1,5 @@
 {
-  "RestartPolicy": { "Name": "always" }
+  "RestartPolicy": {
+    "Name": "always"
+  }
 }

@@ -30,51 +30,51 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Endpoint {
 
-    @JsonProperty("Spec")
-    private EndpointSpec spec;
+  @JsonProperty("Spec")
+  private EndpointSpec spec;
 
-    @JsonProperty("ExposedPorts")
-    private ImmutableList<PortConfig> exposedPorts;
+  @JsonProperty("ExposedPorts")
+  private ImmutableList<PortConfig> exposedPorts;
 
-    @JsonProperty("VirtualIPs")
-    private ImmutableList<EndpointVirtualIp> virtualIps;
+  @JsonProperty("VirtualIPs")
+  private ImmutableList<EndpointVirtualIp> virtualIps;
 
-    public EndpointSpec spec() {
-        return spec;
+  public EndpointSpec spec() {
+    return spec;
+  }
+
+  public List<PortConfig> exposedPorts() {
+    return exposedPorts;
+  }
+
+  public List<EndpointVirtualIp> virtualIps() {
+    return virtualIps;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public List<PortConfig> exposedPorts() {
-        return exposedPorts;
-    }
+    final Endpoint that = (Endpoint) o;
 
-    public List<EndpointVirtualIp> virtualIps() {
-        return virtualIps;
-    }
+    return Objects.equals(this.spec, that.spec)
+           && Objects.equals(this.exposedPorts, that.exposedPorts)
+           && Objects.equals(this.virtualIps, that.virtualIps);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec, exposedPorts, virtualIps);
+  }
 
-        final Endpoint that = (Endpoint) o;
-
-        return Objects.equals(this.spec, that.spec)
-                && Objects.equals(this.exposedPorts, that.exposedPorts)
-                && Objects.equals(this.virtualIps, that.virtualIps);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(spec, exposedPorts, virtualIps);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("spec", spec).add("ports", exposedPorts)
-                .add("virtualIps", virtualIps).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("spec", spec).add("ports", exposedPorts)
+        .add("virtualIps", virtualIps).toString();
+  }
 }

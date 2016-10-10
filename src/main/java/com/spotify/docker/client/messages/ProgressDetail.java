@@ -23,9 +23,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ProgressDetail {
 
-  @JsonProperty private long current;
-  @JsonProperty private long start;
-  @JsonProperty private long total;
+  @JsonProperty
+  private long current;
+  @JsonProperty
+  private long start;
+  @JsonProperty
+  private long total;
 
   public long current() {
     return current;

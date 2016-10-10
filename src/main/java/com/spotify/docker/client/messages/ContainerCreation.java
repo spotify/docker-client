@@ -32,8 +32,10 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerCreation {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Warnings") private ImmutableList<String> warnings;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Warnings")
+  private ImmutableList<String> warnings;
 
   public ContainerCreation() {
   }
@@ -62,7 +64,7 @@ public class ContainerCreation {
     final ContainerCreation that = (ContainerCreation) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.warnings, that.warnings);
+           Objects.equals(this.warnings, that.warnings);
   }
 
   @Override

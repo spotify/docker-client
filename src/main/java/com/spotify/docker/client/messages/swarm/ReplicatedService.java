@@ -28,52 +28,52 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ReplicatedService {
 
-    @JsonProperty("Replicas")
-    private Long replicas;
+  @JsonProperty("Replicas")
+  private Long replicas;
 
-    public Long replicas() {
-        return replicas;
+  public Long replicas() {
+    return replicas;
+  }
+
+  public static class Builder {
+
+    private ReplicatedService replicated = new ReplicatedService();
+
+    public Builder withReplicas(long replicas) {
+      replicated.replicas = replicas;
+      return this;
     }
 
-    public static class Builder {
+    public ReplicatedService build() {
+      return replicated;
+    }
+  }
 
-        private ReplicatedService replicated = new ReplicatedService();
+  public static ReplicatedService.Builder builder() {
+    return new ReplicatedService.Builder();
+  }
 
-        public Builder withReplicas(long replicas) {
-            replicated.replicas = replicas;
-            return this;
-        }
-
-        public ReplicatedService build() {
-            return replicated;
-        }
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public static ReplicatedService.Builder builder() {
-        return new ReplicatedService.Builder();
-    }
+    final ReplicatedService that = (ReplicatedService) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.replicas, that.replicas);
+  }
 
-        final ReplicatedService that = (ReplicatedService) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(replicas);
+  }
 
-        return Objects.equals(this.replicas, that.replicas);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(replicas);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("replicas", replicas).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("replicas", replicas).toString();
+  }
 }

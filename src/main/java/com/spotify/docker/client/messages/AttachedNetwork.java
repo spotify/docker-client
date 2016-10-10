@@ -29,15 +29,24 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class AttachedNetwork {
 
-  @JsonProperty("NetworkID") private String networkId;
-  @JsonProperty("EndpointID") private String endpointId;
-  @JsonProperty("Gateway") private String gateway;
-  @JsonProperty("IPAddress") private String ipAddress;
-  @JsonProperty("IPPrefixLen") private Integer ipPrefixLen;
-  @JsonProperty("IPv6Gateway") private String ipv6Gateway;
-  @JsonProperty("GlobalIPv6Address") private String globalIPv6Address;
-  @JsonProperty("GlobalIPv6PrefixLen") private Integer globalIPv6PrefixLen;
-  @JsonProperty("MacAddress") private String macAddress;
+  @JsonProperty("NetworkID")
+  private String networkId;
+  @JsonProperty("EndpointID")
+  private String endpointId;
+  @JsonProperty("Gateway")
+  private String gateway;
+  @JsonProperty("IPAddress")
+  private String ipAddress;
+  @JsonProperty("IPPrefixLen")
+  private Integer ipPrefixLen;
+  @JsonProperty("IPv6Gateway")
+  private String ipv6Gateway;
+  @JsonProperty("GlobalIPv6Address")
+  private String globalIPv6Address;
+  @JsonProperty("GlobalIPv6PrefixLen")
+  private Integer globalIPv6PrefixLen;
+  @JsonProperty("MacAddress")
+  private String macAddress;
 
   public String networkId() {
     return networkId;
@@ -87,20 +96,20 @@ public class AttachedNetwork {
     final AttachedNetwork that = (AttachedNetwork) o;
 
     return Objects.equals(this.networkId, that.networkId) &&
-        Objects.equals(this.endpointId, that.endpointId) &&
-        Objects.equals(this.gateway, that.gateway) &&
-        Objects.equals(this.ipAddress, that.ipAddress) &&
-        Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
-        Objects.equals(this.ipv6Gateway, that.ipv6Gateway) &&
-        Objects.equals(this.globalIPv6Address, that.globalIPv6Address) &&
-        Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
-        Objects.equals(this.macAddress, that.macAddress);
+           Objects.equals(this.endpointId, that.endpointId) &&
+           Objects.equals(this.gateway, that.gateway) &&
+           Objects.equals(this.ipAddress, that.ipAddress) &&
+           Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
+           Objects.equals(this.ipv6Gateway, that.ipv6Gateway) &&
+           Objects.equals(this.globalIPv6Address, that.globalIPv6Address) &&
+           Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
+           Objects.equals(this.macAddress, that.macAddress);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(networkId, endpointId, gateway, ipAddress, ipPrefixLen, ipv6Gateway,
-        globalIPv6Address, globalIPv6PrefixLen, macAddress);
+                        globalIPv6Address, globalIPv6PrefixLen, macAddress);
   }
 
   @Override

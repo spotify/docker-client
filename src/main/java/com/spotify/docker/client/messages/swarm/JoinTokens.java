@@ -28,43 +28,43 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class JoinTokens {
 
-    @JsonProperty("Worker")
-    private String worker;
+  @JsonProperty("Worker")
+  private String worker;
 
-    @JsonProperty("Manager")
-    private String manager;
+  @JsonProperty("Manager")
+  private String manager;
 
-    public String worker() {
-        return worker;
+  public String worker() {
+    return worker;
+  }
+
+  public String manager() {
+    return manager;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public String manager() {
-        return manager;
-    }
+    final JoinTokens that = (JoinTokens) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.worker, that.worker)
+           && Objects.equals(this.manager, that.manager);
+  }
 
-        final JoinTokens that = (JoinTokens) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(worker, manager);
+  }
 
-        return Objects.equals(this.worker, that.worker)
-                && Objects.equals(this.manager, that.manager);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(worker, manager);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("worker", worker).add("manager", manager)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("worker", worker).add("manager", manager)
+        .toString();
+  }
 }

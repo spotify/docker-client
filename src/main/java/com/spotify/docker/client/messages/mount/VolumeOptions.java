@@ -30,86 +30,86 @@ import com.google.common.base.MoreObjects;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class VolumeOptions {
 
-    @JsonProperty("NoCopy")
-    private Boolean noCopy;
+  @JsonProperty("NoCopy")
+  private Boolean noCopy;
 
-    @JsonProperty("Labels")
-    private Map<String, String> labels;
+  @JsonProperty("Labels")
+  private Map<String, String> labels;
 
-    @JsonProperty("DriverConfig")
-    private Driver driverConfig;
+  @JsonProperty("DriverConfig")
+  private Driver driverConfig;
 
-    public Boolean noCopy() {
-        return noCopy;
+  public Boolean noCopy() {
+    return noCopy;
+  }
+
+  public Map<String, String> labels() {
+    return labels;
+  }
+
+  public Driver driverConfig() {
+    return driverConfig;
+  }
+
+  public static class Builder {
+
+    private VolumeOptions volume = new VolumeOptions();
+
+    public Builder withNoCopy() {
+      volume.noCopy = true;
+      return this;
     }
 
-    public Map<String, String> labels() {
-        return labels;
+    public Builder withNoCopy(boolean noCopy) {
+      volume.noCopy = noCopy;
+      return this;
     }
 
-    public Driver driverConfig() {
-        return driverConfig;
+    public Builder withLabel(String label, String value) {
+      if (volume.labels == null) {
+        volume.labels = new HashMap<String, String>();
+      }
+      volume.labels.put(label, value);
+      return this;
     }
 
-    public static class Builder {
-
-        private VolumeOptions volume = new VolumeOptions();
-
-        public Builder withNoCopy() {
-            volume.noCopy = true;
-            return this;
-        }
-
-        public Builder withNoCopy(boolean noCopy) {
-            volume.noCopy = noCopy;
-            return this;
-        }
-
-        public Builder withLabel(String label, String value) {
-            if (volume.labels == null) {
-                volume.labels = new HashMap<String, String>();
-            }
-            volume.labels.put(label, value);
-            return this;
-        }
-
-        public Builder withDriverConfig(Driver driverConfig) {
-            volume.driverConfig = driverConfig;
-            return this;
-        }
-
-        public VolumeOptions build() {
-            return volume;
-        }
+    public Builder withDriverConfig(Driver driverConfig) {
+      volume.driverConfig = driverConfig;
+      return this;
     }
 
-    public static VolumeOptions.Builder builder() {
-        return new VolumeOptions.Builder();
+    public VolumeOptions build() {
+      return volume;
+    }
+  }
+
+  public static VolumeOptions.Builder builder() {
+    return new VolumeOptions.Builder();
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final VolumeOptions that = (VolumeOptions) o;
 
-        final VolumeOptions that = (VolumeOptions) o;
+    return Objects.equals(this.noCopy, that.noCopy) && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.driverConfig, that.driverConfig);
+  }
 
-        return Objects.equals(this.noCopy, that.noCopy) && Objects.equals(this.labels, that.labels)
-                && Objects.equals(this.driverConfig, that.driverConfig);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(noCopy, labels, driverConfig);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(noCopy, labels, driverConfig);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("noCopy", noCopy).add("labels", labels)
-                .add("driverConfig", driverConfig).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("noCopy", noCopy).add("labels", labels)
+        .add("driverConfig", driverConfig).toString();
+  }
 }

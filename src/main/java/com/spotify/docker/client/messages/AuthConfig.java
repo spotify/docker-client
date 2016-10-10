@@ -50,10 +50,17 @@ public class AuthConfig {
   // ObjectMapper is thread-safe and this saves us from having instantiate it every time
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  @JsonProperty("Username") private String username;
-  @JsonProperty("Password") private String password;
-  @JsonProperty("Email") private String email;
-  @JsonProperty("ServerAddress") private String serverAddress;
+  @JsonProperty("Username")
+  private String username;
+
+  @JsonProperty("Password")
+  private String password;
+
+  @JsonProperty("Email")
+  private String email;
+
+  @JsonProperty("ServerAddress")
+  private String serverAddress;
 
   @SuppressWarnings("unused")
   private AuthConfig() {
@@ -94,9 +101,9 @@ public class AuthConfig {
     final AuthConfig that = (AuthConfig) o;
 
     return Objects.equals(this.username, that.username) &&
-        Objects.equals(this.password, that.password) &&
-        Objects.equals(this.email, that.email) &&
-        Objects.equals(this.serverAddress, that.serverAddress);
+           Objects.equals(this.password, that.password) &&
+           Objects.equals(this.email, that.email) &&
+           Objects.equals(this.serverAddress, that.serverAddress);
   }
 
   @Override

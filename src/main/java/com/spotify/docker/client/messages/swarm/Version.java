@@ -28,34 +28,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Version {
 
-    @JsonProperty("Index")
-    private Long index;
+  @JsonProperty("Index")
+  private Long index;
 
-    public Long index() {
-        return index;
+  public Long index() {
+    return index;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final Version that = (Version) o;
 
-        final Version that = (Version) o;
+    return Objects.equals(this.index, that.index);
+  }
 
-        return Objects.equals(this.index, that.index);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(index);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(index);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("index", index).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("index", index).toString();
+  }
 }

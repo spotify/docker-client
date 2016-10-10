@@ -1,1 +1,12 @@
-{"Status": "running","Error": "this is an error", "ExitCode":0,"FinishedAt":"0001-01-01T00:00:00Z", "OOMKilled": false, "Paused":false,"Pid":27629,"Restarting":false,"Running":true,"StartedAt":"2014-10-02T07:59:58.929064724Z"}
+{
+  "Status": "running",
+  "Error": "this is an error",
+  "ExitCode": 0,
+  "FinishedAt": "0001-01-01T00:00:00Z",
+  "OOMKilled": false,
+  "Paused": false,
+  "Pid": 27629,
+  "Restarting": false,
+  "Running": true,
+  "StartedAt": "2014-10-02T07:59:58.929064724Z"
+}

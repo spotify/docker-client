@@ -37,29 +37,52 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerConfig {
 
-  @JsonProperty("Hostname") private String hostname;
-  @JsonProperty("Domainname") private String domainname;
-  @JsonProperty("User") private String user;
-  @JsonProperty("AttachStdin") private Boolean attachStdin;
-  @JsonProperty("AttachStdout") private Boolean attachStdout;
-  @JsonProperty("AttachStderr") private Boolean attachStderr;
-  @JsonProperty("PortSpecs") private ImmutableList<String> portSpecs;
-  @JsonProperty("ExposedPorts") private ImmutableSet<String> exposedPorts;
-  @JsonProperty("Tty") private Boolean tty;
-  @JsonProperty("OpenStdin") private Boolean openStdin;
-  @JsonProperty("StdinOnce") private Boolean stdinOnce;
-  @JsonProperty("Env") private ImmutableList<String> env;
-  @JsonProperty("Cmd") private ImmutableList<String> cmd;
-  @JsonProperty("Image") private String image;
-  @JsonProperty("Volumes") private ImmutableMap<String, Map> volumes;
-  @JsonProperty("WorkingDir") private String workingDir;
-  @JsonProperty("Entrypoint") private ImmutableList<String> entrypoint;
-  @JsonProperty("NetworkDisabled") private Boolean networkDisabled;
-  @JsonProperty("OnBuild") private ImmutableList<String> onBuild;
-  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
-  @JsonProperty("MacAddress") private String macAddress;
-  @JsonProperty("HostConfig") private HostConfig hostConfig;
-  @JsonProperty("StopSignal") private String stopSignal;
+  @JsonProperty("Hostname")
+  private String hostname;
+  @JsonProperty("Domainname")
+  private String domainname;
+  @JsonProperty("User")
+  private String user;
+  @JsonProperty("AttachStdin")
+  private Boolean attachStdin;
+  @JsonProperty("AttachStdout")
+  private Boolean attachStdout;
+  @JsonProperty("AttachStderr")
+  private Boolean attachStderr;
+  @JsonProperty("PortSpecs")
+  private ImmutableList<String> portSpecs;
+  @JsonProperty("ExposedPorts")
+  private ImmutableSet<String> exposedPorts;
+  @JsonProperty("Tty")
+  private Boolean tty;
+  @JsonProperty("OpenStdin")
+  private Boolean openStdin;
+  @JsonProperty("StdinOnce")
+  private Boolean stdinOnce;
+  @JsonProperty("Env")
+  private ImmutableList<String> env;
+  @JsonProperty("Cmd")
+  private ImmutableList<String> cmd;
+  @JsonProperty("Image")
+  private String image;
+  @JsonProperty("Volumes")
+  private ImmutableMap<String, Map> volumes;
+  @JsonProperty("WorkingDir")
+  private String workingDir;
+  @JsonProperty("Entrypoint")
+  private ImmutableList<String> entrypoint;
+  @JsonProperty("NetworkDisabled")
+  private Boolean networkDisabled;
+  @JsonProperty("OnBuild")
+  private ImmutableList<String> onBuild;
+  @JsonProperty("Labels")
+  private ImmutableMap<String, String> labels;
+  @JsonProperty("MacAddress")
+  private String macAddress;
+  @JsonProperty("HostConfig")
+  private HostConfig hostConfig;
+  @JsonProperty("StopSignal")
+  private String stopSignal;
 
 
   private ContainerConfig() {
@@ -198,28 +221,28 @@ public class ContainerConfig {
     final ContainerConfig that = (ContainerConfig) o;
 
     return Objects.equals(this.hostname, that.hostname) &&
-        Objects.equals(this.domainname, that.domainname) &&
-        Objects.equals(this.user, that.user) &&
-        Objects.equals(this.attachStdin, that.attachStdin) &&
-        Objects.equals(this.attachStdout, that.attachStdout) &&
-        Objects.equals(this.attachStderr, that.attachStderr) &&
-        Objects.equals(this.portSpecs, that.portSpecs) &&
-        Objects.equals(this.exposedPorts, that.exposedPorts) &&
-        Objects.equals(this.tty, that.tty) &&
-        Objects.equals(this.openStdin, that.openStdin) &&
-        Objects.equals(this.stdinOnce, that.stdinOnce) &&
-        Objects.equals(this.env, that.env) &&
-        Objects.equals(this.cmd, that.cmd) &&
-        Objects.equals(this.image, that.image) &&
-        Objects.equals(this.volumes, that.volumes) &&
-        Objects.equals(this.workingDir, that.workingDir) &&
-        Objects.equals(this.entrypoint, that.entrypoint) &&
-        Objects.equals(this.networkDisabled, that.networkDisabled) &&
-        Objects.equals(this.onBuild, that.onBuild) &&
-        Objects.equals(this.labels, that.labels) &&
-        Objects.equals(this.macAddress, that.macAddress) &&
-        Objects.equals(this.hostConfig, that.hostConfig) &&
-        Objects.equals(this.stopSignal, that.stopSignal);
+           Objects.equals(this.domainname, that.domainname) &&
+           Objects.equals(this.user, that.user) &&
+           Objects.equals(this.attachStdin, that.attachStdin) &&
+           Objects.equals(this.attachStdout, that.attachStdout) &&
+           Objects.equals(this.attachStderr, that.attachStderr) &&
+           Objects.equals(this.portSpecs, that.portSpecs) &&
+           Objects.equals(this.exposedPorts, that.exposedPorts) &&
+           Objects.equals(this.tty, that.tty) &&
+           Objects.equals(this.openStdin, that.openStdin) &&
+           Objects.equals(this.stdinOnce, that.stdinOnce) &&
+           Objects.equals(this.env, that.env) &&
+           Objects.equals(this.cmd, that.cmd) &&
+           Objects.equals(this.image, that.image) &&
+           Objects.equals(this.volumes, that.volumes) &&
+           Objects.equals(this.workingDir, that.workingDir) &&
+           Objects.equals(this.entrypoint, that.entrypoint) &&
+           Objects.equals(this.networkDisabled, that.networkDisabled) &&
+           Objects.equals(this.onBuild, that.onBuild) &&
+           Objects.equals(this.labels, that.labels) &&
+           Objects.equals(this.macAddress, that.macAddress) &&
+           Objects.equals(this.hostConfig, that.hostConfig) &&
+           Objects.equals(this.stopSignal, that.stopSignal);
   }
 
   @Override

@@ -31,9 +31,12 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class CpuStats {
 
-  @JsonProperty("cpu_usage") private CpuUsage cpuUsage;
-  @JsonProperty("system_cpu_usage") private Long systemCpuUsage;
-  @JsonProperty("throttling_data") private ThrottlingData throttlingData;
+  @JsonProperty("cpu_usage")
+  private CpuUsage cpuUsage;
+  @JsonProperty("system_cpu_usage")
+  private Long systemCpuUsage;
+  @JsonProperty("throttling_data")
+  private ThrottlingData throttlingData;
 
   public CpuUsage cpuUsage() {
     return cpuUsage;
@@ -59,8 +62,8 @@ public class CpuStats {
     final CpuStats that = (CpuStats) o;
 
     return Objects.equals(this.cpuUsage, that.cpuUsage) &&
-        Objects.equals(this.systemCpuUsage, that.systemCpuUsage) &&
-        Objects.equals(this.throttlingData, that.throttlingData);
+           Objects.equals(this.systemCpuUsage, that.systemCpuUsage) &&
+           Objects.equals(this.throttlingData, that.throttlingData);
   }
 
   @Override
@@ -78,10 +81,15 @@ public class CpuStats {
   }
 
   public static class CpuUsage {
-    @JsonProperty("total_usage") private Long totalUsage;
-    @JsonProperty("percpu_usage") private ImmutableList<Long> percpuUsage;
-    @JsonProperty("usage_in_kernelmode") private Long usageInKernelmode;
-    @JsonProperty("usage_in_usermode") private Long usageInUsermode;
+
+    @JsonProperty("total_usage")
+    private Long totalUsage;
+    @JsonProperty("percpu_usage")
+    private ImmutableList<Long> percpuUsage;
+    @JsonProperty("usage_in_kernelmode")
+    private Long usageInKernelmode;
+    @JsonProperty("usage_in_usermode")
+    private Long usageInUsermode;
 
     public Long totalUsage() {
       return totalUsage;
@@ -111,9 +119,9 @@ public class CpuStats {
       final CpuUsage that = (CpuUsage) o;
 
       return Objects.equals(this.totalUsage, that.totalUsage) &&
-          Objects.equals(this.percpuUsage, that.percpuUsage) &&
-          Objects.equals(this.usageInKernelmode, that.usageInKernelmode) &&
-          Objects.equals(this.usageInUsermode, that.usageInUsermode);
+             Objects.equals(this.percpuUsage, that.percpuUsage) &&
+             Objects.equals(this.usageInKernelmode, that.usageInKernelmode) &&
+             Objects.equals(this.usageInUsermode, that.usageInUsermode);
     }
 
     @Override
@@ -133,9 +141,13 @@ public class CpuStats {
   }
 
   public static class ThrottlingData {
-    @JsonProperty("periods") private Long periods;
-    @JsonProperty("throttled_periods") private Long throttledPeriods;
-    @JsonProperty("throttled_time") private Long throttledTime;
+
+    @JsonProperty("periods")
+    private Long periods;
+    @JsonProperty("throttled_periods")
+    private Long throttledPeriods;
+    @JsonProperty("throttled_time")
+    private Long throttledTime;
 
     public Long throttledTime() {
       return throttledTime;
@@ -162,8 +174,8 @@ public class CpuStats {
       final ThrottlingData that = (ThrottlingData) o;
 
       return Objects.equals(this.periods, that.periods) &&
-          Objects.equals(this.throttledPeriods, that.throttledPeriods) &&
-          Objects.equals(this.throttledTime, that.throttledTime);
+             Objects.equals(this.throttledPeriods, that.throttledPeriods) &&
+             Objects.equals(this.throttledTime, that.throttledTime);
     }
 
     @Override

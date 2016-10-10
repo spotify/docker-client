@@ -30,8 +30,10 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkCreation {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Warnings") private String warnings;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Warnings")
+  private String warnings;
 
   public String id() {
     return id;
@@ -53,7 +55,7 @@ public class NetworkCreation {
     final NetworkCreation that = (NetworkCreation) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.warnings, that.warnings);
+           Objects.equals(this.warnings, that.warnings);
   }
 
   @Override

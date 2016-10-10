@@ -31,19 +31,32 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageInfo {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Parent") private String parent;
-  @JsonProperty("Comment") private String comment;
-  @JsonProperty("Created") private Date created;
-  @JsonProperty("Container") private String container;
-  @JsonProperty("ContainerConfig") private ContainerConfig containerConfig;
-  @JsonProperty("DockerVersion") private String dockerVersion;
-  @JsonProperty("Author") private String author;
-  @JsonProperty("Config") private ContainerConfig config;
-  @JsonProperty("Architecture") private String architecture;
-  @JsonProperty("Os") private String os;
-  @JsonProperty("Size") private Long size;
-  @JsonProperty("VirtualSize") private Long virtualSize;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Parent")
+  private String parent;
+  @JsonProperty("Comment")
+  private String comment;
+  @JsonProperty("Created")
+  private Date created;
+  @JsonProperty("Container")
+  private String container;
+  @JsonProperty("ContainerConfig")
+  private ContainerConfig containerConfig;
+  @JsonProperty("DockerVersion")
+  private String dockerVersion;
+  @JsonProperty("Author")
+  private String author;
+  @JsonProperty("Config")
+  private ContainerConfig config;
+  @JsonProperty("Architecture")
+  private String architecture;
+  @JsonProperty("Os")
+  private String os;
+  @JsonProperty("Size")
+  private Long size;
+  @JsonProperty("VirtualSize")
+  private Long virtualSize;
 
   public String id() {
     return id;
@@ -109,18 +122,18 @@ public class ImageInfo {
     final ImageInfo that = (ImageInfo) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.parent, that.parent) &&
-        Objects.equals(this.comment, that.comment) &&
-        Objects.equals(this.created, that.created) &&
-        Objects.equals(this.container, that.container) &&
-        Objects.equals(this.containerConfig, that.containerConfig) &&
-        Objects.equals(this.dockerVersion, that.dockerVersion) &&
-        Objects.equals(this.author, that.author) &&
-        Objects.equals(this.config, that.config) &&
-        Objects.equals(this.architecture, that.architecture) &&
-        Objects.equals(this.os, that.os) &&
-        Objects.equals(this.size, that.size) &&
-        Objects.equals(this.virtualSize, that.virtualSize);
+           Objects.equals(this.parent, that.parent) &&
+           Objects.equals(this.comment, that.comment) &&
+           Objects.equals(this.created, that.created) &&
+           Objects.equals(this.container, that.container) &&
+           Objects.equals(this.containerConfig, that.containerConfig) &&
+           Objects.equals(this.dockerVersion, that.dockerVersion) &&
+           Objects.equals(this.author, that.author) &&
+           Objects.equals(this.config, that.config) &&
+           Objects.equals(this.architecture, that.architecture) &&
+           Objects.equals(this.os, that.os) &&
+           Objects.equals(this.size, that.size) &&
+           Objects.equals(this.virtualSize, that.virtualSize);
   }
 
   @Override

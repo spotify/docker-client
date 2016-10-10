@@ -34,15 +34,24 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ExecState {
 
-  @JsonProperty("ID") private String id;
-  @JsonProperty("Running") private Boolean running;
-  @JsonProperty("ExitCode") private Integer exitCode;
-  @JsonProperty("ProcessConfig") private ProcessConfig processConfig;
-  @JsonProperty("OpenStdin") private Boolean openStdin;
-  @JsonProperty("OpenStderr") private Boolean openStderr;
-  @JsonProperty("OpenStdout") private Boolean openStdout;
-  @JsonProperty("Container") private ContainerInfo container;
-  @JsonProperty("ContainerID") private String containerID;
+  @JsonProperty("ID")
+  private String id;
+  @JsonProperty("Running")
+  private Boolean running;
+  @JsonProperty("ExitCode")
+  private Integer exitCode;
+  @JsonProperty("ProcessConfig")
+  private ProcessConfig processConfig;
+  @JsonProperty("OpenStdin")
+  private Boolean openStdin;
+  @JsonProperty("OpenStderr")
+  private Boolean openStderr;
+  @JsonProperty("OpenStdout")
+  private Boolean openStdout;
+  @JsonProperty("Container")
+  private ContainerInfo container;
+  @JsonProperty("ContainerID")
+  private String containerID;
 
   public String id() {
     return id;
@@ -92,14 +101,14 @@ public class ExecState {
     final ExecState that = (ExecState) o;
 
     return Objects.equals(this.id, that.id) &&
-        Objects.equals(this.running, that.running) &&
-        Objects.equals(this.exitCode, that.exitCode) &&
-        Objects.equals(this.processConfig, that.processConfig) &&
-        Objects.equals(this.openStdin, that.openStdin) &&
-        Objects.equals(this.openStderr, that.openStderr) &&
-        Objects.equals(this.openStdout, that.openStdout) &&
-        Objects.equals(this.container, that.container) &&
-        Objects.equals(this.containerID, that.containerID);
+           Objects.equals(this.running, that.running) &&
+           Objects.equals(this.exitCode, that.exitCode) &&
+           Objects.equals(this.processConfig, that.processConfig) &&
+           Objects.equals(this.openStdin, that.openStdin) &&
+           Objects.equals(this.openStderr, that.openStderr) &&
+           Objects.equals(this.openStdout, that.openStdout) &&
+           Objects.equals(this.container, that.container) &&
+           Objects.equals(this.containerID, that.containerID);
 
   }
 

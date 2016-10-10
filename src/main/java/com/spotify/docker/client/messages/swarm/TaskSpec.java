@@ -30,130 +30,130 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class TaskSpec {
 
-    @JsonProperty("ContainerSpec")
-    private ContainerSpec containerSpec;
+  @JsonProperty("ContainerSpec")
+  private ContainerSpec containerSpec;
 
-    @JsonProperty("Resources")
-    private ResourceRequirements resources;
+  @JsonProperty("Resources")
+  private ResourceRequirements resources;
 
-    @JsonProperty("RestartPolicy")
-    private RestartPolicy restartPolicy;
+  @JsonProperty("RestartPolicy")
+  private RestartPolicy restartPolicy;
 
-    @JsonProperty("Placement")
-    private Placement placement;
+  @JsonProperty("Placement")
+  private Placement placement;
 
-    @JsonProperty("Networks")
-    private ImmutableList<NetworkAttachmentConfig> networks;
+  @JsonProperty("Networks")
+  private ImmutableList<NetworkAttachmentConfig> networks;
 
-    @JsonProperty("LogDriver")
-    private Driver logDriver;
+  @JsonProperty("LogDriver")
+  private Driver logDriver;
 
-    public ContainerSpec containerSpec() {
-        return containerSpec;
+  public ContainerSpec containerSpec() {
+    return containerSpec;
+  }
+
+  public ResourceRequirements resources() {
+    return resources;
+  }
+
+  public RestartPolicy restartPolicy() {
+    return restartPolicy;
+  }
+
+  public Placement placement() {
+    return placement;
+  }
+
+  public List<NetworkAttachmentConfig> networks() {
+    return networks;
+  }
+
+  public Driver logDriver() {
+    return logDriver;
+  }
+
+  public static class Builder {
+
+    private TaskSpec spec = new TaskSpec();
+
+    public Builder withContainerSpec(ContainerSpec containerSpec) {
+      spec.containerSpec = containerSpec;
+      return this;
     }
 
-    public ResourceRequirements resources() {
-        return resources;
+    public Builder withResources(ResourceRequirements resources) {
+      spec.resources = resources;
+      return this;
     }
 
-    public RestartPolicy restartPolicy() {
-        return restartPolicy;
+    public Builder withRestartPolicy(RestartPolicy restartPolicy) {
+      spec.restartPolicy = restartPolicy;
+      return this;
     }
 
-    public Placement placement() {
-        return placement;
+    public Builder withPlacement(Placement placement) {
+      spec.placement = placement;
+      return this;
     }
 
-    public List<NetworkAttachmentConfig> networks() {
-        return networks;
+    public Builder withNetworks(NetworkAttachmentConfig... networks) {
+      if (networks != null && networks.length > 0) {
+        spec.networks = ImmutableList.copyOf(networks);
+      }
+      return this;
     }
 
-    public Driver logDriver() {
-        return logDriver;
+    public Builder withNetworks(List<NetworkAttachmentConfig> networks) {
+      if (networks != null && !networks.isEmpty()) {
+        spec.networks = ImmutableList.copyOf(networks);
+      }
+      return this;
     }
 
-    public static class Builder {
-
-        private TaskSpec spec = new TaskSpec();
-
-        public Builder withContainerSpec(ContainerSpec containerSpec) {
-            spec.containerSpec = containerSpec;
-            return this;
-        }
-
-        public Builder withResources(ResourceRequirements resources) {
-            spec.resources = resources;
-            return this;
-        }
-
-        public Builder withRestartPolicy(RestartPolicy restartPolicy) {
-            spec.restartPolicy = restartPolicy;
-            return this;
-        }
-
-        public Builder withPlacement(Placement placement) {
-            spec.placement = placement;
-            return this;
-        }
-
-        public Builder withNetworks(NetworkAttachmentConfig... networks) {
-            if (networks != null && networks.length > 0) {
-                spec.networks = ImmutableList.copyOf(networks);
-            }
-            return this;
-        }
-
-        public Builder withNetworks(List<NetworkAttachmentConfig> networks) {
-            if (networks != null && !networks.isEmpty()) {
-                spec.networks = ImmutableList.copyOf(networks);
-            }
-            return this;
-        }
-
-        public Builder withLogDriver(Driver logDriver) {
-            spec.logDriver = logDriver;
-            return this;
-        }
-
-        public TaskSpec build() {
-            return spec;
-        }
+    public Builder withLogDriver(Driver logDriver) {
+      spec.logDriver = logDriver;
+      return this;
     }
 
-    public static TaskSpec.Builder builder() {
-        return new TaskSpec.Builder();
+    public TaskSpec build() {
+      return spec;
+    }
+  }
+
+  public static TaskSpec.Builder builder() {
+    return new TaskSpec.Builder();
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    final TaskSpec that = (TaskSpec) o;
 
-        final TaskSpec that = (TaskSpec) o;
+    return Objects.equals(this.containerSpec, that.containerSpec)
+           && Objects.equals(this.resources, that.resources)
+           && Objects.equals(this.restartPolicy, that.restartPolicy)
+           && Objects.equals(this.placement, that.placement)
+           && Objects.equals(this.networks, that.networks)
+           && Objects.equals(this.logDriver, that.logDriver);
+  }
 
-        return Objects.equals(this.containerSpec, that.containerSpec)
-                && Objects.equals(this.resources, that.resources)
-                && Objects.equals(this.restartPolicy, that.restartPolicy)
-                && Objects.equals(this.placement, that.placement)
-                && Objects.equals(this.networks, that.networks)
-                && Objects.equals(this.logDriver, that.logDriver);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(containerSpec, resources, restartPolicy, placement, networks,
+                        logDriver);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(containerSpec, resources, restartPolicy, placement, networks,
-                logDriver);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("containerSpec", containerSpec)
-                .add("resources", resources).add("restartPolicy", restartPolicy)
-                .add("placement", placement).add("networks", networks).add("logDriver", logDriver)
-                .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("containerSpec", containerSpec)
+        .add("resources", resources).add("restartPolicy", restartPolicy)
+        .add("placement", placement).add("networks", networks).add("logDriver", logDriver)
+        .toString();
+  }
 }

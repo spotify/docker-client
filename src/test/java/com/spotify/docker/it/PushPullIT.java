@@ -160,9 +160,9 @@ public class PushPullIT {
 
     // Push the same image again under a different user
     final AuthConfig authConfig = AuthConfig.builder()
-    .username(LOCAL_AUTH_USERNAME_2)
-    .password(LOCAL_AUTH_PASSWORD_2)
-    .build();
+        .username(LOCAL_AUTH_USERNAME_2)
+        .password(LOCAL_AUTH_PASSWORD_2)
+        .build();
     client.push(LOCAL_IMAGE_2, authConfig);
 
     // We should be able to pull it again

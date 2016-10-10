@@ -37,7 +37,9 @@ public class DockerHost {
    */
   @VisibleForTesting
   interface SystemDelegate {
+
     String getProperty(String key);
+
     String getenv(String name);
   }
 
@@ -46,6 +48,7 @@ public class DockerHost {
     public String getProperty(final String key) {
       return System.getProperty(key);
     }
+
     @Override
     public String getenv(final String name) {
       return System.getenv(name);
@@ -167,7 +170,7 @@ public class DockerHost {
   /**
    * Create a {@link DockerHost} from an explicit address or uri.
    *
-   * @param endpoint       The Docker endpoint.
+   * @param endpoint The Docker endpoint.
    * @param certPath The certificate path.
    * @return The DockerHost object.
    */

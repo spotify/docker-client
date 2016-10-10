@@ -28,51 +28,51 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class UpdateConfig {
 
-    @JsonProperty("Parallelism")
-    private Long parallelism;
+  @JsonProperty("Parallelism")
+  private Long parallelism;
 
-    @JsonProperty("Delay")
-    private Long delay;
+  @JsonProperty("Delay")
+  private Long delay;
 
-    @JsonProperty("FailureAction")
-    private String failureAction;
+  @JsonProperty("FailureAction")
+  private String failureAction;
 
-    public Long parallelism() {
-        return parallelism;
+  public Long parallelism() {
+    return parallelism;
+  }
+
+  public Long delay() {
+    return delay;
+  }
+
+  public String failureAction() {
+    return failureAction;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Long delay() {
-        return delay;
-    }
+    final UpdateConfig that = (UpdateConfig) o;
 
-    public String failureAction() {
-        return failureAction;
-    }
+    return Objects.equals(this.parallelism, that.parallelism)
+           && Objects.equals(this.delay, that.delay)
+           && Objects.equals(this.failureAction, that.failureAction);
+  }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    return Objects.hash(parallelism, delay, failureAction);
+  }
 
-        final UpdateConfig that = (UpdateConfig) o;
-
-        return Objects.equals(this.parallelism, that.parallelism)
-                && Objects.equals(this.delay, that.delay)
-                && Objects.equals(this.failureAction, that.failureAction);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(parallelism, delay, failureAction);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("parallelism", parallelism).add("delay", delay)
-                .add("failureAction", failureAction).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("parallelism", parallelism).add("delay", delay)
+        .add("failureAction", failureAction).toString();
+  }
 }

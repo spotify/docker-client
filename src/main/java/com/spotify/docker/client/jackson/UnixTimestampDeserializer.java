@@ -34,6 +34,7 @@ public class UnixTimestampDeserializer extends JsonDeserializer<Date> {
 
   public UnixTimestampDeserializer() {
   }
+
   @Override
   public Date deserialize(final JsonParser p, final DeserializationContext ctxt)
       throws IOException, JsonProcessingException {

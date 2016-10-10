@@ -33,20 +33,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Container {
 
-  @JsonProperty("Id") private String id;
-  @JsonProperty("Names") private ImmutableList<String> names;
-  @JsonProperty("Image") private String image;
-  @JsonProperty("ImageID") private String imageId;
-  @JsonProperty("Command") private String command;
-  @JsonProperty("Created") private Long created;
-  @JsonProperty("State") private String state;
-  @JsonProperty("Status") private String status;
-  @JsonProperty("Ports") private ImmutableList<PortMapping> ports;
-  @JsonProperty("Labels") private ImmutableMap<String, String> labels;
-  @JsonProperty("SizeRw") private Long sizeRw;
-  @JsonProperty("SizeRootFs") private Long sizeRootFs;
-  @JsonProperty("NetworkSettings") private NetworkSettings networkSettings;
-  @JsonProperty("Mounts") private ImmutableList<ContainerMount> mounts;
+  @JsonProperty("Id")
+  private String id;
+  @JsonProperty("Names")
+  private ImmutableList<String> names;
+  @JsonProperty("Image")
+  private String image;
+  @JsonProperty("ImageID")
+  private String imageId;
+  @JsonProperty("Command")
+  private String command;
+  @JsonProperty("Created")
+  private Long created;
+  @JsonProperty("State")
+  private String state;
+  @JsonProperty("Status")
+  private String status;
+  @JsonProperty("Ports")
+  private ImmutableList<PortMapping> ports;
+  @JsonProperty("Labels")
+  private ImmutableMap<String, String> labels;
+  @JsonProperty("SizeRw")
+  private Long sizeRw;
+  @JsonProperty("SizeRootFs")
+  private Long sizeRootFs;
+  @JsonProperty("NetworkSettings")
+  private NetworkSettings networkSettings;
+  @JsonProperty("Mounts")
+  private ImmutableList<ContainerMount> mounts;
 
   /**
    * This method returns port information the way that <code>docker ps</code> does:
@@ -148,19 +162,19 @@ public class Container {
     final Container that = (Container) o;
 
     return Objects.equals(this.id, that.id) &&
-            Objects.equals(this.names, that.names) &&
-            Objects.equals(this.image, that.image) &&
-            Objects.equals(this.imageId, that.imageId) &&
-            Objects.equals(this.command, that.command) &&
-            Objects.equals(this.created, that.created) &&
-            Objects.equals(this.state, that.state) &&
-            Objects.equals(this.status, that.status) &&
-            Objects.equals(this.ports, that.ports) &&
-            Objects.equals(this.labels, that.labels) &&
-            Objects.equals(this.sizeRw, that.sizeRw) &&
-            Objects.equals(this.sizeRootFs, that.sizeRootFs) &&
-            Objects.equals(this.networkSettings, that.networkSettings) &&
-            Objects.equals(this.mounts, that.mounts);
+           Objects.equals(this.names, that.names) &&
+           Objects.equals(this.image, that.image) &&
+           Objects.equals(this.imageId, that.imageId) &&
+           Objects.equals(this.command, that.command) &&
+           Objects.equals(this.created, that.created) &&
+           Objects.equals(this.state, that.state) &&
+           Objects.equals(this.status, that.status) &&
+           Objects.equals(this.ports, that.ports) &&
+           Objects.equals(this.labels, that.labels) &&
+           Objects.equals(this.sizeRw, that.sizeRw) &&
+           Objects.equals(this.sizeRootFs, that.sizeRootFs) &&
+           Objects.equals(this.networkSettings, that.networkSettings) &&
+           Objects.equals(this.mounts, that.mounts);
   }
 
   @Override
@@ -172,28 +186,32 @@ public class Container {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-            .add("id", id)
-            .add("image", image)
-            .add("command", command)
-            .add("created", created)
-            .add("state", state)
-            .add("status", status)
-            .add("ports", ports)
-            .add("labels", labels)
-            .add("sizeRw", sizeRw)
-            .add("sizeRootFs", sizeRootFs)
-            .add("imageId", imageId)
-            .add("networkSettings", networkSettings)
-            .add("mounts", mounts)
-            .toString();
+        .add("id", id)
+        .add("image", image)
+        .add("command", command)
+        .add("created", created)
+        .add("state", state)
+        .add("status", status)
+        .add("ports", ports)
+        .add("labels", labels)
+        .add("sizeRw", sizeRw)
+        .add("sizeRootFs", sizeRootFs)
+        .add("imageId", imageId)
+        .add("networkSettings", networkSettings)
+        .add("mounts", mounts)
+        .toString();
   }
 
   public static class PortMapping {
 
-    @JsonProperty("PrivatePort") private int privatePort;
-    @JsonProperty("PublicPort") private int publicPort;
-    @JsonProperty("Type") private String type;
-    @JsonProperty("IP") private String ip;
+    @JsonProperty("PrivatePort")
+    private int privatePort;
+    @JsonProperty("PublicPort")
+    private int publicPort;
+    @JsonProperty("Type")
+    private String type;
+    @JsonProperty("IP")
+    private String ip;
 
     public String getIp() {
       return ip;
@@ -223,9 +241,9 @@ public class Container {
       final PortMapping that = (PortMapping) o;
 
       return Objects.equals(this.privatePort, that.privatePort) &&
-          Objects.equals(this.publicPort, that.publicPort) &&
-          Objects.equals(this.type, that.type) &&
-          Objects.equals(this.ip, that.ip);
+             Objects.equals(this.publicPort, that.publicPort) &&
+             Objects.equals(this.type, that.type) &&
+             Objects.equals(this.ip, that.ip);
     }
 
     @Override

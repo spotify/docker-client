@@ -29,75 +29,75 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Swarm {
 
-    @JsonProperty("ID")
-    private String id;
+  @JsonProperty("ID")
+  private String id;
 
-    @JsonProperty("Version")
-    private Version version;
+  @JsonProperty("Version")
+  private Version version;
 
-    @JsonProperty("CreatedAt")
-    private Date createdAt;
+  @JsonProperty("CreatedAt")
+  private Date createdAt;
 
-    @JsonProperty("UpdatedAt")
-    private Date updatedAt;
+  @JsonProperty("UpdatedAt")
+  private Date updatedAt;
 
-    @JsonProperty("Spec")
-    private SwarmSpec swarmSpec;
+  @JsonProperty("Spec")
+  private SwarmSpec swarmSpec;
 
-    @JsonProperty("JoinTokens")
-    private JoinTokens joinTokens;
+  @JsonProperty("JoinTokens")
+  private JoinTokens joinTokens;
 
-    public String id() {
-        return id;
-    }
+  public String id() {
+    return id;
+  }
 
-    public Version version() {
-        return version;
-    }
+  public Version version() {
+    return version;
+  }
 
-    public Date createdAt() {
+  public Date createdAt() {
     return createdAt == null ? null : new Date(createdAt.getTime());
-}
+  }
 
-    public Date updatedAt() {
+  public Date updatedAt() {
     return updatedAt == null ? null : new Date(updatedAt.getTime());
-}
+  }
 
-    public SwarmSpec spec() {
-        return swarmSpec;
+  public SwarmSpec spec() {
+    return swarmSpec;
+  }
+
+  public JoinTokens joinTokens() {
+    return joinTokens;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public JoinTokens joinTokens() {
-        return joinTokens;
-    }
+    final Swarm that = (Swarm) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
+           && Objects.equals(this.createdAt, that.createdAt)
+           && Objects.equals(this.updatedAt, that.updatedAt)
+           && Objects.equals(this.swarmSpec, that.swarmSpec)
+           && Objects.equals(this.joinTokens, that.joinTokens);
+  }
 
-        final Swarm that = (Swarm) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, version, createdAt, updatedAt, swarmSpec, joinTokens);
+  }
 
-        return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
-                && Objects.equals(this.createdAt, that.createdAt)
-                && Objects.equals(this.updatedAt, that.updatedAt)
-                && Objects.equals(this.swarmSpec, that.swarmSpec)
-                && Objects.equals(this.joinTokens, that.joinTokens);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, version, createdAt, updatedAt, swarmSpec, joinTokens);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
-                .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", swarmSpec)
-                .add("joinTokens", joinTokens).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
+        .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", swarmSpec)
+        .add("joinTokens", joinTokens).toString();
+  }
 }

@@ -31,8 +31,10 @@ import java.util.List;
  */
 public class TopResults {
 
-  @JsonProperty("Titles") private List<String> titles;
-  @JsonProperty("Processes") private List<List<String>> processes;
+  @JsonProperty("Titles")
+  private List<String> titles;
+  @JsonProperty("Processes")
+  private List<List<String>> processes;
 
   public List<String> titles() {
     return titles;
@@ -54,7 +56,7 @@ public class TopResults {
     final TopResults that = (TopResults) o;
 
     return Objects.equal(this.titles, that.titles) &&
-        Objects.equal(this.processes, that.processes);
+           Objects.equal(this.processes, that.processes);
   }
 
   @Override

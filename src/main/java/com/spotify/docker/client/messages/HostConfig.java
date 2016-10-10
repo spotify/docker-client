@@ -37,37 +37,68 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class HostConfig {
 
-  @JsonProperty("Binds") private ImmutableList<String> binds;
-  @JsonProperty("ContainerIDFile") private String containerIDFile;
-  @JsonProperty("LxcConf") private ImmutableList<LxcConfParameter> lxcConf;
-  @JsonProperty("Privileged") private Boolean privileged;
-  @JsonProperty("PortBindings") private Map<String, List<PortBinding>> portBindings;
-  @JsonProperty("Links") private ImmutableList<String> links;
-  @JsonProperty("PublishAllPorts") private Boolean publishAllPorts;
-  @JsonProperty("Dns") private ImmutableList<String> dns;
-  @JsonProperty("DnsSearch") private ImmutableList<String> dnsSearch;
-  @JsonProperty("ExtraHosts") private ImmutableList<String> extraHosts;
-  @JsonProperty("VolumesFrom") private ImmutableList<String> volumesFrom;
-  @JsonProperty("CapAdd") private ImmutableList<String> capAdd;
-  @JsonProperty("CapDrop") private ImmutableList<String> capDrop;
-  @JsonProperty("NetworkMode") private String networkMode;
-  @JsonProperty("SecurityOpt") private ImmutableList<String> securityOpt;
-  @JsonProperty("Devices") private ImmutableList<Device> devices;
-  @JsonProperty("Memory") private Long memory;
-  @JsonProperty("MemorySwap") private Long memorySwap;
-  @JsonProperty("MemoryReservation") private Long memoryReservation;
-  @JsonProperty("CpuShares") private Long cpuShares;
-  @JsonProperty("CpusetCpus") private String cpusetCpus;
-  @JsonProperty("CpuQuota") private Long cpuQuota;
-  @JsonProperty("CgroupParent") private String cgroupParent;
-  @JsonProperty("RestartPolicy") private RestartPolicy restartPolicy;
-  @JsonProperty("LogConfig") private LogConfig logConfig;
-  @JsonProperty("IpcMode") private String ipcMode;
-  @JsonProperty("Ulimits") private ImmutableList<Ulimit> ulimits;
-  @JsonProperty("PidMode") private String pidMode;
-  @JsonProperty("ShmSize") private Long shmSize;
-  @JsonProperty("OomKillDisable") private Boolean oomKillDisable;
-  @JsonProperty("OomScoreAdj") private Integer oomScoreAdj;
+  @JsonProperty("Binds")
+  private ImmutableList<String> binds;
+  @JsonProperty("ContainerIDFile")
+  private String containerIDFile;
+  @JsonProperty("LxcConf")
+  private ImmutableList<LxcConfParameter> lxcConf;
+  @JsonProperty("Privileged")
+  private Boolean privileged;
+  @JsonProperty("PortBindings")
+  private Map<String, List<PortBinding>> portBindings;
+  @JsonProperty("Links")
+  private ImmutableList<String> links;
+  @JsonProperty("PublishAllPorts")
+  private Boolean publishAllPorts;
+  @JsonProperty("Dns")
+  private ImmutableList<String> dns;
+  @JsonProperty("DnsSearch")
+  private ImmutableList<String> dnsSearch;
+  @JsonProperty("ExtraHosts")
+  private ImmutableList<String> extraHosts;
+  @JsonProperty("VolumesFrom")
+  private ImmutableList<String> volumesFrom;
+  @JsonProperty("CapAdd")
+  private ImmutableList<String> capAdd;
+  @JsonProperty("CapDrop")
+  private ImmutableList<String> capDrop;
+  @JsonProperty("NetworkMode")
+  private String networkMode;
+  @JsonProperty("SecurityOpt")
+  private ImmutableList<String> securityOpt;
+  @JsonProperty("Devices")
+  private ImmutableList<Device> devices;
+  @JsonProperty("Memory")
+  private Long memory;
+  @JsonProperty("MemorySwap")
+  private Long memorySwap;
+  @JsonProperty("MemoryReservation")
+  private Long memoryReservation;
+  @JsonProperty("CpuShares")
+  private Long cpuShares;
+  @JsonProperty("CpusetCpus")
+  private String cpusetCpus;
+  @JsonProperty("CpuQuota")
+  private Long cpuQuota;
+  @JsonProperty("CgroupParent")
+  private String cgroupParent;
+  @JsonProperty("RestartPolicy")
+  private RestartPolicy restartPolicy;
+  @JsonProperty("LogConfig")
+  private LogConfig logConfig;
+  @JsonProperty("IpcMode")
+  private String ipcMode;
+  @JsonProperty("Ulimits")
+  private ImmutableList<Ulimit> ulimits;
+  @JsonProperty("PidMode")
+  private String pidMode;
+  @JsonProperty("ShmSize")
+  private Long shmSize;
+  @JsonProperty("OomKillDisable")
+  private Boolean oomKillDisable;
+  @JsonProperty("OomScoreAdj")
+  private Integer oomScoreAdj;
 
   private HostConfig() {
   }
@@ -238,34 +269,34 @@ public class HostConfig {
     final HostConfig that = (HostConfig) o;
 
     return Objects.equals(this.binds, that.binds) &&
-        Objects.equals(this.containerIDFile, that.containerIDFile) &&
-        Objects.equals(this.lxcConf, that.lxcConf) &&
-        Objects.equals(this.privileged, that.privileged) &&
-        Objects.equals(this.portBindings, that.portBindings) &&
-        Objects.equals(this.links, that.links) &&
-        Objects.equals(this.publishAllPorts, that.publishAllPorts) &&
-        Objects.equals(this.dns, that.dns) &&
-        Objects.equals(this.dnsSearch, that.dnsSearch) &&
-        Objects.equals(this.extraHosts, that.extraHosts) &&
-        Objects.equals(this.volumesFrom, that.volumesFrom) &&
-        Objects.equals(this.capAdd, that.capAdd) &&
-        Objects.equals(this.capDrop, that.capDrop) &&
-        Objects.equals(this.networkMode, that.networkMode) &&
-        Objects.equals(this.securityOpt, that.securityOpt) &&
-        Objects.equals(this.devices, that.devices) &&
-        Objects.equals(this.memory, that.memory) &&
-        Objects.equals(this.memorySwap, that.memorySwap) &&
-        Objects.equals(this.memoryReservation, that.memoryReservation) &&
-        Objects.equals(this.cpuShares, that.cpuShares) &&
-        Objects.equals(this.cpusetCpus, that.cpusetCpus) &&
-        Objects.equals(this.cpuQuota, that.cpuQuota) &&
-        Objects.equals(this.cgroupParent, that.cgroupParent) &&
-        Objects.equals(this.restartPolicy, that.restartPolicy) &&
-        Objects.equals(this.logConfig, that.logConfig) &&
-        Objects.equals(this.ipcMode, that.ipcMode) &&
-        Objects.equals(this.ulimits, that.ulimits) &&
-        Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
-        Objects.equals(this.oomScoreAdj, that.oomScoreAdj);
+           Objects.equals(this.containerIDFile, that.containerIDFile) &&
+           Objects.equals(this.lxcConf, that.lxcConf) &&
+           Objects.equals(this.privileged, that.privileged) &&
+           Objects.equals(this.portBindings, that.portBindings) &&
+           Objects.equals(this.links, that.links) &&
+           Objects.equals(this.publishAllPorts, that.publishAllPorts) &&
+           Objects.equals(this.dns, that.dns) &&
+           Objects.equals(this.dnsSearch, that.dnsSearch) &&
+           Objects.equals(this.extraHosts, that.extraHosts) &&
+           Objects.equals(this.volumesFrom, that.volumesFrom) &&
+           Objects.equals(this.capAdd, that.capAdd) &&
+           Objects.equals(this.capDrop, that.capDrop) &&
+           Objects.equals(this.networkMode, that.networkMode) &&
+           Objects.equals(this.securityOpt, that.securityOpt) &&
+           Objects.equals(this.devices, that.devices) &&
+           Objects.equals(this.memory, that.memory) &&
+           Objects.equals(this.memorySwap, that.memorySwap) &&
+           Objects.equals(this.memoryReservation, that.memoryReservation) &&
+           Objects.equals(this.cpuShares, that.cpuShares) &&
+           Objects.equals(this.cpusetCpus, that.cpusetCpus) &&
+           Objects.equals(this.cpuQuota, that.cpuQuota) &&
+           Objects.equals(this.cgroupParent, that.cgroupParent) &&
+           Objects.equals(this.restartPolicy, that.restartPolicy) &&
+           Objects.equals(this.logConfig, that.logConfig) &&
+           Objects.equals(this.ipcMode, that.ipcMode) &&
+           Objects.equals(this.ulimits, that.ulimits) &&
+           Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
+           Objects.equals(this.oomScoreAdj, that.oomScoreAdj);
   }
 
   @Override
@@ -317,8 +348,10 @@ public class HostConfig {
 
   public static class LxcConfParameter {
 
-    @JsonProperty("Key") private String key;
-    @JsonProperty("Value") private String value;
+    @JsonProperty("Key")
+    private String key;
+    @JsonProperty("Value")
+    private String value;
 
     public LxcConfParameter(final String key, final String value) {
       this.key = key;
@@ -345,7 +378,7 @@ public class HostConfig {
       final LxcConfParameter that = (LxcConfParameter) o;
 
       return Objects.equals(this.key, that.key) &&
-          Objects.equals(this.value, that.value);
+             Objects.equals(this.value, that.value);
     }
 
     @Override
@@ -364,8 +397,10 @@ public class HostConfig {
 
   public static class RestartPolicy {
 
-    @JsonProperty("Name") private String name;
-    @JsonProperty("MaximumRetryCount") private Integer maxRetryCount;
+    @JsonProperty("Name")
+    private String name;
+    @JsonProperty("MaximumRetryCount")
+    private Integer maxRetryCount;
 
     public static RestartPolicy always() {
       return new RestartPolicy("always", null);
@@ -408,7 +443,7 @@ public class HostConfig {
       final RestartPolicy that = (RestartPolicy) o;
 
       return Objects.equals(this.name, that.name) &&
-          Objects.equals(this.maxRetryCount, that.maxRetryCount);
+             Objects.equals(this.maxRetryCount, that.maxRetryCount);
     }
 
     @Override
@@ -523,7 +558,8 @@ public class HostConfig {
      * Set the list of binds to the parameter, replacing any existing value.
      * <p>To append to the list instead, use one of the appendBinds() methods.</p>
      *
-     * @param binds An array of volume bindings for this container. Each volume binding is a string.
+     * @param binds An array of volume bindings for this container. Each volume binding is a
+     *              string.
      * @return The builder
      */
     public Builder binds(final String... binds) {
@@ -538,8 +574,8 @@ public class HostConfig {
      * Set the list of binds to the parameter, replacing any existing value.
      * <p>To append to the list instead, use one of the appendBinds() methods.</p>
      *
-     * @param binds An array of volume bindings for this container. Each volume binding is a
-     * {@link Bind} object.
+     * @param binds An array of volume bindings for this container. Each volume binding is a {@link
+     *              Bind} object.
      * @return The builder
      */
     public Builder binds(final Bind... binds) {
@@ -562,7 +598,7 @@ public class HostConfig {
      * Append binds to the existing list in this builder.
      *
      * @param newBinds An iterable of volume bindings for this container. Each volume binding is a
-     * String.
+     *                 String.
      * @return The builder
      */
     public Builder appendBinds(final Iterable<String> newBinds) {
@@ -579,8 +615,8 @@ public class HostConfig {
     /**
      * Append binds to the existing list in this builder.
      *
-     * @param binds An array of volume bindings for this container. Each volume binding is a
-     * {@link Bind} object.
+     * @param binds An array of volume bindings for this container. Each volume binding is a {@link
+     *              Bind} object.
      * @return The builder
      */
     public Builder appendBinds(final Bind... binds) {
@@ -591,7 +627,8 @@ public class HostConfig {
     /**
      * Append binds to the existing list in this builder.
      *
-     * @param binds An array of volume bindings for this container. Each volume binding is a String.
+     * @param binds An array of volume bindings for this container. Each volume binding is a
+     *              String.
      * @return The builder
      */
     public Builder appendBinds(final String... binds) {
@@ -957,6 +994,7 @@ public class HostConfig {
      * Set the PID (Process) Namespace mode for the container.
      * Use this method to join another container's PID namespace. To use the host
      * PID namespace, use {@link #hostPidMode()}.
+     *
      * @param container Join the namespace of this container (Name or ID)
      * @return Builder
      */
@@ -969,6 +1007,7 @@ public class HostConfig {
      * Set the PID (Process) Namespace mode for the container.
      * Use this method to use the host's PID namespace. To use another container's
      * PID namespace, use {@link #containerPidMode(String)}.
+     *
      * @return Builder
      */
     public Builder hostPidMode() {
@@ -1009,6 +1048,7 @@ public class HostConfig {
   }
 
   public static class Bind {
+
     private String to;
     private String from;
     private Boolean readOnly;
@@ -1038,24 +1078,25 @@ public class HostConfig {
         return "";
       } else if (from == null || from.equals("")) {
         return to;
-      } 
-      
+      }
+
       final String bind = from + ":" + to;
-      
+
       final List<String> options = new ArrayList<>();
       if (readOnly != null && readOnly) {
-          options.add("ro");
+        options.add("ro");
       }
       if (noCopy != null && noCopy) {
-          options.add("nocopy");
+        options.add("nocopy");
       }
 
       final String optionsValue = Joiner.on(',').join(options);
-      
+
       return (optionsValue.isEmpty()) ? bind : bind + ":" + optionsValue;
     }
 
     public static class BuilderTo {
+
       private String to;
 
       public BuilderTo(final String to) {
@@ -1072,6 +1113,7 @@ public class HostConfig {
     }
 
     public static class BuilderFrom {
+
       private String from;
 
       public BuilderFrom(final String from) {
@@ -1088,12 +1130,14 @@ public class HostConfig {
     }
 
     public static class Builder {
+
       private String to;
       private String from;
       private Boolean readOnly = false;
       private Boolean noCopy;
 
-      private Builder() {}
+      private Builder() {
+      }
 
       private Builder(final BuilderTo toBuilder, final String from) {
         this.to = toBuilder.to;
@@ -1158,9 +1202,13 @@ public class HostConfig {
   }
 
   public static class Ulimit {
-    @JsonProperty("Name") private String name;
-    @JsonProperty("Soft") private Integer soft;
-    @JsonProperty("Hard") private Integer hard;
+
+    @JsonProperty("Name")
+    private String name;
+    @JsonProperty("Soft")
+    private Integer soft;
+    @JsonProperty("Hard")
+    private Integer hard;
 
     public Ulimit() {
     }
@@ -1199,8 +1247,8 @@ public class HostConfig {
       final Ulimit that = (Ulimit) o;
 
       return Objects.equals(this.name, that.name) &&
-          Objects.equals(this.soft, that.soft) &&
-          Objects.equals(this.hard, that.hard);
+             Objects.equals(this.soft, that.soft) &&
+             Objects.equals(this.hard, that.hard);
     }
 
     @Override
@@ -1218,11 +1266,13 @@ public class HostConfig {
     }
 
     public static class Builder {
+
       private String name;
       private Integer soft;
       private Integer hard;
 
-      private Builder() {}
+      private Builder() {
+      }
 
       public Ulimit build() {
         return new Ulimit(this);
@@ -1237,6 +1287,7 @@ public class HostConfig {
         this.soft = soft;
         return this;
       }
+
       public Builder hard(final Integer hard) {
         this.hard = hard;
         return this;

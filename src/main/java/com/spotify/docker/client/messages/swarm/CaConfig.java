@@ -30,43 +30,43 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class CaConfig {
 
-    @JsonProperty("NodeCertExpiry")
-    private Long nodeCertExpiry;
+  @JsonProperty("NodeCertExpiry")
+  private Long nodeCertExpiry;
 
-    @JsonProperty("ExternalCAs")
-    private ImmutableList<ExternalCa> externalCas;
+  @JsonProperty("ExternalCAs")
+  private ImmutableList<ExternalCa> externalCas;
 
-    public Long nodeCertExpiry() {
-        return nodeCertExpiry;
+  public Long nodeCertExpiry() {
+    return nodeCertExpiry;
+  }
+
+  public List<ExternalCa> externalCas() {
+    return externalCas;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public List<ExternalCa> externalCas() {
-        return externalCas;
-    }
+    final CaConfig that = (CaConfig) o;
 
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    return Objects.equals(this.nodeCertExpiry, that.nodeCertExpiry)
+           && Objects.equals(this.externalCas, that.externalCas);
+  }
 
-        final CaConfig that = (CaConfig) o;
+  @Override
+  public int hashCode() {
+    return Objects.hash(nodeCertExpiry, externalCas);
+  }
 
-        return Objects.equals(this.nodeCertExpiry, that.nodeCertExpiry)
-                && Objects.equals(this.externalCas, that.externalCas);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(nodeCertExpiry, externalCas);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("nodeCertExpiry", nodeCertExpiry)
-                .add("externalCas", externalCas).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("nodeCertExpiry", nodeCertExpiry)
+        .add("externalCas", externalCas).toString();
+  }
 }

@@ -29,83 +29,83 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class SwarmSpec {
 
-    @JsonProperty("Name")
-    private String name;
+  @JsonProperty("Name")
+  private String name;
 
-    @JsonProperty("Labels")
-    private Map<String, String> labels;
+  @JsonProperty("Labels")
+  private Map<String, String> labels;
 
-    @JsonProperty("Orchestration")
-    private OrchestrationConfig orchestration;
+  @JsonProperty("Orchestration")
+  private OrchestrationConfig orchestration;
 
-    @JsonProperty("Raft")
-    private RaftConfig raft;
+  @JsonProperty("Raft")
+  private RaftConfig raft;
 
-    @JsonProperty("Dispatcher")
-    private DispatcherConfig dispatcher;
+  @JsonProperty("Dispatcher")
+  private DispatcherConfig dispatcher;
 
-    @JsonProperty("CAConfig")
-    private CaConfig caConfig;
+  @JsonProperty("CAConfig")
+  private CaConfig caConfig;
 
-    @JsonProperty("TaskDefaults")
-    private TaskDefaults taskDefaults;
+  @JsonProperty("TaskDefaults")
+  private TaskDefaults taskDefaults;
 
-    public String name() {
-        return name;
+  public String name() {
+    return name;
+  }
+
+  public Map<String, String> labels() {
+    return labels;
+  }
+
+  public OrchestrationConfig orchestration() {
+    return orchestration;
+  }
+
+  public RaftConfig raft() {
+    return raft;
+  }
+
+  public DispatcherConfig dispatcher() {
+    return dispatcher;
+  }
+
+  public CaConfig caConfig() {
+    return caConfig;
+  }
+
+  public TaskDefaults taskDefaults() {
+    return taskDefaults;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Map<String, String> labels() {
-        return labels;
-    }
+    final SwarmSpec that = (SwarmSpec) o;
 
-    public OrchestrationConfig orchestration() {
-        return orchestration;
-    }
+    return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.orchestration, that.orchestration)
+           && Objects.equals(this.raft, that.raft)
+           && Objects.equals(this.dispatcher, that.dispatcher)
+           && Objects.equals(this.caConfig, that.caConfig)
+           && Objects.equals(this.taskDefaults, that.taskDefaults);
+  }
 
-    public RaftConfig raft() {
-        return raft;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, labels, orchestration, raft, dispatcher, caConfig, taskDefaults);
+  }
 
-    public DispatcherConfig dispatcher() {
-        return dispatcher;
-    }
-
-    public CaConfig caConfig() {
-        return caConfig;
-    }
-
-    public TaskDefaults taskDefaults() {
-        return taskDefaults;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final SwarmSpec that = (SwarmSpec) o;
-
-        return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
-                && Objects.equals(this.orchestration, that.orchestration)
-                && Objects.equals(this.raft, that.raft)
-                && Objects.equals(this.dispatcher, that.dispatcher)
-                && Objects.equals(this.caConfig, that.caConfig)
-                && Objects.equals(this.taskDefaults, that.taskDefaults);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, labels, orchestration, raft, dispatcher, caConfig, taskDefaults);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
-                .add("orchestration", orchestration).add("raft", raft).add("dispatcher", dispatcher)
-                .add("caConfig", caConfig).add("taskDefaults", taskDefaults).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
+        .add("orchestration", orchestration).add("raft", raft).add("dispatcher", dispatcher)
+        .add("caConfig", caConfig).add("taskDefaults", taskDefaults).toString();
+  }
 }
