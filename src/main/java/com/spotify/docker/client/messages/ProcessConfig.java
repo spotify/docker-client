@@ -20,9 +20,8 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.List;
 import java.util.Objects;
@@ -65,21 +64,21 @@ public class ProcessConfig {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ProcessConfig that = (ProcessConfig) o;
+    final ProcessConfig that = (ProcessConfig) obj;
 
-    return Objects.equals(this.privileged, that.privileged) &&
-           Objects.equals(this.user, that.user) &&
-           Objects.equals(this.tty, that.tty) &&
-           Objects.equals(this.entrypoint, that.entrypoint) &&
-           Objects.equals(this.arguments, that.arguments);
+    return Objects.equals(this.privileged, that.privileged)
+           && Objects.equals(this.user, that.user)
+           && Objects.equals(this.tty, that.tty)
+           && Objects.equals(this.entrypoint, that.entrypoint)
+           && Objects.equals(this.arguments, that.arguments);
   }
 
   @Override

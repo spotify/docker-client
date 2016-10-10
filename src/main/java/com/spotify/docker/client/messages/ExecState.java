@@ -20,15 +20,14 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 /**
  * An object that represents the JSON returned by the Docker API for low-level information about
@@ -54,7 +53,7 @@ public class ExecState {
   @JsonProperty("Container")
   private ContainerInfo container;
   @JsonProperty("ContainerID")
-  private String containerID;
+  private String containerId;
 
   public String id() {
     return id;
@@ -88,37 +87,37 @@ public class ExecState {
     return container;
   }
 
-  public String containerID() {
-    return containerID;
+  public String containerId() {
+    return containerId;
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ExecState that = (ExecState) o;
+    final ExecState that = (ExecState) obj;
 
-    return Objects.equals(this.id, that.id) &&
-           Objects.equals(this.running, that.running) &&
-           Objects.equals(this.exitCode, that.exitCode) &&
-           Objects.equals(this.processConfig, that.processConfig) &&
-           Objects.equals(this.openStdin, that.openStdin) &&
-           Objects.equals(this.openStderr, that.openStderr) &&
-           Objects.equals(this.openStdout, that.openStdout) &&
-           Objects.equals(this.container, that.container) &&
-           Objects.equals(this.containerID, that.containerID);
+    return Objects.equals(this.id, that.id)
+           && Objects.equals(this.running, that.running)
+           && Objects.equals(this.exitCode, that.exitCode)
+           && Objects.equals(this.processConfig, that.processConfig)
+           && Objects.equals(this.openStdin, that.openStdin)
+           && Objects.equals(this.openStderr, that.openStderr)
+           && Objects.equals(this.openStdout, that.openStdout)
+           && Objects.equals(this.container, that.container)
+           && Objects.equals(this.containerId, that.containerId);
 
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, running, exitCode, processConfig, openStdin, openStderr, openStdout,
-                        container, containerID);
+                        container, containerId);
   }
 
   @Override
@@ -132,7 +131,7 @@ public class ExecState {
         .add("openStderr", openStderr)
         .add("openStdout", openStdout)
         .add("container", container)
-        .add("containerID", containerID)
+        .add("containerId", containerId)
         .toString();
   }
 }

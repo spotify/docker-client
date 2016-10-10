@@ -22,15 +22,14 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 /**
- * Raw results from the "top" (or "ps") command for a specific container
+ * Raw results from the "top" (or "ps") command for a specific container.
  */
 public class TopResults {
 
@@ -48,18 +47,18 @@ public class TopResults {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final TopResults that = (TopResults) o;
+    final TopResults that = (TopResults) obj;
 
-    return Objects.equal(this.titles, that.titles) &&
-           Objects.equal(this.processes, that.processes);
+    return Objects.equal(this.titles, that.titles)
+           && Objects.equal(this.processes, that.processes);
   }
 
   @Override

@@ -20,22 +20,21 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerConfig {
@@ -213,39 +212,39 @@ public class ContainerConfig {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ContainerConfig that = (ContainerConfig) o;
+    final ContainerConfig that = (ContainerConfig) obj;
 
-    return Objects.equals(this.hostname, that.hostname) &&
-           Objects.equals(this.domainname, that.domainname) &&
-           Objects.equals(this.user, that.user) &&
-           Objects.equals(this.attachStdin, that.attachStdin) &&
-           Objects.equals(this.attachStdout, that.attachStdout) &&
-           Objects.equals(this.attachStderr, that.attachStderr) &&
-           Objects.equals(this.portSpecs, that.portSpecs) &&
-           Objects.equals(this.exposedPorts, that.exposedPorts) &&
-           Objects.equals(this.tty, that.tty) &&
-           Objects.equals(this.openStdin, that.openStdin) &&
-           Objects.equals(this.stdinOnce, that.stdinOnce) &&
-           Objects.equals(this.env, that.env) &&
-           Objects.equals(this.cmd, that.cmd) &&
-           Objects.equals(this.image, that.image) &&
-           Objects.equals(this.volumes, that.volumes) &&
-           Objects.equals(this.workingDir, that.workingDir) &&
-           Objects.equals(this.entrypoint, that.entrypoint) &&
-           Objects.equals(this.networkDisabled, that.networkDisabled) &&
-           Objects.equals(this.onBuild, that.onBuild) &&
-           Objects.equals(this.labels, that.labels) &&
-           Objects.equals(this.macAddress, that.macAddress) &&
-           Objects.equals(this.hostConfig, that.hostConfig) &&
-           Objects.equals(this.stopSignal, that.stopSignal);
+    return Objects.equals(this.hostname, that.hostname)
+           && Objects.equals(this.domainname, that.domainname)
+           && Objects.equals(this.user, that.user)
+           && Objects.equals(this.attachStdin, that.attachStdin)
+           && Objects.equals(this.attachStdout, that.attachStdout)
+           && Objects.equals(this.attachStderr, that.attachStderr)
+           && Objects.equals(this.portSpecs, that.portSpecs)
+           && Objects.equals(this.exposedPorts, that.exposedPorts)
+           && Objects.equals(this.tty, that.tty)
+           && Objects.equals(this.openStdin, that.openStdin)
+           && Objects.equals(this.stdinOnce, that.stdinOnce)
+           && Objects.equals(this.env, that.env)
+           && Objects.equals(this.cmd, that.cmd)
+           && Objects.equals(this.image, that.image)
+           && Objects.equals(this.volumes, that.volumes)
+           && Objects.equals(this.workingDir, that.workingDir)
+           && Objects.equals(this.entrypoint, that.entrypoint)
+           && Objects.equals(this.networkDisabled, that.networkDisabled)
+           && Objects.equals(this.onBuild, that.onBuild)
+           && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.macAddress, that.macAddress)
+           && Objects.equals(this.hostConfig, that.hostConfig)
+           && Objects.equals(this.stopSignal, that.stopSignal);
   }
 
   @Override

@@ -21,7 +21,19 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
+import com.spotify.docker.client.exceptions.BadParamException;
+import com.spotify.docker.client.exceptions.ConflictException;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
+import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.ExecNotFoundException;
+import com.spotify.docker.client.exceptions.ImageNotFoundException;
+import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NotFoundException;
+import com.spotify.docker.client.exceptions.PermissionException;
+import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
@@ -59,13 +71,12 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 /**
  * A client for interacting with dockerd.
  *
- * Note: All methods throw DockerException on unexpected docker response status codes.
+ * <p>Note: All methods throw DockerException on unexpected docker response status codes.
  */
+@SuppressWarnings("JavadocMethod")
 public interface DockerClient extends Closeable {
 
   /**
@@ -111,7 +122,7 @@ public interface DockerClient extends Closeable {
    *
    * @param params Container listing and filtering options.
    * @return A list of containers.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -124,7 +135,7 @@ public interface DockerClient extends Closeable {
    *
    * @param params Image listing and filtering options.
    * @return A list of images.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -136,7 +147,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to inspect.
    * @return Info about the container.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                            if container was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -153,7 +164,7 @@ public interface DockerClient extends Closeable {
    * @param repo        repository to commit to.
    * @param config      ContainerConfig to commit.
    * @return ContainerCreation reply.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                            if container was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -171,7 +182,7 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to inspect.
    * @return Info about the image.
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -183,9 +194,9 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to remove.
    * @return A list describing each image which was removed.
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if image was not found (404)
-   * @throws com.spotify.docker.client.exceptions.ConflictException
+   * @throws ConflictException
    *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -200,9 +211,9 @@ public interface DockerClient extends Closeable {
    * @param force   Force image removal.
    * @param noPrune Do not delete untagged parents.
    * @return A list describing each image which was removed.
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if image was not found (404)
-   * @throws com.spotify.docker.client.exceptions.ConflictException
+   * @throws ConflictException
    *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -213,7 +224,7 @@ public interface DockerClient extends Closeable {
   /**
    * Search for images on Docker Hub
    *
-   * This method is broken for Docker 1.7.x because of a Docker bug.
+   * <p>This method is broken for Docker 1.7.x because of a Docker bug.
    * See https://github.com/docker/docker/pull/14850.
    *
    * @param term the search term
@@ -255,8 +266,8 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    *
    * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
-   * {@link #create(String, InputStream, ProgressHandler)} to create a single image from the
-   * contents of a tarball.
+   *             {@link #create(String, InputStream, ProgressHandler)} to create a single image
+   *             from the contents of a tarball.
    */
   @Deprecated
   void load(String image, InputStream imagePayload, ProgressHandler handler)
@@ -296,8 +307,8 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    *
    * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
-   * {@link #create(String, InputStream, ProgressHandler)} to create a single image from the
-   * contents of a tarball.
+   *             {@link #create(String, InputStream, ProgressHandler)} to create a single image from
+   *             the contents of a tarball.
    */
   @Deprecated
   void load(String image, InputStream imagePayload, AuthConfig authConfig,
@@ -499,11 +510,11 @@ public interface DockerClient extends Closeable {
    *
    * @param image The image to tag.
    * @param name  The new name that will be applied to the image.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if image was not found (404)
-   * @throws com.spotify.docker.client.exceptions.ConflictException
+   * @throws ConflictException
    *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -517,11 +528,11 @@ public interface DockerClient extends Closeable {
    * @param name  The new name that will be applied to the image.
    * @param force Whether to force the tagging even if the tag is already assigned to another
    *              image.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if image was not found (404)
-   * @throws com.spotify.docker.client.exceptions.ConflictException
+   * @throws ConflictException
    *                            conflict (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -622,6 +633,20 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Repository name (and optionally a tag) to be applied to the
+     * resulting image in case of success.
+     *
+     * <p>You could also pass the name explicitly to {@link #build(Path, String, BuildParam...)}
+     * or one of the other build methods that takes an explicit name.
+     * @param name A name to apply to the image
+     * @return BuildParam
+     */
+
+    public static BuildParam name(final String name) {
+      return create("t", name);
+    }
+
+    /**
      * Parameter value.
      *
      * @return value of parameter
@@ -702,23 +727,10 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Repository name (and optionally a tag) to be applied to the
-     * resulting image in case of success.
-     *
-     * You could also pass the name explicitly to {@link #build(Path, String, BuildParam...)}
-     * or one of the other build methods that takes an explicit name.
-     * @param name A name to apply to the image
-     * @return BuildParam
-     */
-    public static BuildParam name(final String name) {
-      return create("t", name);
-    }
-
-    /**
      * path within the build context to the Dockerfile. This is ignored
      * if {@link #remote(URI)} is specified and points to an individual filename.
      *
-     * You could also pass the dockerfile path explicitly to
+     * <p>You could also pass the dockerfile path explicitly to
      * {@link #build(Path, String, String, ProgressHandler, BuildParam...)}
      * or one of the other build methods that takes an explicit dockerfile path.
      * @param dockerfile Path to the dockerfile in the build context.
@@ -776,18 +788,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final BuildParam that = (BuildParam) o;
+      final BuildParam that = (BuildParam) obj;
 
-      return Objects.equals(this.name, that.name) &&
-          Objects.equals(this.value, that.value);
+      return Objects.equals(this.name, that.name)
+             && Objects.equals(this.value, that.value);
     }
 
     @Override
@@ -810,7 +822,7 @@ public interface DockerClient extends Closeable {
    *
    * @param config The container configuration.
    * @return Container creation result with container id and eventual warnings from docker.
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if the requested parent image was not found (404)
    * @throws DockerException  if logs cannot be attached, because container is not running (406),
    *                              or if a server error occurred (500)
@@ -825,7 +837,7 @@ public interface DockerClient extends Closeable {
    * @param config The container configuration.
    * @param name   The container name.
    * @return Container creation result with container id and eventual warnings from docker.
-   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   * @throws ImageNotFoundException
    *                            if the requested parent image was not found (404)
    * @throws DockerException   if logs cannot be attached, because container is not running (406),
    *                              or if a server error occurred (500)
@@ -839,9 +851,9 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to rename.
    * @param name        The new name the container will have
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container cannot be found (404)
-   * @throws com.spotify.docker.client.exceptions.ContainerRenameConflictException
+   * @throws ContainerRenameConflictException
    *                              if name is already assigned (409)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -853,7 +865,7 @@ public interface DockerClient extends Closeable {
    * Start a docker container.
    *
    * @param containerId The id of the container to start.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -866,7 +878,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId                The id of the container to stop.
    * @param secondsToWaitBeforeKilling Time to wait after SIGTERM before sending SIGKILL.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -878,7 +890,7 @@ public interface DockerClient extends Closeable {
    * Pause a docker container.
    *
    * @param containerId The id of the container to pause.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -889,7 +901,7 @@ public interface DockerClient extends Closeable {
    * Unpause a docker container.
    *
    * @param containerId The id of the container to pause.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -901,7 +913,7 @@ public interface DockerClient extends Closeable {
    * Restart a docker container. with a 10 second default wait
    *
    * @param containerId The id of the container to restart.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -913,7 +925,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId                The id of the container to restart.
    * @param secondsToWaitBeforeRestart number of seconds to wait before killing the container.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -926,7 +938,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to wait for.
    * @return Exit response with status code.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -940,7 +952,7 @@ public interface DockerClient extends Closeable {
    * not accept the signal argument; instead, the default SIGKILL is sent.
    *
    * @param containerId The id of the container to kill.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -951,9 +963,9 @@ public interface DockerClient extends Closeable {
    * Remove a docker container.
    *
    * @param containerId The id of the container to remove.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -965,9 +977,9 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to remove.
    * @param params      {@link RemoveContainerParam}
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -980,9 +992,9 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId   The id of the container to remove.
    * @param removeVolumes Whether to remove volumes as well.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -993,7 +1005,7 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
-   * Parameters for {@link #removeContainer(String)}
+   * Parameters for {@link #removeContainer(String)}.
    */
   class RemoveContainerParam {
 
@@ -1079,7 +1091,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to export.
    * @return A stream in tar format that contains the contents of the container file system.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1093,17 +1105,18 @@ public interface DockerClient extends Closeable {
    * @param path        The path inside of the container to copy.  If this is a directory, it will
    *                    be copied recursively.  If this is a file, only that file will be copied.
    * @return A stream in tar format that contains the copied files.  If a directory was copied, the
-   * directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")} will
-   * result in a directory called {@code share} in the tar archive).  The directory name is
-   * completely resolved, so copying {@code "/usr/share/././."} will still create a directory called
-   * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
-   * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
-   * tar archive containing a single folder named after the container ID.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *         directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")}
+   *         will result in a directory called {@code share} in the tar archive).  The directory
+   *         name is completely resolved, so copying {@code "/usr/share/././."} will still create
+   *         a directory called {@code "share"} in the tar archive.  If a single file was copied,
+   *         that file will be the sole entry in the tar archive.  Copying {@code "."} or
+   *         equivalently {@code "/"} will result in the tar archive containing a single folder
+   *         named after the container ID.
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
-   * @throws com.spotify.docker.client.exceptions.UnsupportedApiVersionException
+   * @throws UnsupportedApiVersionException
    *                              If client API is greater than or equal to 1.24
    * @deprecated Replaced by {@link #archiveContainer(String, String)} in API 1.20, removed in 1.24.
    */
@@ -1119,13 +1132,14 @@ public interface DockerClient extends Closeable {
    * @param path        The path inside of the container to copy.  If this is a directory, it will
    *                    be copied recursively.  If this is a file, only that file will be copied.
    * @return A stream in tar format that contains the copied files.  If a directory was copied, the
-   * directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")} will
-   * result in a directory called {@code share} in the tar archive).  The directory name is
-   * completely resolved, so copying {@code "/usr/share/././."} will still create a directory called
-   * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
-   * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
-   * tar archive containing a single folder named after the container ID.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *         directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")}
+   *         will result in a directory called {@code share} in the tar archive). The directory name
+   *         is completely resolved, so copying {@code "/usr/share/././."} will still create a
+   *         directory called {@code "share"} in the tar archive.  If a single file was copied,
+   *         that file will be the sole entry in the tar archive.  Copying {@code "."} or
+   *         equivalently {@code "/"} will result in the tar archive containing a single folder
+   *         named after the container ID.
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1140,11 +1154,11 @@ public interface DockerClient extends Closeable {
    * @param directory   The path to sent to container
    * @param containerId The id of the container to sent files.
    * @param path        The path inside of the container to put files.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.PermissionException
+   * @throws PermissionException
    *                      if the volume or container root file system is marked "read only"
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1160,7 +1174,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container.
    * @return A list of the changes to the container file system.
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1174,9 +1188,9 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1187,7 +1201,7 @@ public interface DockerClient extends Closeable {
   /**
    * Watches the docker API for events.
    *
-   * This method is broken for Docker 1.7.x because of a Docker bug.
+   * <p>This method is broken for Docker 1.7.x because of a Docker bug.
    * See https://github.com/docker/docker/issues/14354.
    *
    * @param params The parameters to apply to the events request
@@ -1218,7 +1232,7 @@ public interface DockerClient extends Closeable {
    * @param execId exec id
    * @param params Exec start params
    * @return exec output
-   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
+   * @throws ExecNotFoundException
    *                              if exec instance is not found (404)
    * @throws com.spotify.docker.client.exceptions.ExecStartConflictException
    *                              if container is paused (409)
@@ -1295,7 +1309,6 @@ public interface DockerClient extends Closeable {
    * List services that match the given criteria. Only available in Docker API &gt;= 1.24.
    *
    * @param criteria Service listing and filtering options.
-   * @return
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -1336,7 +1349,7 @@ public interface DockerClient extends Closeable {
   /**
    * List tasks that match the given criteria. Only available in Docker API &gt;= 1.24.
    *
-   * @param criteria
+   * @param criteria {@link Task.Criteria}
    * @return A list of tasks.
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1345,7 +1358,7 @@ public interface DockerClient extends Closeable {
           throws DockerException, InterruptedException;
 
   /**
-   * Supported parameters for {@link #execStart}
+   * Supported parameters for {@link #execStart}.
    */
   enum ExecStartParameter {
     DETACH("Detach"),
@@ -1371,9 +1384,9 @@ public interface DockerClient extends Closeable {
    * @param height height of tty session
    * @param width width of tty session
    *
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                              if both height and width are null or zero
-   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
+   * @throws ExecNotFoundException
    *                              if exec instance is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1386,8 +1399,7 @@ public interface DockerClient extends Closeable {
    *
    * @param execId exec id
    * @return state of this exec instance.
-   * @throws com.spotify.docker.client.exceptions.ExecNotFoundException
-   *                              if exec instance is not found (404)
+   * @throws ExecNotFoundException if exec instance is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -1398,7 +1410,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to retrieve stats for.
    * @return The container stats
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1413,9 +1425,9 @@ public interface DockerClient extends Closeable {
    * @param containerId The id of the container whose TTY will be resized.
    * @param height New height of TTY
    * @param width New width of TTY
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                              if both height and width are null or zero
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1425,7 +1437,7 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * List all networks
+   * List all networks.
    *
    * @return networks
    * @throws DockerException      if a server error occurred (500)
@@ -1434,11 +1446,11 @@ public interface DockerClient extends Closeable {
   List<Network> listNetworks() throws DockerException, InterruptedException;
 
   /**
-   * Inspect a specific network
+   * Inspect a specific network.
    *
    * @param networkId The id of the network
    * @return network information
-   * @throws com.spotify.docker.client.exceptions.NetworkNotFoundException
+   * @throws NetworkNotFoundException
    *                              if network is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1446,11 +1458,11 @@ public interface DockerClient extends Closeable {
   Network inspectNetwork(final String networkId) throws DockerException, InterruptedException;
 
   /**
-   * Create a new network
+   * Create a new network.
    *
    * @param networkConfig The network creation parameters
    * @return NetworkCreation
-   * @throws com.spotify.docker.client.exceptions.NetworkNotFoundException
+   * @throws NetworkNotFoundException
    *                              if network is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1462,7 +1474,7 @@ public interface DockerClient extends Closeable {
    * Remove a docker network.
    *
    * @param networkId The id of the network to remove.
-   * @throws com.spotify.docker.client.exceptions.NetworkNotFoundException
+   * @throws NetworkNotFoundException
    *                              if network is not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
@@ -1475,7 +1487,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to connect.
    * @param networkId   The id of the network to connect.
-   * @throws com.spotify.docker.client.exceptions.NotFoundException
+   * @throws NotFoundException
    *                              if either container or network is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
@@ -1489,8 +1501,7 @@ public interface DockerClient extends Closeable {
    *
    * @param containerId The id of the container to disconnect.
    * @param networkId   The id of the network to disconnect.
-   * @throws com.spotify.docker.client.exceptions.NotFoundException
-   *                              if either container or network is not found (404)
+   * @throws NotFoundException if either container or network is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
    */
@@ -1539,7 +1550,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Execute in detached mode
+     * Execute in detached mode.
      *
      * @return ExecCreateParam
      */
@@ -1558,7 +1569,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Attach standard input
+     * Attach standard input.
      *
      * @return ExecCreateParam
      */
@@ -1567,7 +1578,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Attach standard error
+     * Attach standard error.
      *
      * @param attachStderr Whether to attach standout error
      * @return ExecCreateParam
@@ -1577,7 +1588,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Attach standard error
+     * Attach standard error.
      *
      * @return ExecCreateParam
      */
@@ -1586,7 +1597,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Attach standard ouput
+     * Attach standard ouput.
      *
      * @param attachStdout Whether to attach standard output
      * @return ExecCreateParam
@@ -1596,7 +1607,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Attach standard ouput
+     * Attach standard ouput.
      *
      * @return ExecCreateParam
      */
@@ -1605,7 +1616,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Give extended privileges to the command
+     * Give extended privileges to the command.
      *
      * @param privileged Whether to give extended privileges to the command
      * @return ExecCreateParam
@@ -1615,7 +1626,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Give extended privileges to the command
+     * Give extended privileges to the command.
      *
      * @return ExecCreateParam
      */
@@ -1643,7 +1654,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * User that will run the command
+     * User that will run the command.
      *
      * @param user user
      * @return ExecCreateParam
@@ -1807,14 +1818,14 @@ public interface DockerClient extends Closeable {
   }
 
   /**
-   * Attach to the container id
+   * Attach to the container id.
    *
    * @param containerId The id of the container to get logs for.
    * @param params      Params for controlling what streams to get and whether to tail or not.
    * @return A log message stream.
-   * @throws com.spotify.docker.client.exceptions.BadParamException
+   * @throws BadParamException
    *                            if one or more params were bad (400)
-   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   * @throws ContainerNotFoundException
    *                              if container is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
@@ -1823,7 +1834,7 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
-   * Get the Docker host address
+   * Get the Docker host address.
    *
    * @return the docker host name or IP
    */
@@ -1854,7 +1865,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Create a "filters" query param from a key/value pair
+     * Create a "filters" query param from a key/value pair.
      *
      * @param key   Type of filter
      * @param value Value of filter
@@ -2232,7 +2243,7 @@ public interface DockerClient extends Closeable {
     }
 
     /**
-     * Apply filters to the returned events
+     * Apply filters to the returned events.
      *
      * @param name  Name
      * @param value Value
@@ -2347,8 +2358,7 @@ public interface DockerClient extends Closeable {
 
   void removeVolume(String volumeName) throws DockerException, InterruptedException;
 
-  VolumeList listVolumes(ListVolumesParam... params)
-    throws DockerException, InterruptedException;
+  VolumeList listVolumes(ListVolumesParam... params) throws DockerException, InterruptedException;
 
   /**
    * Parameters for {@link #listVolumes(ListVolumesParam...)}.
@@ -2371,6 +2381,16 @@ public interface DockerClient extends Closeable {
      */
     public String name() {
       return name;
+    }
+
+    /**
+     * Filter volumes by name.
+     * @param name Matches all or part of a volume name.
+     * @return ListVolumesParam
+     * @since Docker 1.12, API version 1.24
+     */
+    public static ListVolumesParam name(final String name) {
+      return filter("name", name);
     }
 
     /**
@@ -2415,16 +2435,7 @@ public interface DockerClient extends Closeable {
      */
     public static ListVolumesParam dangling(final Boolean dangling) {
       return filter("dangling", dangling.toString());
-    }
 
-    /**
-     * Filter volumes by name.
-     * @param name Matches all or part of a volume name.
-     * @return ListVolumesParam
-     * @since Docker 1.12, API version 1.24
-     */
-    public static ListVolumesParam name(final String name) {
-      return filter("name", name);
     }
 
     /**

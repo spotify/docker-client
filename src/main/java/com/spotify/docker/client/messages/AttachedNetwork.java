@@ -20,14 +20,14 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class AttachedNetwork {
@@ -88,25 +88,25 @@ public class AttachedNetwork {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final AttachedNetwork that = (AttachedNetwork) o;
+    final AttachedNetwork that = (AttachedNetwork) obj;
 
-    return Objects.equals(this.networkId, that.networkId) &&
-           Objects.equals(this.endpointId, that.endpointId) &&
-           Objects.equals(this.gateway, that.gateway) &&
-           Objects.equals(this.ipAddress, that.ipAddress) &&
-           Objects.equals(this.ipPrefixLen, that.ipPrefixLen) &&
-           Objects.equals(this.ipv6Gateway, that.ipv6Gateway) &&
-           Objects.equals(this.globalIPv6Address, that.globalIPv6Address) &&
-           Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen) &&
-           Objects.equals(this.macAddress, that.macAddress);
+    return Objects.equals(this.networkId, that.networkId)
+           && Objects.equals(this.endpointId, that.endpointId)
+           && Objects.equals(this.gateway, that.gateway)
+           && Objects.equals(this.ipAddress, that.ipAddress)
+           && Objects.equals(this.ipPrefixLen, that.ipPrefixLen)
+           && Objects.equals(this.ipv6Gateway, that.ipv6Gateway)
+           && Objects.equals(this.globalIPv6Address, that.globalIPv6Address)
+           && Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen)
+           && Objects.equals(this.macAddress, that.macAddress);
   }
 
   @Override

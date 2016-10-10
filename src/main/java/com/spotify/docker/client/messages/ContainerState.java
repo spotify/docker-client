@@ -20,16 +20,15 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Date;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerState {
@@ -96,26 +95,26 @@ public class ContainerState {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ContainerState that = (ContainerState) o;
+    final ContainerState that = (ContainerState) obj;
 
-    return Objects.equals(this.status, that.status) &&
-           Objects.equals(this.running, that.running) &&
-           Objects.equals(this.paused, that.paused) &&
-           Objects.equals(this.restarting, that.restarting) &&
-           Objects.equals(this.pid, that.pid) &&
-           Objects.equals(this.exitCode, that.exitCode) &&
-           Objects.equals(this.startedAt, that.startedAt) &&
-           Objects.equals(this.finishedAt, that.finishedAt) &&
-           Objects.equals(this.error, that.error) &&
-           Objects.equals(this.oomKilled, that.oomKilled);
+    return Objects.equals(this.status, that.status)
+           && Objects.equals(this.running, that.running)
+           && Objects.equals(this.paused, that.paused)
+           && Objects.equals(this.restarting, that.restarting)
+           && Objects.equals(this.pid, that.pid)
+           && Objects.equals(this.exitCode, that.exitCode)
+           && Objects.equals(this.startedAt, that.startedAt)
+           && Objects.equals(this.finishedAt, that.finishedAt)
+           && Objects.equals(this.error, that.error)
+           && Objects.equals(this.oomKilled, that.oomKilled);
   }
 
   @Override

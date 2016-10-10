@@ -20,23 +20,22 @@
 
 package com.spotify.docker.client.messages;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.io.Resources;
-
-import com.spotify.docker.client.OSUtils;
-
-import org.apache.commons.lang.RandomStringUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import com.spotify.docker.client.OsUtils;
 
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import org.apache.commons.lang.RandomStringUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class AuthConfigTest {
 
@@ -148,7 +147,7 @@ public class AuthConfigTest {
   }
 
   private static Path getTestFilePath(final String path) {
-    if (OSUtils.isLinux() || OSUtils.isOsX()) {
+    if (OsUtils.isLinux() || OsUtils.isOsX()) {
       return getLinuxPath(path);
     } else {
       return getWindowsPath(path);

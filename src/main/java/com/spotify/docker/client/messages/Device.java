@@ -33,16 +33,16 @@ public class Device {
   @JsonProperty("PathInContainer")
   private String pathInContainer;
   @JsonProperty("CgroupPermissions")
-  private String cGroupPermissions;
+  private String cgroupPermissions;
 
   public Device() {
   }
 
   public Device(final String pathOnHost, final String pathInContainer,
-                final String cGroupPermissions) {
+                final String cgroupPermissions) {
     this.pathOnHost = pathOnHost;
     this.pathInContainer = pathInContainer;
-    this.cGroupPermissions = cGroupPermissions;
+    this.cgroupPermissions = cgroupPermissions;
   }
 
   public String pathOnHost() {
@@ -53,29 +53,29 @@ public class Device {
     return pathInContainer;
   }
 
-  public String cGroupPermissions() {
-    return cGroupPermissions;
+  public String cgroupPermissions() {
+    return cgroupPermissions;
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final Device that = (Device) o;
+    final Device that = (Device) obj;
 
-    return Objects.equals(this.pathOnHost, that.pathOnHost) &&
-           Objects.equals(this.pathInContainer, that.pathInContainer) &&
-           Objects.equals(this.cGroupPermissions, that.cGroupPermissions);
+    return Objects.equals(this.pathOnHost, that.pathOnHost)
+           && Objects.equals(this.pathInContainer, that.pathInContainer)
+           && Objects.equals(this.cgroupPermissions, that.cgroupPermissions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(pathOnHost, pathInContainer, cGroupPermissions);
+    return Objects.hash(pathOnHost, pathInContainer, cgroupPermissions);
   }
 
   @Override
@@ -83,7 +83,7 @@ public class Device {
     return MoreObjects.toStringHelper(this)
         .add("pathOnHost", pathOnHost)
         .add("pathInContainer", pathInContainer)
-        .add("cGroupPermissions", cGroupPermissions)
+        .add("cgroupPermissions", cgroupPermissions)
         .toString();
   }
 }

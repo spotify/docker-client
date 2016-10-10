@@ -20,19 +20,17 @@
 
 package com.spotify.docker.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.spotify.docker.client.messages.Event;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Closeable;
-import java.io.IOException;
 
 public class EventStream extends AbstractIterator<Event> implements Closeable {
 
@@ -43,15 +41,6 @@ public class EventStream extends AbstractIterator<Event> implements Closeable {
 
   EventStream(final CloseableHttpResponse response, final ObjectMapper objectMapper) {
     this.reader = new EventReader(response, objectMapper);
-  }
-
-  @Override
-  protected void finalize() throws Throwable {
-    super.finalize();
-    if (!closed) {
-      log.warn(this + " not closed properly");
-      close();
-    }
   }
 
   @Override

@@ -17,7 +17,11 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,9 +29,6 @@ import com.google.common.base.MoreObjects;
 
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class SwarmSpec {
@@ -82,17 +83,18 @@ public class SwarmSpec {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final SwarmSpec that = (SwarmSpec) o;
+    final SwarmSpec that = (SwarmSpec) obj;
 
-    return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+    return Objects.equals(this.name, that.name)
+           && Objects.equals(this.labels, that.labels)
            && Objects.equals(this.orchestration, that.orchestration)
            && Objects.equals(this.raft, that.raft)
            && Objects.equals(this.dispatcher, that.dispatcher)
@@ -107,8 +109,14 @@ public class SwarmSpec {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
-        .add("orchestration", orchestration).add("raft", raft).add("dispatcher", dispatcher)
-        .add("caConfig", caConfig).add("taskDefaults", taskDefaults).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("labels", labels)
+        .add("orchestration", orchestration)
+        .add("raft", raft)
+        .add("dispatcher", dispatcher)
+        .add("caConfig", caConfig)
+        .add("taskDefaults", taskDefaults)
+        .toString();
   }
 }

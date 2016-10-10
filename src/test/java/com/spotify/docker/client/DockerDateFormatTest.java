@@ -20,17 +20,17 @@
 
 package com.spotify.docker.client;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+
+import java.util.Date;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Date;
-
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class DockerDateFormatTest {
 
@@ -44,7 +44,7 @@ public class DockerDateFormatTest {
   }
 
   /**
-   * Verify DockerDateFormat handles millisecond precision correctly
+   * Verify DockerDateFormat handles millisecond precision correctly.
    */
   @Test
   public void testHandlesMillisecondPrecision() throws Exception {
@@ -52,7 +52,7 @@ public class DockerDateFormatTest {
   }
 
   /**
-   * Verify DockerDateFormat converts nanosecond precision down to millisecond precision
+   * Verify DockerDateFormat converts nanosecond precision down to millisecond precision.
    */
   @Test
   public void testHandlesNanosecondPrecision() throws Exception {
@@ -61,7 +61,7 @@ public class DockerDateFormatTest {
 
   /**
    * Verify DockerDateFormat converts nanosecond precision with less than nine digits
-   * down to millisecond precision
+   * down to millisecond precision.
    */
   @Test
   public void testHandlesNanosecondWithLessThanNineDigits() throws Exception {

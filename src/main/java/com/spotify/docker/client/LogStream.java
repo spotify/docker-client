@@ -88,10 +88,10 @@ public interface LogStream extends Iterator<LogMessage>, Closeable {
    *
    * @param stdout     OutputStream for the standard out
    * @param stderr     OutputStream for the standard err
-   * @param closeAtEOF whether to close the streams when this log stream ends
+   * @param closeAtEof whether to close the streams when this log stream ends
    * @throws IOException if an I/O error occurs
    * @see java.io.PipedInputStream
    * @see java.io.PipedOutputStream
    */
-  void attach(OutputStream stdout, OutputStream stderr, boolean closeAtEOF) throws IOException;
+  void attach(OutputStream stdout, OutputStream stderr, boolean closeAtEof) throws IOException;
 }

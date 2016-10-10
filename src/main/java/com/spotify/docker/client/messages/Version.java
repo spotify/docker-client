@@ -20,9 +20,8 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
@@ -78,30 +77,30 @@ public class Version {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final Version that = (Version) o;
+    final Version that = (Version) obj;
 
-    return Objects.equals(this.apiVersion, that.apiVersion) &&
-           Objects.equals(this.arch, that.arch) &&
-           Objects.equals(this.buildTime, that.buildTime) &&
-           Objects.equals(this.gitCommit, that.gitCommit) &&
-           Objects.equals(this.goVersion, that.goVersion) &&
-           Objects.equals(this.kernelVersion, that.kernelVersion) &&
-           Objects.equals(this.os, that.os) &&
-           Objects.equals(this.version, that.version);
+    return Objects.equals(this.apiVersion, that.apiVersion)
+           && Objects.equals(this.arch, that.arch)
+           && Objects.equals(this.buildTime, that.buildTime)
+           && Objects.equals(this.gitCommit, that.gitCommit)
+           && Objects.equals(this.goVersion, that.goVersion)
+           && Objects.equals(this.kernelVersion, that.kernelVersion)
+           && Objects.equals(this.os, that.os)
+           && Objects.equals(this.version, that.version);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(apiVersion, arch, buildTime, gitCommit,
-                        goVersion, kernelVersion, os, version);
+    return Objects.hash(apiVersion, arch, buildTime, gitCommit, goVersion, kernelVersion, os,
+                        version);
   }
 
   @Override

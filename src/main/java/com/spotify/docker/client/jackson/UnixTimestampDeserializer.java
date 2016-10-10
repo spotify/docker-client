@@ -39,16 +39,17 @@ public class UnixTimestampDeserializer extends JsonDeserializer<Date> {
   }
 
   @Override
-  public Date deserialize(final JsonParser p, final DeserializationContext ctxt)
+  public Date deserialize(final JsonParser parser, final DeserializationContext ctxt)
       throws IOException, JsonProcessingException {
-    final JsonToken token = p.getCurrentToken();
+    final JsonToken token = parser.getCurrentToken();
     if (token == JsonToken.VALUE_STRING) {
-      final String str = p.getText().trim();
+      final String str = parser.getText().trim();
       return toDate(Long.parseLong(str));
     } else if (token == JsonToken.VALUE_NUMBER_INT) {
-      return toDate(p.getLongValue());
+      return toDate(parser.getLongValue());
     }
-    throw ctxt.wrongTokenException(p, JsonToken.VALUE_STRING, "Expected a string or numeric value");
+    throw ctxt.wrongTokenException(parser, JsonToken.VALUE_STRING,
+                                   "Expected a string or numeric value");
   }
 
   private static Date toDate(long secondsSinceEpoch) {

@@ -20,22 +20,20 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 import com.spotify.docker.client.ObjectMapperProvider;
+
+import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.IOException;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 public class ContainerTest {
 

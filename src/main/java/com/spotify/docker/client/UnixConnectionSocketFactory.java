@@ -20,13 +20,6 @@
 
 package com.spotify.docker.client;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Contract;
-import org.apache.http.annotation.ThreadingBehavior;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.protocol.HttpContext;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -35,6 +28,13 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 
 import jnr.unixsocket.UnixSocketAddress;
+
+import org.apache.http.HttpHost;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * Provides a ConnectionSocketFactory for connecting Apache HTTP clients to Unix sockets.

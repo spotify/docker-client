@@ -20,16 +20,15 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class CpuStats {
@@ -54,19 +53,19 @@ public class CpuStats {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final CpuStats that = (CpuStats) o;
+    final CpuStats that = (CpuStats) obj;
 
-    return Objects.equals(this.cpuUsage, that.cpuUsage) &&
-           Objects.equals(this.systemCpuUsage, that.systemCpuUsage) &&
-           Objects.equals(this.throttlingData, that.throttlingData);
+    return Objects.equals(this.cpuUsage, that.cpuUsage)
+           && Objects.equals(this.systemCpuUsage, that.systemCpuUsage)
+           && Objects.equals(this.throttlingData, that.throttlingData);
   }
 
   @Override
@@ -111,20 +110,20 @@ public class CpuStats {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final CpuUsage that = (CpuUsage) o;
+      final CpuUsage that = (CpuUsage) obj;
 
-      return Objects.equals(this.totalUsage, that.totalUsage) &&
-             Objects.equals(this.percpuUsage, that.percpuUsage) &&
-             Objects.equals(this.usageInKernelmode, that.usageInKernelmode) &&
-             Objects.equals(this.usageInUsermode, that.usageInUsermode);
+      return Objects.equals(this.totalUsage, that.totalUsage)
+             && Objects.equals(this.percpuUsage, that.percpuUsage)
+             && Objects.equals(this.usageInKernelmode, that.usageInKernelmode)
+             && Objects.equals(this.usageInUsermode, that.usageInUsermode);
     }
 
     @Override
@@ -165,20 +164,20 @@ public class CpuStats {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
 
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final ThrottlingData that = (ThrottlingData) o;
+      final ThrottlingData that = (ThrottlingData) obj;
 
-      return Objects.equals(this.periods, that.periods) &&
-             Objects.equals(this.throttledPeriods, that.throttledPeriods) &&
-             Objects.equals(this.throttledTime, that.throttledTime);
+      return Objects.equals(this.periods, that.periods)
+             && Objects.equals(this.throttledPeriods, that.throttledPeriods)
+             && Objects.equals(this.throttledTime, that.throttledTime);
     }
 
     @Override

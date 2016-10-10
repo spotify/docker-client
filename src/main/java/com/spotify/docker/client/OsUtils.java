@@ -17,11 +17,12 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client;
 
 import java.util.Locale;
 
-public class OSUtils {
+public class OsUtils {
 
   public static boolean isOsX() {
     return System.getProperty("os.name").toLowerCase(Locale.US).contains("os x");

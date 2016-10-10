@@ -20,6 +20,13 @@
 
 package com.spotify.docker.test;
 
+import com.google.common.base.Preconditions;
+import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
+import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+
 import java.lang.reflect.Method;
 
 import org.junit.rules.MethodRule;
@@ -27,14 +34,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import com.spotify.docker.client.exceptions.ContainerNotFoundException;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
 
 /**
  * The {@link DockerContainer} is a JUnit {@link MethodRule} which automatically creates, starts,
@@ -121,7 +120,7 @@ public class DockerContainer implements MethodRule {
   }
 
   /**
-   * Create a new Docker container based on the {@link CreateContainer} annotation
+   * Create a new Docker container based on the {@link CreateContainer} annotation.
    *
    * @return {@link ContainerCreation} response
    */
@@ -143,7 +142,7 @@ public class DockerContainer implements MethodRule {
   }
 
   /**
-   * Start a created container
+   * Start a created container.
    */
   protected void startContainer(CreateContainer createContainerAnnotation)
       throws DockerException, InterruptedException {
@@ -156,7 +155,7 @@ public class DockerContainer implements MethodRule {
   }
 
   /**
-   * Clean up created container
+   * Clean up created container.
    */
   protected void cleanup() throws InterruptedException, DockerException {
     if (containerId == null) {

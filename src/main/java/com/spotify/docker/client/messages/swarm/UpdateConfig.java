@@ -17,16 +17,17 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class UpdateConfig {
@@ -53,15 +54,15 @@ public class UpdateConfig {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final UpdateConfig that = (UpdateConfig) o;
+    final UpdateConfig that = (UpdateConfig) obj;
 
     return Objects.equals(this.parallelism, that.parallelism)
            && Objects.equals(this.delay, that.delay)
@@ -75,7 +76,10 @@ public class UpdateConfig {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("parallelism", parallelism).add("delay", delay)
-        .add("failureAction", failureAction).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("parallelism", parallelism)
+        .add("delay", delay)
+        .add("failureAction", failureAction)
+        .toString();
   }
 }

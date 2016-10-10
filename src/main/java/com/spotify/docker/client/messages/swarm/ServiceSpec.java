@@ -17,7 +17,11 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,9 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ServiceSpec {
@@ -150,17 +151,18 @@ public class ServiceSpec {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ServiceSpec that = (ServiceSpec) o;
+    final ServiceSpec that = (ServiceSpec) obj;
 
-    return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+    return Objects.equals(this.name, that.name)
+           && Objects.equals(this.labels, that.labels)
            && Objects.equals(this.taskTemplate, that.taskTemplate)
            && Objects.equals(this.mode, that.mode)
            && Objects.equals(this.updateConfig, that.updateConfig)
@@ -175,9 +177,14 @@ public class ServiceSpec {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
-        .add("taskTemplate", taskTemplate).add("mode", mode)
-        .add("updateConfig", updateConfig).add("networks", networks)
-        .add("endpointSpec", endpointSpec).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("labels", labels)
+        .add("taskTemplate", taskTemplate)
+        .add("mode", mode)
+        .add("updateConfig", updateConfig)
+        .add("networks", networks)
+        .add("endpointSpec", endpointSpec)
+        .toString();
   }
 }

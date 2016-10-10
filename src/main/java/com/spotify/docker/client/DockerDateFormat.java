@@ -33,7 +33,7 @@ import java.util.Date;
  * timestamp from nanoseconds to milliseconds by removing the last six digits of the timestamp, so
  * we can generate a Date with the correct value (albeit with less precision).
  *
- * Note: a more complete solution would be to introduce a custom date type which can store the
+ * <p>Note: a more complete solution would be to introduce a custom date type which can store the
  * nanosecond value in an additional field, so users can access the complete value. Or just use Java
  * 8 which has date objects with nanosecond support.
  */

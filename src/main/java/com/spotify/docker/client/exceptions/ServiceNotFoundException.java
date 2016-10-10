@@ -17,6 +17,7 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.exceptions;
 
 public class ServiceNotFoundException extends NotFoundException {

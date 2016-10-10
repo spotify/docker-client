@@ -20,12 +20,12 @@
 
 package com.spotify.docker.client;
 
-import org.junit.Test;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
 
 public class ImageRefTest {
 

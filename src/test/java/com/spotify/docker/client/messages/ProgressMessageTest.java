@@ -20,16 +20,15 @@
 
 package com.spotify.docker.client.messages;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.spotify.docker.client.ObjectMapperProvider;
-
-import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.junit.Test;
 
 public class ProgressMessageTest {
 

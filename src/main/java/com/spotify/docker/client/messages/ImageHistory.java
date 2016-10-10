@@ -20,15 +20,15 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageHistory {
@@ -71,22 +71,22 @@ public class ImageHistory {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ImageHistory that = (ImageHistory) o;
+    final ImageHistory that = (ImageHistory) obj;
 
-    return Objects.equals(this.id, that.id) &&
-           Objects.equals(this.created, that.created) &&
-           Objects.equals(this.createdBy, that.createdBy) &&
-           Objects.equals(this.tags, that.tags) &&
-           Objects.equals(this.size, that.size) &&
-           Objects.equals(this.comment, that.comment);
+    return Objects.equals(this.id, that.id)
+           && Objects.equals(this.created, that.created)
+           && Objects.equals(this.createdBy, that.createdBy)
+           && Objects.equals(this.tags, that.tags)
+           && Objects.equals(this.size, that.size)
+           && Objects.equals(this.comment, that.comment);
   }
 
   @Override

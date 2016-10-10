@@ -44,7 +44,7 @@ import jnr.unixsocket.UnixSocketChannel;
  * on the underlying file descriptor. Until the socket is connected, the file descriptor doesn't
  * exist.
  *
- * This class also noop's any calls to setReuseAddress, which is called by the Apache client but
+ * <p>This class also noop's any calls to setReuseAddress, which is called by the Apache client but
  * isn't supported by AFUnixSocket.
  */
 public class ApacheUnixSocket extends Socket {
@@ -139,19 +139,19 @@ public class ApacheUnixSocket extends Socket {
     return Channels.newOutputStream(inner);
   }
 
-  private void setSocketOption(final SocketOptionSetter s) throws SocketException {
+  private void setSocketOption(final SocketOptionSetter optionSetter) throws SocketException {
     if (inner.isConnected()) {
-      s.run();
+      optionSetter.run();
     } else {
-      if (!optionsToSet.offer(s)) {
+      if (!optionsToSet.offer(optionSetter)) {
         throw new SocketException("Failed to queue option");
       }
     }
   }
 
   private void setAllSocketOptions() throws SocketException {
-    for (final SocketOptionSetter s : optionsToSet) {
-      s.run();
+    for (final SocketOptionSetter setter : optionsToSet) {
+      setter.run();
     }
   }
 
@@ -261,6 +261,7 @@ public class ApacheUnixSocket extends Socket {
     throw new UnsupportedOperationException("Unimplemented");
   }
 
+  @SuppressWarnings("EmptyCatchBlock")
   @Override
   public synchronized void close() throws IOException {
     if (lingerTime > 0) {

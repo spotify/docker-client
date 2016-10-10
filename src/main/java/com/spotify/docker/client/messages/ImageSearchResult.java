@@ -20,19 +20,15 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Objects;
-
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
-/**
- * @author xcoulon
- */
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+
+import java.util.Objects;
+
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ImageSearchResult {
 
@@ -47,57 +43,42 @@ public class ImageSearchResult {
   @JsonProperty("star_count")
   private int starCount;
 
-  /**
-   * @return the description
-   */
   public String getDescription() {
     return description;
   }
 
-  /**
-   * @return the official
-   */
   public boolean isOfficial() {
     return official;
   }
 
-  /**
-   * @return the automated
-   */
   public boolean isAutomated() {
     return automated;
   }
 
-  /**
-   * @return the name
-   */
   public String getName() {
     return name;
   }
 
-  /**
-   * @return the starCount
-   */
   public int getStarCount() {
     return starCount;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ImageSearchResult that = (ImageSearchResult) o;
+    final ImageSearchResult that = (ImageSearchResult) obj;
 
-    return Objects.equals(this.description, that.description) &&
-           Objects.equals(this.official, that.official) &&
-           Objects.equals(this.automated, that.automated) &&
-           Objects.equals(this.name, that.name) &&
-           Objects.equals(this.starCount, that.starCount);
+    return Objects.equals(this.description, that.description)
+           && Objects.equals(this.official, that.official)
+           && Objects.equals(this.automated, that.automated)
+           && Objects.equals(this.name, that.name)
+           && Objects.equals(this.starCount, that.starCount);
   }
 
   @Override
@@ -115,6 +96,4 @@ public class ImageSearchResult {
         .add("description", description)
         .toString();
   }
-
-
 }

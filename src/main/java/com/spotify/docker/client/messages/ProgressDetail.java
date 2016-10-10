@@ -20,9 +20,10 @@
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
 public class ProgressDetail {
 
@@ -54,4 +55,24 @@ public class ProgressDetail {
         .toString();
   }
 
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ProgressDetail that = (ProgressDetail) obj;
+
+    return Objects.equals(this.current, that.current)
+           && Objects.equals(this.start, that.start)
+           && Objects.equals(this.total, that.total);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(current, start, total);
+  }
 }

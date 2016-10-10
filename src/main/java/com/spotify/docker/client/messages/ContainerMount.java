@@ -20,15 +20,14 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerMount {
@@ -59,20 +58,20 @@ public class ContainerMount {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ContainerMount that = (ContainerMount) o;
+    final ContainerMount that = (ContainerMount) obj;
 
-    return Objects.equals(this.source, that.source) &&
-           Objects.equals(this.destination, that.destination) &&
-           Objects.equals(this.mode, that.mode) &&
-           Objects.equals(this.rw, that.rw);
+    return Objects.equals(this.source, that.source)
+           && Objects.equals(this.destination, that.destination)
+           && Objects.equals(this.mode, that.mode)
+           && Objects.equals(this.rw, that.rw);
   }
 
   @Override

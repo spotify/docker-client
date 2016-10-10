@@ -20,11 +20,11 @@
 
 package com.spotify.docker;
 
+import static java.lang.System.nanoTime;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static java.lang.System.nanoTime;
 
 public class Polling {
 

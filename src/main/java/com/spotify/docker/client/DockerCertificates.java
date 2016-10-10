@@ -20,16 +20,8 @@
 
 package com.spotify.docker.client;
 
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-
 import com.google.common.base.Optional;
-
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.ssl.SSLContexts;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,6 +45,13 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.ssl.SSLContexts;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * DockerCertificates holds certificates for connecting to an HTTPS-secured Docker instance with
  * client/server authentication.
@@ -73,8 +72,8 @@ public class DockerCertificates {
   }
 
   private DockerCertificates(final Builder builder) throws DockerCertificateException {
-    if ((builder.caCertPath == null) || (builder.clientCertPath == null) ||
-        (builder.clientKeyPath == null)) {
+    if ((builder.caCertPath == null) || (builder.clientCertPath == null)
+        || (builder.clientKeyPath == null)) {
       throw new DockerCertificateException(
           "caCertPath, clientCertPath, and clientKeyPath must all be specified");
     }
@@ -111,14 +110,13 @@ public class DockerCertificates {
           .loadTrustMaterial(trustStore, null)
           .loadKeyMaterial(keyStore, KEY_STORE_PASSWORD)
           .build();
-    } catch (
-        CertificateException |
-            IOException |
-            NoSuchAlgorithmException |
-            InvalidKeySpecException |
-            KeyStoreException |
-            UnrecoverableKeyException |
-            KeyManagementException e) {
+    } catch (CertificateException
+        | IOException
+        | NoSuchAlgorithmException
+        | InvalidKeySpecException
+        | KeyStoreException
+        | UnrecoverableKeyException
+        | KeyManagementException e) {
       throw new DockerCertificateException(e);
     }
   }
@@ -168,8 +166,8 @@ public class DockerCertificates {
       if (this.caCertPath == null || this.clientKeyPath == null || this.clientCertPath == null) {
         log.debug("caCertPath, clientKeyPath or clientCertPath not specified, not using SSL");
         return Optional.absent();
-      } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath) &&
-                 Files.exists(this.clientCertPath)) {
+      } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath)
+                 && Files.exists(this.clientCertPath)) {
         return Optional.of(new DockerCertificates(this));
       } else {
         log.debug("{}, {} or {} does not exist, not using SSL", this.caCertPath, this.clientKeyPath,

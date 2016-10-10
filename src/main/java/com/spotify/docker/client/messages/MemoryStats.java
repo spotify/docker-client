@@ -20,16 +20,15 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.math.BigInteger;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class MemoryStats {
@@ -66,21 +65,21 @@ public class MemoryStats {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final MemoryStats that = (MemoryStats) o;
+    final MemoryStats that = (MemoryStats) obj;
 
-    return Objects.equals(this.stats, that.stats) &&
-           Objects.equals(this.maxUsage, that.maxUsage) &&
-           Objects.equals(this.usage, that.usage) &&
-           Objects.equals(this.failcnt, that.failcnt) &&
-           Objects.equals(this.limit, that.limit);
+    return Objects.equals(this.stats, that.stats)
+           && Objects.equals(this.maxUsage, that.maxUsage)
+           && Objects.equals(this.usage, that.usage)
+           && Objects.equals(this.failcnt, that.failcnt)
+           && Objects.equals(this.limit, that.limit);
   }
 
   @Override
@@ -277,47 +276,46 @@ public class MemoryStats {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
 
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final Stats that = (Stats) o;
+      final Stats that = (Stats) obj;
 
-      return Objects.equals(this.totalPgmajfault, that.totalPgmajfault) &&
-             Objects.equals(this.cache, that.cache) &&
-             Objects.equals(this.mappedFile, that.mappedFile) &&
-             Objects.equals(this.totalInactiveFile, that.totalInactiveFile) &&
-             Objects.equals(this.pgpgout, that.pgpgout) &&
-             Objects.equals(this.rss, that.rss) &&
-             Objects.equals(this.totalMappedFile, that.totalMappedFile) &&
-             Objects.equals(this.writeback, that.writeback) &&
-             Objects.equals(this.unevictable, that.unevictable) &&
-             Objects.equals(this.pgpgin, that.pgpgin) &&
-             Objects.equals(this.totalUnevictable, that.totalUnevictable) &&
-             Objects.equals(this.pgmajfault, that.pgmajfault) &&
-             Objects.equals(this.totalRss, that.totalRss) &&
-             Objects.equals(this.totalRssHuge, that.totalRssHuge) &&
-             Objects.equals(this.totalWriteback, that.totalWriteback) &&
-             Objects.equals(this.totalInactiveAnon, that.totalInactiveAnon) &&
-             Objects.equals(this.rssHuge, that.rssHuge) &&
-             Objects.equals(this.hierarchicalMemoryLimit,
-                            that.hierarchicalMemoryLimit) &&
-             Objects.equals(this.totalPgfault, that.totalPgfault) &&
-             Objects.equals(this.totalActiveFile, that.totalActiveFile) &&
-             Objects.equals(this.activeAnon, that.activeAnon) &&
-             Objects.equals(this.totalActiveAnon, that.totalActiveAnon) &&
-             Objects.equals(this.totalPgpgout, that.totalPgpgout) &&
-             Objects.equals(this.totalCache, that.totalCache) &&
-             Objects.equals(this.inactiveAnon, that.inactiveAnon) &&
-             Objects.equals(this.activeFile, that.activeFile) &&
-             Objects.equals(this.pgfault, that.pgfault) &&
-             Objects.equals(this.inactiveFile, that.inactiveFile) &&
-             Objects.equals(this.totalPgpgin, that.totalPgpgin);
+      return Objects.equals(this.totalPgmajfault, that.totalPgmajfault)
+             && Objects.equals(this.cache, that.cache)
+             && Objects.equals(this.mappedFile, that.mappedFile)
+             && Objects.equals(this.totalInactiveFile, that.totalInactiveFile)
+             && Objects.equals(this.pgpgout, that.pgpgout)
+             && Objects.equals(this.rss, that.rss)
+             && Objects.equals(this.totalMappedFile, that.totalMappedFile)
+             && Objects.equals(this.writeback, that.writeback)
+             && Objects.equals(this.unevictable, that.unevictable)
+             && Objects.equals(this.pgpgin, that.pgpgin)
+             && Objects.equals(this.totalUnevictable, that.totalUnevictable)
+             && Objects.equals(this.pgmajfault, that.pgmajfault)
+             && Objects.equals(this.totalRss, that.totalRss)
+             && Objects.equals(this.totalRssHuge, that.totalRssHuge)
+             && Objects.equals(this.totalWriteback, that.totalWriteback)
+             && Objects.equals(this.totalInactiveAnon, that.totalInactiveAnon)
+             && Objects.equals(this.rssHuge, that.rssHuge)
+             && Objects.equals(this.hierarchicalMemoryLimit, that.hierarchicalMemoryLimit)
+             && Objects.equals(this.totalPgfault, that.totalPgfault)
+             && Objects.equals(this.totalActiveFile, that.totalActiveFile)
+             && Objects.equals(this.activeAnon, that.activeAnon)
+             && Objects.equals(this.totalActiveAnon, that.totalActiveAnon)
+             && Objects.equals(this.totalPgpgout, that.totalPgpgout)
+             && Objects.equals(this.totalCache, that.totalCache)
+             && Objects.equals(this.inactiveAnon, that.inactiveAnon)
+             && Objects.equals(this.activeFile, that.activeFile)
+             && Objects.equals(this.pgfault, that.pgfault)
+             && Objects.equals(this.inactiveFile, that.inactiveFile)
+             && Objects.equals(this.totalPgpgin, that.totalPgpgin);
     }
 
     @Override

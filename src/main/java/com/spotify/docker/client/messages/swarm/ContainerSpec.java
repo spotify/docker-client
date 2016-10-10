@@ -17,22 +17,22 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-
 import com.spotify.docker.client.messages.mount.Mount;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ContainerSpec {
@@ -234,21 +234,25 @@ public class ContainerSpec {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ContainerSpec that = (ContainerSpec) o;
+    final ContainerSpec that = (ContainerSpec) obj;
 
-    return Objects.equals(this.image, that.image) && Objects.equals(this.labels, that.labels)
+    return Objects.equals(this.image, that.image)
+           && Objects.equals(this.labels, that.labels)
            && Objects.equals(this.command, that.command)
-           && Objects.equals(this.args, that.args) && Objects.equals(this.env, that.env)
-           && Objects.equals(this.dir, that.dir) && Objects.equals(this.user, that.user)
-           && Objects.equals(this.groups, that.groups) && Objects.equals(this.tty, that.tty)
+           && Objects.equals(this.args, that.args)
+           && Objects.equals(this.env, that.env)
+           && Objects.equals(this.dir, that.dir)
+           && Objects.equals(this.user, that.user)
+           && Objects.equals(this.groups, that.groups)
+           && Objects.equals(this.tty, that.tty)
            && Objects.equals(this.mounts, that.mounts)
            && Objects.equals(this.stopGracePeriod, that.stopGracePeriod);
   }

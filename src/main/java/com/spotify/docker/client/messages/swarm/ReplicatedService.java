@@ -17,16 +17,17 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class ReplicatedService {
@@ -57,15 +58,15 @@ public class ReplicatedService {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ReplicatedService that = (ReplicatedService) o;
+    final ReplicatedService that = (ReplicatedService) obj;
 
     return Objects.equals(this.replicas, that.replicas);
   }
@@ -77,6 +78,8 @@ public class ReplicatedService {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("replicas", replicas).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("replicas", replicas)
+        .toString();
   }
 }

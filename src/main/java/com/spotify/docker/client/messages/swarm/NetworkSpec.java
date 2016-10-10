@@ -17,7 +17,11 @@
  * limitations under the License.
  * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,9 +29,6 @@ import com.google.common.base.MoreObjects;
 
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class NetworkSpec {
@@ -82,17 +83,18 @@ public class NetworkSpec {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final NetworkSpec that = (NetworkSpec) o;
+    final NetworkSpec that = (NetworkSpec) obj;
 
-    return Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+    return Objects.equals(this.name, that.name)
+           && Objects.equals(this.labels, that.labels)
            && Objects.equals(this.driverConfiguration, that.driverConfiguration)
            && Objects.equals(this.ipv6Enabled, that.ipv6Enabled)
            && Objects.equals(this.internal, that.internal)

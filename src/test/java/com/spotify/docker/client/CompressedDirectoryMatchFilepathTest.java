@@ -20,8 +20,18 @@
 
 package com.spotify.docker.client;
 
+import static org.hamcrest.Matchers.describedAs;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.regex.PatternSyntaxException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,16 +41,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.regex.PatternSyntaxException;
-
-import static org.hamcrest.Matchers.describedAs;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 @RunWith(Parameterized.class)
 public class CompressedDirectoryMatchFilepathTest {

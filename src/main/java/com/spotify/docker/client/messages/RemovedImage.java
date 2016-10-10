@@ -20,9 +20,8 @@
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
@@ -65,18 +64,18 @@ public class RemovedImage {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final RemovedImage that = (RemovedImage) o;
+    final RemovedImage that = (RemovedImage) obj;
 
-    return Objects.equals(this.type, that.type) &&
-           Objects.equals(this.imageId, that.imageId);
+    return Objects.equals(this.type, that.type)
+           && Objects.equals(this.imageId, that.imageId);
   }
 
   @Override

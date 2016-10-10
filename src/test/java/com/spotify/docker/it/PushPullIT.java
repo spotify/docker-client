@@ -20,15 +20,18 @@
 
 package com.spotify.docker.it;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.CoreMatchers.isA;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
-
 import com.spotify.docker.Polling;
-import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.messages.AuthConfig;
@@ -38,6 +41,14 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
 
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
+import javax.ws.rs.NotAuthorizedException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -46,23 +57,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.CoreMatchers.isA;
-
-import javax.ws.rs.NotAuthorizedException;
-
 /**
  * These integration tests check we can push images to and pull from a private registry running as a
  * local container. Some tests in this class also check we can push to and pull from Docker Hub.
  * N.B. Docker Hub rate limits pushes, so they might fail if you run them too often :)
  */
+@SuppressWarnings("AbbreviationAsWordInName")
 public class PushPullIT {
 
   private static final int LONG_WAIT_SECONDS = 400;
