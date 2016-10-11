@@ -38,7 +38,6 @@ import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
@@ -1227,12 +1226,23 @@ public interface DockerClient extends Closeable {
    * Create a new service. Only available in Docker API &gt;= 1.24.
    *
    * @param spec the service spec
-   * @param options the service creation parameters
    * @return Service creation result with service id.
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  ServiceCreateResponse createService(ServiceSpec spec, ServiceCreateOptions options)
+  ServiceCreateResponse createService(ServiceSpec spec)
+          throws DockerException, InterruptedException;
+  
+  /**
+   * Create a new service. Only available in Docker API &gt;= 1.24.
+   *
+   * @param spec the service spec
+   * @param config the registry authentication configuration
+   * @return Service creation result with service id.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  ServiceCreateResponse createService(ServiceSpec spec, AuthConfig authConfig)
           throws DockerException, InterruptedException;
 
   /**
