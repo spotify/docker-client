@@ -99,6 +99,8 @@ public class HostConfig {
   private Boolean oomKillDisable;
   @JsonProperty("OomScoreAdj")
   private Integer oomScoreAdj;
+  @JsonProperty("AutoRemove")
+  private Boolean autoRemove;
 
   private HostConfig() {
   }
@@ -135,6 +137,7 @@ public class HostConfig {
     this.shmSize = builder.shmSize;
     this.oomKillDisable = builder.oomKillDisable;
     this.oomScoreAdj = builder.oomScoreAdj;
+    this.autoRemove = builder.autoRemove;
   }
 
   public List<String> binds() {
@@ -257,6 +260,10 @@ public class HostConfig {
     return oomScoreAdj;
   }
 
+  public Boolean autoRemove() {
+    return autoRemove;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -296,7 +303,8 @@ public class HostConfig {
            Objects.equals(this.ipcMode, that.ipcMode) &&
            Objects.equals(this.ulimits, that.ulimits) &&
            Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
-           Objects.equals(this.oomScoreAdj, that.oomScoreAdj);
+           Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
+           Objects.equals(this.autoRemove, that.autoRemove);
   }
 
   @Override
@@ -306,7 +314,7 @@ public class HostConfig {
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj);
+                        oomKillDisable, oomScoreAdj, autoRemove);
   }
 
   @Override
@@ -343,6 +351,7 @@ public class HostConfig {
         .add("shmSize", shmSize)
         .add("oomKillDisable", oomKillDisable)
         .add("oomScoreAdj", oomScoreAdj)
+        .add("autoRemove", autoRemove)
         .toString();
   }
 
@@ -501,6 +510,7 @@ public class HostConfig {
     private Long shmSize;
     private Boolean oomKillDisable;
     private Integer oomScoreAdj;
+    private Boolean autoRemove;
 
     private Builder() {
     }
@@ -537,6 +547,7 @@ public class HostConfig {
       this.shmSize = hostConfig.shmSize;
       this.oomKillDisable = hostConfig.oomKillDisable;
       this.oomScoreAdj = hostConfig.oomScoreAdj;
+      this.autoRemove = hostConfig.autoRemove;
     }
 
     /**
@@ -1040,6 +1051,18 @@ public class HostConfig {
 
     public Integer oomScoreAdj() {
       return oomScoreAdj;
+    }
+
+    public Boolean autoRemove() {
+      return autoRemove;
+    }
+
+    /**
+     * Only works for Docker API version >= 1.25.
+     */
+    public Builder autoRemove(final Boolean autoRemove) {
+      this.autoRemove = autoRemove;
+      return this;
     }
 
     public HostConfig build() {
