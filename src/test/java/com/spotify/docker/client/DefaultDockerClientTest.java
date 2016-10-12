@@ -3356,6 +3356,26 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testAutoRemove() throws Exception {
+    requireDockerApiVersionAtLeast("1.25", "AutoRemove");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .autoRemove(true) // Default is false
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().autoRemove(), is(true));
+  }
+
+  @Test
   public void testInspectSwarm() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
