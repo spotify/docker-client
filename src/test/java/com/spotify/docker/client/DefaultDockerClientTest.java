@@ -3374,18 +3374,14 @@ public class DefaultDockerClientTest {
 
     sut.startContainer(container.id());
 
-    {
-      final ContainerInfo info = sut.inspectContainer(container.id());
-      assertThat(info.hostConfig().autoRemove(), is(true));
-      assertThat(info.state().running(), equalTo(true));
-    }
+    final ContainerInfo info = sut.inspectContainer(container.id());
+    assertThat(info.hostConfig().autoRemove(), is(true));
+    assertThat(info.state().running(), equalTo(true));
 
     sut.stopContainer(container.id(), 5);
 
     // A ContainerNotFoundException should be thrown since the container is removed when it stops
-    {
-      sut.inspectContainer(container.id());
-    }
+    sut.inspectContainer(container.id());
   }
 
   @Test
