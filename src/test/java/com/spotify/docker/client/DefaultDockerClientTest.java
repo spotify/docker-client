@@ -3355,10 +3355,11 @@ public class DefaultDockerClientTest {
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
   }
 
-  @Test
-  public void testAutoRemove() throws Exception {
+  @Test(expected = ContainerNotFoundException.class)
+  public void testAutoRemoveWhenSetToTrue() throws Exception {
     requireDockerApiVersionAtLeast("1.25", "AutoRemove");
 
+    // Container should be removed after it is stopped (new since API v.1.25)
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
@@ -3370,9 +3371,21 @@ public class DefaultDockerClientTest {
         .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
-    final ContainerInfo info = sut.inspectContainer(container.id());
 
-    assertThat(info.hostConfig().autoRemove(), is(true));
+    sut.startContainer(container.id());
+
+    {
+      final ContainerInfo info = sut.inspectContainer(container.id());
+      assertThat(info.hostConfig().autoRemove(), is(true));
+      assertThat(info.state().running(), equalTo(true));
+    }
+
+    sut.stopContainer(container.id(), 5);
+
+    // A ContainerNotFoundException should be thrown since the container is removed when it stops
+    {
+      sut.inspectContainer(container.id());
+    }
   }
 
   @Test
