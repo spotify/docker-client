@@ -17,9 +17,11 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.Charsets.UTF_8;
+
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
-
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +29,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
-
-import static com.google.common.base.Charsets.UTF_8;
+import java.nio.ByteBuffer;
 
 public class LogStream extends AbstractIterator<LogMessage> implements Closeable {
 
@@ -85,7 +84,20 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
   }
 
   /**
-   * Attach {@link java.io.OutputStream} to the {@link LogStream}.
+   * Attaches two {@link java.io.OutputStream}s to the {@link LogStream}.  Closes the streams after
+   * use.
+   *
+   * @param stdout OutputStream for the standard out
+   * @param stderr OutputStream for the standard err
+   * @throws IOException if an I/O error occurs
+   * @see #attach(OutputStream, OutputStream, boolean) for control over stream lifecycles
+   */
+  public void attach(final OutputStream stdout, final OutputStream stderr) throws IOException {
+    attach(stdout, stderr, true);
+  }
+
+  /**
+   * Attaches two {@link java.io.OutputStream}s to the {@link LogStream}.
    *
    * <p> <b>Example usage:</b> </p>
    *
@@ -130,29 +142,46 @@ public class LogStream extends AbstractIterator<LogMessage> implements Closeable
    * }
    * </pre>
    *
-   * @param stdout OutputStream for the standard out.
-   * @param stderr OutputStream for the standard err
-   * @throws IOException if an I/O error occurs.
+   * @param stdout     OutputStream for the standard out
+   * @param stderr     OutputStream for the standard err
+   * @param closeAtEOF whether to close the streams when this log stream ends
+   * @throws IOException if an I/O error occurs
    * @see java.io.PipedInputStream
    * @see java.io.PipedOutputStream
    */
-  public void attach(final OutputStream stdout, final OutputStream stderr) throws IOException {
-    try (WritableByteChannel stdoutChannel = Channels.newChannel(stdout);
-         WritableByteChannel stderrChannel = Channels.newChannel(stderr)) {
-      for (LogMessage message; hasNext(); ) {
-        message = next();
+  public void attach(final OutputStream stdout, final OutputStream stderr, boolean closeAtEOF)
+      throws IOException {
+    final Closer closer = Closer.create();
+    try {
+      if (closeAtEOF) {
+        closer.register(stdout);
+        closer.register(stderr);
+      }
+
+      while (this.hasNext()) {
+        final LogMessage message = this.next();
+        final ByteBuffer content = message.content();
+
+        assert content.hasArray();
+
         switch (message.stream()) {
           case STDOUT:
-            stdoutChannel.write(message.content());
+            stdout.write(content.array(), content.position(), content.remaining());
+            stdout.flush();
             break;
           case STDERR:
-            stderrChannel.write(message.content());
+            stderr.write(content.array(), content.position(), content.remaining());
+            stderr.flush();
             break;
           case STDIN:
           default:
             break;
         }
       }
+    } catch (Throwable t) {
+      throw closer.rethrow(t);
+    } finally {
+      closer.close();
     }
   }
 
