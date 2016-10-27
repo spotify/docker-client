@@ -43,6 +43,6 @@ public class LogsResponseReader implements MessageBodyReader<LogStream> {
                             final MultivaluedMap<String, String> httpHeaders,
                             final InputStream entityStream)
       throws IOException, WebApplicationException {
-    return new LogStream(entityStream);
+    return DefaultLogStream.create(entityStream);
   }
 }
