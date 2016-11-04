@@ -286,11 +286,15 @@ public class DefaultDockerClientTest {
   @After
   public void tearDown() throws Exception {
     if (dockerApiVersionAtLeast("1.24")) {
-      final List<Service> services = sut.listServices();
-      for (final Service service : services) {
-        if (service.spec().name().startsWith(nameTag)) {
-          sut.removeService(service.id());
+      try {
+        final List<Service> services = sut.listServices();
+        for (final Service service : services) {
+          if (service.spec().name().startsWith(nameTag)) {
+            sut.removeService(service.id());
+          }
         }
+      } catch (DockerException e) {
+        log.warn("Ignoring DockerException in teardown", e);
       }
     }
 
