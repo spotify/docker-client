@@ -31,77 +31,102 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class ContainerConfig {
 
   @JsonProperty("Hostname")
+  @Nullable
   public abstract String hostname();
 
   @JsonProperty("Domainname")
+  @Nullable
   public abstract String domainname();
 
   @JsonProperty("User")
+  @Nullable
   public abstract String user();
 
   @JsonProperty("AttachStdin")
+  @Nullable
   public abstract Boolean attachStdin();
 
   @JsonProperty("AttachStdout")
+  @Nullable
   public abstract Boolean attachStdout();
 
   @JsonProperty("AttachStderr")
+  @Nullable
   public abstract Boolean attachStderr();
 
   @JsonProperty("PortSpecs")
+  @Nullable
   public abstract ImmutableList<String> portSpecs();
 
   @JsonProperty("ExposedPorts")
+  @Nullable
   public abstract ImmutableSet<String> exposedPorts();
 
   @JsonProperty("Tty")
+  @Nullable
   public abstract Boolean tty();
 
   @JsonProperty("OpenStdin")
+  @Nullable
   public abstract Boolean openStdin();
 
   @JsonProperty("StdinOnce")
+  @Nullable
   public abstract Boolean stdinOnce();
 
   @JsonProperty("Env")
+  @Nullable
   public abstract ImmutableList<String> env();
 
   @JsonProperty("Cmd")
+  @Nullable
   public abstract ImmutableList<String> cmd();
 
   @JsonProperty("Image")
+  @Nullable
   public abstract String image();
 
   @JsonProperty("Volumes")
+  @Nullable
   public abstract Set<String> volumes();
 
   @JsonProperty("WorkingDir")
+  @Nullable
   public abstract String workingDir();
 
   @JsonProperty("Entrypoint")
+  @Nullable
   public abstract ImmutableList<String> entrypoint();
 
   @JsonProperty("NetworkDisabled")
+  @Nullable
   public abstract Boolean networkDisabled();
 
   @JsonProperty("OnBuild")
+  @Nullable
   public abstract ImmutableList<String> onBuild();
 
   @JsonProperty("Labels")
+  @Nullable
   public abstract ImmutableMap<String, String> labels();
 
   @JsonProperty("MacAddress")
+  @Nullable
   public abstract String macAddress();
 
   @JsonProperty("HostConfig")
+  @Nullable
   public abstract HostConfig hostConfig();
 
   @JsonProperty("StopSignal")
+  @Nullable
   public abstract String stopSignal();
 
   public abstract Builder toBuilder();
