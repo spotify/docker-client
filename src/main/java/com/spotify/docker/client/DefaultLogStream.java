@@ -19,6 +19,7 @@ package com.spotify.docker.client;
 
 import static com.google.common.base.Charsets.UTF_8;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.io.Closer;
@@ -38,7 +39,12 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
   private volatile boolean closed;
 
   private DefaultLogStream(final InputStream stream) {
-    this.reader = new LogReader(stream);
+    this(new LogReader(stream));
+  }
+
+  @VisibleForTesting
+  DefaultLogStream(final LogReader reader) {
+    this.reader = reader;
   }
 
   static DefaultLogStream create(final InputStream stream) {
@@ -103,16 +109,12 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
         final LogMessage message = this.next();
         final ByteBuffer content = message.content();
 
-        assert content.hasArray();
-
         switch (message.stream()) {
           case STDOUT:
-            stdout.write(content.array(), content.position(), content.remaining());
-            stdout.flush();
+            writeAndFlush(content, stdout);
             break;
           case STDERR:
-            stderr.write(content.array(), content.position(), content.remaining());
-            stderr.flush();
+            writeAndFlush(content, stderr);
             break;
           case STDIN:
           default:
@@ -125,4 +127,25 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
       closer.close();
     }
   }
+
+  /** Write the contents of the given ByteBuffer to the OutputStream and flush the stream. */
+  private static void writeAndFlush(
+      final ByteBuffer buffer, final OutputStream outputStream) throws IOException {
+
+    if (buffer.hasArray()) {
+      outputStream.write(buffer.array(), buffer.position(), buffer.remaining());
+    } else {
+      // cannot access underlying byte array, need to copy into a temporary array
+      while (buffer.hasRemaining()) {
+        // figure out how much to read, but use an upper limit of 8kb. LogMessages should be rather
+        // small so we don't expect this to get hit but avoid large temporary buffers, just in case.
+        final int size = Math.min(buffer.remaining(), 8 * 1024);
+        final byte[] chunk = new byte[size];
+        buffer.get(chunk);
+        outputStream.write(chunk);
+      }
+    }
+    outputStream.flush();
+  }
+
 }
