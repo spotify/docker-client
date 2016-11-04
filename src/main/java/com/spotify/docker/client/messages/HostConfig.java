@@ -99,6 +99,8 @@ public class HostConfig {
   private Boolean oomKillDisable;
   @JsonProperty("OomScoreAdj")
   private Integer oomScoreAdj;
+  @JsonProperty("PidsLimit")
+  private Integer pidsLimit;
 
   private HostConfig() {
   }
@@ -135,6 +137,7 @@ public class HostConfig {
     this.shmSize = builder.shmSize;
     this.oomKillDisable = builder.oomKillDisable;
     this.oomScoreAdj = builder.oomScoreAdj;
+    this.pidsLimit = builder.pidsLimit;
   }
 
   public List<String> binds() {
@@ -296,7 +299,8 @@ public class HostConfig {
            Objects.equals(this.ipcMode, that.ipcMode) &&
            Objects.equals(this.ulimits, that.ulimits) &&
            Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
-           Objects.equals(this.oomScoreAdj, that.oomScoreAdj);
+           Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
+           Objects.equals(this.pidsLimit, that.pidsLimit);
   }
 
   @Override
@@ -306,7 +310,7 @@ public class HostConfig {
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj);
+                        oomKillDisable, oomScoreAdj, pidsLimit);
   }
 
   @Override
@@ -343,6 +347,7 @@ public class HostConfig {
         .add("shmSize", shmSize)
         .add("oomKillDisable", oomKillDisable)
         .add("oomScoreAdj", oomScoreAdj)
+        .add("pidsLimit", pidsLimit)
         .toString();
   }
 
@@ -501,6 +506,7 @@ public class HostConfig {
     private Long shmSize;
     private Boolean oomKillDisable;
     private Integer oomScoreAdj;
+    private Integer pidsLimit;
 
     private Builder() {
     }
@@ -537,6 +543,7 @@ public class HostConfig {
       this.shmSize = hostConfig.shmSize;
       this.oomKillDisable = hostConfig.oomKillDisable;
       this.oomScoreAdj = hostConfig.oomScoreAdj;
+      this.pidsLimit = hostConfig.pidsLimit;
     }
 
     /**
@@ -1040,6 +1047,15 @@ public class HostConfig {
 
     public Integer oomScoreAdj() {
       return oomScoreAdj;
+    }
+
+    public Builder pidsLimit(final Integer pidsLimit) {
+      this.pidsLimit = pidsLimit;
+      return this;
+    }
+
+    public Integer pidsLimit() {
+       return pidsLimit;
     }
 
     public HostConfig build() {
