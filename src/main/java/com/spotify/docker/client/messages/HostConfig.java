@@ -259,6 +259,10 @@ public class HostConfig {
   public Integer oomScoreAdj() {
     return oomScoreAdj;
   }
+  
+  public Integer pidsLimit() {
+    return pidsLimit;
+  }
 
   @Override
   public boolean equals(final Object o) {
