@@ -3372,7 +3372,6 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
 
-    System.out.println(info.hostConfig().pidsLimit());
     assertThat(info.hostConfig().pidsLimit(), is(100));
   }
 
