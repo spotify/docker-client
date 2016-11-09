@@ -145,7 +145,7 @@ public class AuthConfigTest {
   }
 
   private static Path getTestFilePath(final String path) {
-    if (OSUtils.isLinux()) {
+    if (OSUtils.isLinux() || OSUtils.isOsX()) {
       return getLinuxPath(path);
     } else {
       return getWindowsPath(path);

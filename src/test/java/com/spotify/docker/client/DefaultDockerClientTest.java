@@ -326,11 +326,11 @@ public class DefaultDockerClientTest {
     assumeTrue(msg, dockerApiVersionAtLeast(required));
   }
 
-  private boolean dockerApiVersionAtLeast(String expected) throws Exception {
+  private boolean dockerApiVersionAtLeast(final String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
   }
 
-  private boolean dockerApiVersionLessThan(String expected) throws Exception {
+  private boolean dockerApiVersionLessThan(final String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) < 0;
   }
 
@@ -3356,6 +3356,30 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(container.id());
 
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
+  }
+  
+  @Test
+  public void testPidsLimit() throws Exception {
+    if (OSUtils.isLinux()) {
+      assumeTrue("Linux kernel must be at least 4.3.",
+                 compareVersion(System.getProperty("os.version"), "4.3") >= 0);
+    }
+    requireDockerApiVersionAtLeast("1.23", "PidsLimit");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .pidsLimit(100) // Defaults to -1
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().pidsLimit(), is(100));
   }
 
   @Test(expected = ContainerNotFoundException.class)

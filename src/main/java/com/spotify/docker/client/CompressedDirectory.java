@@ -161,7 +161,7 @@ class CompressedDirectory implements Closeable {
     if (pattern.startsWith("#")) {
       return null;
     }
-    if (OSUtils.isLinux()) {
+    if (OSUtils.isLinux() || OSUtils.isOsX()) {
       return pattern;
     }
     return pattern.replace("/", "\\\\");

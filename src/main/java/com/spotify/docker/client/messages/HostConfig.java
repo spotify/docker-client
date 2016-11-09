@@ -101,6 +101,8 @@ public class HostConfig {
   private Integer oomScoreAdj;
   @JsonProperty("AutoRemove")
   private Boolean autoRemove;
+  @JsonProperty("PidsLimit")
+  private Integer pidsLimit;
 
   private HostConfig() {
   }
@@ -138,6 +140,7 @@ public class HostConfig {
     this.oomKillDisable = builder.oomKillDisable;
     this.oomScoreAdj = builder.oomScoreAdj;
     this.autoRemove = builder.autoRemove;
+    this.pidsLimit = builder.pidsLimit;
   }
 
   public List<String> binds() {
@@ -260,6 +263,14 @@ public class HostConfig {
     return oomScoreAdj;
   }
 
+  /**
+   * Tune container pids limit (set -1 for unlimited).
+   * Only works for kernels >= 4.3
+   */
+  public Integer pidsLimit() {
+    return pidsLimit;
+  }
+
   public Boolean autoRemove() {
     return autoRemove;
   }
@@ -304,7 +315,8 @@ public class HostConfig {
            Objects.equals(this.ulimits, that.ulimits) &&
            Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
            Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
-           Objects.equals(this.autoRemove, that.autoRemove);
+           Objects.equals(this.autoRemove, that.autoRemove) &&
+           Objects.equals(this.pidsLimit, that.pidsLimit);
   }
 
   @Override
@@ -314,7 +326,7 @@ public class HostConfig {
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj, autoRemove);
+                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit);
   }
 
   @Override
@@ -352,6 +364,7 @@ public class HostConfig {
         .add("oomKillDisable", oomKillDisable)
         .add("oomScoreAdj", oomScoreAdj)
         .add("autoRemove", autoRemove)
+        .add("pidsLimit", pidsLimit)
         .toString();
   }
 
@@ -511,6 +524,7 @@ public class HostConfig {
     private Boolean oomKillDisable;
     private Integer oomScoreAdj;
     private Boolean autoRemove;
+    private Integer pidsLimit;
 
     private Builder() {
     }
@@ -548,6 +562,7 @@ public class HostConfig {
       this.oomKillDisable = hostConfig.oomKillDisable;
       this.oomScoreAdj = hostConfig.oomScoreAdj;
       this.autoRemove = hostConfig.autoRemove;
+      this.pidsLimit = hostConfig.pidsLimit;
     }
 
     /**
@@ -1063,6 +1078,15 @@ public class HostConfig {
     public Builder autoRemove(final Boolean autoRemove) {
       this.autoRemove = autoRemove;
       return this;
+    }
+
+    public Builder pidsLimit(final Integer pidsLimit) {
+      this.pidsLimit = pidsLimit;
+      return this;
+    }
+
+    public Integer pidsLimit() {
+       return pidsLimit;
     }
 
     public HostConfig build() {
