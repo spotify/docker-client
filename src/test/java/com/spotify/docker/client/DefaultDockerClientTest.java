@@ -3360,6 +3360,10 @@ public class DefaultDockerClientTest {
   
   @Test
   public void testPidsLimit() throws Exception {
+    if (OSUtils.isLinux()) {
+      assumeTrue("Linux kernel must be at least 4.3.",
+                 compareVersion(System.getProperty("os.version"), "4.3") >= 0);
+    }
     requireDockerApiVersionAtLeast("1.23", "PidsLimit");
 
     // Pull image

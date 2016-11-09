@@ -262,7 +262,11 @@ public class HostConfig {
   public Integer oomScoreAdj() {
     return oomScoreAdj;
   }
-  
+
+  /**
+   * Tune container pids limit (set -1 for unlimited).
+   * Only works for kernels >= 4.3
+   */
   public Integer pidsLimit() {
     return pidsLimit;
   }
