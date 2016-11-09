@@ -29,6 +29,8 @@ before_install:
   - ./.travis.sh install_docker
   # double-check that the version/config is correct
   - ./.travis.sh dump_docker_config
+  # print kernel version
+  - uname --all
   - docker version
   - docker info
 
