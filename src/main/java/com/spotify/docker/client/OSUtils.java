@@ -16,11 +16,15 @@
  */
 package com.spotify.docker.client;
 
-import java.io.File;
+import java.util.Locale;
 
 public class OSUtils {
 
+  public static boolean isOsX() {
+    return System.getProperty("os.name").toLowerCase(Locale.US).contains("os x");
+  }
+
   public static boolean isLinux() {
-    return File.separatorChar == '/';
+    return System.getProperty("os.name").equalsIgnoreCase("linux");
   }
 }
