@@ -3358,6 +3358,35 @@ public class DefaultDockerClientTest {
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
   }
 
+  @Test(expected = ContainerNotFoundException.class)
+  public void testAutoRemoveWhenSetToTrue() throws Exception {
+    requireDockerApiVersionAtLeast("1.25", "AutoRemove");
+
+    // Container should be removed after it is stopped (new since API v.1.25)
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .autoRemove(true) // Default is false
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+
+    sut.startContainer(container.id());
+
+    final ContainerInfo info = sut.inspectContainer(container.id());
+    assertThat(info.hostConfig().autoRemove(), is(true));
+    assertThat(info.state().running(), equalTo(true));
+
+    sut.stopContainer(container.id(), 5);
+
+    // A ContainerNotFoundException should be thrown since the container is removed when it stops
+    sut.inspectContainer(container.id());
+  }
+
   @Test
   public void testInspectSwarm() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
