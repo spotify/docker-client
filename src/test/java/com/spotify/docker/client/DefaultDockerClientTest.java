@@ -326,11 +326,11 @@ public class DefaultDockerClientTest {
     assumeTrue(msg, dockerApiVersionAtLeast(required));
   }
 
-  private boolean dockerApiVersionAtLeast(String expected) throws Exception {
+  private boolean dockerApiVersionAtLeast(final String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
   }
 
-  private boolean dockerApiVersionLessThan(String expected) throws Exception {
+  private boolean dockerApiVersionLessThan(final String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) < 0;
   }
 
