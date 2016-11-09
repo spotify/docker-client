@@ -82,7 +82,6 @@ import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
@@ -3399,7 +3398,7 @@ public class DefaultDockerClientTest {
             .withNetworks(NetworkAttachmentConfig.builder().withTarget(networkName).build())
             .build();
 
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     assertThat(response.id(), is(notNullValue()));
 
     final Service inspectService = sut.inspectService(serviceName);
@@ -3423,7 +3422,7 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
 
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     assertThat(response.id(), is(notNullValue()));
   }
 
@@ -3459,7 +3458,7 @@ public class DefaultDockerClientTest {
         .withEndpointSpec(endpointSpec)
         .build();
 
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
 
     final Service service = sut.inspectService(response.id());
 
@@ -3474,7 +3473,7 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     final ServiceSpec spec = createServiceSpec(randomName());
 
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     assertThat(response.id(), is(notNullValue()));
 
     Service service = sut.inspectService(response.id());
@@ -3501,7 +3500,7 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
 
-    sut.createService(spec, new ServiceCreateOptions());
+    sut.createService(spec);
 
     services = sut.listServices();
     assertThat(services.size(), is(1));
@@ -3511,7 +3510,7 @@ public class DefaultDockerClientTest {
   public void testListServicesFilterById() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     final ServiceSpec spec = createServiceSpec(randomName());
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
 
     final List<Service> services = sut
         .listServices(Service.find().withServiceId(response.id()).build());
@@ -3524,7 +3523,7 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     final String serviceName = randomName();
     final ServiceSpec spec = createServiceSpec(serviceName);
-    sut.createService(spec, new ServiceCreateOptions());
+    sut.createService(spec);
 
     final List<Service> services =
         sut.listServices(Service.find().withServiceName(serviceName).build());
@@ -3537,7 +3536,7 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
     final ServiceSpec spec = createServiceSpec(randomName());
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     assertThat(sut.listServices(), is(not(empty())));
     sut.removeService(response.id());
     assertThat(sut.listServices(), is(empty()));
@@ -3549,7 +3548,7 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     Thread.sleep(2000); // to give it a while to spin containers
     final Task task = sut.listTasks().get(0);
     final Task inspectTask = sut.inspectTask(task.id());
@@ -3562,7 +3561,7 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     Thread.sleep(2000); // to give it a while to spin containers
     assertThat(sut.listTasks().size(), is(4));
   }
@@ -3573,7 +3572,7 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec, new ServiceCreateOptions());
+    final ServiceCreateResponse response = sut.createService(spec);
     Thread.sleep(2000); // to give it a while to spin containers
 
     final Task task = sut.listTasks().get(1);

@@ -74,7 +74,6 @@ import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.ServiceCreateOptions;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
@@ -1561,15 +1560,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public ServiceCreateResponse createService(ServiceSpec spec)
+      throws DockerException, InterruptedException {
+    
+    return createService(spec, authConfig);
+  }
+  
+  @Override
   public ServiceCreateResponse createService(final ServiceSpec spec,
-                                             final ServiceCreateOptions options)
+                                             final AuthConfig config)
       throws DockerException, InterruptedException {
     assertAPIVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services").path("create");
 
     try {
       return request(POST, ServiceCreateResponse.class, resource,
-                     resource.request(APPLICATION_JSON_TYPE), Entity.json(spec));
+                     resource.request(APPLICATION_JSON_TYPE)
+                         .header("X-Registry-Auth", authHeader(config)), Entity.json(spec));
     } catch (DockerRequestException e) {
       switch (e.status()) {
         case 406:
