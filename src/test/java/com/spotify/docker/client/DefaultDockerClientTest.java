@@ -3381,6 +3381,26 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().pidsLimit(), is(100));
   }
+  
+  @Test
+  public void testReadonlyRootfs() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "ReadonlyRootfs");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .readonlyRootfs(true) // Defaults to -1
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().readonlyRootfs(), is(true));
+  }
 
   @Test(expected = ContainerNotFoundException.class)
   public void testAutoRemoveWhenSetToTrue() throws Exception {

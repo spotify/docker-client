@@ -103,6 +103,8 @@ public class HostConfig {
   private Boolean autoRemove;
   @JsonProperty("PidsLimit")
   private Integer pidsLimit;
+  @JsonProperty("ReadonlyRootfs")
+  private Boolean readonlyRootfs;
 
   private HostConfig() {
   }
@@ -141,6 +143,7 @@ public class HostConfig {
     this.oomScoreAdj = builder.oomScoreAdj;
     this.autoRemove = builder.autoRemove;
     this.pidsLimit = builder.pidsLimit;
+    this.readonlyRootfs = builder.readonlyRootfs;
   }
 
   public List<String> binds() {
@@ -270,7 +273,11 @@ public class HostConfig {
   public Integer pidsLimit() {
     return pidsLimit;
   }
-
+  
+  public Boolean readonlyRootfs() {
+      return readonlyRootfs;
+  }
+  
   public Boolean autoRemove() {
     return autoRemove;
   }
@@ -316,7 +323,8 @@ public class HostConfig {
            Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
            Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
            Objects.equals(this.autoRemove, that.autoRemove) &&
-           Objects.equals(this.pidsLimit, that.pidsLimit);
+           Objects.equals(this.pidsLimit, that.pidsLimit) &&
+           Objects.equals(this.readonlyRootfs, that.readonlyRootfs);
   }
 
   @Override
@@ -326,7 +334,7 @@ public class HostConfig {
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit);
+                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, readonlyRootfs);
   }
 
   @Override
@@ -365,6 +373,7 @@ public class HostConfig {
         .add("oomScoreAdj", oomScoreAdj)
         .add("autoRemove", autoRemove)
         .add("pidsLimit", pidsLimit)
+        .add("readonlyRootfs", readonlyRootfs)
         .toString();
   }
 
@@ -525,6 +534,7 @@ public class HostConfig {
     private Integer oomScoreAdj;
     private Boolean autoRemove;
     private Integer pidsLimit;
+    private Boolean readonlyRootfs;
 
     private Builder() {
     }
@@ -563,6 +573,7 @@ public class HostConfig {
       this.oomScoreAdj = hostConfig.oomScoreAdj;
       this.autoRemove = hostConfig.autoRemove;
       this.pidsLimit = hostConfig.pidsLimit;
+      this.readonlyRootfs = hostConfig.readonlyRootfs;
     }
 
     /**
@@ -1086,9 +1097,18 @@ public class HostConfig {
     }
 
     public Integer pidsLimit() {
-       return pidsLimit;
+      return pidsLimit;
+    }
+    
+    public Builder readonlyRootfs(final Boolean readonlyRootfs) {
+      this.readonlyRootfs = readonlyRootfs;
+      return this;
     }
 
+    public Boolean readonlyRootfs() {
+      return readonlyRootfs;
+    }
+    
     public HostConfig build() {
       return new HostConfig(this);
     }
