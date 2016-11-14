@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -103,6 +104,8 @@ public class HostConfig {
   private Boolean autoRemove;
   @JsonProperty("PidsLimit")
   private Integer pidsLimit;
+  @JsonProperty("Tmpfs")
+  private ImmutableMap<String, String> tmpfs;
 
   private HostConfig() {
   }
@@ -141,6 +144,7 @@ public class HostConfig {
     this.oomScoreAdj = builder.oomScoreAdj;
     this.autoRemove = builder.autoRemove;
     this.pidsLimit = builder.pidsLimit;
+    this.tmpfs = builder.tmpfs;
   }
 
   public List<String> binds() {
@@ -270,6 +274,10 @@ public class HostConfig {
   public Integer pidsLimit() {
     return pidsLimit;
   }
+  
+  public ImmutableMap<String, String> tmpfs() {
+      return tmpfs;
+  }
 
   public Boolean autoRemove() {
     return autoRemove;
@@ -316,7 +324,8 @@ public class HostConfig {
            Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
            Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
            Objects.equals(this.autoRemove, that.autoRemove) &&
-           Objects.equals(this.pidsLimit, that.pidsLimit);
+           Objects.equals(this.pidsLimit, that.pidsLimit) &&
+           Objects.equals(this.tmpfs, that.tmpfs);
   }
 
   @Override
@@ -326,7 +335,7 @@ public class HostConfig {
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit);
+                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs);
   }
 
   @Override
@@ -365,6 +374,7 @@ public class HostConfig {
         .add("oomScoreAdj", oomScoreAdj)
         .add("autoRemove", autoRemove)
         .add("pidsLimit", pidsLimit)
+        .add("tmpfs", tmpfs)
         .toString();
   }
 
@@ -525,6 +535,7 @@ public class HostConfig {
     private Integer oomScoreAdj;
     private Boolean autoRemove;
     private Integer pidsLimit;
+    private ImmutableMap<String, String> tmpfs;
 
     private Builder() {
     }
@@ -563,6 +574,7 @@ public class HostConfig {
       this.oomScoreAdj = hostConfig.oomScoreAdj;
       this.autoRemove = hostConfig.autoRemove;
       this.pidsLimit = hostConfig.pidsLimit;
+      this.tmpfs = hostConfig.tmpfs;
     }
 
     /**
@@ -1087,6 +1099,15 @@ public class HostConfig {
 
     public Integer pidsLimit() {
        return pidsLimit;
+    }
+    
+    public Builder tmpfs(final ImmutableMap<String, String> tmpfs) {
+      this.tmpfs = tmpfs;
+      return this;
+    }
+
+    public ImmutableMap<String, String> tmpfs() {
+      return tmpfs;
     }
 
     public HostConfig build() {

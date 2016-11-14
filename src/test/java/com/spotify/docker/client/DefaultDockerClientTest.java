@@ -3381,6 +3381,28 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().pidsLimit(), is(100));
   }
+  
+  @Test
+  public void testTmpfs() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "PidsLimit");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ImmutableMap<String, String> tmpfs = ImmutableMap.of("/tmp", "rw,noexec,nosuid,size=50m");
+    
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .tmpfs(tmpfs)
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().tmpfs(), is(tmpfs));
+  }
 
   @Test(expected = ContainerNotFoundException.class)
   public void testAutoRemoveWhenSetToTrue() throws Exception {
