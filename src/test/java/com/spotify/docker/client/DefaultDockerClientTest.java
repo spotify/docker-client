@@ -3384,7 +3384,7 @@ public class DefaultDockerClientTest {
   
   @Test
   public void testTmpfs() throws Exception {
-    requireDockerApiVersionAtLeast("1.22", "PidsLimit");
+    requireDockerApiVersionAtLeast("1.22", "TmpFs");
 
     // Pull image
     sut.pull(BUSYBOX_LATEST);
