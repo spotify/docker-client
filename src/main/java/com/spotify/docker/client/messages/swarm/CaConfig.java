@@ -24,53 +24,33 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class CaConfig {
+public abstract class CaConfig {
 
+  @NotNull
   @JsonProperty("NodeCertExpiry")
-  private Long nodeCertExpiry;
+  public abstract Long nodeCertExpiry();
 
+  @Nullable
   @JsonProperty("ExternalCAs")
-  private ImmutableList<ExternalCa> externalCas;
+  public abstract ImmutableList<ExternalCa> externalCas();
 
-  public Long nodeCertExpiry() {
-    return nodeCertExpiry;
-  }
-
-  public List<ExternalCa> externalCas() {
-    return externalCas;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final CaConfig that = (CaConfig) obj;
-
-    return Objects.equals(this.nodeCertExpiry, that.nodeCertExpiry)
-           && Objects.equals(this.externalCas, that.externalCas);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(nodeCertExpiry, externalCas);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("nodeCertExpiry", nodeCertExpiry)
-        .add("externalCas", externalCas).toString();
+  @JsonCreator
+  static CaConfig create(
+      @JsonProperty("NodeCertExpiry") final Long nodeCertExpiry,
+      @JsonProperty("ExternalCAs") final List<ExternalCa> externalCas) {
+    final ImmutableList<ExternalCa> externalCasCopy = externalCas == null
+                                                      ? null : ImmutableList.copyOf(externalCas);
+    return new AutoValue_CaConfig(nodeCertExpiry, externalCasCopy);
   }
 }

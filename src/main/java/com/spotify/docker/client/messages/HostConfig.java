@@ -24,572 +24,302 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class HostConfig {
+public abstract class HostConfig {
 
+  @Nullable
   @JsonProperty("Binds")
-  private ImmutableList<String> binds;
+  public abstract ImmutableList<String> binds();
+
+  @Nullable
   @JsonProperty("ContainerIDFile")
-  private String containerIdFile;
+  public abstract String containerIdFile();
+
+  @Nullable
   @JsonProperty("LxcConf")
-  private ImmutableList<LxcConfParameter> lxcConf;
+  public abstract ImmutableList<LxcConfParameter> lxcConf();
+
+  @Nullable
   @JsonProperty("Privileged")
-  private Boolean privileged;
+  public abstract Boolean privileged();
+
+  @Nullable
   @JsonProperty("PortBindings")
-  private Map<String, List<PortBinding>> portBindings;
+  public abstract ImmutableMap<String, List<PortBinding>> portBindings();
+
+  @Nullable
   @JsonProperty("Links")
-  private ImmutableList<String> links;
+  public abstract ImmutableList<String> links();
+
+  @Nullable
   @JsonProperty("PublishAllPorts")
-  private Boolean publishAllPorts;
+  public abstract Boolean publishAllPorts();
+
+  @Nullable
   @JsonProperty("Dns")
-  private ImmutableList<String> dns;
+  public abstract ImmutableList<String> dns();
+
+  @Nullable
   @JsonProperty("DnsSearch")
-  private ImmutableList<String> dnsSearch;
+  public abstract ImmutableList<String> dnsSearch();
+
+  @Nullable
   @JsonProperty("ExtraHosts")
-  private ImmutableList<String> extraHosts;
+  public abstract ImmutableList<String> extraHosts();
+
+  @Nullable
   @JsonProperty("VolumesFrom")
-  private ImmutableList<String> volumesFrom;
+  public abstract ImmutableList<String> volumesFrom();
+
+  @Nullable
   @JsonProperty("CapAdd")
-  private ImmutableList<String> capAdd;
+  public abstract ImmutableList<String> capAdd();
+
+  @Nullable
   @JsonProperty("CapDrop")
-  private ImmutableList<String> capDrop;
+  public abstract ImmutableList<String> capDrop();
+
+  @Nullable
   @JsonProperty("NetworkMode")
-  private String networkMode;
+  public abstract String networkMode();
+
+  @Nullable
   @JsonProperty("SecurityOpt")
-  private ImmutableList<String> securityOpt;
+  public abstract ImmutableList<String> securityOpt();
+
+  @Nullable
   @JsonProperty("Devices")
-  private ImmutableList<Device> devices;
+  public abstract ImmutableList<Device> devices();
+
+  @Nullable
   @JsonProperty("Memory")
-  private Long memory;
+  public abstract Long memory();
+
+  @Nullable
   @JsonProperty("MemorySwap")
-  private Long memorySwap;
+  public abstract Long memorySwap();
+
+  @Nullable
   @JsonProperty("MemoryReservation")
-  private Long memoryReservation;
+  public abstract Long memoryReservation();
+
+  @Nullable
   @JsonProperty("CpuShares")
-  private Long cpuShares;
+  public abstract Long cpuShares();
+
+  @Nullable
   @JsonProperty("CpusetCpus")
-  private String cpusetCpus;
+  public abstract String cpusetCpus();
+
+  @Nullable
   @JsonProperty("CpuQuota")
-  private Long cpuQuota;
+  public abstract Long cpuQuota();
+
+  @Nullable
   @JsonProperty("CgroupParent")
-  private String cgroupParent;
+  public abstract String cgroupParent();
+
+  @Nullable
   @JsonProperty("RestartPolicy")
-  private RestartPolicy restartPolicy;
+  public abstract RestartPolicy restartPolicy();
+
+  @Nullable
   @JsonProperty("LogConfig")
-  private LogConfig logConfig;
+  public abstract LogConfig logConfig();
+
+  @Nullable
   @JsonProperty("IpcMode")
-  private String ipcMode;
+  public abstract String ipcMode();
+
+  @Nullable
   @JsonProperty("Ulimits")
-  private ImmutableList<Ulimit> ulimits;
+  public abstract ImmutableList<Ulimit> ulimits();
+
+  @Nullable
   @JsonProperty("PidMode")
-  private String pidMode;
+  public abstract String pidMode();
+
+  @Nullable
   @JsonProperty("ShmSize")
-  private Long shmSize;
+  public abstract Long shmSize();
+
+  @Nullable
   @JsonProperty("OomKillDisable")
-  private Boolean oomKillDisable;
+  public abstract Boolean oomKillDisable();
+
+  @Nullable
   @JsonProperty("OomScoreAdj")
-  private Integer oomScoreAdj;
+  public abstract Integer oomScoreAdj();
+
+  @Nullable
   @JsonProperty("AutoRemove")
-  private Boolean autoRemove;
-  @JsonProperty("PidsLimit")
-  private Integer pidsLimit;
-  @JsonProperty("Tmpfs")
-  private ImmutableMap<String, String> tmpfs;
-  @JsonProperty("ReadonlyRootfs")
-  private Boolean readonlyRootfs;
-
-  private HostConfig() {
-  }
-
-  private HostConfig(final Builder builder) {
-    this.binds = builder.binds;
-    this.containerIdFile = builder.containerIdFile;
-    this.lxcConf = builder.lxcConf;
-    this.privileged = builder.privileged;
-    this.portBindings = builder.portBindings;
-    this.links = builder.links;
-    this.publishAllPorts = builder.publishAllPorts;
-    this.dns = builder.dns;
-    this.dnsSearch = builder.dnsSearch;
-    this.extraHosts = builder.extraHosts;
-    this.volumesFrom = builder.volumesFrom;
-    this.capAdd = builder.capAdd;
-    this.capDrop = builder.capDrop;
-    this.networkMode = builder.networkMode;
-    this.securityOpt = builder.securityOpt;
-    this.devices = builder.devices;
-    this.memory = builder.memory;
-    this.memorySwap = builder.memorySwap;
-    this.memoryReservation = builder.memoryReservation;
-    this.cpuShares = builder.cpuShares;
-    this.cpusetCpus = builder.cpusetCpus;
-    this.cpuQuota = builder.cpuQuota;
-    this.cgroupParent = builder.cgroupParent;
-    this.restartPolicy = builder.restartPolicy;
-    this.logConfig = builder.logConfig;
-    this.ipcMode = builder.ipcMode;
-    this.ulimits = builder.ulimits;
-    this.pidMode = builder.pidMode;
-    this.shmSize = builder.shmSize;
-    this.oomKillDisable = builder.oomKillDisable;
-    this.oomScoreAdj = builder.oomScoreAdj;
-    this.autoRemove = builder.autoRemove;
-    this.pidsLimit = builder.pidsLimit;
-    this.tmpfs = builder.tmpfs;
-    this.readonlyRootfs = builder.readonlyRootfs;
-  }
-
-  public List<String> binds() {
-    return binds;
-  }
-
-  public String containerIdFile() {
-    return containerIdFile;
-  }
-
-  public List<LxcConfParameter> lxcConf() {
-    return lxcConf;
-  }
-
-  public Boolean privileged() {
-    return privileged;
-  }
-
-  public Map<String, List<PortBinding>> portBindings() {
-    return (portBindings == null) ? null : Collections.unmodifiableMap(portBindings);
-  }
-
-  public List<String> links() {
-    return links;
-  }
-
-  public Boolean publishAllPorts() {
-    return publishAllPorts;
-  }
-
-  public List<String> dns() {
-    return dns;
-  }
-
-  public List<String> dnsSearch() {
-    return dnsSearch;
-  }
-
-  public List<String> extraHosts() {
-    return extraHosts;
-  }
-
-  public List<String> volumesFrom() {
-    return volumesFrom;
-  }
-
-  public List<String> capAdd() {
-    return capAdd;
-  }
-
-  public List<String> capDrop() {
-    return capDrop;
-  }
-
-  public String networkMode() {
-    return networkMode;
-  }
-
-  public List<String> securityOpt() {
-    return securityOpt;
-  }
-
-  public List<Device> devices() {
-    return devices;
-  }
-
-  public Long memory() {
-    return memory;
-  }
-
-  public Long memorySwap() {
-    return memorySwap;
-  }
-
-  public Long getMemoryReservation() {
-    return memoryReservation;
-  }
-
-  public Long cpuShares() {
-    return cpuShares;
-  }
-
-  public String cpusetCpus() {
-    return cpusetCpus;
-  }
-
-  public Long cpuQuota() {
-    return cpuQuota;
-  }
-
-  public String cgroupParent() {
-    return cgroupParent;
-  }
-
-  public RestartPolicy restartPolicy() {
-    return restartPolicy;
-  }
-
-  public LogConfig logConfig() {
-    return logConfig;
-  }
-
-  public String ipcMode() {
-    return ipcMode;
-  }
-
-  public List<Ulimit> ulimits() {
-    return ulimits;
-  }
-
-  public Long shmSize() {
-    return shmSize;
-  }
-
-  public Boolean oomKillDisable() {
-    return oomKillDisable;
-  }
-
-  public Integer oomScoreAdj() {
-    return oomScoreAdj;
-  }
+  public abstract Boolean autoRemove();
 
   /**
    * Tune container pids limit (set -1 for unlimited).
    * Only works for kernels >= 4.3
    */
-  public Integer pidsLimit() {
-    return pidsLimit;
-  }
-  
-  public ImmutableMap<String, String> tmpfs() {
-    return tmpfs;
-  }
+  @Nullable
+  @JsonProperty("PidsLimit")
+  public abstract Integer pidsLimit();
 
-  public Boolean readonlyRootfs() {
-    return readonlyRootfs;
-  }
-  
-  public Boolean autoRemove() {
-    return autoRemove;
-  }
+  @Nullable
+  @JsonProperty("Tmpfs")
+  public abstract ImmutableMap<String, String> tmpfs();
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
+  @Nullable
+  @JsonProperty("ReadonlyRootfs")
+  public abstract Boolean readonlyRootfs();
 
-    final HostConfig that = (HostConfig) obj;
-
-    return Objects.equals(this.binds, that.binds)
-           && Objects.equals(this.containerIdFile, that.containerIdFile)
-           && Objects.equals(this.lxcConf, that.lxcConf)
-           && Objects.equals(this.privileged, that.privileged)
-           && Objects.equals(this.portBindings, that.portBindings)
-           && Objects.equals(this.links, that.links)
-           && Objects.equals(this.publishAllPorts, that.publishAllPorts)
-           && Objects.equals(this.dns, that.dns)
-           && Objects.equals(this.dnsSearch, that.dnsSearch)
-           && Objects.equals(this.extraHosts, that.extraHosts)
-           && Objects.equals(this.volumesFrom, that.volumesFrom)
-           && Objects.equals(this.capAdd, that.capAdd)
-           && Objects.equals(this.capDrop, that.capDrop)
-           && Objects.equals(this.networkMode, that.networkMode)
-           && Objects.equals(this.securityOpt, that.securityOpt)
-           && Objects.equals(this.devices, that.devices)
-           && Objects.equals(this.memory, that.memory)
-           && Objects.equals(this.memorySwap, that.memorySwap)
-           && Objects.equals(this.memoryReservation, that.memoryReservation)
-           && Objects.equals(this.cpuShares, that.cpuShares)
-           && Objects.equals(this.cpusetCpus, that.cpusetCpus)
-           && Objects.equals(this.cpuQuota, that.cpuQuota)
-           && Objects.equals(this.cgroupParent, that.cgroupParent)
-           && Objects.equals(this.restartPolicy, that.restartPolicy)
-           && Objects.equals(this.logConfig, that.logConfig)
-           && Objects.equals(this.ipcMode, that.ipcMode)
-           && Objects.equals(this.ulimits, that.ulimits)
-           && Objects.equals(this.oomKillDisable, that.oomKillDisable)
-           && Objects.equals(this.oomScoreAdj, that.oomScoreAdj)
-           && Objects.equals(this.autoRemove, that.autoRemove)
-           && Objects.equals(this.pidsLimit, that.pidsLimit)
-           && Objects.equals(this.tmpfs, that.tmpfs)
-           && Objects.equals(this.readonlyRootfs, that.readonlyRootfs);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(binds, containerIdFile, lxcConf, privileged, portBindings, links,
-                        publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
-                        capDrop, networkMode, securityOpt, devices, memory, memorySwap,
-                        memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
-                        restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs, readonlyRootfs);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("binds", binds)
-        .add("containerIdFile", containerIdFile)
-        .add("lxcConf", lxcConf)
-        .add("privileged", privileged)
-        .add("portBindings", portBindings)
-        .add("links", links)
-        .add("publishAllPorts", publishAllPorts)
-        .add("dns", dns)
-        .add("dnsSearch", dnsSearch)
-        .add("extraHosts", extraHosts)
-        .add("volumesFrom", volumesFrom)
-        .add("capAdd", capAdd)
-        .add("capDrop", capDrop)
-        .add("networkMode", networkMode)
-        .add("securityOpt", securityOpt)
-        .add("devices", devices)
-        .add("memory", memory)
-        .add("memorySwap", memorySwap)
-        .add("memoryReservation", memoryReservation)
-        .add("cpuShares", cpuShares)
-        .add("cpusetCpus", cpusetCpus)
-        .add("cpuQuota", cpuQuota)
-        .add("cgroupParent", cgroupParent)
-        .add("restartPolicy", restartPolicy)
-        .add("logConfig", logConfig)
-        .add("ipcMode", ipcMode)
-        .add("ulimits", ulimits)
-        .add("pidMode", pidMode)
-        .add("shmSize", shmSize)
-        .add("oomKillDisable", oomKillDisable)
-        .add("oomScoreAdj", oomScoreAdj)
-        .add("autoRemove", autoRemove)
-        .add("pidsLimit", pidsLimit)
-        .add("tmpfs", tmpfs)
-        .add("readonlyRootfs", readonlyRootfs)
-        .toString();
+  @JsonCreator
+  static HostConfig create(
+      @JsonProperty("Binds") final List<String> binds,
+      @JsonProperty("ContainerIDFile") final String containerIdFile,
+      @JsonProperty("LxcConf") final List<LxcConfParameter> lxcConf,
+      @JsonProperty("Privileged") final Boolean privileged,
+      @JsonProperty("PortBindings") final Map<String, List<PortBinding>> portBindings,
+      @JsonProperty("Links") final List<String> links,
+      @JsonProperty("PublishAllPorts") final Boolean publishAllPorts,
+      @JsonProperty("Dns") final List<String> dns,
+      @JsonProperty("DnsSearch") final List<String> dnsSearch,
+      @JsonProperty("ExtraHosts") final List<String> extraHosts,
+      @JsonProperty("VolumesFrom") final List<String> volumesFrom,
+      @JsonProperty("CapAdd") final List<String> capAdd,
+      @JsonProperty("CapDrop") final List<String> capDrop,
+      @JsonProperty("NetworkMode") final String networkMode,
+      @JsonProperty("SecurityOpt") final List<String> securityOpt,
+      @JsonProperty("Devices") final List<Device> devices,
+      @JsonProperty("Memory") final Long memory,
+      @JsonProperty("MemorySwap") final Long memorySwap,
+      @JsonProperty("MemoryReservation") final Long memoryReservation,
+      @JsonProperty("CpuShares") final Long cpuShares,
+      @JsonProperty("CpusetCpus") final String cpusetCpus,
+      @JsonProperty("CpuQuota") final Long cpuQuota,
+      @JsonProperty("CgroupParent") final String cgroupParent,
+      @JsonProperty("RestartPolicy") final RestartPolicy restartPolicy,
+      @JsonProperty("LogConfig") final LogConfig logConfig,
+      @JsonProperty("IpcMode") final String ipcMode,
+      @JsonProperty("Ulimits") final List<Ulimit> ulimits,
+      @JsonProperty("PidMode") final String pidMode,
+      @JsonProperty("ShmSize") final Long shmSize,
+      @JsonProperty("OomKillDisable") final Boolean oomKillDisable,
+      @JsonProperty("OomScoreAdj") final Integer oomScoreAdj,
+      @JsonProperty("AutoRemove") final Boolean autoRemove,
+      @JsonProperty("PidsLimit") final Integer pidsLimit,
+      @JsonProperty("Tmpfs") final Map<String, String> tmpfs,
+      @JsonProperty("ReadonlyRootfs") final Boolean readonlyRootfs) {
+    return builder()
+        .binds(binds)
+        .containerIdFile(containerIdFile)
+        .lxcConf(lxcConf)
+        .privileged(privileged)
+        .portBindings(portBindings)
+        .links(links)
+        .publishAllPorts(publishAllPorts)
+        .dns(dns)
+        .dnsSearch(dnsSearch)
+        .extraHosts(extraHosts)
+        .volumesFrom(volumesFrom)
+        .capAdd(capAdd)
+        .capDrop(capDrop)
+        .networkMode(networkMode)
+        .securityOpt(securityOpt)
+        .devices(devices)
+        .memory(memory)
+        .memorySwap(memorySwap)
+        .memoryReservation(memoryReservation)
+        .cpuShares(cpuShares)
+        .cpusetCpus(cpusetCpus)
+        .cpuQuota(cpuQuota)
+        .cgroupParent(cgroupParent)
+        .restartPolicy(restartPolicy)
+        .logConfig(logConfig)
+        .ipcMode(ipcMode)
+        .ulimits(ulimits)
+        .pidMode(pidMode)
+        .shmSize(shmSize)
+        .oomKillDisable(oomKillDisable)
+        .oomScoreAdj(oomScoreAdj)
+        .autoRemove(autoRemove)
+        .pidsLimit(pidsLimit)
+        .tmpfs(tmpfs)
+        .readonlyRootfs(readonlyRootfs)
+        .build();
   }
 
-  public static class LxcConfParameter {
+  @AutoValue
+  public abstract static class LxcConfParameter {
 
+    @NotNull
     @JsonProperty("Key")
-    private String key;
+    public abstract String key();
+
+    @NotNull
     @JsonProperty("Value")
-    private String value;
+    public abstract String value();
 
-    public LxcConfParameter(final String key, final String value) {
-      this.key = key;
-      this.value = value;
-    }
-
-    public String key() {
-      return key;
-    }
-
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final LxcConfParameter that = (LxcConfParameter) obj;
-
-      return Objects.equals(this.key, that.key)
-             && Objects.equals(this.value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(key, value);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("key", key)
-          .add("value", value)
-          .toString();
+    @JsonCreator
+    static LxcConfParameter create(
+        @JsonProperty("Key") final String key,
+        @JsonProperty("Value") final String value) {
+      return new AutoValue_HostConfig_LxcConfParameter(key, value);
     }
   }
 
-  public static class RestartPolicy {
+  @AutoValue
+  public abstract static class RestartPolicy {
 
+    @NotNull
     @JsonProperty("Name")
-    private String name;
+    public abstract String name();
+
+    @Nullable
     @JsonProperty("MaximumRetryCount")
-    private Integer maxRetryCount;
+    public abstract Integer maxRetryCount();
 
     public static RestartPolicy always() {
-      return new RestartPolicy("always", null);
+      return new AutoValue_HostConfig_RestartPolicy("always", null);
     }
 
     public static RestartPolicy unlessStopped() {
-      return new RestartPolicy("unless-stopped", null);
+      return new AutoValue_HostConfig_RestartPolicy("unless-stopped", null);
     }
 
     public static RestartPolicy onFailure(Integer maxRetryCount) {
-      return new RestartPolicy("on-failure", maxRetryCount);
+      return new AutoValue_HostConfig_RestartPolicy("on-failure", maxRetryCount);
     }
 
-    // for mapper
-    private RestartPolicy() {
-    }
-
-    private RestartPolicy(String name, Integer maxRetryCount) {
-      this.name = name;
-      this.maxRetryCount = maxRetryCount;
-    }
-
-    public String name() {
-      return name;
-    }
-
-    public Integer maxRetryCount() {
-      return maxRetryCount;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final RestartPolicy that = (RestartPolicy) obj;
-
-      return Objects.equals(this.name, that.name)
-             && Objects.equals(this.maxRetryCount, that.maxRetryCount);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, maxRetryCount);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("name", name)
-          .add("maxRetryCount", maxRetryCount)
-          .toString();
+    @JsonCreator
+    static RestartPolicy create(
+        @JsonProperty("Name") final String name,
+        @JsonProperty("MaximumRetryCount") final Integer maxRetryCount) {
+      return new AutoValue_HostConfig_RestartPolicy(name, maxRetryCount);
     }
   }
 
-  public Builder toBuilder() {
-    return new Builder(this);
-  }
+  public abstract Builder toBuilder();
 
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_HostConfig.Builder();
   }
 
-  public static class Builder {
-
-    private ImmutableList<String> binds;
-    private String containerIdFile;
-    private ImmutableList<LxcConfParameter> lxcConf;
-    private Boolean privileged;
-    private Map<String, List<PortBinding>> portBindings;
-    private ImmutableList<String> links;
-    private Boolean publishAllPorts;
-    private ImmutableList<String> dns;
-    private ImmutableList<String> dnsSearch;
-    private ImmutableList<String> extraHosts;
-    private ImmutableList<String> volumesFrom;
-    private ImmutableList<String> capAdd;
-    private ImmutableList<String> capDrop;
-    private String networkMode;
-    private ImmutableList<String> securityOpt;
-    private ImmutableList<Device> devices;
-    private Long memory;
-    private Long memorySwap;
-    private Long memoryReservation;
-    private Long cpuShares;
-    private String cpusetCpus;
-    private Long cpuQuota;
-    private String cgroupParent;
-    private RestartPolicy restartPolicy;
-    private LogConfig logConfig;
-    private String ipcMode;
-    private ImmutableList<Ulimit> ulimits;
-    private String pidMode;
-    private Long shmSize;
-    private Boolean oomKillDisable;
-    private Integer oomScoreAdj;
-    private Boolean autoRemove;
-    private Integer pidsLimit;
-    private ImmutableMap<String, String> tmpfs;
-    private Boolean readonlyRootfs;
-
-    private Builder() {
-    }
-
-    private Builder(final HostConfig hostConfig) {
-      this.binds = hostConfig.binds;
-      this.containerIdFile = hostConfig.containerIdFile;
-      this.lxcConf = hostConfig.lxcConf;
-      this.privileged = hostConfig.privileged;
-      this.portBindings = hostConfig.portBindings;
-      this.links = hostConfig.links;
-      this.publishAllPorts = hostConfig.publishAllPorts;
-      this.dns = hostConfig.dns;
-      this.dnsSearch = hostConfig.dnsSearch;
-      this.extraHosts = hostConfig.extraHosts;
-      this.volumesFrom = hostConfig.volumesFrom;
-      this.capAdd = hostConfig.capAdd;
-      this.capDrop = hostConfig.capDrop;
-      this.networkMode = hostConfig.networkMode;
-      this.securityOpt = hostConfig.securityOpt;
-      this.devices = hostConfig.devices;
-      this.memory = hostConfig.memory;
-      this.memorySwap = hostConfig.memorySwap;
-      this.memoryReservation = hostConfig.memoryReservation;
-      this.cpuShares = hostConfig.cpuShares;
-      this.cpusetCpus = hostConfig.cpusetCpus;
-      this.cpuQuota = hostConfig.cpuQuota;
-      this.cgroupParent = hostConfig.cgroupParent;
-      this.restartPolicy = hostConfig.restartPolicy;
-      this.logConfig = hostConfig.logConfig;
-      this.ipcMode = hostConfig.ipcMode;
-      this.ulimits = hostConfig.ulimits;
-      this.pidMode = hostConfig.pidMode;
-      this.shmSize = hostConfig.shmSize;
-      this.oomKillDisable = hostConfig.oomKillDisable;
-      this.oomScoreAdj = hostConfig.oomScoreAdj;
-      this.autoRemove = hostConfig.autoRemove;
-      this.pidsLimit = hostConfig.pidsLimit;
-      this.tmpfs = hostConfig.tmpfs;
-      this.readonlyRootfs = hostConfig.readonlyRootfs;
-    }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
     /**
      * Set the list of binds to the parameter, replacing any existing value.
@@ -598,13 +328,7 @@ public class HostConfig {
      * @param binds A list of volume bindings for this container. Each volume binding is a string.
      * @return The builder
      */
-    public Builder binds(final List<String> binds) {
-      if (binds != null && !binds.isEmpty()) {
-        this.binds = copyWithoutDuplicates(binds);
-      }
-
-      return this;
-    }
+    public abstract Builder binds(List<String> binds);
 
     /**
      * Set the list of binds to the parameter, replacing any existing value.
@@ -614,17 +338,7 @@ public class HostConfig {
      *              string.
      * @return The builder
      */
-    public Builder binds(final String... binds) {
-      if (binds != null && binds.length > 0) {
-        return binds(Lists.newArrayList(binds));
-      }
-
-      return this;
-    }
-
-    public List<String> binds() {
-      return binds;
-    }
+    public abstract Builder binds(String... binds);
 
     /**
      * Set the list of binds to the parameter, replacing any existing value.
@@ -642,6 +356,8 @@ public class HostConfig {
       return binds(toStringList(binds));
     }
 
+    abstract ImmutableList<String> binds();
+
     private static List<String> toStringList(final Bind[] binds) {
       final List<String> bindStrings = Lists.newArrayList();
       for (final Bind bind : binds) {
@@ -651,7 +367,7 @@ public class HostConfig {
     }
 
     /**
-     * Append binds to the existing list in this builder.
+     * Append binds to the existing list in this builder. Duplicates are discarded.
      *
      * @param newBinds An iterable of volume bindings for this container. Each volume binding is a
      *                 String.
@@ -659,12 +375,11 @@ public class HostConfig {
      */
     public Builder appendBinds(final Iterable<String> newBinds) {
       final List<String> list = new ArrayList<>();
-      if (this.binds != null) {
-        list.addAll(this.binds);
+      if (binds() != null) {
+        list.addAll(binds());
       }
       list.addAll(Lists.newArrayList(newBinds));
-      this.binds = copyWithoutDuplicates(list);
-
+      binds(copyWithoutDuplicates(list));
       return this;
     }
 
@@ -702,345 +417,79 @@ public class HostConfig {
       return ImmutableList.copyOf(list);
     }
 
-    public Builder containerIdFile(final String containerIdFile) {
-      this.containerIdFile = containerIdFile;
-      return this;
-    }
-
-    public String containerIdFile() {
-      return containerIdFile;
-    }
-
-    public Builder lxcConf(final List<LxcConfParameter> lxcConf) {
-      if (lxcConf != null && !lxcConf.isEmpty()) {
-        this.lxcConf = ImmutableList.copyOf(lxcConf);
-      }
-      return this;
-    }
-
-    public Builder lxcConf(final LxcConfParameter... lxcConf) {
-      if (lxcConf != null && lxcConf.length > 0) {
-        this.lxcConf = ImmutableList.copyOf(lxcConf);
-      }
-
-      return this;
-    }
-
-    public List<LxcConfParameter> lxcConf() {
-      return lxcConf;
-    }
-
-    public Builder privileged(final Boolean privileged) {
-      this.privileged = privileged;
-      return this;
-    }
-
-    public Boolean privileged() {
-      return privileged;
-    }
-
-    public Builder portBindings(final Map<String, List<PortBinding>> portBindings) {
-      if (portBindings != null && !portBindings.isEmpty()) {
-        this.portBindings = Maps.newHashMap(portBindings);
-      }
-      return this;
-    }
-
-    public Map<String, List<PortBinding>> portBindings() {
-      return portBindings;
-    }
-
-    public Builder links(final List<String> links) {
-      if (links != null && !links.isEmpty()) {
-        this.links = ImmutableList.copyOf(links);
-      }
-
-      return this;
-    }
-
-    public Builder links(final String... links) {
-      if (links != null && links.length > 0) {
-        this.links = ImmutableList.copyOf(links);
-      }
-
-      return this;
-    }
-
-    public List<String> links() {
-      return links;
-    }
-
-    public Builder publishAllPorts(final Boolean publishAllPorts) {
-      this.publishAllPorts = publishAllPorts;
-      return this;
-    }
-
-    public Boolean publishAllPorts() {
-      return publishAllPorts;
-    }
-
-    public Builder dns(final List<String> dns) {
-      if (dns != null && !dns.isEmpty()) {
-        this.dns = ImmutableList.copyOf(dns);
-      }
-
-      return this;
-    }
-
-    public Builder dns(final String... dns) {
-      if (dns != null && dns.length > 0) {
-        this.dns = ImmutableList.copyOf(dns);
-      }
-
-      return this;
-    }
-
-    public List<String> dns() {
-      return dns;
-    }
-
-    public Builder dnsSearch(final List<String> dnsSearch) {
-      if (dnsSearch != null && !dnsSearch.isEmpty()) {
-        this.dnsSearch = ImmutableList.copyOf(dnsSearch);
-      }
-
-      return this;
-    }
+    public abstract Builder containerIdFile(String containerIdFile);
 
-    public Builder dnsSearch(final String... dnsSearch) {
-      if (dnsSearch != null && dnsSearch.length > 0) {
-        this.dnsSearch = ImmutableList.copyOf(dnsSearch);
-      }
-
-      return this;
-    }
+    public abstract Builder lxcConf(List<LxcConfParameter> lxcConf);
 
-    public List<String> dnsSearch() {
-      return dnsSearch;
-    }
+    public abstract Builder lxcConf(LxcConfParameter... lxcConf);
 
-    public Builder extraHosts(final List<String> extraHosts) {
-      if (extraHosts != null && !extraHosts.isEmpty()) {
-        this.extraHosts = ImmutableList.copyOf(extraHosts);
-      }
-
-      return this;
-    }
+    public abstract Builder privileged(Boolean privileged);
 
-    public Builder extraHosts(final String... extraHosts) {
-      if (extraHosts != null && extraHosts.length > 0) {
-        this.extraHosts = ImmutableList.copyOf(extraHosts);
-      }
-
-      return this;
-    }
-
-    public List<String> extraHosts() {
-      return extraHosts;
-    }
-
-    public Builder volumesFrom(final List<String> volumesFrom) {
-      if (volumesFrom != null && !volumesFrom.isEmpty()) {
-        this.volumesFrom = ImmutableList.copyOf(volumesFrom);
-      }
-
-      return this;
-    }
-
-    public Builder volumesFrom(final String... volumesFrom) {
-      if (volumesFrom != null && volumesFrom.length > 0) {
-        this.volumesFrom = ImmutableList.copyOf(volumesFrom);
-      }
-
-      return this;
-    }
-
-    public List<String> volumesFrom() {
-      return volumesFrom;
-    }
-
-    public Builder capAdd(final List<String> capAdd) {
-      if (capAdd != null && !capAdd.isEmpty()) {
-        this.capAdd = ImmutableList.copyOf(capAdd);
-      }
-
-      return this;
-    }
-
-    public Builder capAdd(final String... capAdd) {
-      if (capAdd != null && capAdd.length > 0) {
-        this.capAdd = ImmutableList.copyOf(capAdd);
-      }
-
-      return this;
-    }
-
-    public List<String> capAdd() {
-      return capAdd;
-    }
-
-    public Builder capDrop(final List<String> capDrop) {
-      if (capDrop != null && !capDrop.isEmpty()) {
-        this.capDrop = ImmutableList.copyOf(capDrop);
-      }
-
-      return this;
-    }
-
-    public Builder capDrop(final String... capDrop) {
-      if (capDrop != null && capDrop.length > 0) {
-        this.capDrop = ImmutableList.copyOf(capDrop);
-      }
-
-      return this;
-    }
-
-    public List<String> capDrop() {
-      return capDrop;
-    }
-
-    public Builder networkMode(final String networkMode) {
-      this.networkMode = networkMode;
-      return this;
-    }
-
-    public String networkMode() {
-      return networkMode;
-    }
-
-    public Builder securityOpt(final List<String> securityOpt) {
-      if (securityOpt != null && !securityOpt.isEmpty()) {
-        this.securityOpt = ImmutableList.copyOf(securityOpt);
-      }
-
-      return this;
-    }
-
-    public Builder securityOpt(final String... securityOpt) {
-      if (securityOpt != null && securityOpt.length > 0) {
-        this.securityOpt = ImmutableList.copyOf(securityOpt);
-      }
-
-      return this;
-    }
-
-    public List<String> securityOpt() {
-      return securityOpt;
-    }
-
-    public Builder devices(final List<Device> devices) {
-      if (devices != null && !devices.isEmpty()) {
-        this.devices = ImmutableList.copyOf(devices);
-      }
-      return this;
-    }
-
-    public Builder devices(final Device... devices) {
-      if (devices != null && devices.length > 0) {
-        this.devices = ImmutableList.copyOf(devices);
-      }
-
-      return this;
-    }
-
-    public List<Device> devices() {
-      return devices;
-    }
-
-    public Builder memory(final Long memory) {
-      this.memory = memory;
-      return this;
-    }
-
-    public Long memory() {
-      return memory;
-    }
-
-    public Builder memorySwap(final Long memorySwap) {
-      this.memorySwap = memorySwap;
-      return this;
-    }
-
-    public Long memorySwap() {
-      return memorySwap;
-    }
-
-    public Builder memoryReservation(final Long memoryReservation) {
-      this.memoryReservation = memoryReservation;
-      return this;
-    }
-
-    public Long memoryReservation() {
-      return memoryReservation;
-    }
-
-    public Builder cpuShares(final Long cpuShares) {
-      this.cpuShares = cpuShares;
-      return this;
-    }
-
-    public Long cpuShares() {
-      return cpuShares;
-    }
-
-    public Builder cpusetCpus(final String cpusetCpus) {
-      this.cpusetCpus = cpusetCpus;
-      return this;
-    }
-
-    public String cpusetCpus() {
-      return cpusetCpus;
-    }
-
-    public Builder cpuQuota(final Long cpuQuota) {
-      this.cpuQuota = cpuQuota;
-      return this;
-    }
-
-    public Long cpuQuota() {
-      return cpuQuota;
-    }
-
-    public Builder cgroupParent(final String cgroupParent) {
-      this.cgroupParent = cgroupParent;
-      return this;
-    }
-
-    public String cgroupParent() {
-      return cgroupParent;
-    }
-
-    public Builder restartPolicy(final RestartPolicy restartPolicy) {
-      this.restartPolicy = restartPolicy;
-      return this;
-    }
-
-    public RestartPolicy restartPolicy() {
-      return restartPolicy;
-    }
-
-    public Builder logConfig(final LogConfig logConfig) {
-      this.logConfig = logConfig;
-      return this;
-    }
-
-    public LogConfig logConfig() {
-      return logConfig;
-    }
-
-    public Builder ipcMode(final String ipcMode) {
-      this.ipcMode = ipcMode;
-      return this;
-    }
-
-    public String ipcMode() {
-      return ipcMode;
-    }
-
-    public Builder ulimits(final List<Ulimit> ulimits) {
-      this.ulimits = ImmutableList.copyOf(ulimits);
-      return this;
-    }
+    public abstract Builder portBindings(Map<String, List<PortBinding>> portBindings);
+
+    public abstract Builder links(List<String> links);
+
+    public abstract Builder links(String... links);
+
+    public abstract Builder publishAllPorts(Boolean publishAllPorts);
+
+    public abstract Builder dns(List<String> dns);
+
+    public abstract Builder dns(String... dns);
+
+    public abstract Builder dnsSearch(List<String> dnsSearch);
+
+    public abstract Builder dnsSearch(String... dnsSearch);
+
+    public abstract Builder extraHosts(List<String> extraHosts);
+
+    public abstract Builder extraHosts(String... extraHosts);
+
+    public abstract Builder volumesFrom(List<String> volumesFrom);
+
+    public abstract Builder volumesFrom(String... volumesFrom);
+
+    public abstract Builder capAdd(List<String> capAdd);
+
+    public abstract Builder capAdd(String... capAdd);
+
+    public abstract Builder capDrop(List<String> capDrop);
+
+    public abstract Builder capDrop(String... capDrop);
+
+    public abstract Builder networkMode(String networkMode);
+
+    public abstract Builder securityOpt(List<String> securityOpt);
+
+    public abstract Builder securityOpt(String... securityOpt);
+
+    public abstract Builder devices(List<Device> devices);
+
+    public abstract Builder devices(Device... devices);
+
+    public abstract Builder memory(Long memory);
+
+    public abstract Builder memorySwap(Long memorySwap);
+
+    public abstract Builder memoryReservation(Long memoryReservation);
+
+    public abstract Builder cpuShares(Long cpuShares);
+
+    public abstract Builder cpusetCpus(String cpusetCpus);
+
+    public abstract Builder cpuQuota(Long cpuQuota);
+
+    public abstract Builder cgroupParent(String cgroupParent);
+
+    public abstract Builder restartPolicy(RestartPolicy restartPolicy);
+
+    public abstract Builder logConfig(LogConfig logConfig);
+
+    public abstract Builder ipcMode(String ipcMode);
+
+    public abstract Builder ulimits(List<Ulimit> ulimits);
+
+    public abstract Builder pidMode(String pidMode);
 
     /**
      * Set the PID (Process) Namespace mode for the container.
@@ -1051,7 +500,7 @@ public class HostConfig {
      * @return Builder
      */
     public Builder containerPidMode(final String container) {
-      this.pidMode = "container:" + container;
+      pidMode("container:" + container);
       return this;
     }
 
@@ -1063,79 +512,28 @@ public class HostConfig {
      * @return Builder
      */
     public Builder hostPidMode() {
-      this.pidMode = "host";
+      pidMode("host");
       return this;
     }
 
-    public Builder shmSize(final Long shmSize) {
-      this.shmSize = shmSize;
-      return this;
-    }
+    public abstract Builder shmSize(Long shmSize);
 
-    public Long shmSize() {
-      return shmSize;
-    }
+    public abstract Builder oomKillDisable(Boolean oomKillDisable);
 
-    public Builder oomKillDisable(final Boolean oomKillDisable) {
-      this.oomKillDisable = oomKillDisable;
-      return this;
-    }
-
-    public Boolean oomKillDisable() {
-      return oomKillDisable;
-    }
-
-    public Builder oomScoreAdj(final Integer oomScoreAdj) {
-      this.oomScoreAdj = oomScoreAdj;
-      return this;
-    }
-
-    public Integer oomScoreAdj() {
-      return oomScoreAdj;
-    }
-
-    public Boolean autoRemove() {
-      return autoRemove;
-    }
+    public abstract Builder oomScoreAdj(Integer oomScoreAdj);
 
     /**
      * Only works for Docker API version >= 1.25.
      */
-    public Builder autoRemove(final Boolean autoRemove) {
-      this.autoRemove = autoRemove;
-      return this;
-    }
+    public abstract Builder autoRemove(Boolean autoRemove);
 
-    public Builder pidsLimit(final Integer pidsLimit) {
-      this.pidsLimit = pidsLimit;
-      return this;
-    }
+    public abstract Builder pidsLimit(Integer pidsLimit);
 
-    public Integer pidsLimit() {
-      return pidsLimit;
-    }
-    
-    public Builder readonlyRootfs(final Boolean readonlyRootfs) {
-      this.readonlyRootfs = readonlyRootfs;
-      return this;
-    }
+    public abstract Builder tmpfs(Map<String, String> tmpfs);
 
-    public Boolean readonlyRootfs() {
-      return readonlyRootfs;
-    }
+    public abstract Builder readonlyRootfs(Boolean readonlyRootfs);
 
-    public Builder tmpfs(final ImmutableMap<String, String> tmpfs) {
-      this.tmpfs = tmpfs;
-      return this;
-    }
-
-    public ImmutableMap<String, String> tmpfs() {
-      return tmpfs;
-    }
-
-    public HostConfig build() {
-      return new HostConfig(this);
-    }
+    public abstract HostConfig build();
   }
 
   public static class Bind {
@@ -1292,97 +690,4 @@ public class HostConfig {
     }
   }
 
-  public static class Ulimit {
-
-    @JsonProperty("Name")
-    private String name;
-    @JsonProperty("Soft")
-    private Integer soft;
-    @JsonProperty("Hard")
-    private Integer hard;
-
-    public Ulimit() {
-    }
-
-    private Ulimit(final Builder builder) {
-      this.name = builder.name;
-      this.soft = builder.soft;
-      this.hard = builder.hard;
-    }
-
-    public static Builder builder() {
-      return new Builder();
-    }
-
-    public String name() {
-      return name;
-    }
-
-    public Integer soft() {
-      return soft;
-    }
-
-    public Integer hard() {
-      return hard;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final Ulimit that = (Ulimit) obj;
-
-      return Objects.equals(this.name, that.name)
-             && Objects.equals(this.soft, that.soft)
-             && Objects.equals(this.hard, that.hard);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, soft, hard);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("name", name)
-          .add("soft", soft)
-          .add("hard", hard)
-          .toString();
-    }
-
-    public static class Builder {
-
-      private String name;
-      private Integer soft;
-      private Integer hard;
-
-      private Builder() {
-      }
-
-      public Ulimit build() {
-        return new Ulimit(this);
-      }
-
-      public Builder name(final String name) {
-        this.name = name;
-        return this;
-      }
-
-      public Builder soft(final Integer soft) {
-        this.soft = soft;
-        return this;
-      }
-
-      public Builder hard(final Integer hard) {
-        this.hard = hard;
-        return this;
-      }
-    }
-  }
 }

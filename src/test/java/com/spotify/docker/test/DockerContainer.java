@@ -130,7 +130,7 @@ public class DockerContainer implements MethodRule {
 
     final ContainerConfig.Builder configBuilder = ContainerConfig.builder()
         .image(createContainerAnnotation.image())
-        .volumes(createContainerAnnotation.volumes())
+        .addVolumes(createContainerAnnotation.volumes())
         .cmd(createContainerAnnotation.command());
     final ContainerConfig createContainerConfig = configBuilder.build();
 

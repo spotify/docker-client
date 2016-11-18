@@ -24,44 +24,22 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class TaskDefaults {
+public abstract class TaskDefaults {
 
+  @Nullable
   @JsonProperty("LogDriver")
-  private Driver logDriver;
+  public abstract Driver logDriver();
 
-  public Driver logDriver() {
-    return logDriver;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final TaskDefaults that = (TaskDefaults) obj;
-
-    return Objects.equals(this.logDriver, that.logDriver);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(logDriver);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("logDriver", logDriver)
-        .toString();
+  @JsonCreator
+  static TaskDefaults create(@JsonProperty("LogDriver") final Driver logDriver) {
+    return new AutoValue_TaskDefaults(logDriver);
   }
 }

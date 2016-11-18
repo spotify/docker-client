@@ -25,141 +25,65 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class NetworkConfig {
+public abstract class NetworkConfig {
 
+  @NotNull
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
+
+  @Nullable
   @JsonProperty("Driver")
-  private String driver;
+  public abstract String driver();
+
+  @Nullable
   @JsonProperty("IPAM")
-  private Ipam ipam;
+  public abstract Ipam ipam();
+
+  @NotNull
   @JsonProperty("Options")
-  private Map<String, String> options;
+  public abstract ImmutableMap<String, String> options();
+
+  @Nullable
   @JsonProperty("CheckDuplicate")
-  private boolean checkDuplicate;
+  public abstract Boolean checkDuplicate();
 
-  private NetworkConfig(final Builder builder) {
-    this.name = builder.name;
-    this.options = builder.options;
-    this.driver = builder.driver;
-    this.ipam = builder.ipam;
-    this.checkDuplicate = builder.checkDuplicate;
-  }
-
-  public String name() {
-    return name;
-  }
-
-  public String driver() {
-    return driver;
-  }
-
-  public Ipam ipam() {
-    return ipam;
-  }
-
-  public Map<String, String> options() {
-    return options;
-  }
-
-  public boolean checkDuplicate() {
-    return checkDuplicate;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final NetworkConfig that = (NetworkConfig) obj;
-
-    return Objects.equals(this.checkDuplicate, that.checkDuplicate)
-           && Objects.equals(this.name, that.name)
-           && Objects.equals(this.driver, that.driver)
-           && Objects.equals(this.ipam, that.ipam)
-           && Objects.equals(this.options, that.options);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, driver, ipam, options, checkDuplicate);
-  }
-
-
+  @NotNull
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_NetworkConfig.Builder()
+        .options(new HashMap<String, String>());
   }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("driver", driver)
-        .add("options", options)
-        .add("checkDuplicate", checkDuplicate)
-        .add("ipam", ipam)
-        .toString();
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public static class Builder {
+    public abstract Builder name(final String name);
 
-    private String name;
-    private Map<String, String> options = new HashMap<String, String>();
-    private String driver;
-    private Ipam ipam;
-    public boolean checkDuplicate;
+    abstract ImmutableMap.Builder<String, String> optionsBuilder();
 
-    private Builder() {
-    }
-
-    public Builder name(final String name) {
-      if (name != null && !name.isEmpty()) {
-        this.name = name;
-      }
+    public Builder addOption(final String key, final String value) {
+      optionsBuilder().put(key, value);
       return this;
     }
 
-    public Builder option(final String key, final String value) {
-      if (key != null && !key.isEmpty()) {
-        this.options.put(key, value);
-      }
-      return this;
-    }
+    public abstract Builder options(Map<String, String> options);
 
-    public Builder ipam(final Ipam ipam) {
-      if (ipam != null) {
-        this.ipam = ipam;
-      }
-      return this;
-    }
+    public abstract Builder ipam(final Ipam ipam);
 
-    public Builder driver(final String driver) {
-      if (driver != null && !driver.isEmpty()) {
-        this.driver = driver;
-      }
-      return this;
-    }
+    public abstract Builder driver(final String driver);
 
-    public Builder checkDuplicate(boolean check) {
-      this.checkDuplicate = check;
-      return this;
-    }
+    public abstract Builder checkDuplicate(Boolean check);
 
-    public NetworkConfig build() {
-      return new NetworkConfig(this);
-    }
-
+    public abstract NetworkConfig build();
   }
 
 }

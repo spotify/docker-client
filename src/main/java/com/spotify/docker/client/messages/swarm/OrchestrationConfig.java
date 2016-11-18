@@ -24,44 +24,23 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class OrchestrationConfig {
+public abstract class OrchestrationConfig {
 
+  @NotNull
   @JsonProperty("TaskHistoryRetentionLimit")
-  private Integer taskHistoryRetentionLimit;
+  public abstract Integer taskHistoryRetentionLimit();
 
-  public Integer taskHistoryRetentionLimit() {
-    return taskHistoryRetentionLimit;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final OrchestrationConfig that = (OrchestrationConfig) obj;
-
-    return Objects.equals(this.taskHistoryRetentionLimit, that.taskHistoryRetentionLimit);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(taskHistoryRetentionLimit);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("taskHistoryRetentionLimit", taskHistoryRetentionLimit)
-        .toString();
+  @JsonCreator
+  static OrchestrationConfig create(
+      @JsonProperty("TaskHistoryRetentionLimit") final Integer taskHistoryRetentionLimit) {
+    return new AutoValue_OrchestrationConfig(taskHistoryRetentionLimit);
   }
 }

@@ -24,51 +24,28 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class EndpointVirtualIp {
+public abstract class EndpointVirtualIp {
 
+  @NotNull
   @JsonProperty("NetworkID")
-  private String networkId;
+  public abstract String networkId();
 
+  @NotNull
   @JsonProperty("Addr")
-  private String addr;
+  public abstract String addr();
 
-  public String networkId() {
-    return networkId;
-  }
-
-  public String addr() {
-    return addr;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final EndpointVirtualIp that = (EndpointVirtualIp) obj;
-
-    return Objects.equals(this.networkId, that.networkId)
-           && Objects.equals(this.addr, that.addr);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(networkId, addr);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("networkId", networkId).add("addr", addr)
-        .toString();
+  @JsonCreator
+  static EndpointVirtualIp create(
+      @JsonProperty("NetworkID") final String networkId,
+      @JsonProperty("Addr") final String addr) {
+    return new AutoValue_EndpointVirtualIp(networkId, addr);
   }
 }

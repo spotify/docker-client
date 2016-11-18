@@ -24,92 +24,89 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class EndpointSpec {
+public abstract class EndpointSpec {
 
-  public static final String RESOLUTION_MODE_VIP = "vip";
-  public static final String RESOLUTION_MODE_DNSRR = "dnsrr";
+  public enum Mode {
+    RESOLUTION_MODE_VIP("vip"),
+    RESOLUTION_MODE_DNSRR("dnsrr");
 
+    private final String value;
+
+    Mode(final String value) {
+      this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+      return value;
+    }
+  }
+
+  @Nullable
   @JsonProperty("Mode")
-  private String mode;
+  public abstract Mode mode();
 
+  @NotNull
   @JsonProperty("Ports")
-  private ImmutableList<PortConfig> ports;
+  public abstract ImmutableList<PortConfig> ports();
 
-  public String mode() {
-    return mode;
+  abstract Builder toBuilder();
+
+  public EndpointSpec withVipMode() {
+    return toBuilder().mode(Mode.RESOLUTION_MODE_VIP).build();
   }
 
-  public List<PortConfig> ports() {
-    return ports;
+  public EndpointSpec withDnsrrMode() {
+    return toBuilder().mode(Mode.RESOLUTION_MODE_DNSRR).build();
   }
 
-  public static class Builder {
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-    private EndpointSpec spec = new EndpointSpec();
+    @JsonProperty("Mode")
+    public abstract Builder mode(Mode mode);
 
-    public Builder withVipMode() {
-      spec.mode = RESOLUTION_MODE_VIP;
+    abstract ImmutableList.Builder<PortConfig> portsBuilder();
+
+    public Builder addPort(final PortConfig portConfig) {
+      portsBuilder().add(portConfig);
       return this;
     }
 
-    public Builder withDnsrrMode() {
-      spec.mode = RESOLUTION_MODE_DNSRR;
-      return this;
-    }
+    @JsonProperty("Ports")
+    public abstract Builder ports(List<PortConfig> ports);
 
-    public Builder withPorts(PortConfig... ports) {
-      if (ports != null && ports.length > 0) {
-        spec.ports = ImmutableList.copyOf(ports);
-      }
-      return this;
-    }
-
-    public Builder withPorts(List<PortConfig> ports) {
-      if (ports != null && !ports.isEmpty()) {
-        spec.ports = ImmutableList.copyOf(ports);
-      }
-      return this;
-    }
-
-    public EndpointSpec build() {
-      return spec;
-    }
+    public abstract EndpointSpec build();
   }
 
+  @NotNull
   public static EndpointSpec.Builder builder() {
-    return new EndpointSpec.Builder();
+    return new AutoValue_EndpointSpec.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
+  @JsonCreator
+  static EndpointSpec create(
+      @JsonProperty("Mode") final Mode mode,
+      @JsonProperty("Ports") final List<PortConfig> ports) {
+    final Builder builder = builder()
+        .mode(mode);
+
+    if (ports != null) {
+      builder.ports(ports);
     }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
 
-    final EndpointSpec that = (EndpointSpec) obj;
-
-    return Objects.equals(this.mode, that.mode)
-           && Objects.equals(this.ports, that.ports);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(mode, ports);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("mode", mode).add("ports", ports).toString();
+    return builder.build();
   }
 }

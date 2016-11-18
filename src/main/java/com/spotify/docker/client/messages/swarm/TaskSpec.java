@@ -24,144 +24,94 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class TaskSpec {
+public abstract class TaskSpec {
 
+  @NotNull
   @JsonProperty("ContainerSpec")
-  private ContainerSpec containerSpec;
+  public abstract ContainerSpec containerSpec();
 
+  @Nullable
   @JsonProperty("Resources")
-  private ResourceRequirements resources;
+  public abstract ResourceRequirements resources();
 
+  @Nullable
   @JsonProperty("RestartPolicy")
-  private RestartPolicy restartPolicy;
+  public abstract RestartPolicy restartPolicy();
 
+  @Nullable
   @JsonProperty("Placement")
-  private Placement placement;
+  public abstract Placement placement();
 
+  @Nullable
   @JsonProperty("Networks")
-  private ImmutableList<NetworkAttachmentConfig> networks;
+  public abstract ImmutableList<NetworkAttachmentConfig> networks();
 
+  @Nullable
   @JsonProperty("LogDriver")
-  private Driver logDriver;
+  public abstract Driver logDriver();
 
-  public ContainerSpec containerSpec() {
-    return containerSpec;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    @JsonProperty("ContainerSpec")
+    public abstract Builder containerSpec(ContainerSpec containerSpec);
+
+    @JsonProperty("Resources")
+    public abstract Builder resources(ResourceRequirements resources);
+
+    @JsonProperty("RestartPolicy")
+    public abstract Builder restartPolicy(RestartPolicy restartPolicy);
+
+    @JsonProperty("Placement")
+    public abstract Builder placement(Placement placement);
+
+    @JsonProperty("Networks")
+    public abstract Builder networks(NetworkAttachmentConfig... networks);
+
+    @JsonProperty("Networks")
+    public abstract Builder networks(List<NetworkAttachmentConfig> networks);
+
+    @JsonProperty("LogDriver")
+    public abstract Builder logDriver(Driver logDriver);
+
+    public abstract TaskSpec build();
   }
 
-  public ResourceRequirements resources() {
-    return resources;
-  }
-
-  public RestartPolicy restartPolicy() {
-    return restartPolicy;
-  }
-
-  public Placement placement() {
-    return placement;
-  }
-
-  public List<NetworkAttachmentConfig> networks() {
-    return networks;
-  }
-
-  public Driver logDriver() {
-    return logDriver;
-  }
-
-  public static class Builder {
-
-    private TaskSpec spec = new TaskSpec();
-
-    public Builder withContainerSpec(ContainerSpec containerSpec) {
-      spec.containerSpec = containerSpec;
-      return this;
-    }
-
-    public Builder withResources(ResourceRequirements resources) {
-      spec.resources = resources;
-      return this;
-    }
-
-    public Builder withRestartPolicy(RestartPolicy restartPolicy) {
-      spec.restartPolicy = restartPolicy;
-      return this;
-    }
-
-    public Builder withPlacement(Placement placement) {
-      spec.placement = placement;
-      return this;
-    }
-
-    public Builder withNetworks(NetworkAttachmentConfig... networks) {
-      if (networks != null && networks.length > 0) {
-        spec.networks = ImmutableList.copyOf(networks);
-      }
-      return this;
-    }
-
-    public Builder withNetworks(List<NetworkAttachmentConfig> networks) {
-      if (networks != null && !networks.isEmpty()) {
-        spec.networks = ImmutableList.copyOf(networks);
-      }
-      return this;
-    }
-
-    public Builder withLogDriver(Driver logDriver) {
-      spec.logDriver = logDriver;
-      return this;
-    }
-
-    public TaskSpec build() {
-      return spec;
-    }
-  }
-
+  @NotNull
   public static TaskSpec.Builder builder() {
-    return new TaskSpec.Builder();
+    return new AutoValue_TaskSpec.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
+  @JsonCreator
+  static TaskSpec create(
+      @JsonProperty("ContainerSpec") final ContainerSpec containerSpec,
+      @JsonProperty("Resources") final ResourceRequirements resources,
+      @JsonProperty("RestartPolicy") final RestartPolicy restartPolicy,
+      @JsonProperty("Placement") final Placement placement,
+      @JsonProperty("Networks") final List<NetworkAttachmentConfig> networks,
+      @JsonProperty("LogDriver") final Driver logDriver) {
+    final Builder builder = builder()
+        .containerSpec(containerSpec)
+        .resources(resources)
+        .restartPolicy(restartPolicy)
+        .placement(placement)
+        .logDriver(logDriver);
+
+    if (networks != null) {
+      builder.networks(networks);
     }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
 
-    final TaskSpec that = (TaskSpec) obj;
-
-    return Objects.equals(this.containerSpec, that.containerSpec)
-           && Objects.equals(this.resources, that.resources)
-           && Objects.equals(this.restartPolicy, that.restartPolicy)
-           && Objects.equals(this.placement, that.placement)
-           && Objects.equals(this.networks, that.networks)
-           && Objects.equals(this.logDriver, that.logDriver);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(containerSpec, resources, restartPolicy, placement, networks,
-                        logDriver);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("containerSpec", containerSpec)
-        .add("resources", resources)
-        .add("restartPolicy", restartPolicy)
-        .add("placement", placement)
-        .add("networks", networks)
-        .add("logDriver", logDriver)
-        .toString();
+    return builder.build();
   }
 }

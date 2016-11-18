@@ -24,85 +24,53 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
-import java.util.Objects;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ImageHistory {
+public abstract class ImageHistory {
 
+  @NotNull
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
+  @NotNull
   @JsonProperty("Created")
-  private Long created;
+  public abstract Long created();
+
+  @NotNull
   @JsonProperty("CreatedBy")
-  private String createdBy;
+  public abstract String createdBy();
+
+  @Nullable
   @JsonProperty("Tags")
-  private ImmutableList<String> tags;
+  public abstract ImmutableList<String> tags();
+
+  @NotNull
   @JsonProperty("Size")
-  private Long size;
+  public abstract Long size();
+
+  @Nullable
   @JsonProperty("Comment")
-  private String comment;
+  public abstract String comment();
 
-  public String id() {
-    return id;
-  }
-
-  public Long created() {
-    return created;
-  }
-
-  public String createdBy() {
-    return createdBy;
-  }
-
-  public ImmutableList<String> tags() {
-    return tags;
-  }
-
-  public Long size() {
-    return size;
-  }
-
-  public String comment() {
-    return comment;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ImageHistory that = (ImageHistory) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.created, that.created)
-           && Objects.equals(this.createdBy, that.createdBy)
-           && Objects.equals(this.tags, that.tags)
-           && Objects.equals(this.size, that.size)
-           && Objects.equals(this.comment, that.comment);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, created, createdBy, tags, size, comment);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("created", created)
-        .add("createdBy", createdBy)
-        .add("tags", tags)
-        .add("size", size)
-        .add("comment", comment)
-        .toString();
+  @JsonCreator
+  static ImageHistory create(
+      @JsonProperty("Id") final String id,
+      @JsonProperty("Created") final Long created,
+      @JsonProperty("CreatedBy") final String createdBy,
+      @JsonProperty("Tags") final List<String> tags,
+      @JsonProperty("Size") final Long size,
+      @JsonProperty("Comment") final String comment) {
+    final ImmutableList<String> tagsCopy = tags == null
+                                           ? null : ImmutableList.copyOf(tags);
+    return new AutoValue_ImageHistory(id, created, createdBy, tagsCopy, size, comment);
   }
 }

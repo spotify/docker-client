@@ -24,44 +24,22 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Version {
+public abstract class Version {
 
+  @NotNull
   @JsonProperty("Index")
-  private Long index;
+  public abstract Long index();
 
-  public Long index() {
-    return index;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Version that = (Version) obj;
-
-    return Objects.equals(this.index, that.index);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(index);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("index", index)
-        .toString();
+  @JsonCreator
+  static Version create(@JsonProperty("Index") final Long index) {
+    return new AutoValue_Version(index);
   }
 }

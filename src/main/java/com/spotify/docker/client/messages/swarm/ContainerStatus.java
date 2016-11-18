@@ -24,60 +24,33 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerStatus {
+public abstract class ContainerStatus {
 
+  @Nullable
   @JsonProperty("ContainerID")
-  private String containerId;
+  public abstract String containerId();
 
+  @Nullable
   @JsonProperty("PID")
-  private Integer pid;
+  public abstract Integer pid();
 
+  @Nullable
   @JsonProperty("ExitCode")
-  private Integer exitCode;
+  public abstract Integer exitCode();
 
-  // Checkstyle complains if using containerId()
-  public String containerId() {
-    return containerId;
-  }
-
-  public Integer pid() {
-    return pid;
-  }
-
-  public Integer exitCode() {
-    return exitCode;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerStatus that = (ContainerStatus) obj;
-
-    return Objects.equals(this.containerId, that.containerId)
-           && Objects.equals(this.pid, that.pid)
-           && Objects.equals(this.exitCode, that.exitCode);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(containerId, pid, exitCode);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("containerId", containerId).add("pid", pid)
-        .add("exitCode", exitCode).toString();
+  @JsonCreator
+  static ContainerStatus create(
+      @JsonProperty("ContainerID") final String containerId,
+      @JsonProperty("PID") final Integer pid,
+      @JsonProperty("ExitCode") final Integer exitCode) {
+    return new AutoValue_ContainerStatus(containerId, pid, exitCode);
   }
 }

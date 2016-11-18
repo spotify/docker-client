@@ -24,79 +24,62 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Driver {
+public abstract class Driver {
 
+  @NotNull
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
 
+  @Nullable
   @JsonProperty("Options")
-  private Map<String, String> options;
+  public abstract ImmutableMap<String, String> options();
 
-  public String name() {
-    return name;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public Map<String, String> options() {
-    return options;
-  }
+    @JsonProperty("Name")
+    public abstract Builder name(String name);
 
-  public static class Builder {
+    abstract ImmutableMap.Builder<String, String> optionsBuilder();
 
-    private Driver driver = new Driver();
-
-    public Builder withName(String name) {
-      driver.name = name;
+    public Builder addOption(final String name, final String value) {
+      optionsBuilder().put(name, value);
       return this;
     }
 
-    public Builder withOption(String name, String value) {
-      if (driver.options == null) {
-        driver.options = new HashMap<String, String>();
-      }
-      driver.options.put(name, value);
-      return this;
-    }
+    @JsonProperty("Options")
+    public abstract Builder options(Map<String, String> options);
 
-    public Driver build() {
-      return driver;
-    }
+    public abstract Driver build();
   }
 
+  @NotNull
   public static Driver.Builder builder() {
-    return new Driver.Builder();
+    return new AutoValue_Driver.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
+  @JsonCreator
+  static Driver create(
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Options") final Map<String, String> options) {
+    final Builder builder = builder()
+        .name(name);
+
+    if (options != null) {
+      builder.options(options);
     }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
 
-    final Driver that = (Driver) obj;
-
-    return Objects.equals(this.name, that.name)
-           && Objects.equals(this.options, that.options);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, options);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("options", options)
-        .toString();
+    return builder.build();
   }
 }

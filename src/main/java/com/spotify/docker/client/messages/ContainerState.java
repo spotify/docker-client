@@ -24,118 +24,71 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
 import java.util.Date;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerState {
+public abstract class ContainerState {
 
+  @Nullable
   @JsonProperty("Status")
-  private String status;
+  public abstract String status();
+
+  @NotNull
   @JsonProperty("Running")
-  private Boolean running;
+  public abstract Boolean running();
+
+  @NotNull
   @JsonProperty("Paused")
-  private Boolean paused;
+  public abstract Boolean paused();
+
+  @Nullable
   @JsonProperty("Restarting")
-  private Boolean restarting;
+  public abstract Boolean restarting();
+
+  @NotNull
   @JsonProperty("Pid")
-  private Integer pid;
+  public abstract Integer pid();
+
+  @NotNull
   @JsonProperty("ExitCode")
-  private Integer exitCode;
+  public abstract Integer exitCode();
+
+  @NotNull
   @JsonProperty("StartedAt")
-  private Date startedAt;
+  public abstract Date startedAt();
+
+  @NotNull
   @JsonProperty("FinishedAt")
-  private Date finishedAt;
+  public abstract Date finishedAt();
+
+  @Nullable
   @JsonProperty("Error")
-  private String error;
+  public abstract String error();
+
+  @Nullable
   @JsonProperty("OOMKilled")
-  private Boolean oomKilled;
+  public abstract Boolean oomKilled();
 
-  public String status() {
-    return status;
-  }
-
-  public Boolean running() {
-    return running;
-  }
-
-  public Boolean paused() {
-    return paused;
-  }
-
-  public Boolean restarting() {
-    return restarting;
-  }
-
-  public Integer pid() {
-    return pid;
-  }
-
-  public Integer exitCode() {
-    return exitCode;
-  }
-
-  public Date startedAt() {
-    return startedAt == null ? null : new Date(startedAt.getTime());
-  }
-
-  public Date finishedAt() {
-    return finishedAt == null ? null : new Date(finishedAt.getTime());
-  }
-
-  public String error() {
-    return error;
-  }
-
-  public Boolean oomKilled() {
-    return oomKilled;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerState that = (ContainerState) obj;
-
-    return Objects.equals(this.status, that.status)
-           && Objects.equals(this.running, that.running)
-           && Objects.equals(this.paused, that.paused)
-           && Objects.equals(this.restarting, that.restarting)
-           && Objects.equals(this.pid, that.pid)
-           && Objects.equals(this.exitCode, that.exitCode)
-           && Objects.equals(this.startedAt, that.startedAt)
-           && Objects.equals(this.finishedAt, that.finishedAt)
-           && Objects.equals(this.error, that.error)
-           && Objects.equals(this.oomKilled, that.oomKilled);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(status, running, pid, paused, restarting, exitCode, startedAt, finishedAt,
-                        error, oomKilled);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("status", status)
-        .add("running", running)
-        .add("pid", pid)
-        .add("paused", paused)
-        .add("restarting", restarting)
-        .add("exitCode", exitCode)
-        .add("startedAt", startedAt)
-        .add("finishedAt", finishedAt)
-        .add("error", error)
-        .add("oomKilled", oomKilled)
-        .toString();
+  @JsonCreator
+  static ContainerState create(
+      @JsonProperty("Status") final String status,
+      @JsonProperty("Running") final Boolean running,
+      @JsonProperty("Paused") final Boolean addr,
+      @JsonProperty("Restarting") final Boolean restarting,
+      @JsonProperty("Pid") final Integer pid,
+      @JsonProperty("ExitCode") final Integer exitCode,
+      @JsonProperty("StartedAt") final Date startedAt,
+      @JsonProperty("FinishedAt") final Date finishedAt,
+      @JsonProperty("Error") final String error,
+      @JsonProperty("OOMKilled") final Boolean oomKilled) {
+    return new AutoValue_ContainerState(status, running, addr, restarting, pid, exitCode,
+        startedAt, finishedAt, error, oomKilled);
   }
 }

@@ -22,55 +22,41 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
+
+import com.google.common.collect.ImmutableList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Raw results from the "top" (or "ps") command for a specific container.
  */
-public class TopResults {
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class TopResults {
 
+  @NotNull
   @JsonProperty("Titles")
-  private List<String> titles;
+  public abstract ImmutableList<String> titles();
+
+  @NotNull
   @JsonProperty("Processes")
-  private List<List<String>> processes;
+  public abstract ImmutableList<ImmutableList<String>> processes();
 
-  public List<String> titles() {
-    return titles;
-  }
-
-  public List<List<String>> processes() {
-    return processes;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
+  @JsonCreator
+  static TopResults create(
+      @JsonProperty("Titles") final List<String> titles,
+      @JsonProperty("Processes") final List<List<String>> processes) {
+    final ImmutableList.Builder<ImmutableList<String>> processesBuilder = ImmutableList.builder();
+    for (final List<String> process : processes) {
+      processesBuilder.add(ImmutableList.copyOf(process));
     }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final TopResults that = (TopResults) obj;
-
-    return Objects.equal(this.titles, that.titles)
-           && Objects.equal(this.processes, that.processes);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(titles, processes);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("titles", titles)
-        .add("processes", processes)
-        .toString();
+    return new AutoValue_TopResults(ImmutableList.copyOf(titles), processesBuilder.build());
   }
 }

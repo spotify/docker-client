@@ -20,70 +20,36 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class Device {
 
-public class Device {
-
+  @NotNull
   @JsonProperty("PathOnHost")
-  private String pathOnHost;
+  public abstract String pathOnHost();
+
+  @NotNull
   @JsonProperty("PathInContainer")
-  private String pathInContainer;
+  public abstract String pathInContainer();
+
+  @NotNull
   @JsonProperty("CgroupPermissions")
-  private String cgroupPermissions;
+  public abstract String cgroupPermissions();
 
-  public Device() {
-  }
-
-  public Device(final String pathOnHost, final String pathInContainer,
-                final String cgroupPermissions) {
-    this.pathOnHost = pathOnHost;
-    this.pathInContainer = pathInContainer;
-    this.cgroupPermissions = cgroupPermissions;
-  }
-
-  public String pathOnHost() {
-    return pathOnHost;
-  }
-
-  public String pathInContainer() {
-    return pathInContainer;
-  }
-
-  public String cgroupPermissions() {
-    return cgroupPermissions;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Device that = (Device) obj;
-
-    return Objects.equals(this.pathOnHost, that.pathOnHost)
-           && Objects.equals(this.pathInContainer, that.pathInContainer)
-           && Objects.equals(this.cgroupPermissions, that.cgroupPermissions);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(pathOnHost, pathInContainer, cgroupPermissions);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("pathOnHost", pathOnHost)
-        .add("pathInContainer", pathInContainer)
-        .add("cgroupPermissions", cgroupPermissions)
-        .toString();
+  @JsonCreator
+  static Device create(
+      @JsonProperty("PathOnHost") final String pathOnHost,
+      @JsonProperty("PathInContainer") final String pathInContainer,
+      @JsonProperty("CgroupPermissions") final String cgroupPermissions) {
+    return new AutoValue_Device(pathOnHost, pathInContainer, cgroupPermissions);
   }
 }
