@@ -24,76 +24,44 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ResourceRequirements {
+public abstract class ResourceRequirements {
 
   @JsonProperty("Limits")
-  private Resources limits;
+  public abstract Resources limits();
 
+  @Nullable
   @JsonProperty("Reservations")
-  private Resources reservations;
+  public abstract Resources reservations();
 
-  public Resources limits() {
-    return limits;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public Resources reservations() {
-    return reservations;
-  }
+    public abstract Builder limits(Resources limits);
 
-  public static class Builder {
+    public abstract Builder reservations(Resources reservations);
 
-    private ResourceRequirements req = new ResourceRequirements();
-
-    public Builder withLimits(Resources limits) {
-      req.limits = limits;
-      return this;
-    }
-
-    public Builder withReservations(Resources reservations) {
-      req.reservations = reservations;
-      return this;
-    }
-
-    public ResourceRequirements build() {
-      return req;
-    }
+    public abstract ResourceRequirements build();
   }
 
   public static ResourceRequirements.Builder builder() {
-    return new ResourceRequirements.Builder();
+    return new AutoValue_ResourceRequirements.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ResourceRequirements that = (ResourceRequirements) obj;
-
-    return Objects.equals(this.limits, that.limits)
-           && Objects.equals(this.reservations, that.reservations);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(limits, reservations);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("limits", limits)
-        .add("reservations", reservations)
-        .toString();
+  @JsonCreator
+  static ResourceRequirements create(
+      @JsonProperty("Limits") final Resources limits,
+      @JsonProperty("Reservations") final Resources reservations) {
+    return builder()
+        .limits(limits)
+        .reservations(reservations)
+        .build();
   }
 }

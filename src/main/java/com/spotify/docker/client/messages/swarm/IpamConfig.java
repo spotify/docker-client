@@ -24,59 +24,31 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class IpamConfig {
+public abstract class IpamConfig {
 
   @JsonProperty("Subnet")
-  private String subnet;
+  public abstract String subnet();
 
+  @Nullable
   @JsonProperty("Range")
-  private String range;
+  public abstract String range();
 
   @JsonProperty("Gateway")
-  private String gateway;
+  public abstract String gateway();
 
-  public String subnet() {
-    return subnet;
-  }
-
-  public String range() {
-    return range;
-  }
-
-  public String gateway() {
-    return gateway;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final IpamConfig that = (IpamConfig) obj;
-
-    return Objects.equals(this.subnet, that.subnet)
-           && Objects.equals(this.range, that.range)
-           && Objects.equals(this.gateway, that.gateway);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(subnet, range, gateway);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("subnet", subnet).add("range", range)
-        .add("gateway", gateway).toString();
+  @JsonCreator
+  static IpamConfig create(
+      @JsonProperty("Subnet") final String subnet,
+      @JsonProperty("Range") final String range,
+      @JsonProperty("Gateway") final String gateway) {
+    return new AutoValue_IpamConfig(subnet, range, gateway);
   }
 }

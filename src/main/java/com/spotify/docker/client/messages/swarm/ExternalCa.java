@@ -24,62 +24,33 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ExternalCa {
+public abstract class ExternalCa {
 
   public static final String PROTOCOL_CFSSL = "cfssl";
 
   @JsonProperty("Protocol")
-  private String protocol;
+  public abstract String protocol();
 
   @JsonProperty("URL")
-  private String url;
+  public abstract String url();
 
   @JsonProperty("Options")
-  private Map<String, String> options;
+  public abstract ImmutableMap<String, String> options();
 
-  public String protocol() {
-    return protocol;
-  }
-
-  public String url() {
-    return url;
-  }
-
-  public Map<String, String> options() {
-    return options;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ExternalCa that = (ExternalCa) obj;
-
-    return Objects.equals(this.protocol, that.protocol)
-           && Objects.equals(this.url, that.url)
-           && Objects.equals(this.options, that.options);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(protocol, url, options);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("protocol", protocol).add("url", url)
-        .add("options", options).toString();
+  @JsonCreator
+  static ExternalCa create(
+      @JsonProperty("Protocol") final String protocol,
+      @JsonProperty("URL") final String url,
+      @JsonProperty("Options") final Map<String, String> options) {
+    return new AutoValue_ExternalCa(protocol, url, ImmutableMap.copyOf(options));
   }
 }

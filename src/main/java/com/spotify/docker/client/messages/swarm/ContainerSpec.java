@@ -24,250 +24,312 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.messages.mount.Mount;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerSpec {
+public abstract class ContainerSpec {
 
   @JsonProperty("Image")
-  private String image;
+  public abstract String image();
 
+  @Nullable
   @JsonProperty("Labels")
-  private Map<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
   @JsonProperty("Command")
-  private ImmutableList<String> command;
+  public abstract ImmutableList<String> command();
 
+  @Nullable
   @JsonProperty("Args")
-  private ImmutableList<String> args;
+  public abstract ImmutableList<String> args();
 
+  @Nullable
   @JsonProperty("Env")
-  private ImmutableList<String> env;
+  public abstract ImmutableList<String> env();
 
+  @Nullable
   @JsonProperty("Dir")
-  private String dir;
+  public abstract String dir();
 
+  @Nullable
   @JsonProperty("User")
-  private String user;
+  public abstract String user();
 
+  @Nullable
   @JsonProperty("Groups")
-  private ImmutableList<String> groups;
+  public abstract ImmutableList<String> groups();
 
+  @Nullable
   @JsonProperty("TTY")
-  private Boolean tty;
+  public abstract Boolean tty();
 
+  @Nullable
   @JsonProperty("Mounts")
-  private ImmutableList<Mount> mounts;
+  public abstract ImmutableList<Mount> mounts();
 
+  @Nullable
   @JsonProperty("StopGracePeriod")
-  private Long stopGracePeriod;
+  public abstract Long stopGracePeriod();
 
-  public String image() {
-    return image;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public Map<String, String> labels() {
-    return labels;
-  }
+    public abstract Builder image(String image);
 
-  public List<String> command() {
-    return command;
-  }
-
-  public List<String> args() {
-    return args;
-  }
-
-  public List<String> env() {
-    return env;
-  }
-
-  public String dir() {
-    return dir;
-  }
-
-  public String user() {
-    return user;
-  }
-
-  public List<String> groups() {
-    return groups;
-  }
-
-  public Boolean tty() {
-    return tty;
-  }
-
-  public List<Mount> mounts() {
-    return mounts;
-  }
-
-  public Long stopGracePeriod() {
-    return stopGracePeriod;
-  }
-
-  public static class Builder {
-
-    private ContainerSpec spec = new ContainerSpec();
-
-    public Builder withImage(String image) {
-      spec.image = image;
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #image(String)}.
+     */
+    @Deprecated
+    public Builder withImage(final String image) {
+      image(image);
       return this;
     }
 
-    public Builder withLabel(String label, String value) {
-      if (spec.labels == null) {
-        spec.labels = new HashMap<String, String>();
-      }
-      spec.labels.put(label, value);
+    abstract ImmutableMap.Builder<String, String> labelsBuilder();
+
+    public Builder addLabel(final String label, final String value) {
+      labelsBuilder().put(label, value);
       return this;
     }
 
-    public Builder withCommands(String... commands) {
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #addLabel(String, String)} ()}.
+     */
+    @Deprecated
+    public Builder withLabel(final String label, final String value) {
+      addLabel(label, value);
+      return this;
+    }
+
+    public abstract Builder labels(Map<String, String> labels);
+
+    public abstract Builder command(String... commands);
+
+    public abstract Builder command(List<String> commands);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #command(String...)}.
+     */
+    @Deprecated
+    public Builder withCommands(final String... commands) {
       if (commands != null && commands.length > 0) {
-        spec.command = ImmutableList.copyOf(commands);
+        command(commands);
       }
       return this;
     }
 
-    public Builder withCommands(List<String> commands) {
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #command(List)}.
+     */
+    @Deprecated
+    public Builder withCommands(final List<String> commands) {
       if (commands != null && !commands.isEmpty()) {
-        spec.command = ImmutableList.copyOf(commands);
+        command(commands);
       }
       return this;
     }
 
-    public Builder withArgs(String... args) {
+    public abstract Builder args(String... args);
+
+    public abstract Builder args(List<String> args);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #args(String...)}.
+     */
+    @Deprecated
+    public Builder withArgs(final String... args) {
       if (args != null && args.length > 0) {
-        spec.args = ImmutableList.copyOf(args);
+        args(args);
       }
       return this;
     }
 
-    public Builder withArgs(List<String> args) {
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #args(List)}.
+     */
+    @Deprecated
+    public Builder withArgs(final List<String> args) {
       if (args != null && !args.isEmpty()) {
-        spec.args = ImmutableList.copyOf(args);
+        args(args);
       }
       return this;
     }
 
-    public Builder withEnv(String... env) {
+    public abstract Builder env(String... env);
+
+    public abstract Builder env(List<String> env);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #env(String...)}.
+     */
+    @Deprecated
+    public Builder withEnv(final String... env) {
       if (env != null && env.length > 0) {
-        spec.env = ImmutableList.copyOf(env);
+        env(env);
       }
       return this;
     }
 
-    public Builder withEnv(List<String> env) {
-      spec.env = ImmutableList.copyOf(env);
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #env(List)}.
+     */
+    @Deprecated
+    public Builder withEnv(final List<String> env) {
+      env(env);
       return this;
     }
 
-    public Builder withDir(String dir) {
-      spec.dir = dir;
+    public abstract Builder dir(String dir);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #dir(String)}.
+     */
+    @Deprecated
+    public Builder withDir(final String dir) {
+      dir(dir);
       return this;
     }
 
-    public Builder withUser(String user) {
-      spec.user = user;
+    public abstract Builder user(String user);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #user(String)}.
+     */
+    @Deprecated
+    public Builder withUser(final String user) {
+      user(user);
       return this;
     }
 
-    public Builder withGroups(String... groups) {
+    public abstract Builder groups(String... groups);
+
+    public abstract Builder groups(List<String> groups);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #groups(String...)}.
+     */
+    @Deprecated
+    public Builder withGroups(final String... groups) {
       if (groups != null && groups.length > 0) {
-        spec.groups = ImmutableList.copyOf(groups);
+        groups(groups);
       }
       return this;
     }
 
-    public Builder withGroups(List<String> groups) {
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #groups(List)}.
+     */
+    @Deprecated
+    public Builder withGroups(final List<String> groups) {
       if (groups != null && !groups.isEmpty()) {
-        spec.groups = ImmutableList.copyOf(groups);
+        groups(groups);
       }
       return this;
     }
 
+    public abstract Builder tty(Boolean tty);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #tty(Boolean)}
+     */
+    @Deprecated
     public Builder withTty() {
-      spec.tty = true;
+      tty(true);
       return this;
     }
 
-    public Builder withTty(boolean tty) {
-      spec.tty = tty;
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #tty(Boolean)}.
+     */
+    @Deprecated
+    public Builder withTty(final boolean tty) {
+      tty(tty);
       return this;
     }
 
-    public Builder withMounts(Mount... mounts) {
+    public abstract Builder mounts(Mount... mounts);
+
+    public abstract Builder mounts(List<Mount> mounts);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #mounts(Mount...)}.
+     */
+    @Deprecated
+    public Builder withMounts(final Mount... mounts) {
       if (mounts != null && mounts.length > 0) {
-        spec.mounts = ImmutableList.copyOf(mounts);
+        mounts(mounts);
       }
       return this;
     }
 
-    public Builder withMounts(List<Mount> mounts) {
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #mounts(List)}.
+     */
+    @Deprecated
+    public Builder withMounts(final List<Mount> mounts) {
       if (mounts != null && !mounts.isEmpty()) {
-        spec.mounts = ImmutableList.copyOf(mounts);
+        mounts(mounts);
       }
       return this;
     }
 
-    public Builder withStopGracePeriod(long stopGracePeriod) {
-      spec.stopGracePeriod = stopGracePeriod;
+    public abstract Builder stopGracePeriod(Long stopGracePeriod);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #stopGracePeriod(Long)}.
+     */
+    @Deprecated
+    public Builder withStopGracePeriod(final long stopGracePeriod) {
+      stopGracePeriod(stopGracePeriod);
       return this;
     }
 
-    public ContainerSpec build() {
-      return spec;
-    }
+    public abstract ContainerSpec build();
   }
 
   public static ContainerSpec.Builder builder() {
-    return new ContainerSpec.Builder();
+    return new AutoValue_ContainerSpec.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
+  @JsonCreator
+  static ContainerSpec create(
+      @JsonProperty("Image") final String image,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("Command") final List<String> command,
+      @JsonProperty("Args") final List<String> args,
+      @JsonProperty("Env") final List<String> env,
+      @JsonProperty("Dir") final String dir,
+      @JsonProperty("User") final String user,
+      @JsonProperty("Groups") final List<String> groups,
+      @JsonProperty("TTY") final Boolean tty,
+      @JsonProperty("Mounts") final List<Mount> mounts,
+      @JsonProperty("StopGracePeriod") final Long stopGracePeriod) {
+    final Builder builder = builder()
+        .image(image)
+        .command(command)
+        .args(args)
+        .env(env)
+        .dir(dir)
+        .user(user)
+        .groups(groups)
+        .tty(tty)
+        .mounts(mounts)
+        .stopGracePeriod(stopGracePeriod);
+
+    if (labels != null) {
+      builder.labels(labels);
     }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
 
-    final ContainerSpec that = (ContainerSpec) obj;
-
-    return Objects.equals(this.image, that.image)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.command, that.command)
-           && Objects.equals(this.args, that.args)
-           && Objects.equals(this.env, that.env)
-           && Objects.equals(this.dir, that.dir)
-           && Objects.equals(this.user, that.user)
-           && Objects.equals(this.groups, that.groups)
-           && Objects.equals(this.tty, that.tty)
-           && Objects.equals(this.mounts, that.mounts)
-           && Objects.equals(this.stopGracePeriod, that.stopGracePeriod);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(image, labels, command, args, env, dir, user, groups, tty, mounts,
-                        stopGracePeriod);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("image", image).add("labels", labels)
-        .add("command", command).add("args", args).add("env", env).add("dir", dir)
-        .add("user", user).add("groups", groups).add("tty", tty).add("mounts", mounts)
-        .add("stopGracePeriod", stopGracePeriod).toString();
+    return builder.build();
   }
 }

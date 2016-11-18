@@ -24,13 +24,15 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class TaskStatus {
+public abstract class TaskStatus {
 
   public static final String TASK_STATE_NEW = "new";
   public static final String TASK_STATE_ALLOCATED = "allocated";
@@ -47,71 +49,28 @@ public class TaskStatus {
   public static final String TASK_STATE_REJECTED = "rejected";
 
   @JsonProperty("Timestamp")
-  private String timestamp;
+  public abstract String timestamp();
 
   @JsonProperty("State")
-  private String state;
+  public abstract String state();
 
   @JsonProperty("Message")
-  private String message;
+  public abstract String message();
 
+  @Nullable
   @JsonProperty("Err")
-  private String err;
+  public abstract String err();
 
   @JsonProperty("ContainerStatus")
-  private ContainerStatus containerStatus;
+  public abstract ContainerStatus containerStatus();
 
-  public String timestamp() {
-    return timestamp;
-  }
-
-  public String state() {
-    return state;
-  }
-
-  public String message() {
-    return message;
-  }
-
-  public String err() {
-    return err;
-  }
-
-  public ContainerStatus containerStatus() {
-    return containerStatus;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final TaskStatus that = (TaskStatus) obj;
-
-    return Objects.equals(this.timestamp, that.timestamp)
-           && Objects.equals(this.state, that.state)
-           && Objects.equals(this.message, that.message)
-           && Objects.equals(this.err, that.err)
-           && Objects.equals(this.containerStatus, that.containerStatus);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(timestamp, state, message, err, containerStatus);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("timestamp", timestamp)
-        .add("state", state)
-        .add("message", message)
-        .add("err", err)
-        .add("containerStatus", containerStatus)
-        .toString();
+  @JsonCreator
+  static TaskStatus create(
+      @JsonProperty("Timestamp") final String timestamp,
+      @JsonProperty("State") final String state,
+      @JsonProperty("Message") final String message,
+      @JsonProperty("Err") final String err,
+      @JsonProperty("ContainerStatus") final ContainerStatus containerStatus) {
+    return new AutoValue_TaskStatus(timestamp, state, message, err, containerStatus);
   }
 }

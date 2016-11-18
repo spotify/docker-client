@@ -24,84 +24,80 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
 
+import javax.annotation.Nullable;
+
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class NetworkAttachmentConfig {
+public abstract class NetworkAttachmentConfig {
 
   @JsonProperty("Target")
-  private String target;
+  public abstract String target();
 
+  @Nullable
   @JsonProperty("Aliases")
-  private ImmutableList<String> aliases;
+  public abstract ImmutableList<String> aliases();
 
-  public String target() {
-    return target;
+  public static Builder builder() {
+    return new AutoValue_NetworkAttachmentConfig.Builder();
   }
 
-  public List<String> aliases() {
-    return aliases;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
+    public abstract Builder target(String target);
 
-    final NetworkAttachmentConfig that = (NetworkAttachmentConfig) obj;
-
-    return Objects.equals(this.target, that.target)
-           && Objects.equals(this.aliases, that.aliases);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(target, aliases);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("target", target).add("aliases", aliases)
-        .toString();
-  }
-
-  public static NetworkAttachmentConfig.Builder builder() {
-    return new NetworkAttachmentConfig.Builder();
-  }
-    
-  public static class Builder {
-    private NetworkAttachmentConfig config = new NetworkAttachmentConfig();
-
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #target(String)}.
+     */
+    @Deprecated
     public Builder withTarget(String target) {
-      config.target = target;
+      target(target);
       return this;
     }
 
+    public abstract Builder aliases(String... aliases);
+
+    public abstract Builder aliases(List<String> aliases);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #aliases(String...)}.
+     */
+    @Deprecated
     public Builder withAliases(String... aliases) {
       if (aliases != null && aliases.length > 0) {
-        config.aliases = ImmutableList.copyOf(aliases);
-      }
-      return this;
-    }
-    
-    public Builder withAliases(List<String> aliases) {
-      if (aliases != null && !aliases.isEmpty()) {
-        config.aliases = ImmutableList.copyOf(aliases);
+        aliases(aliases);
       }
       return this;
     }
 
-    public NetworkAttachmentConfig build() {
-      return config;
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #aliases(List)}.
+     */
+    @Deprecated
+    public Builder withAliases(List<String> aliases) {
+      if (aliases != null && !aliases.isEmpty()) {
+        aliases(aliases);
+      }
+      return this;
     }
+
+    public abstract NetworkAttachmentConfig build();
+  }
+
+  @JsonCreator
+  static NetworkAttachmentConfig create(
+      @JsonProperty("Target") final String target,
+      @JsonProperty("Aliases") final List<String> aliases) {
+    return builder()
+        .target(target)
+        .aliases(aliases)
+        .build();
   }
 }

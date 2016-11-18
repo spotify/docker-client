@@ -20,100 +20,56 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
-public class Version {
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class Version {
 
   @JsonProperty("ApiVersion")
-  private String apiVersion;
+  public abstract String apiVersion();
+
   @JsonProperty("Arch")
-  private String arch;
+  public abstract String arch();
+
+  @Nullable
   @JsonProperty("BuildTime")
-  private String buildTime;
+  public abstract String buildTime();
+
   @JsonProperty("GitCommit")
-  private String gitCommit;
+  public abstract String gitCommit();
+
   @JsonProperty("GoVersion")
-  private String goVersion;
+  public abstract String goVersion();
+
   @JsonProperty("KernelVersion")
-  private String kernelVersion;
+  public abstract String kernelVersion();
+
   @JsonProperty("Os")
-  private String os;
+  public abstract String os();
+
   @JsonProperty("Version")
-  private String version;
+  public abstract String version();
 
-  public String apiVersion() {
-    return apiVersion;
-  }
-
-  public String arch() {
-    return arch;
-  }
-
-  public String buildTime() {
-    return buildTime;
-  }
-
-  public String gitCommit() {
-    return gitCommit;
-  }
-
-  public String goVersion() {
-    return goVersion;
-  }
-
-  public String kernelVersion() {
-    return kernelVersion;
-  }
-
-  public String os() {
-    return os;
-  }
-
-  public String version() {
-    return version;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Version that = (Version) obj;
-
-    return Objects.equals(this.apiVersion, that.apiVersion)
-           && Objects.equals(this.arch, that.arch)
-           && Objects.equals(this.buildTime, that.buildTime)
-           && Objects.equals(this.gitCommit, that.gitCommit)
-           && Objects.equals(this.goVersion, that.goVersion)
-           && Objects.equals(this.kernelVersion, that.kernelVersion)
-           && Objects.equals(this.os, that.os)
-           && Objects.equals(this.version, that.version);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(apiVersion, arch, buildTime, gitCommit, goVersion, kernelVersion, os,
-                        version);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("apiVersion", apiVersion)
-        .add("arch", arch)
-        .add("buildTime", buildTime)
-        .add("gitCommit", gitCommit)
-        .add("goVersion", goVersion)
-        .add("kernelVersion", kernelVersion)
-        .add("os", os)
-        .add("version", version)
-        .toString();
+  @JsonCreator
+  static Version create(
+      @JsonProperty("ApiVersion") final String apiVersion,
+      @JsonProperty("Arch") final String arch,
+      @JsonProperty("BuildTime") final String buildTime,
+      @JsonProperty("GitCommit") final String gitCommit,
+      @JsonProperty("GoVersion") final String goVersion,
+      @JsonProperty("KernelVersion") final String kernelVersion,
+      @JsonProperty("Os") final String os,
+      @JsonProperty("Version") final String version) {
+    return new AutoValue_Version(apiVersion, arch, buildTime, gitCommit, goVersion, kernelVersion,
+        os, version);
   }
 }

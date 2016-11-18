@@ -22,93 +22,54 @@ package com.spotify.docker.client.messages;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
-
-import java.util.ArrayList;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Ipam {
+public abstract class Ipam {
 
   @JsonProperty("Driver")
-  private String driver;
+  public abstract String driver();
+
   @JsonProperty("Config")
-  private List<IpamConfig> config;
-
-  private Ipam(final Builder builder) {
-    this.driver = builder.driver;
-    this.config = builder.configs;
-  }
-
-  @SuppressWarnings("unused")
-  public Ipam() {
-  }
-
-  public String driver() {
-    return driver;
-  }
-
-  public List<IpamConfig> config() {
-    return config;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Ipam that = (Ipam) obj;
-
-    return Objects.equals(this.driver, that.driver)
-           && Objects.equals(this.config, that.config);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(driver, config);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("driver", driver)
-        .add("config", config)
-        .toString();
-  }
+  public abstract ImmutableList<IpamConfig> config();
 
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_Ipam.Builder();
   }
 
-  public static class Builder {
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-    private String driver;
-    private List<IpamConfig> configs = new ArrayList<IpamConfig>();
+    public abstract Builder driver(String driver);
 
-    public Builder driver(final String driver) {
-      this.driver = driver;
-      return this;
-    }
+    public abstract Builder config(List<IpamConfig> config);
 
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #config(List)}.
+     */
+    @Deprecated
     public Builder config(final String subnet, final String ipRange, final String gateway) {
-      final IpamConfig config = new IpamConfig();
-      config.subnet(subnet);
-      config.ipRange(ipRange);
-      config.gateway(gateway);
-      configs.add(config);
-      return this;
+      return Ipam.builder().config(singletonList(IpamConfig.create(subnet, ipRange, gateway)));
     }
 
-    public Ipam build() {
-      return new Ipam(this);
-    }
+    public abstract Ipam build();
+  }
+
+  @JsonCreator
+  public static Ipam create(
+      @JsonProperty("Driver") final String driver,
+      @JsonProperty("Config") final List<IpamConfig> config) {
+    return builder()
+        .driver(driver)
+        .config(config)
+        .build();
   }
 }
