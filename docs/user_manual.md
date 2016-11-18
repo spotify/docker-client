@@ -314,9 +314,12 @@ final String returnedImageId = docker.build(
 
 ```java
 // By pulling
-final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-  .password(AUTH_PASSWORD).build();
-docker.pull("dxia2/scratch-private:latest", authConfig);
+final RegistryAuth registryAuth = RegistryAuth.builder()
+  .email(AUTH_EMAIL)
+  .username(AUTH_USERNAME)
+  .password(AUTH_PASSWORD)
+  .build();
+docker.pull("dxia2/scratch-private:latest", registryAuth);
 
 // or by loading from a source
 final File imageFile = new File("/path/to/image/file");
@@ -374,9 +377,12 @@ final List<ImageSearchResult> searchResult = docker.searchImages("busybox");
 ### Check auth configuration
 
 ```java
-final AuthConfig authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-  .password(AUTH_PASSWORD).build();
-final int statusCode = docker.auth(authConfig);
+final RegistryAuth registryAuth = RegistryAuth.builder()
+  .email(AUTH_EMAIL)
+  .username(AUTH_USERNAME)
+  .password(AUTH_PASSWORD)
+  .build();
+final int statusCode = docker.auth(registryAuth);
 assertThat(statusCode, equalTo(200));
 ```
 
@@ -541,10 +547,10 @@ final List<Volume> volumes = volumeList.volumes();
 Create a volume with specified properties:
 ```java
 final Volume toCreate = Volume.builder()
-              .name("volumeName")
-              .driver("local")
-              .labels(ImmutableMap.of("foo", "bar"))
-              .build();
+  .name("volumeName")
+  .driver("local")
+  .labels(ImmutableMap.of("foo", "bar"))
+  .build();
 final Volume created = docker.createVolume(toCreate);
 ```
 

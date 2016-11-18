@@ -24,107 +24,95 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class PortConfig {
+public abstract class PortConfig {
 
   public static final String PROTOCOL_TCP = "tcp";
   public static final String PROTOCOL_UDP = "udp";
 
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
 
   @JsonProperty("Protocol")
-  private String protocol;
+  public abstract String protocol();
 
   @JsonProperty("TargetPort")
-  private Integer targetPort;
+  public abstract Integer targetPort();
 
   @JsonProperty("PublishedPort")
-  private Integer publishedPort;
+  public abstract Integer publishedPort();
 
-  public String name() {
-    return name;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public String protocol() {
-    return protocol;
-  }
+    public abstract Builder name(String name);
 
-  public Integer targetPort() {
-    return targetPort;
-  }
-
-  public Integer publishedPort() {
-    return publishedPort;
-  }
-
-  public static class Builder {
-
-    private PortConfig config = new PortConfig();
-
-    public Builder withName(String name) {
-      config.name = name;
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #name(String)}.
+     */
+    @Deprecated
+    public Builder withName(final String name) {
+      name(name);
       return this;
     }
 
-    public Builder withProtocol(String protocol) {
-      config.protocol = protocol;
+    public abstract Builder protocol(String protocol);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #protocol(String)}.
+     */
+    @Deprecated
+    public Builder withProtocol(final String protocol) {
+      protocol(protocol);
       return this;
     }
 
-    public Builder withTargetPort(int targetPort) {
-      config.targetPort = targetPort;
+    public abstract Builder targetPort(Integer targetPort);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #targetPort(Integer)}.
+     */
+    @Deprecated
+    public Builder withTargetPort(final Integer targetPort) {
+      targetPort(targetPort);
       return this;
     }
 
-    public Builder withPublishedPort(int publishedPort) {
-      config.publishedPort = publishedPort;
+    public abstract Builder publishedPort(Integer publishedPort);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #publishedPort(Integer)}.
+     */
+    @Deprecated
+    public Builder withPublishedPort(final Integer publishedPort) {
+      publishedPort(publishedPort);
       return this;
     }
 
-    public PortConfig build() {
-      return config;
-    }
+    public abstract PortConfig build();
   }
 
   public static PortConfig.Builder builder() {
-    return new PortConfig.Builder();
+    return new AutoValue_PortConfig.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final PortConfig that = (PortConfig) obj;
-
-    return Objects.equals(this.name, that.name)
-           && Objects.equals(this.protocol, that.protocol)
-           && Objects.equals(this.targetPort, that.targetPort)
-           && Objects.equals(this.publishedPort, that.publishedPort);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, protocol, targetPort, publishedPort);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("protocol", protocol)
-        .add("targetPort", targetPort)
-        .add("publishedPort", publishedPort)
-        .toString();
+  @JsonCreator
+  static PortConfig create(
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Protocol") final String protocol,
+      @JsonProperty("TargetPort") final Integer targetPort,
+      @JsonProperty("PublishedPort") final Integer publishedPort) {
+    return builder()
+        .name(name)
+        .protocol(protocol)
+        .targetPort(targetPort)
+        .publishedPort(publishedPort)
+        .build();
   }
 }

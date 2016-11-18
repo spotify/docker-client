@@ -24,51 +24,20 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerExit {
+public abstract class ContainerExit {
 
   @JsonProperty("StatusCode")
-  private Integer statusCode;
+  public abstract Integer statusCode();
 
-  public ContainerExit() {
-  }
-
-  public ContainerExit(final Integer statusCode) {
-    this.statusCode = statusCode;
-  }
-
-  public Integer statusCode() {
-    return statusCode;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerExit that = (ContainerExit) obj;
-
-    return Objects.equals(this.statusCode, that.statusCode);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(statusCode);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("statusCode", statusCode)
-        .toString();
+  @JsonCreator
+  static ContainerExit create(@JsonProperty("StatusCode") final Integer statusCode) {
+    return new AutoValue_ContainerExit(statusCode);
   }
 }

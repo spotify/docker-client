@@ -45,12 +45,12 @@ docker.pull("busybox");
 
 // Pull an image from a private repository
 // Server address defaults to "https://index.docker.io/v1/"
-AuthConfig authConfig = AuthConfig.builder().email("foo@bar.com").username("foobar")
+RegistryAuth registryAuth = RegistryAuth.builder().email("foo@bar.com").username("foobar")
   .password("secret-password").serverAddress("https://myprivateregistry.com/v1/").build();
-docker.pull("foobar/busybox-private:latest", authConfig);
+docker.pull("foobar/busybox-private:latest", registryAuth);
 
-// You can also set the AuthConfig for the DockerClient instead of passing everytime you call pull()
-DockerClient docker = DefaultDockerClient.fromEnv().authConfig(authConfig).build();
+// You can also set the RegistryAuth for the DockerClient instead of passing everytime you call pull()
+DockerClient docker = DefaultDockerClient.fromEnv().registryAuth(registryAuth).build();
 
 // Bind container ports to host ports
 final String[] ports = {"80", "22"};

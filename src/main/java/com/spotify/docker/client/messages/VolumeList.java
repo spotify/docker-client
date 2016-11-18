@@ -24,54 +24,31 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class VolumeList {
+public abstract class VolumeList {
 
   @JsonProperty("Volumes")
-  private ImmutableList<Volume> volumes;
+  public abstract ImmutableList<Volume> volumes();
+
+  @Nullable
   @JsonProperty("Warnings")
-  private ImmutableList<String> warnings;
+  public abstract ImmutableList<String> warnings();
 
-  public List<Volume> volumes() {
-    return volumes;
-  }
-
-  public List<String> warnings() {
-    return warnings;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final VolumeList that = (VolumeList) obj;
-
-    return Objects.equals(this.volumes, that.volumes)
-           && Objects.equals(this.warnings, that.warnings);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(volumes, warnings);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("volumes", volumes)
-        .add("warnings", warnings)
-        .toString();
+  @JsonCreator
+  static VolumeList create(
+      @JsonProperty("Volumes") final List<Volume> volumes,
+      @JsonProperty("Warnings") final List<String> warnings) {
+    final ImmutableList<String> warningsCopy = warnings == null
+                                               ? null : ImmutableList.copyOf(warnings);
+    return new AutoValue_VolumeList(ImmutableList.copyOf(volumes), warningsCopy);
   }
 }

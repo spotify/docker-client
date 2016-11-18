@@ -24,104 +24,64 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Image {
+public abstract class Image {
 
   @JsonProperty("Created")
-  private String created;
+  public abstract String created();
+
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
   @JsonProperty("ParentId")
-  private String parentId;
+  public abstract String parentId();
+
+  @Nullable
   @JsonProperty("RepoTags")
-  private ImmutableList<String> repoTags;
+  public abstract ImmutableList<String> repoTags();
+
+  @Nullable
   @JsonProperty("RepoDigests")
-  private ImmutableList<String> repoDigests;
+  public abstract ImmutableList<String> repoDigests();
+
   @JsonProperty("Size")
-  private Long size;
+  public abstract Long size();
+
   @JsonProperty("VirtualSize")
-  private Long virtualSize;
+  public abstract Long virtualSize();
+
+  @Nullable
   @JsonProperty("Labels")
-  private ImmutableMap<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
-  public String created() {
-    return created;
-  }
-
-  public String id() {
-    return id;
-  }
-
-  public String parentId() {
-    return parentId;
-  }
-
-  public ImmutableList<String> repoTags() {
-    return repoTags;
-  }
-
-  public ImmutableList<String> repoDigests() {
-    return repoDigests;
-  }
-
-  public Long size() {
-    return size;
-  }
-
-  public Long virtualSize() {
-    return virtualSize;
-  }
-
-  public Map<String, String> labels() {
-    return labels;
-  }
-
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Image that = (Image) obj;
-
-    return Objects.equals(this.created, that.created)
-           && Objects.equals(this.id, that.id)
-           && Objects.equals(this.parentId, that.parentId)
-           && Objects.equals(this.repoTags, that.repoTags)
-           && Objects.equals(this.repoDigests, that.repoDigests)
-           && Objects.equals(this.size, that.size)
-           && Objects.equals(this.virtualSize, that.virtualSize)
-           && Objects.equals(this.labels, that.labels);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(created, id, parentId, repoTags, repoDigests, size, virtualSize, labels);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("created", created)
-        .add("id", id)
-        .add("parentId", parentId)
-        .add("repoTags", repoTags)
-        .add("repoDigests", repoDigests)
-        .add("size", size)
-        .add("virtualSize", virtualSize)
-        .add("labels", labels)
-        .toString();
+  @JsonCreator
+  static Image create(
+      @JsonProperty("Created") final String created,
+      @JsonProperty("Id") final String id,
+      @JsonProperty("ParentId") final String parentId,
+      @JsonProperty("RepoTags") final List<String> repoTags,
+      @JsonProperty("RepoDigests") final List<String> repoDigests,
+      @JsonProperty("Size") final Long size,
+      @JsonProperty("VirtualSize") final Long virtualSize,
+      @JsonProperty("Labels") final Map<String, String> labels) {
+    final ImmutableList<String> repoTagsCopy = repoTags == null
+                                               ? null : ImmutableList.copyOf(repoTags);
+    final ImmutableList<String> repoDigestsCopy = repoDigests == null
+                                                  ? null : ImmutableList.copyOf(repoDigests);
+    final ImmutableMap<String, String> labelsCopy = labels == null
+                                                    ? null : ImmutableMap.copyOf(labels);
+    return new AutoValue_Image(created, id, parentId, repoTagsCopy, repoDigestsCopy, size,
+        virtualSize, labelsCopy);
   }
 }

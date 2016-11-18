@@ -20,533 +20,310 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
-public class Info {
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class Info {
 
+  @Nullable
   @JsonProperty("Architecture")
-  private String architecture;
+  public abstract String architecture();
+
+  @Nullable
   @JsonProperty("ClusterStore")
-  private String clusterStore;
+  public abstract String clusterStore();
+
+  @Nullable
   @JsonProperty("CgroupDriver")
-  private String cgroupDriver;
+  public abstract String cgroupDriver();
+
   @JsonProperty("Containers")
-  private int containers;
+  public abstract Integer containers();
+
+  @Nullable
   @JsonProperty("ContainersRunning")
-  private Integer containersRunning;
+  public abstract Integer containersRunning();
+
+  @Nullable
   @JsonProperty("ContainersStopped")
-  private Integer containersStopped;
+  public abstract Integer containersStopped();
+
+  @Nullable
   @JsonProperty("ContainersPaused")
-  private Integer containersPaused;
+  public abstract Integer containersPaused();
+
+  @Nullable
   @JsonProperty("CpuCfsPeriod")
-  private Boolean cpuCfsPeriod;
+  public abstract Boolean cpuCfsPeriod();
+
+  @Nullable
   @JsonProperty("CpuCfsQuota")
-  private Boolean cpuCfsQuota;
+  public abstract Boolean cpuCfsQuota();
+
   @JsonProperty("Debug")
-  private Boolean debug;
+  public abstract Boolean debug();
+
   @JsonProperty("DockerRootDir")
-  private String dockerRootDir;
+  public abstract String dockerRootDir();
+
   @JsonProperty("Driver")
-  private String storageDriver;
+  public abstract String storageDriver();
+
   @JsonProperty("DriverStatus")
-  private List<List<String>> driverStatus;
-  @JsonProperty("ExecutionDriver")
-  private String executionDriver;
-  @JsonProperty("ExperimentalBuild")
-  private Boolean experimentalBuild;
-  @JsonProperty("HttpProxy")
-  private String httpProxy;
-  @JsonProperty("HttpsProxy")
-  private String httpsProxy;
-  @JsonProperty("ID")
-  private String id;
-  @JsonProperty("IPv4Forwarding")
-  private boolean ipv4Forwarding;
-  @JsonProperty("Images")
-  private int images;
-  @JsonProperty("IndexServerAddress")
-  private String indexServerAddress;
-  @JsonProperty("InitPath")
-  private String initPath;
-  @JsonProperty("InitSha1")
-  private String initSha1;
-  @JsonProperty("KernelMemory")
-  private Boolean kernelMemory;
-  @JsonProperty("KernelVersion")
-  private String kernelVersion;
-  @JsonProperty("Labels")
-  private List<String> labels;
-  @JsonProperty("MemTotal")
-  private long memTotal;
-  @JsonProperty("MemoryLimit")
-  private Boolean memoryLimit;
-  @JsonProperty("NCPU")
-  private int cpus;
-  @JsonProperty("NEventsListener")
-  private int eventsListener;
-  @JsonProperty("NFd")
-  private int fileDescriptors;
-  @JsonProperty("NGoroutines")
-  private int goroutines;
-  @JsonProperty("Name")
-  private String name;
-  @JsonProperty("NoProxy")
-  private String noProxy;
-  @JsonProperty("OomKillDisable")
-  private Boolean oomKillDisable;
-  @JsonProperty("OperatingSystem")
-  private String operatingSystem;
-  @JsonProperty("OSType")
-  private String osType;
-  @JsonProperty("Plugins")
-  private Plugins plugins;
-  @JsonProperty("RegistryConfig")
-  private RegistryConfig registryConfig;
-  @JsonProperty("ServerVersion")
-  private String serverVersion;
-  @JsonProperty("SwapLimit")
-  private Boolean swapLimit;
-  @JsonProperty("SystemStatus")
-  private List<List<String>> systemStatus;
-  @JsonProperty("SystemTime")
-  private Date systemTime;
-
-  public String architecture() {
-    return architecture;
-  }
-
-  public String clusterStore() {
-    return clusterStore;
-  }
-
-  public String cgroupDriver() {
-    return cgroupDriver;
-  }
-
-  public int containers() {
-    return containers;
-  }
-
-  public Integer containersRunning() {
-    return containersRunning;
-  }
-
-  public Integer containersStopped() {
-    return containersStopped;
-  }
-
-  public Integer containersPaused() {
-    return containersPaused;
-  }
-
-  public Boolean cpuCfsPeriod() {
-    return cpuCfsPeriod;
-  }
-
-  public Boolean cpuCfsQuota() {
-    return cpuCfsQuota;
-  }
-
-  public Boolean debug() {
-    return debug;
-  }
-
-  public String dockerRootDir() {
-    return dockerRootDir;
-  }
-
-  public String storageDriver() {
-    return storageDriver;
-  }
-
-  public List<List<String>> driverStatus() {
-    return driverStatus;
-  }
+  public abstract ImmutableList<ImmutableList<String>> driverStatus();
 
   /**
    * @return Execution Driver
    * @deprecated Removed in API 1.24 https://github.com/docker/docker/pull/24501
    */
+  @SuppressWarnings("DeprecatedIsStillUsed")
   @Deprecated
-  public String executionDriver() {
-    return executionDriver;
+  @Nullable
+  @JsonProperty("ExecutionDriver")
+  public abstract String executionDriver();
+
+  @Nullable
+  @JsonProperty("ExperimentalBuild")
+  public abstract Boolean experimentalBuild();
+
+  @Nullable
+  @JsonProperty("HttpProxy")
+  public abstract String httpProxy();
+
+  @Nullable
+  @JsonProperty("HttpsProxy")
+  public abstract String httpsProxy();
+
+  @JsonProperty("ID")
+  public abstract String id();
+
+  @JsonProperty("IPv4Forwarding")
+  public abstract Boolean ipv4Forwarding();
+
+  @JsonProperty("Images")
+  public abstract Integer images();
+
+  @JsonProperty("IndexServerAddress")
+  public abstract String indexServerAddress();
+
+  @Nullable
+  @JsonProperty("InitPath")
+  public abstract String initPath();
+
+  @Nullable
+  @JsonProperty("InitSha1")
+  public abstract String initSha1();
+
+  @Nullable
+  @JsonProperty("KernelMemory")
+  public abstract Boolean kernelMemory();
+
+  @JsonProperty("KernelVersion")
+  public abstract String kernelVersion();
+
+  @JsonProperty("Labels")
+  public abstract ImmutableList<String> labels();
+
+  @JsonProperty("MemTotal")
+  public abstract Long memTotal();
+
+  @JsonProperty("MemoryLimit")
+  public abstract Boolean memoryLimit();
+
+  @JsonProperty("NCPU")
+  public abstract Integer cpus();
+
+  @JsonProperty("NEventsListener")
+  public abstract Integer eventsListener();
+
+  @JsonProperty("NFd")
+  public abstract Integer fileDescriptors();
+
+  @JsonProperty("NGoroutines")
+  public abstract Integer goroutines();
+
+  @JsonProperty("Name")
+  public abstract String name();
+
+  @Nullable
+  @JsonProperty("NoProxy")
+  public abstract String noProxy();
+
+  @Nullable
+  @JsonProperty("OomKillDisable")
+  public abstract Boolean oomKillDisable();
+
+  @JsonProperty("OperatingSystem")
+  public abstract String operatingSystem();
+
+  @Nullable
+  @JsonProperty("OSType")
+  public abstract String osType();
+
+  @Nullable
+  @JsonProperty("Plugins")
+  public abstract Plugins plugins();
+
+  @JsonProperty("RegistryConfig")
+  public abstract RegistryConfig registryConfig();
+
+  @Nullable
+  @JsonProperty("ServerVersion")
+  public abstract String serverVersion();
+
+  @JsonProperty("SwapLimit")
+  public abstract Boolean swapLimit();
+
+  @Nullable
+  @JsonProperty("SystemStatus")
+  public abstract ImmutableList<ImmutableList<String>> systemStatus();
+
+  @JsonProperty("SystemTime")
+  public abstract Date systemTime();
+
+  @JsonCreator
+  static Info create(
+      @JsonProperty("Architecture") final String architecture,
+      @JsonProperty("ClusterStore") final String clusterStore,
+      @JsonProperty("CgroupDriver") final String cgroupDriver,
+      @JsonProperty("Containers") final Integer containers,
+      @JsonProperty("ContainersRunning") final Integer containersRunning,
+      @JsonProperty("ContainersStopped") final Integer containersStopped,
+      @JsonProperty("ContainersPaused") final Integer containersPaused,
+      @JsonProperty("CpuCfsPeriod") final Boolean cpuCfsPeriod,
+      @JsonProperty("CpuCfsQuota") final Boolean cpuCfsQuota,
+      @JsonProperty("Debug") final Boolean debug,
+      @JsonProperty("DockerRootDir") final String dockerRootDir,
+      @JsonProperty("Driver") final String storageDriver,
+      @JsonProperty("DriverStatus") final List<List<String>> driverStatus,
+      @JsonProperty("ExecutionDriver") final String executionDriver,
+      @JsonProperty("ExperimentalBuild") final Boolean experimentalBuild,
+      @JsonProperty("HttpProxy") final String httpProxy,
+      @JsonProperty("HttpsProxy") final String httpsProxy,
+      @JsonProperty("ID") final String id,
+      @JsonProperty("IPv4Forwarding") final Boolean ipv4Forwarding,
+      @JsonProperty("Images") final Integer images,
+      @JsonProperty("IndexServerAddress") final String indexServerAddress,
+      @JsonProperty("InitPath") final String initPath,
+      @JsonProperty("InitSha1") final String initSha1,
+      @JsonProperty("KernelMemory") final Boolean kernelMemory,
+      @JsonProperty("KernelVersion") final String kernelVersion,
+      @JsonProperty("Labels") final List<String> labels,
+      @JsonProperty("MemTotal") final Long memTotal,
+      @JsonProperty("MemoryLimit") final Boolean memoryLimit,
+      @JsonProperty("NCPU") final Integer cpus,
+      @JsonProperty("NEventsListener") final Integer eventsListener,
+      @JsonProperty("NFd") final Integer fileDescriptors,
+      @JsonProperty("NGoroutines") final Integer goroutines,
+      @JsonProperty("Name") final String name,
+      @JsonProperty("NoProxy") final String noProxy,
+      @JsonProperty("OomKillDisable") final Boolean oomKillDisable,
+      @JsonProperty("OperatingSystem") final String operatingSystem,
+      @JsonProperty("OSType") final String osType,
+      @JsonProperty("Plugins") final Plugins plugins,
+      @JsonProperty("RegistryConfig") final RegistryConfig registryConfig,
+      @JsonProperty("ServerVersion") final String serverVersion,
+      @JsonProperty("SwapLimit") final Boolean swapLimit,
+      @JsonProperty("SystemStatus") final List<List<String>> systemStatus,
+      @JsonProperty("SystemTime") final Date systemTime) {
+    final ImmutableList<ImmutableList<String>> driverStatusT =
+        driverStatus == null ? ImmutableList.<ImmutableList<String>>of()
+                             : ImmutableList.of(ImmutableList.copyOf(driverStatus.get(0)));
+    final ImmutableList<String> labelsT =
+        labels == null ? ImmutableList.<String>of() : ImmutableList.copyOf(labels);
+    final ImmutableList<ImmutableList<String>> systemStatusT =
+        systemStatus == null ? ImmutableList.<ImmutableList<String>>of()
+                             : ImmutableList.of(ImmutableList.copyOf(systemStatus.get(0)));
+    return new AutoValue_Info(architecture, clusterStore, cgroupDriver, containers,
+        containersRunning, containersStopped, containersPaused, cpuCfsPeriod, cpuCfsQuota, debug,
+        dockerRootDir, storageDriver, driverStatusT, executionDriver, experimentalBuild, httpProxy,
+        httpsProxy, id, ipv4Forwarding, images, indexServerAddress, initPath, initSha1,
+        kernelMemory, kernelVersion, labelsT, memTotal, memoryLimit, cpus, eventsListener,
+        fileDescriptors, goroutines, name, noProxy, oomKillDisable, operatingSystem, osType,
+        plugins, registryConfig, serverVersion, swapLimit, systemStatusT, systemTime);
   }
 
-  public Boolean experimentalBuild() {
-    return experimentalBuild;
-  }
-
-  public String httpProxy() {
-    return httpProxy;
-  }
-
-  public String httpsProxy() {
-    return httpsProxy;
-  }
-
-  public String id() {
-    return id;
-  }
-
-  public boolean ipv4Forwarding() {
-    return ipv4Forwarding;
-  }
-
-  public int images() {
-    return images;
-  }
-
-  public String indexServerAddress() {
-    return indexServerAddress;
-  }
-
-  public String initPath() {
-    return initPath;
-  }
-
-  public String initSha1() {
-    return initSha1;
-  }
-
-  public Boolean kernelMemory() {
-    return kernelMemory;
-  }
-
-  public String kernelVersion() {
-    return kernelVersion;
-  }
-
-  public List<String> labels() {
-    return labels;
-  }
-
-  public long memTotal() {
-    return memTotal;
-  }
-
-  public Boolean memoryLimit() {
-    return memoryLimit;
-  }
-
-  public int cpus() {
-    return cpus;
-  }
-
-  public int eventsListener() {
-    return eventsListener;
-  }
-
-  public int fileDescriptors() {
-    return fileDescriptors;
-  }
-
-  public int goroutines() {
-    return goroutines;
-  }
-
-  public String name() {
-    return name;
-  }
-
-  public String noProxy() {
-    return noProxy;
-  }
-
-  public Boolean oomKillDisable() {
-    return oomKillDisable;
-  }
-
-  public String operatingSystem() {
-    return operatingSystem;
-  }
-
-  public String osType() {
-    return osType;
-  }
-
-  public Plugins plugins() {
-    return plugins;
-  }
-
-  public RegistryConfig registryConfig() {
-    return registryConfig;
-  }
-
-  public String serverVersion() {
-    return serverVersion;
-  }
-
-  public Boolean swapLimit() {
-    return swapLimit;
-  }
-
-  public List<List<String>> systemStatus() {
-    return systemStatus;
-  }
-
-  public Date systemTime() {
-    return systemTime == null ? null : new Date(systemTime.getTime());
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Info that = (Info) obj;
-
-    return Objects.equals(this.architecture, that.architecture)
-           && Objects.equals(this.clusterStore, that.clusterStore)
-           && Objects.equals(this.cgroupDriver, that.cgroupDriver)
-           && Objects.equals(this.containers, that.containers)
-           && Objects.equals(this.containersRunning, that.containersRunning)
-           && Objects.equals(this.containersStopped, that.containersStopped)
-           && Objects.equals(this.containersPaused, that.containersPaused)
-           && Objects.equals(this.cpuCfsPeriod, that.cpuCfsPeriod)
-           && Objects.equals(this.cpuCfsQuota, that.cpuCfsQuota)
-           && Objects.equals(this.cpus, that.cpus)
-           && Objects.equals(this.debug, that.debug)
-           && Objects.equals(this.dockerRootDir, that.dockerRootDir)
-           && Objects.equals(this.driverStatus, that.driverStatus)
-           && Objects.equals(this.eventsListener, that.eventsListener)
-           && Objects.equals(this.executionDriver, that.executionDriver)
-           && Objects.equals(this.experimentalBuild, that.experimentalBuild)
-           && Objects.equals(this.fileDescriptors, that.fileDescriptors)
-           && Objects.equals(this.goroutines, that.goroutines)
-           && Objects.equals(this.httpProxy, that.httpProxy)
-           && Objects.equals(this.httpsProxy, that.httpsProxy)
-           && Objects.equals(this.id, that.id)
-           && Objects.equals(this.images, that.images)
-           && Objects.equals(this.indexServerAddress, that.indexServerAddress)
-           && Objects.equals(this.initPath, that.initPath)
-           && Objects.equals(this.initSha1, that.initSha1)
-           && Objects.equals(this.ipv4Forwarding, that.ipv4Forwarding)
-           && Objects.equals(this.kernelVersion, that.kernelVersion)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.memoryLimit, that.memoryLimit)
-           && Objects.equals(this.memTotal, that.memTotal)
-           && Objects.equals(this.name, that.name)
-           && Objects.equals(this.noProxy, that.noProxy)
-           && Objects.equals(this.oomKillDisable, that.oomKillDisable)
-           && Objects.equals(this.operatingSystem, that.operatingSystem)
-           && Objects.equals(this.osType, that.osType)
-           && Objects.equals(this.plugins, that.plugins)
-           && Objects.equals(this.registryConfig, that.registryConfig)
-           && Objects.equals(this.serverVersion, that.serverVersion)
-           && Objects.equals(this.storageDriver, that.storageDriver)
-           && Objects.equals(this.swapLimit, that.swapLimit)
-           && Objects.equals(this.systemStatus, that.systemStatus)
-           && Objects.equals(this.systemTime, that.systemTime);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(architecture, clusterStore, cgroupDriver, containers, containersRunning,
-                        containersStopped, containersPaused, cpuCfsPeriod, cpuCfsQuota, cpus, debug,
-                        dockerRootDir, driverStatus, eventsListener, executionDriver,
-                        experimentalBuild, fileDescriptors, goroutines, httpProxy, httpsProxy,
-                        id, images, indexServerAddress, initPath, initSha1, ipv4Forwarding,
-                        kernelMemory, kernelVersion, labels, memoryLimit, memTotal, name, noProxy,
-                        oomKillDisable, operatingSystem, osType, plugins, registryConfig,
-                        serverVersion, storageDriver, swapLimit, systemStatus, systemTime);
-  }
-
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("architecture", architecture)
-        .add("clusterStore", clusterStore)
-        .add("cgroupDriver", cgroupDriver)
-        .add("containers", containers)
-        .add("containersRunning", containersRunning)
-        .add("containersStopped", containersStopped)
-        .add("containersPaused", containersPaused)
-        .add("cpuCfsPeriod", cpuCfsPeriod)
-        .add("cpuCfsQuota", cpuCfsQuota)
-        .add("debug", debug)
-        .add("dockerRootDir", dockerRootDir)
-        .add("storageDriver", storageDriver)
-        .add("driverStatus", driverStatus)
-        .add("executionDriver", executionDriver)
-        .add("experimentalBuild", experimentalBuild)
-        .add("httpProxy", httpProxy)
-        .add("httpsProxy", httpsProxy)
-        .add("id", id)
-        .add("ipv4Forwarding", ipv4Forwarding)
-        .add("images", images)
-        .add("indexServerAddress", indexServerAddress)
-        .add("initPath", initPath)
-        .add("initSha1", initSha1)
-        .add("kernelMemory", kernelMemory)
-        .add("kernelVersion", kernelVersion)
-        .add("labels", labels)
-        .add("memTotal", memTotal)
-        .add("memoryLimit", memoryLimit)
-        .add("cpus", cpus)
-        .add("eventsListener", eventsListener)
-        .add("fileDescriptors", fileDescriptors)
-        .add("goroutines", goroutines)
-        .add("name", name)
-        .add("noProxy", noProxy)
-        .add("oomKillDisable", oomKillDisable)
-        .add("operatingSystem", operatingSystem)
-        .add("osType", osType)
-        .add("plugins", plugins)
-        .add("registryConfig", registryConfig)
-        .add("serverVersion", serverVersion)
-        .add("swapLimit", swapLimit)
-        .add("systemStatus", systemStatus)
-        .add("systemTime", systemTime)
-        .toString();
-  }
-
-  public static class Plugins {
+  @AutoValue
+  public abstract static class Plugins {
 
     @JsonProperty("Volumes")
-    private ImmutableList<String> volume;
+    public abstract ImmutableList<String> volumes();
+
     @JsonProperty("Networks")
-    private ImmutableList<String> network;
-
-    public List<String> volume() {
-      return volume;
-    }
-
-    public List<String> network() {
-      return network;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final Plugins that = (Plugins) obj;
-
-      return Objects.equals(volume, that.volume)
-             && Objects.equals(network, that.network);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(volume, network);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("volume", volume)
-          .add("network", network)
-          .toString();
-    }
-  }
-
-  public static class RegistryConfig {
-
-    @JsonProperty("IndexConfigs")
-    private ImmutableMap<String, IndexConfig> indexConfigs;
-    @JsonProperty("InsecureRegistryCIDRs")
-    private ImmutableList<String> insecureRegistryCidrs;
-
-    public Map<String, IndexConfig> indexConfigs() {
-      return indexConfigs;
-    }
-
-    public List<String> insecureRegistryCidrs() {
-      return insecureRegistryCidrs;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final RegistryConfig that = (RegistryConfig) obj;
-
-      return Objects.equals(this.indexConfigs, that.indexConfigs)
-             && Objects.equals(this.insecureRegistryCidrs, that.insecureRegistryCidrs);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(indexConfigs, insecureRegistryCidrs);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("indexConfigs", indexConfigs)
-          .add("insecureRegistryCidrs", insecureRegistryCidrs)
-          .toString();
-    }
-  }
-
-  public static class IndexConfig {
-
-    @JsonProperty("Name")
-    private String name;
-    @JsonProperty("Mirrors")
-    private List<String> mirrors;
-    @JsonProperty("Secure")
-    private Boolean secure;
-    @JsonProperty("Official")
-    private Boolean official;
+    public abstract ImmutableList<String> networks();
 
     @JsonCreator
-    public IndexConfig() {
+    static Plugins create(
+        @JsonProperty("Volumes") final List<String> volumes,
+        @JsonProperty("Networks") final List<String> networks) {
+      final ImmutableList<String> volumesT =
+          volumes == null ? ImmutableList.<String>of() : ImmutableList.copyOf(volumes);
+      final ImmutableList<String> networksT =
+          networks == null ? ImmutableList.<String>of() : ImmutableList.copyOf(networks);
+      return new AutoValue_Info_Plugins(volumesT, networksT);
     }
+  }
 
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
+  @AutoValue
+  public abstract static class RegistryConfig {
 
-      final IndexConfig that = (IndexConfig) obj;
-      return Objects.equals(this.name, that.name)
-             && Objects.equals(this.mirrors, that.mirrors)
-             && Objects.equals(this.secure, that.secure)
-             && Objects.equals(this.official, that.official);
+    @JsonProperty("IndexConfigs")
+    public abstract ImmutableMap<String, IndexConfig> indexConfigs();
 
+    @JsonProperty("InsecureRegistryCIDRs")
+    public abstract ImmutableList<String> insecureRegistryCidrs();
+
+    @JsonCreator
+    static RegistryConfig create(
+        @JsonProperty("IndexConfigs") final Map<String, IndexConfig> indexConfigs,
+        @JsonProperty("InsecureRegistryCIDRs") final List<String> insecureRegistryCidrs) {
+      final ImmutableMap<String, IndexConfig> indexConfigsT =
+          indexConfigs == null
+          ? ImmutableMap.<String, IndexConfig>of() : ImmutableMap.copyOf(indexConfigs);
+      final ImmutableList<String> insecureRegistryCidrsT =
+          insecureRegistryCidrs == null
+          ? ImmutableList.<String>of() : ImmutableList.copyOf(insecureRegistryCidrs);
+      return new AutoValue_Info_RegistryConfig(indexConfigsT, insecureRegistryCidrsT);
     }
+  }
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, mirrors, secure, official);
-    }
+  @AutoValue
+  public abstract static class IndexConfig {
 
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("name", name)
-          .add("mirrors", mirrors)
-          .add("secure", secure)
-          .add("official", official)
-          .toString();
+    @JsonProperty("Name")
+    public abstract String name();
+
+    @JsonProperty("Mirrors")
+    public abstract ImmutableList<String> mirrors();
+
+    @JsonProperty("Secure")
+    public abstract Boolean secure();
+
+    @JsonProperty("Official")
+    public abstract Boolean official();
+
+    @JsonCreator
+    static IndexConfig create(
+        @JsonProperty("Name") final String name,
+        @JsonProperty("Mirrors") final List<String> mirrors,
+        @JsonProperty("Secure") final Boolean secure,
+        @JsonProperty("Official") final Boolean official) {
+      final ImmutableList<String> mirrorsT =
+          mirrors == null ? ImmutableList.<String>of() : ImmutableList.copyOf(mirrors);
+      return new AutoValue_Info_IndexConfig(name, mirrorsT, secure, official);
     }
   }
 }

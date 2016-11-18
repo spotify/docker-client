@@ -54,7 +54,7 @@ public class ContainerTest {
     assertThat(container.portsAsString(), is("0.0.0.0:80->88/tcp"));
   }
 
-  private static String fixture(String filename) throws IOException {
+  private static String fixture(final String filename) throws IOException {
     return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
   }
 }
