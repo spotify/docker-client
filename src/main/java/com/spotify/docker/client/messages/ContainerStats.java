@@ -24,96 +24,54 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
+import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerStats {
+public abstract class ContainerStats {
 
   @JsonProperty("read")
-  private Date read;
+  public abstract Date read();
+
+  @Nullable
   @JsonProperty("network")
-  private NetworkStats network;
+  public abstract NetworkStats network();
+
+  @Nullable
   @JsonProperty("networks")
-  private ImmutableMap<String, NetworkStats> networks;
+  public abstract ImmutableMap<String, NetworkStats> networks();
+
   @JsonProperty("memory_stats")
-  private MemoryStats memoryStats;
+  public abstract MemoryStats memoryStats();
+
   @JsonProperty("blkio_stats")
-  private BlockIoStats blockIoStats;
+  public abstract BlockIoStats blockIoStats();
+
   @JsonProperty("cpu_stats")
-  private CpuStats cpuStats;
+  public abstract CpuStats cpuStats();
+
   @JsonProperty("precpu_stats")
-  private CpuStats precpuStats;
+  public abstract CpuStats precpuStats();
 
-  public Date read() {
-    return new Date(read.getTime());
-  }
-
-  public NetworkStats network() {
-    return network;
-  }
-
-  public Map<String, NetworkStats> networks() {
-    return networks;
-  }
-
-  public MemoryStats memoryStats() {
-    return memoryStats;
-  }
-
-  public BlockIoStats blockIoStats() {
-    return blockIoStats;
-  }
-
-  public CpuStats cpuStats() {
-    return cpuStats;
-  }
-
-  public CpuStats precpuStats() {
-    return precpuStats;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerStats that = (ContainerStats) obj;
-
-    return Objects.equals(this.read, that.read)
-           && Objects.equals(this.network, that.network)
-           && Objects.equals(this.networks, that.networks)
-           && Objects.equals(this.memoryStats, that.memoryStats)
-           && Objects.equals(this.blockIoStats, that.blockIoStats)
-           && Objects.equals(this.cpuStats, that.cpuStats)
-           && Objects.equals(this.precpuStats, that.precpuStats);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(cpuStats, memoryStats, network, networks,
-                        blockIoStats, precpuStats, read);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("cpuStats", cpuStats)
-        .add("memoryStats", memoryStats)
-        .add("network", network)
-        .add("networks", networks)
-        .add("blkioStats", blockIoStats)
-        .add("precpuStats", precpuStats)
-        .add("read", read)
-        .toString();
+  @JsonCreator
+  static ContainerStats create(
+      @JsonProperty("read") final Date read,
+      @JsonProperty("network") final NetworkStats networkStats,
+      @JsonProperty("networks") final Map<String, NetworkStats> networks,
+      @JsonProperty("memory_stats") final MemoryStats memoryStats,
+      @JsonProperty("blkio_stats") final BlockIoStats blockIoStats,
+      @JsonProperty("cpu_stats") final CpuStats cpuStats,
+      @JsonProperty("precpu_stats") final CpuStats precpuStats) {
+    final ImmutableMap<String, NetworkStats> networksCopy = networks == null
+                                                            ? null : ImmutableMap.copyOf(networks);
+    return new AutoValue_ContainerStats(read, networkStats, networksCopy,
+        memoryStats, blockIoStats, cpuStats, precpuStats);
   }
 }

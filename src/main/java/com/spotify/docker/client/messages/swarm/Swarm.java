@@ -24,89 +24,42 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
 import java.util.Date;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Swarm {
+public abstract class Swarm {
 
   @JsonProperty("ID")
-  private String id;
+  public abstract String id();
 
   @JsonProperty("Version")
-  private Version version;
+  public abstract Version version();
 
   @JsonProperty("CreatedAt")
-  private Date createdAt;
+  public abstract Date createdAt();
 
   @JsonProperty("UpdatedAt")
-  private Date updatedAt;
+  public abstract Date updatedAt();
 
   @JsonProperty("Spec")
-  private SwarmSpec swarmSpec;
+  public abstract SwarmSpec swarmSpec();
 
   @JsonProperty("JoinTokens")
-  private JoinTokens joinTokens;
+  public abstract JoinTokens joinTokens();
 
-  public String id() {
-    return id;
-  }
-
-  public Version version() {
-    return version;
-  }
-
-  public Date createdAt() {
-    return createdAt == null ? null : new Date(createdAt.getTime());
-  }
-
-  public Date updatedAt() {
-    return updatedAt == null ? null : new Date(updatedAt.getTime());
-  }
-
-  public SwarmSpec spec() {
-    return swarmSpec;
-  }
-
-  public JoinTokens joinTokens() {
-    return joinTokens;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Swarm that = (Swarm) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.version, that.version)
-           && Objects.equals(this.createdAt, that.createdAt)
-           && Objects.equals(this.updatedAt, that.updatedAt)
-           && Objects.equals(this.swarmSpec, that.swarmSpec)
-           && Objects.equals(this.joinTokens, that.joinTokens);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, version, createdAt, updatedAt, swarmSpec, joinTokens);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id).add("version", version)
-        .add("createdAt", createdAt)
-        .add("updatedAt", updatedAt)
-        .add("spec", swarmSpec)
-        .add("joinTokens", joinTokens)
-        .toString();
+  @JsonCreator
+  static Swarm create(
+      @JsonProperty("ID") final String id,
+      @JsonProperty("Version") final Version version,
+      @JsonProperty("CreatedAt") final Date createdAt,
+      @JsonProperty("UpdatedAt") final Date updatedAt,
+      @JsonProperty("Spec") final SwarmSpec swarmSpec,
+      @JsonProperty("JoinTokens") final JoinTokens joinTokens) {
+    return new AutoValue_Swarm(id, version, createdAt, updatedAt, swarmSpec, joinTokens);
   }
 }

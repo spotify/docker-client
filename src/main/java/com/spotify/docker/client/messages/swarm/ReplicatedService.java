@@ -24,62 +24,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ReplicatedService {
+public abstract class ReplicatedService {
 
   @JsonProperty("Replicas")
-  private Long replicas;
+  public abstract Long replicas();
 
-  public Long replicas() {
-    return replicas;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public static class Builder {
+    public abstract Builder replicas(Long replicas);
 
-    private ReplicatedService replicated = new ReplicatedService();
-
-    public Builder withReplicas(long replicas) {
-      replicated.replicas = replicas;
-      return this;
-    }
-
-    public ReplicatedService build() {
-      return replicated;
-    }
+    public abstract ReplicatedService build();
   }
 
   public static ReplicatedService.Builder builder() {
-    return new ReplicatedService.Builder();
+    return new AutoValue_ReplicatedService.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ReplicatedService that = (ReplicatedService) obj;
-
-    return Objects.equals(this.replicas, that.replicas);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(replicas);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("replicas", replicas)
-        .toString();
+  @JsonCreator
+  static ReplicatedService create(@JsonProperty("Replicas") final Long replicas) {
+    return builder()
+        .replicas(replicas)
+        .build();
   }
 }

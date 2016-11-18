@@ -24,53 +24,27 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class NetworkAttachment {
+public abstract class NetworkAttachment {
 
   @JsonProperty("Network")
-  private Network network;
+  public abstract Network network();
 
   @JsonProperty("Addresses")
-  private ImmutableList<String> addresses;
+  public abstract ImmutableList<String> addresses();
 
-  public Network network() {
-    return network;
-  }
-
-  public List<String> addresses() {
-    return addresses;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final NetworkAttachment that = (NetworkAttachment) obj;
-
-    return Objects.equals(this.network, that.network)
-           && Objects.equals(this.addresses, that.addresses);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(network, addresses);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("network", network).add("addresses", addresses)
-        .toString();
+  @JsonCreator
+  static NetworkAttachment create(
+      @JsonProperty("Network") final Network network,
+      @JsonProperty("Addresses") final List<String> addresses) {
+    return new AutoValue_NetworkAttachment(network, ImmutableList.copyOf(addresses));
   }
 }

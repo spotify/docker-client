@@ -24,68 +24,33 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerMount {
+public abstract class ContainerMount {
 
   @JsonProperty("Source")
-  private String source;
+  public abstract String source();
+
   @JsonProperty("Destination")
-  private String destination;
+  public abstract String destination();
+
   @JsonProperty("Mode")
-  private String mode;
+  public abstract String mode();
+
   @JsonProperty("RW")
-  private Boolean rw;
+  public abstract Boolean rw();
 
-  public String source() {
-    return source;
-  }
-
-  public String destination() {
-    return destination;
-  }
-
-  public String mode() {
-    return mode;
-  }
-
-  public Boolean rw() {
-    return rw;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerMount that = (ContainerMount) obj;
-
-    return Objects.equals(this.source, that.source)
-           && Objects.equals(this.destination, that.destination)
-           && Objects.equals(this.mode, that.mode)
-           && Objects.equals(this.rw, that.rw);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(source, destination, mode, rw);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("source", source)
-        .add("destination", destination)
-        .add("mode", mode)
-        .add("rw", rw)
-        .toString();
+  @JsonCreator
+  static ContainerMount create(
+      @JsonProperty("Source") final String source,
+      @JsonProperty("Destination") final String destination,
+      @JsonProperty("Mode") final String mode,
+      @JsonProperty("RW") final Boolean rw) {
+    return new AutoValue_ContainerMount(source, destination, mode, rw);
   }
 }

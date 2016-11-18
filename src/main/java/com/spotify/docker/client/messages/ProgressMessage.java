@@ -20,11 +20,18 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
-public class ProgressMessage {
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
+import javax.annotation.Nullable;
+
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class ProgressMessage {
 
   // Prefix that appears before the actual image digest in a 1.6 status message. E.g.:
   // {"status":"Digest: sha256:ebd39c3e3962f804787f6b0520f8f1e35fbd5a01ab778ac14c8d6c37978e8445"}
@@ -35,71 +42,68 @@ public class ProgressMessage {
   private static final String STATUS_DIGEST_PREFIX_18 = "digest: ";
   private static final String STATUS_SIZE_PREFIX_18 = "size: ";
 
-  @JsonProperty
-  private String id;
-  @JsonProperty
-  private String status;
-  @JsonProperty
-  private String stream;
-  @JsonProperty
-  private String error;
-  @JsonProperty
-  private String progress;
-  @JsonProperty
-  private ProgressDetail progressDetail;
+  @Nullable
+  @JsonProperty("id")
+  public abstract String id();
 
-  public String id() {
-    return id;
+  @Nullable
+  @JsonProperty("status")
+  public abstract String status();
+
+  @Nullable
+  @JsonProperty("stream")
+  public abstract String stream();
+
+  @Nullable
+  @JsonProperty("error")
+  public abstract String error();
+
+  @Nullable
+  @JsonProperty("progress")
+  public abstract String progress();
+
+  @Nullable
+  @JsonProperty("progressDetail")
+  public abstract ProgressDetail progressDetail();
+
+  @JsonCreator
+  static ProgressMessage create(
+      @JsonProperty("id") final String id,
+      @JsonProperty("status") final String status,
+      @JsonProperty("stream") final String stream,
+      @JsonProperty("error") final String error,
+      @JsonProperty("progress") final String progress,
+      @JsonProperty("progressDetail") final ProgressDetail progressDetail) {
+    return builder()
+        .id(id)
+        .status(status)
+        .stream(stream)
+        .error(error)
+        .progress(progress)
+        .progressDetail(progressDetail)
+        .build();
   }
 
-  public ProgressMessage id(final String id) {
-    this.id = id;
-    return this;
+  public static Builder builder() {
+    return new AutoValue_ProgressMessage.Builder();
   }
 
-  public String status() {
-    return status;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public ProgressMessage status(final String status) {
-    this.status = status;
-    return this;
-  }
+    public abstract Builder id(String id);
 
-  public String stream() {
-    return stream;
-  }
+    public abstract Builder status(String status);
 
-  public ProgressMessage stream(final String stream) {
-    this.stream = stream;
-    return this;
-  }
+    public abstract Builder stream(String stream);
 
-  public String error() {
-    return error;
-  }
+    public abstract Builder error(String error);
 
-  public ProgressMessage error(final String error) {
-    this.error = error;
-    return this;
-  }
+    public abstract Builder progress(String progress);
 
-  public String progress() {
-    return progress;
-  }
+    public abstract Builder progressDetail(ProgressDetail progressDetail);
 
-  public ProgressMessage progress(final String progress) {
-    this.progress = progress;
-    return this;
-  }
-
-  public ProgressDetail progressDetail() {
-    return progressDetail;
-  }
-
-  public ProgressMessage progressDetail(final ProgressDetail progressDetail) {
-    this.progressDetail = progressDetail;
-    return this;
+    public abstract ProgressMessage build();
   }
 
   /**
@@ -111,12 +115,14 @@ public class ProgressMessage {
    */
   public String buildImageId() {
     // stream messages end with new line, so call trim to remove it
+    final String stream = stream();
     return stream != null && stream.startsWith("Successfully built")
            ? stream.substring(stream.lastIndexOf(' ') + 1).trim()
            : null;
   }
 
   public String digest() {
+    final String status = status();
     if (status == null) {
       return null;
     }
@@ -138,41 +144,5 @@ public class ProgressMessage {
     }
 
     return null;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("status", status)
-        .add("stream", stream)
-        .add("error", error)
-        .add("progress", progress)
-        .add("progressDetail", progressDetail)
-        .toString();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ProgressMessage that = (ProgressMessage) obj;
-
-    return Objects.equal(id, that.id)
-           && Objects.equal(status, that.status)
-           && Objects.equal(stream, that.stream)
-           && Objects.equal(error, that.error)
-           && Objects.equal(progress, that.progress)
-           && Objects.equal(progressDetail, that.progressDetail);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(id, status, stream, error, progress, progressDetail);
   }
 }

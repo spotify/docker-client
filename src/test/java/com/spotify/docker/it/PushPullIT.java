@@ -34,21 +34,18 @@ import com.spotify.docker.client.DockerClient.RemoveContainerParam;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
-import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
-
+import com.spotify.docker.client.messages.RegistryAuth;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import javax.ws.rs.NotAuthorizedException;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -113,14 +110,14 @@ public class PushPullIT {
 
   @Before
   public void setup() throws Exception {
-    final AuthConfig authConfig = AuthConfig.builder()
+    final RegistryAuth registryAuth = RegistryAuth.builder()
         .email(LOCAL_AUTH_EMAIL)
         .username(LOCAL_AUTH_USERNAME)
         .password(LOCAL_AUTH_PASSWORD)
         .build();
     client = DefaultDockerClient
         .fromEnv()
-        .authConfig(authConfig)
+        .registryAuth(registryAuth)
         .build();
 
     System.out.printf("- %s\n", testName.getMethodName());
@@ -140,7 +137,7 @@ public class PushPullIT {
   public void testPushImageToPrivateAuthedRegistryWithoutAuth() throws Exception {
     registryContainerId = startAuthedRegistry(client);
 
-    // Make a DockerClient without AuthConfig
+    // Make a DockerClient without RegistryAuth
     final DefaultDockerClient client = DefaultDockerClient.fromEnv().build();
 
     // Push an image to the private registry and check it fails
@@ -162,11 +159,11 @@ public class PushPullIT {
     client.push(LOCAL_IMAGE);
 
     // Push the same image again under a different user
-    final AuthConfig authConfig = AuthConfig.builder()
+    final RegistryAuth registryAuth = RegistryAuth.builder()
         .username(LOCAL_AUTH_USERNAME_2)
         .password(LOCAL_AUTH_PASSWORD_2)
         .build();
-    client.push(LOCAL_IMAGE_2, authConfig);
+    client.push(LOCAL_IMAGE_2, registryAuth);
 
     // We should be able to pull it again
     client.pull(LOCAL_IMAGE);
@@ -177,7 +174,7 @@ public class PushPullIT {
   public void testPushImageToPrivateUnauthedRegistryWithoutAuth() throws Exception {
     registryContainerId = startUnauthedRegistry(client);
 
-    // Make a DockerClient without AuthConfig
+    // Make a DockerClient without RegistryAuth
     final DefaultDockerClient client = DefaultDockerClient.fromEnv().build();
 
     // Push an image to the private registry and check it succeeds
@@ -220,7 +217,7 @@ public class PushPullIT {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final DockerClient client = DefaultDockerClient
         .fromEnv()
-        .authConfig(AuthConfig.builder()
+        .registryAuth(RegistryAuth.builder()
                         .email(HUB_AUTH_EMAIL)
                         .username(HUB_AUTH_USERNAME)
                         .password(HUB_AUTH_PASSWORD)
@@ -237,7 +234,7 @@ public class PushPullIT {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final DockerClient client = DefaultDockerClient
         .fromEnv()
-        .authConfig(AuthConfig.builder()
+        .registryAuth(RegistryAuth.builder()
                         .email(HUB_AUTH_EMAIL)
                         .username(HUB_AUTH_USERNAME)
                         .password(HUB_AUTH_PASSWORD)
@@ -249,41 +246,41 @@ public class PushPullIT {
   }
 
   @Test
-  public void testPullPrivateRepoWithBadAuth() throws Exception {
-    final AuthConfig badAuthConfig = AuthConfig.builder()
+  public void testPullHubPrivateRepoWithBadAuth() throws Exception {
+    final RegistryAuth badRegistryAuth = RegistryAuth.builder()
         .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password("foobar")
         .build();
     exception.expect(DockerException.class);
     exception.expectCause(isA(NotAuthorizedException.class));
-    client.pull(CIRROS_PRIVATE_LATEST, badAuthConfig);
+    client.pull(CIRROS_PRIVATE_LATEST, badRegistryAuth);
   }
 
   @Test
-  public void testBuildPrivateRepoWithAuth() throws Exception {
+  public void testBuildHubPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-    final AuthConfig authConfig = AuthConfig.builder()
+    final RegistryAuth registryAuth = RegistryAuth.builder()
         .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password(HUB_AUTH_PASSWORD2)
         .build();
 
     final DefaultDockerClient client = DefaultDockerClient.fromEnv()
-        .authConfig(authConfig)
+        .registryAuth(registryAuth)
         .build();
 
     client.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());
   }
 
   @Test
-  public void testPullPrivateRepoWithAuth() throws Exception {
-    final AuthConfig authConfig = AuthConfig.builder()
+  public void testPullHubPrivateRepoWithAuth() throws Exception {
+    final RegistryAuth registryAuth = RegistryAuth.builder()
         .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password(HUB_AUTH_PASSWORD2)
         .build();
-    client.pull("dxia2/scratch-private:latest", authConfig);
+    client.pull("dxia2/scratch-private:latest", registryAuth);
   }
 
   private static String startAuthedRegistry(final DockerClient client) throws Exception {

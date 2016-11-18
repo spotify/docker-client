@@ -24,76 +24,37 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ImageSearchResult {
+public abstract class ImageSearchResult {
 
   @JsonProperty("description")
-  private String description;
+  public abstract String description();
+
   @JsonProperty("is_official")
-  private boolean official;
+  public abstract boolean official();
+
   @JsonProperty("is_automated")
-  private boolean automated;
+  public abstract boolean automated();
+
   @JsonProperty("name")
-  private String name;
+  public abstract String name();
+
   @JsonProperty("star_count")
-  private int starCount;
+  public abstract int starCount();
 
-  public String getDescription() {
-    return description;
-  }
-
-  public boolean isOfficial() {
-    return official;
-  }
-
-  public boolean isAutomated() {
-    return automated;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public int getStarCount() {
-    return starCount;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ImageSearchResult that = (ImageSearchResult) obj;
-
-    return Objects.equals(this.description, that.description)
-           && Objects.equals(this.official, that.official)
-           && Objects.equals(this.automated, that.automated)
-           && Objects.equals(this.name, that.name)
-           && Objects.equals(this.starCount, that.starCount);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(description, official, automated, name, starCount);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("official", official)
-        .add("automated", automated)
-        .add("starCount", starCount)
-        .add("description", description)
-        .toString();
+  @JsonCreator
+  static ImageSearchResult create(
+      @JsonProperty("description") final String description,
+      @JsonProperty("is_official") final boolean official,
+      @JsonProperty("is_automated") final boolean automated,
+      @JsonProperty("name") final String name,
+      @JsonProperty("star_count") final int starCount) {
+    return new AutoValue_ImageSearchResult(description, official, automated, name, starCount);
   }
 }
