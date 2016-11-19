@@ -106,6 +106,8 @@ public class HostConfig {
   private Integer pidsLimit;
   @JsonProperty("Tmpfs")
   private ImmutableMap<String, String> tmpfs;
+  @JsonProperty("ReadonlyRootfs")
+  private Boolean readonlyRootfs;
 
   private HostConfig() {
   }
@@ -145,6 +147,7 @@ public class HostConfig {
     this.autoRemove = builder.autoRemove;
     this.pidsLimit = builder.pidsLimit;
     this.tmpfs = builder.tmpfs;
+    this.readonlyRootfs = builder.readonlyRootfs;
   }
 
   public List<String> binds() {
@@ -279,6 +282,10 @@ public class HostConfig {
       return tmpfs;
   }
 
+  public Boolean readonlyRootfs() {
+      return readonlyRootfs;
+  }
+  
   public Boolean autoRemove() {
     return autoRemove;
   }
@@ -325,7 +332,8 @@ public class HostConfig {
            Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
            Objects.equals(this.autoRemove, that.autoRemove) &&
            Objects.equals(this.pidsLimit, that.pidsLimit) &&
-           Objects.equals(this.tmpfs, that.tmpfs);
+           Objects.equals(this.tmpfs, that.tmpfs) &&
+           Objects.equals(this.readonlyRootfs, that.readonlyRootfs);
   }
 
   @Override
@@ -335,7 +343,7 @@ public class HostConfig {
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs);
+                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs, readonlyRootfs);
   }
 
   @Override
@@ -375,6 +383,7 @@ public class HostConfig {
         .add("autoRemove", autoRemove)
         .add("pidsLimit", pidsLimit)
         .add("tmpfs", tmpfs)
+        .add("readonlyRootfs", readonlyRootfs)
         .toString();
   }
 
@@ -536,6 +545,7 @@ public class HostConfig {
     private Boolean autoRemove;
     private Integer pidsLimit;
     private ImmutableMap<String, String> tmpfs;
+    private Boolean readonlyRootfs;
 
     private Builder() {
     }
@@ -575,6 +585,7 @@ public class HostConfig {
       this.autoRemove = hostConfig.autoRemove;
       this.pidsLimit = hostConfig.pidsLimit;
       this.tmpfs = hostConfig.tmpfs;
+      this.readonlyRootfs = hostConfig.readonlyRootfs;
     }
 
     /**
@@ -1098,7 +1109,12 @@ public class HostConfig {
     }
 
     public Integer pidsLimit() {
-       return pidsLimit;
+      return pidsLimit;
+    }
+    
+    public Builder readonlyRootfs(final Boolean readonlyRootfs) {
+      this.readonlyRootfs = readonlyRootfs;
+      return this;
     }
     
     public Builder tmpfs(final ImmutableMap<String, String> tmpfs) {
@@ -1110,6 +1126,10 @@ public class HostConfig {
       return tmpfs;
     }
 
+    public Boolean readonlyRootfs() {
+      return readonlyRootfs;
+    }
+    
     public HostConfig build() {
       return new HostConfig(this);
     }
