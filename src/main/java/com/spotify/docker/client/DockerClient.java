@@ -416,6 +416,8 @@ public interface DockerClient extends Closeable {
    * Pull a docker container image.
    *
    * @param image The image to pull.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -426,6 +428,8 @@ public interface DockerClient extends Closeable {
    *
    * @param image   The image to pull.
    * @param handler The handler to use for processing each progress message received from Docker.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -436,6 +440,8 @@ public interface DockerClient extends Closeable {
    *
    * @param image      The image to pull.
    * @param authConfig The authentication config needed to pull the image.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -448,6 +454,8 @@ public interface DockerClient extends Closeable {
    * @param authConfig The authentication config needed to pull the image.
    * @param handler    The handler to use for processing each progress message received from
    *                   Docker.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -458,6 +466,8 @@ public interface DockerClient extends Closeable {
    * Push a docker container image.
    *
    * @param image The image to push.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
@@ -468,6 +478,8 @@ public interface DockerClient extends Closeable {
    *
    * @param image   The image to push.
    * @param handler The handler to use for processing each progress message received from Docker.
+   * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
+   *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */

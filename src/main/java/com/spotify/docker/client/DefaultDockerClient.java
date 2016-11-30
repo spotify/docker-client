@@ -1153,6 +1153,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       pull.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ImageNotFoundException(image, e);
+        default:
+          throw e;
+      }
     }
   }
 
@@ -1197,6 +1204,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       switch (e.status()) {
         case 404:
           throw new ImageNotFoundException(image, e);
+        default:
+          throw e;
       }
     }
   }
