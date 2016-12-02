@@ -2364,7 +2364,7 @@ public interface DockerClient extends Closeable {
     /**
      * Valid event types for EventsParam.type
      */
-    enum EventType {
+    public enum EventType {
       CONTAINER("container"),
       IMAGE("image"),
       VOLUME("volume"),
