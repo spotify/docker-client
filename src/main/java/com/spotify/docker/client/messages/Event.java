@@ -26,6 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.base.MoreObjects;
 import com.spotify.docker.client.jackson.UnixTimestampDeserializer;
 
@@ -35,16 +36,16 @@ import java.util.Objects;
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)
 public class Event {
 
-  @JsonProperty("status")
-  private String status;
-  @JsonProperty("id")
-  private String id;
-  @JsonProperty("from")
-  private String from;
-
+  @JsonProperty("status") private String status;
+  @JsonProperty("id") private String id;
+  @JsonProperty("from") private String from;
+  @JsonProperty("Type") private String type;
+  @JsonProperty("Action") private String action;
+  @JsonProperty("Actor") private Actor actor;
   @JsonProperty("time")
   @JsonDeserialize(using = UnixTimestampDeserializer.class)
   private Date time;
+  @JsonProperty("timeNano") private Long timeNano;
 
   public String status() {
     return status;
@@ -58,8 +59,24 @@ public class Event {
     return from;
   }
 
+  public String type() {
+    return type;
+  }
+
+  public String action() {
+    return action;
+  }
+
+  public Actor actor() {
+    return actor;
+  }
+
   public Date time() {
     return time == null ? null : new Date(time.getTime());
+  }
+
+  public Long timeNano() {
+    return timeNano;
   }
 
   @Override
@@ -73,10 +90,14 @@ public class Event {
 
     final Event that = (Event) obj;
 
-    return Objects.equals(this.status, that.status)
-           && Objects.equals(this.id, that.id)
-           && Objects.equals(this.from, that.from)
-           && Objects.equals(this.time, that.time);
+    return Objects.equals(this.status, that.status) &&
+           Objects.equals(this.id, that.id) &&
+           Objects.equals(this.from, that.from) &&
+           Objects.equals(this.type, that.type) &&
+           Objects.equals(this.action, that.action) &&
+           Objects.equals(this.actor, that.actor) &&
+           Objects.equals(this.time, that.time) &&
+           Objects.equals(this.timeNano, that.timeNano);
 
   }
 
@@ -91,7 +112,50 @@ public class Event {
         .add("status", status)
         .add("id", id)
         .add("from", from)
+        .add("type", type)
+        .add("action", action)
+        .add("actor", actor)
         .add("time", time)
+        .add("timeNano", timeNano)
         .toString();
+  }
+
+  public static class Actor {
+    @JsonProperty("ID") private String id;
+    @JsonProperty("Attributes") private ImmutableMap<String, Object> attributes;
+
+    public String id() {
+      return id;
+    }
+
+    public ImmutableMap<String, Object> attributes() {
+      return attributes;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      final Actor that = (Actor) o;
+      return Objects.equals(this.id, that.id) &&
+             Objects.equals(this.attributes, that.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(id, attributes);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("id", id)
+          .add("attributes", attributes)
+          .toString();
+    }
   }
 }
