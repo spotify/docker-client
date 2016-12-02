@@ -1668,8 +1668,8 @@ public class DefaultDockerClientTest {
 
       sut.pull(BUSYBOX_LATEST);
       final ContainerConfig config = ContainerConfig.builder()
-              .image(BUSYBOX_LATEST)
-              .build();
+          .image(BUSYBOX_LATEST)
+          .build();
       final ContainerCreation container = sut.createContainer(config, randomName());
       sut.startContainer(container.id());
 
@@ -1690,25 +1690,25 @@ public class DefaultDockerClientTest {
     Thread.sleep(1000);
 
     final Date start = new Date();
+    final long startTime = start.getTime() / 1000;
     sut.pull(BUSYBOX_LATEST);
     final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .build();
+        .image(BUSYBOX_LATEST)
+        .build();
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
 
     // Wait again to ensure we get back events for everything we did
     Thread.sleep(1000);
     final Date end = new Date();
+    final long endTime = end.getTime() / 1000;
 
     // By reading the event stream into a list, we can retain all the events
     // but still ensure that we are able to close the stream.
     // In other words, the HTTP connection has been closed.
     final List<Event> eventList;
     try (final EventStream stream =
-                 getImageAndContainerEventStream(
-                         since(start.getTime() / 1000),
-                         until(end.getTime() / 1000))) {
+        getImageAndContainerEventStream(since(startTime), until(endTime))) {
 
       eventList = Lists.newArrayList(stream);
     }
@@ -1730,7 +1730,7 @@ public class DefaultDockerClientTest {
     if (dockerApiVersionAtLeast("1.22")) {
       final int originalNumberOfParams = eventsParams.length;
       final EventsParam[] eventsParamsWithTypes =
-              Arrays.copyOf(eventsParams, originalNumberOfParams + 2);
+          Arrays.copyOf(eventsParams, originalNumberOfParams + 2);
       eventsParamsWithTypes[originalNumberOfParams] = type(IMAGE);
       eventsParamsWithTypes[originalNumberOfParams + 1] = type(CONTAINER);
       return sut.events(eventsParamsWithTypes);

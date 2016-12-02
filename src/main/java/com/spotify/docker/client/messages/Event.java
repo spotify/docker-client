@@ -60,7 +60,8 @@ public class Event {
   /**
    * Event actor id. When the event type is "container" this is the container id.
    * @return id
-   * @deprecated Use the {@link com.spotify.docker.client.messages.Event.Actor#id()} field from {@link #actor()}
+   * @deprecated Use the {@link com.spotify.docker.client.messages.Event.Actor#id()}
+   *    field from {@link #actor()}
    */
   @Deprecated
   public String id() {
@@ -71,7 +72,8 @@ public class Event {
    * When the event type is "container" this is the image id.
    * @return from
    * @deprecated Use the "image" attribute in the
-   *    {@link com.spotify.docker.client.messages.Event.Actor#attributes()} map from {@link #actor()}
+   *    {@link com.spotify.docker.client.messages.Event.Actor#attributes()}
+   *    map from {@link #actor()}
    */
   @Deprecated
   public String from() {
