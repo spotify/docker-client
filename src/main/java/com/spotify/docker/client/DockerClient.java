@@ -2311,9 +2311,20 @@ public interface DockerClient extends Closeable {
      * Show events of a given type. For instance, "type=image" for all image events.
      * @param type A type of event. Possible values: container, image, volume, network, or daemon
      * @return EventsParam
+     * @deprecated Use {@link #type(EventType)}.
      */
+    @Deprecated
     public static EventsParam type(final String type) {
       return filter("type", type);
+    }
+
+    /**
+     * Show events of a given type. For instance, "type=image" for all image events.
+     * @param type A type of event. Possible values: container, image, volume, network, or daemon
+     * @return EventsParam
+     */
+    public static EventsParam type(final EventType type) {
+      return filter("type", type.getName());
     }
 
     /**
@@ -2336,6 +2347,28 @@ public interface DockerClient extends Closeable {
     public static EventsParam label(final String label) {
       return label(label, null);
     }
+
+    /**
+     * Valid event types for EventsParam.type
+     */
+    enum EventType {
+      CONTAINER("container"),
+      IMAGE("image"),
+      VOLUME("volume"),
+      NETWORK("network"),
+      DAEMON("daemon");
+
+      private final String name;
+
+      EventType(final String name) {
+        this.name = name;
+      }
+
+      public String getName() {
+        return name;
+      }
+    }
+
   }
 
   /**
