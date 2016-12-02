@@ -47,14 +47,33 @@ public class Event {
   private Date time;
   @JsonProperty("timeNano") private Long timeNano;
 
+  /**
+   * Event status
+   * @return status
+   * @deprecated Use {@link #action()} instead
+   */
+  @Deprecated
   public String status() {
     return status;
   }
 
+  /**
+   * Event actor id. When the event type is "container" this is the container id.
+   * @return id
+   * @deprecated Use the {@link com.spotify.docker.client.messages.Event.Actor#id()} field from {@link #actor()}
+   */
+  @Deprecated
   public String id() {
     return id;
   }
 
+  /**
+   * When the event type is "container" this is the image id.
+   * @return from
+   * @deprecated Use the "image" attribute in the
+   *    {@link com.spotify.docker.client.messages.Event.Actor#attributes()} map from {@link #actor()}
+   */
+  @Deprecated
   public String from() {
     return from;
   }
@@ -63,10 +82,20 @@ public class Event {
     return type;
   }
 
+  /**
+   * Event action
+   * @return action
+   * @since API 1.22
+   */
   public String action() {
     return action;
   }
 
+  /**
+   * Event actor
+   * @return actor
+   * @since API 1.22
+   */
   public Actor actor() {
     return actor;
   }
