@@ -1569,7 +1569,7 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
-    assertThat(sut.inspectContainer(id).config().getStopSignal(), equalTo(config.getStopSignal()));
+    assertThat(sut.inspectContainer(id).config().stopSignal(), equalTo(config.stopSignal()));
     assertThat(inspection.appArmorProfile(), equalTo(""));
     assertThat(inspection.execId(), equalTo(null));
     assertThat(inspection.logPath(), containsString(id + "-json.log"));
@@ -3477,7 +3477,7 @@ public class DefaultDockerClientTest {
                     .name(networkName).build());
 
     final String networkId = networkCreation.id();
-    
+
     assertThat(networkId, is(notNullValue()));
 
     final TaskSpec taskSpec = TaskSpec.builder()
@@ -3495,7 +3495,7 @@ public class DefaultDockerClientTest {
 
     final Service inspectService = sut.inspectService(serviceName);
     assertThat(inspectService.spec().networks().size(), is(1));
-    assertThat(Iterables.find(inspectService.spec().networks(), 
+    assertThat(Iterables.find(inspectService.spec().networks(),
       new Predicate<NetworkAttachmentConfig>() {
 
       @Override
@@ -3503,11 +3503,11 @@ public class DefaultDockerClientTest {
         return networkId.equals(config.target());
       }
     }, null), is(notNullValue()));
-    
+
     sut.removeService(serviceName);
     sut.removeNetwork(networkName);
   }
-  
+
   @Test
   public void testCreateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
