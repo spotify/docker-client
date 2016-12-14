@@ -1,32 +1,27 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
 
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-
 import com.google.common.base.Optional;
-
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.ssl.SSLContexts;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,6 +45,13 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.ssl.SSLContexts;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * DockerCertificates holds certificates for connecting to an HTTPS-secured Docker instance with
  * client/server authentication.
@@ -70,8 +72,8 @@ public class DockerCertificates {
   }
 
   private DockerCertificates(final Builder builder) throws DockerCertificateException {
-    if ((builder.caCertPath == null) || (builder.clientCertPath == null) ||
-        (builder.clientKeyPath == null)) {
+    if ((builder.caCertPath == null) || (builder.clientCertPath == null)
+        || (builder.clientKeyPath == null)) {
       throw new DockerCertificateException(
           "caCertPath, clientCertPath, and clientKeyPath must all be specified");
     }
@@ -108,14 +110,13 @@ public class DockerCertificates {
           .loadTrustMaterial(trustStore, null)
           .loadKeyMaterial(keyStore, KEY_STORE_PASSWORD)
           .build();
-    } catch (
-        CertificateException |
-            IOException |
-            NoSuchAlgorithmException |
-            InvalidKeySpecException |
-            KeyStoreException |
-            UnrecoverableKeyException |
-            KeyManagementException e) {
+    } catch (CertificateException
+        | IOException
+        | NoSuchAlgorithmException
+        | InvalidKeySpecException
+        | KeyStoreException
+        | UnrecoverableKeyException
+        | KeyManagementException e) {
       throw new DockerCertificateException(e);
     }
   }
@@ -165,8 +166,8 @@ public class DockerCertificates {
       if (this.caCertPath == null || this.clientKeyPath == null || this.clientCertPath == null) {
         log.debug("caCertPath, clientKeyPath or clientCertPath not specified, not using SSL");
         return Optional.absent();
-      } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath) &&
-                 Files.exists(this.clientCertPath)) {
+      } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath)
+                 && Files.exists(this.clientCertPath)) {
         return Optional.of(new DockerCertificates(this));
       } else {
         log.debug("{}, {} or {} does not exist, not using SSL", this.caCertPath, this.clientKeyPath,

@@ -1,18 +1,21 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
@@ -41,7 +44,7 @@ import jnr.unixsocket.UnixSocketChannel;
  * on the underlying file descriptor. Until the socket is connected, the file descriptor doesn't
  * exist.
  *
- * This class also noop's any calls to setReuseAddress, which is called by the Apache client but
+ * <p>This class also noop's any calls to setReuseAddress, which is called by the Apache client but
  * isn't supported by AFUnixSocket.
  */
 public class ApacheUnixSocket extends Socket {
@@ -136,19 +139,19 @@ public class ApacheUnixSocket extends Socket {
     return Channels.newOutputStream(inner);
   }
 
-  private void setSocketOption(final SocketOptionSetter s) throws SocketException {
+  private void setSocketOption(final SocketOptionSetter optionSetter) throws SocketException {
     if (inner.isConnected()) {
-      s.run();
+      optionSetter.run();
     } else {
-      if (!optionsToSet.offer(s)) {
+      if (!optionsToSet.offer(optionSetter)) {
         throw new SocketException("Failed to queue option");
       }
     }
   }
 
   private void setAllSocketOptions() throws SocketException {
-    for (final SocketOptionSetter s : optionsToSet) {
-      s.run();
+    for (final SocketOptionSetter setter : optionsToSet) {
+      setter.run();
     }
   }
 
@@ -258,6 +261,7 @@ public class ApacheUnixSocket extends Socket {
     throw new UnsupportedOperationException("Unimplemented");
   }
 
+  @SuppressWarnings("EmptyCatchBlock")
   @Override
   public synchronized void close() throws IOException {
     if (lingerTime > 0) {

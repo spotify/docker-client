@@ -1,21 +1,27 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client.messages;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,16 +38,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class HostConfig {
 
   @JsonProperty("Binds")
   private ImmutableList<String> binds;
   @JsonProperty("ContainerIDFile")
-  private String containerIDFile;
+  private String containerIdFile;
   @JsonProperty("LxcConf")
   private ImmutableList<LxcConfParameter> lxcConf;
   @JsonProperty("Privileged")
@@ -114,7 +117,7 @@ public class HostConfig {
 
   private HostConfig(final Builder builder) {
     this.binds = builder.binds;
-    this.containerIDFile = builder.containerIDFile;
+    this.containerIdFile = builder.containerIdFile;
     this.lxcConf = builder.lxcConf;
     this.privileged = builder.privileged;
     this.portBindings = builder.portBindings;
@@ -154,8 +157,8 @@ public class HostConfig {
     return binds;
   }
 
-  public String containerIDFile() {
-    return containerIDFile;
+  public String containerIdFile() {
+    return containerIdFile;
   }
 
   public List<LxcConfParameter> lxcConf() {
@@ -279,11 +282,11 @@ public class HostConfig {
   }
   
   public ImmutableMap<String, String> tmpfs() {
-      return tmpfs;
+    return tmpfs;
   }
 
   public Boolean readonlyRootfs() {
-      return readonlyRootfs;
+    return readonlyRootfs;
   }
   
   public Boolean autoRemove() {
@@ -291,54 +294,54 @@ public class HostConfig {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final HostConfig that = (HostConfig) o;
+    final HostConfig that = (HostConfig) obj;
 
-    return Objects.equals(this.binds, that.binds) &&
-           Objects.equals(this.containerIDFile, that.containerIDFile) &&
-           Objects.equals(this.lxcConf, that.lxcConf) &&
-           Objects.equals(this.privileged, that.privileged) &&
-           Objects.equals(this.portBindings, that.portBindings) &&
-           Objects.equals(this.links, that.links) &&
-           Objects.equals(this.publishAllPorts, that.publishAllPorts) &&
-           Objects.equals(this.dns, that.dns) &&
-           Objects.equals(this.dnsSearch, that.dnsSearch) &&
-           Objects.equals(this.extraHosts, that.extraHosts) &&
-           Objects.equals(this.volumesFrom, that.volumesFrom) &&
-           Objects.equals(this.capAdd, that.capAdd) &&
-           Objects.equals(this.capDrop, that.capDrop) &&
-           Objects.equals(this.networkMode, that.networkMode) &&
-           Objects.equals(this.securityOpt, that.securityOpt) &&
-           Objects.equals(this.devices, that.devices) &&
-           Objects.equals(this.memory, that.memory) &&
-           Objects.equals(this.memorySwap, that.memorySwap) &&
-           Objects.equals(this.memoryReservation, that.memoryReservation) &&
-           Objects.equals(this.cpuShares, that.cpuShares) &&
-           Objects.equals(this.cpusetCpus, that.cpusetCpus) &&
-           Objects.equals(this.cpuQuota, that.cpuQuota) &&
-           Objects.equals(this.cgroupParent, that.cgroupParent) &&
-           Objects.equals(this.restartPolicy, that.restartPolicy) &&
-           Objects.equals(this.logConfig, that.logConfig) &&
-           Objects.equals(this.ipcMode, that.ipcMode) &&
-           Objects.equals(this.ulimits, that.ulimits) &&
-           Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
-           Objects.equals(this.oomScoreAdj, that.oomScoreAdj) &&
-           Objects.equals(this.autoRemove, that.autoRemove) &&
-           Objects.equals(this.pidsLimit, that.pidsLimit) &&
-           Objects.equals(this.tmpfs, that.tmpfs) &&
-           Objects.equals(this.readonlyRootfs, that.readonlyRootfs);
+    return Objects.equals(this.binds, that.binds)
+           && Objects.equals(this.containerIdFile, that.containerIdFile)
+           && Objects.equals(this.lxcConf, that.lxcConf)
+           && Objects.equals(this.privileged, that.privileged)
+           && Objects.equals(this.portBindings, that.portBindings)
+           && Objects.equals(this.links, that.links)
+           && Objects.equals(this.publishAllPorts, that.publishAllPorts)
+           && Objects.equals(this.dns, that.dns)
+           && Objects.equals(this.dnsSearch, that.dnsSearch)
+           && Objects.equals(this.extraHosts, that.extraHosts)
+           && Objects.equals(this.volumesFrom, that.volumesFrom)
+           && Objects.equals(this.capAdd, that.capAdd)
+           && Objects.equals(this.capDrop, that.capDrop)
+           && Objects.equals(this.networkMode, that.networkMode)
+           && Objects.equals(this.securityOpt, that.securityOpt)
+           && Objects.equals(this.devices, that.devices)
+           && Objects.equals(this.memory, that.memory)
+           && Objects.equals(this.memorySwap, that.memorySwap)
+           && Objects.equals(this.memoryReservation, that.memoryReservation)
+           && Objects.equals(this.cpuShares, that.cpuShares)
+           && Objects.equals(this.cpusetCpus, that.cpusetCpus)
+           && Objects.equals(this.cpuQuota, that.cpuQuota)
+           && Objects.equals(this.cgroupParent, that.cgroupParent)
+           && Objects.equals(this.restartPolicy, that.restartPolicy)
+           && Objects.equals(this.logConfig, that.logConfig)
+           && Objects.equals(this.ipcMode, that.ipcMode)
+           && Objects.equals(this.ulimits, that.ulimits)
+           && Objects.equals(this.oomKillDisable, that.oomKillDisable)
+           && Objects.equals(this.oomScoreAdj, that.oomScoreAdj)
+           && Objects.equals(this.autoRemove, that.autoRemove)
+           && Objects.equals(this.pidsLimit, that.pidsLimit)
+           && Objects.equals(this.tmpfs, that.tmpfs)
+           && Objects.equals(this.readonlyRootfs, that.readonlyRootfs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(binds, containerIDFile, lxcConf, privileged, portBindings, links,
+    return Objects.hash(binds, containerIdFile, lxcConf, privileged, portBindings, links,
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
@@ -350,7 +353,7 @@ public class HostConfig {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("binds", binds)
-        .add("containerIDFile", containerIDFile)
+        .add("containerIdFile", containerIdFile)
         .add("lxcConf", lxcConf)
         .add("privileged", privileged)
         .add("portBindings", portBindings)
@@ -408,18 +411,18 @@ public class HostConfig {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final LxcConfParameter that = (LxcConfParameter) o;
+      final LxcConfParameter that = (LxcConfParameter) obj;
 
-      return Objects.equals(this.key, that.key) &&
-             Objects.equals(this.value, that.value);
+      return Objects.equals(this.key, that.key)
+             && Objects.equals(this.value, that.value);
     }
 
     @Override
@@ -473,18 +476,18 @@ public class HostConfig {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final RestartPolicy that = (RestartPolicy) o;
+      final RestartPolicy that = (RestartPolicy) obj;
 
-      return Objects.equals(this.name, that.name) &&
-             Objects.equals(this.maxRetryCount, that.maxRetryCount);
+      return Objects.equals(this.name, that.name)
+             && Objects.equals(this.maxRetryCount, that.maxRetryCount);
     }
 
     @Override
@@ -512,7 +515,7 @@ public class HostConfig {
   public static class Builder {
 
     private ImmutableList<String> binds;
-    private String containerIDFile;
+    private String containerIdFile;
     private ImmutableList<LxcConfParameter> lxcConf;
     private Boolean privileged;
     private Map<String, List<PortBinding>> portBindings;
@@ -552,7 +555,7 @@ public class HostConfig {
 
     private Builder(final HostConfig hostConfig) {
       this.binds = hostConfig.binds;
-      this.containerIDFile = hostConfig.containerIDFile;
+      this.containerIdFile = hostConfig.containerIdFile;
       this.lxcConf = hostConfig.lxcConf;
       this.privileged = hostConfig.privileged;
       this.portBindings = hostConfig.portBindings;
@@ -617,6 +620,10 @@ public class HostConfig {
       }
 
       return this;
+    }
+
+    public List<String> binds() {
+      return binds;
     }
 
     /**
@@ -695,17 +702,13 @@ public class HostConfig {
       return ImmutableList.copyOf(list);
     }
 
-    public List<String> binds() {
-      return binds;
-    }
-
-    public Builder containerIDFile(final String containerIDFile) {
-      this.containerIDFile = containerIDFile;
+    public Builder containerIdFile(final String containerIdFile) {
+      this.containerIdFile = containerIdFile;
       return this;
     }
 
-    public String containerIDFile() {
-      return containerIDFile;
+    public String containerIdFile() {
+      return containerIdFile;
     }
 
     public Builder lxcConf(final List<LxcConfParameter> lxcConf) {
@@ -1012,13 +1015,13 @@ public class HostConfig {
       return this;
     }
 
+    public RestartPolicy restartPolicy() {
+      return restartPolicy;
+    }
+
     public Builder logConfig(final LogConfig logConfig) {
       this.logConfig = logConfig;
       return this;
-    }
-
-    public RestartPolicy restartPolicy() {
-      return restartPolicy;
     }
 
     public LogConfig logConfig() {
@@ -1116,7 +1119,11 @@ public class HostConfig {
       this.readonlyRootfs = readonlyRootfs;
       return this;
     }
-    
+
+    public Boolean readonlyRootfs() {
+      return readonlyRootfs;
+    }
+
     public Builder tmpfs(final ImmutableMap<String, String> tmpfs) {
       this.tmpfs = tmpfs;
       return this;
@@ -1126,10 +1133,6 @@ public class HostConfig {
       return tmpfs;
     }
 
-    public Boolean readonlyRootfs() {
-      return readonlyRootfs;
-    }
-    
     public HostConfig build() {
       return new HostConfig(this);
     }
@@ -1324,19 +1327,19 @@ public class HostConfig {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final Ulimit that = (Ulimit) o;
+      final Ulimit that = (Ulimit) obj;
 
-      return Objects.equals(this.name, that.name) &&
-             Objects.equals(this.soft, that.soft) &&
-             Objects.equals(this.hard, that.hard);
+      return Objects.equals(this.name, that.name)
+             && Objects.equals(this.soft, that.soft)
+             && Objects.equals(this.hard, that.hard);
     }
 
     @Override

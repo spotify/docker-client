@@ -1,36 +1,38 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client.messages;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)
 public class ContainerInfo {
@@ -72,7 +74,7 @@ public class ContainerInfo {
   @JsonProperty("Volumes")
   private ImmutableMap<String, String> volumes;
   @JsonProperty("VolumesRW")
-  private ImmutableMap<String, Boolean> volumesRW;
+  private ImmutableMap<String, Boolean> volumesRw;
   @JsonProperty("AppArmorProfile")
   private String appArmorProfile;
   @JsonProperty("ExecIDs")
@@ -163,7 +165,7 @@ public class ContainerInfo {
    * Volumes returned by execInspect
    *
    * @return A map of volumes where the key is the source path on the local file system, and the key
-   * is the target path on the Docker host.
+   *         is the target path on the Docker host.
    * @deprecated Replaced by {@link #mounts()} in API 1.20.
    */
   @Deprecated
@@ -175,12 +177,12 @@ public class ContainerInfo {
    * Volumes returned by execInspect
    *
    * @return A map of volumes where the key is the source path on the local file system, and the key
-   * is the target path on the Docker host.
+   *         is the target path on the Docker host.
    * @deprecated Replaced by {@link #mounts()} in API 1.20.
    */
   @Deprecated
-  public Map<String, Boolean> volumesRW() {
-    return volumesRW;
+  public Map<String, Boolean> volumesRw() {
+    return volumesRw;
   }
 
   public Node node() {
@@ -188,40 +190,40 @@ public class ContainerInfo {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final ContainerInfo that = (ContainerInfo) o;
+    final ContainerInfo that = (ContainerInfo) obj;
 
-    return Objects.equals(this.id, that.id) &&
-           Objects.equals(this.created, that.created) &&
-           Objects.equals(this.path, that.path) &&
-           Objects.equals(this.args, that.args) &&
-           Objects.equals(this.config, that.config) &&
-           Objects.equals(this.hostConfig, that.hostConfig) &&
-           Objects.equals(this.state, that.state) &&
-           Objects.equals(this.image, that.image) &&
-           Objects.equals(this.networkSettings, that.networkSettings) &&
-           Objects.equals(this.resolvConfPath, that.resolvConfPath) &&
-           Objects.equals(this.hostnamePath, that.hostnamePath) &&
-           Objects.equals(this.hostsPath, that.hostsPath) &&
-           Objects.equals(this.name, that.name) &&
-           Objects.equals(this.driver, that.driver) &&
-           Objects.equals(this.execDriver, that.execDriver) &&
-           Objects.equals(this.processLabel, that.processLabel) &&
-           Objects.equals(this.mountLabel, that.mountLabel) &&
-           Objects.equals(this.volumes, that.volumes) &&
-           Objects.equals(this.volumesRW, that.volumesRW) &&
-           Objects.equals(this.appArmorProfile, that.appArmorProfile) &&
-           Objects.equals(this.execId, that.execId) &&
-           Objects.equals(this.logPath, that.logPath) &&
-           Objects.equals(this.restartCount, that.restartCount) &&
-           Objects.equals(this.mounts, that.mounts);
+    return Objects.equals(this.id, that.id)
+           && Objects.equals(this.created, that.created)
+           && Objects.equals(this.path, that.path)
+           && Objects.equals(this.args, that.args)
+           && Objects.equals(this.config, that.config)
+           && Objects.equals(this.hostConfig, that.hostConfig)
+           && Objects.equals(this.state, that.state)
+           && Objects.equals(this.image, that.image)
+           && Objects.equals(this.networkSettings, that.networkSettings)
+           && Objects.equals(this.resolvConfPath, that.resolvConfPath)
+           && Objects.equals(this.hostnamePath, that.hostnamePath)
+           && Objects.equals(this.hostsPath, that.hostsPath)
+           && Objects.equals(this.name, that.name)
+           && Objects.equals(this.driver, that.driver)
+           && Objects.equals(this.execDriver, that.execDriver)
+           && Objects.equals(this.processLabel, that.processLabel)
+           && Objects.equals(this.mountLabel, that.mountLabel)
+           && Objects.equals(this.volumes, that.volumes)
+           && Objects.equals(this.volumesRw, that.volumesRw)
+           && Objects.equals(this.appArmorProfile, that.appArmorProfile)
+           && Objects.equals(this.execId, that.execId)
+           && Objects.equals(this.logPath, that.logPath)
+           && Objects.equals(this.restartCount, that.restartCount)
+           && Objects.equals(this.mounts, that.mounts);
   }
 
   @Override
@@ -229,7 +231,7 @@ public class ContainerInfo {
     return Objects.hash(
         id, created, path, args, config, hostConfig, state, image,
         networkSettings, resolvConfPath, hostnamePath, hostsPath, name, driver, execDriver,
-        processLabel, mountLabel, volumes, volumesRW, node, appArmorProfile,
+        processLabel, mountLabel, volumes, volumesRw, node, appArmorProfile,
         execId, logPath, restartCount, mounts);
   }
 
@@ -254,7 +256,7 @@ public class ContainerInfo {
         .add("processLabel", processLabel)
         .add("mountLabel", mountLabel)
         .add("volumes", volumes)
-        .add("volumesRW", volumesRW)
+        .add("volumesRw", volumesRw)
         .add("node", node)
         .add("appArmorProfile", appArmorProfile)
         .add("execIDs", execId)
@@ -296,19 +298,19 @@ public class ContainerInfo {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
-      final Node that = (Node) o;
+      final Node that = (Node) obj;
 
-      return Objects.equals(this.id, that.id) &&
-             Objects.equals(this.ip, that.ip) &&
-             Objects.equals(this.addr, that.addr) &&
-             Objects.equals(this.name, that.name);
+      return Objects.equals(this.id, that.id)
+             && Objects.equals(this.ip, that.ip)
+             && Objects.equals(this.addr, that.addr)
+             && Objects.equals(this.name, that.name);
     }
 
     @Override

@@ -1,24 +1,46 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- * Copyright (c) 2014 Oleg Poleshuk.
- * Copyright (c) 2014 CyDesign Ltd.
- * Copyright (c) 2016 ThoughtWorks, Inc.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * Copyright (c) 2014 Oleg Poleshuk
+ * Copyright (c) 2014 CyDesign Ltd
+ * Copyright (c) 2016 ThoughtWorks, Inc
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,7 +55,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
-
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
@@ -84,38 +105,6 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.hk2.api.MultiException;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.internal.util.Base64;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -138,33 +127,47 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static com.spotify.docker.client.VersionCompare.compareVersion;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.hk2.api.MultiException;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.internal.util.Base64;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image ID (or image digest in Docker
-   * 1.10+) of an image being loaded.
-   * Weirdly enough, Docker returns the ID or digest of a newly created image in the status of a
-   * progress message. <p> The image ID/digest is required to tag the just loaded image since,
+   * 1.10+) of an image being loaded. Weirdly enough, Docker returns the ID or digest of a newly
+   * created image in the status of a progress message.
+   *
+   * <p>The image ID/digest is required to tag the just loaded image since,
    * also weirdly enough, the pull operation with the <code>fromSrc</code> parameter does not
    * support the <code>tag</code> parameter. By retrieving the ID/digest, the image can be tagged
    * with its image name, given its ID/digest.
@@ -194,9 +197,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     public void progress(ProgressMessage message) throws DockerException {
       delegate.progress(message);
       final String status = message.status();
-      if (status != null &&
-          (status.length() == EXPECTED_CHARACTER_NUM1 ||
-           status.length() == EXPECTED_CHARACTER_NUM2)) {
+      if (status != null && (status.length() == EXPECTED_CHARACTER_NUM1
+                             || status.length() == EXPECTED_CHARACTER_NUM2)) {
         imageId = message.status();
       }
     }
@@ -490,7 +492,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   /**
-   * URL-encodes a string
+   * URL-encodes a string.
    *
    * @param unencoded A string that may contain characters not allowed in URLs
    * @return URL-encoded String
@@ -1022,6 +1024,20 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void load(final InputStream imagePayload)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("images").path("load");
+
+    final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
+    try {
+      request(POST, ProgressStream.class, resource,
+              resource.request(APPLICATION_JSON_TYPE), entity);
+    } finally {
+      IOUtils.closeQuietly(imagePayload);
+    }
+  }
+
+  @Override
   public void create(final String image, final InputStream imagePayload)
       throws DockerException, InterruptedException {
     create(image, imagePayload, new LoggingPullHandler("image stream"));
@@ -1047,20 +1063,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       tag(loadProgressHandler.getImageId(), image, true);
     } catch (IOException e) {
       throw new DockerException(e);
-    } finally {
-      IOUtils.closeQuietly(imagePayload);
-    }
-  }
-
-  @Override
-  public void load(final InputStream imagePayload)
-      throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("images").path("load");
-
-    final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-    try {
-      request(POST, ProgressStream.class, resource,
-              resource.request(APPLICATION_JSON_TYPE), entity);
     } finally {
       IOUtils.closeQuietly(imagePayload);
     }
@@ -1562,7 +1564,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public Swarm inspectSwarm() throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
 
     final WebTarget resource = resource().path("swarm");
     return request(GET, Swarm.class, resource, resource.request(APPLICATION_JSON_TYPE));
@@ -1579,7 +1581,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public ServiceCreateResponse createService(final ServiceSpec spec,
                                              final AuthConfig config)
       throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services").path("create");
 
     try {
@@ -1601,7 +1603,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public Service inspectService(final String serviceId)
       throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     try {
       final WebTarget resource = resource().path("services").path(serviceId);
       return request(GET, Service.class, resource, resource.request(APPLICATION_JSON_TYPE));
@@ -1618,7 +1620,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void updateService(final String serviceId, final Long version, final ServiceSpec spec)
       throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     try {
       WebTarget resource = resource().path("services").path(serviceId).path("update");
       resource = resource.queryParam("version", version);
@@ -1636,7 +1638,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public List<Service> listServices() throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services");
     return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
@@ -1644,7 +1646,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public List<Service> listServices(final Service.Criteria criteria)
       throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     WebTarget resource = resource().path("services");
     final Map<String, List<String>> filters = new HashMap<>();
 
@@ -1661,7 +1663,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void removeService(final String serviceId) throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     try {
       final WebTarget resource = resource().path("services").path(serviceId);
       request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
@@ -1677,7 +1679,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public Task inspectTask(final String taskId) throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     try {
       final WebTarget resource = resource().path("tasks").path(taskId);
       return request(GET, Task.class, resource, resource.request(APPLICATION_JSON_TYPE));
@@ -1693,7 +1695,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public List<Task> listTasks() throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
     final WebTarget resource = resource().path("tasks");
     return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
@@ -1701,9 +1703,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public List<Task> listTasks(final Task.Criteria criteria)
       throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
-    WebTarget resource = resource().path("tasks");
-    final Map<String, List<String>> filters = new HashMap<String, List<String>>();
+    assertApiVersionIsAbove("1.24");
+    final Map<String, List<String>> filters = new HashMap<>();
 
     if (criteria.getTaskId() != null) {
       filters.put("id", Collections.singletonList(criteria.getTaskId()));
@@ -1724,6 +1725,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       filters.put("desired-state", Collections.singletonList(criteria.getDesiredState()));
     }
 
+    WebTarget resource = resource().path("tasks");
     resource = resource.queryParam("filters", urlEncodeFilters(filters));
     return request(GET, TASK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
@@ -1815,8 +1817,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private void checkTtyParams(final Integer height, final Integer width) throws BadParamException {
-    if ((height == null && width == null) || (height != null && height == 0) ||
-        (width != null && width == 0)) {
+    if ((height == null && width == null) || (height != null && height == 0)
+        || (width != null && width == 0)) {
       final Map<String, String> paramMap = Maps.newHashMap();
       paramMap.put("h", height == null ? null : height.toString());
       paramMap.put("w", width == null ? null : width.toString());
@@ -1906,7 +1908,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           final String message = String.format("Container %s or network %s not found.",
                                                containerId, networkId);
           throw new NotFoundException(message, e);
-        case 500:
+        default:
           throw e;
       }
     }
@@ -2066,14 +2068,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private RuntimeException propagate(final String method, final WebTarget resource,
-                                     final Exception e)
+                                     final Exception ex)
       throws DockerException, InterruptedException {
-    Throwable cause = e.getCause();
+    Throwable cause = ex.getCause();
 
     // Sometimes e is a org.glassfish.hk2.api.MultiException
     // which contains the cause we're actually interested in.
     // So we unpack it here.
-    if (e instanceof MultiException) {
+    if (ex instanceof MultiException) {
       cause = cause.getCause();
     }
 
@@ -2091,14 +2093,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (response != null) {
       throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
                                        message(response), cause);
-    } else if ((cause instanceof SocketTimeoutException) ||
-               (cause instanceof ConnectTimeoutException)) {
-      throw new DockerTimeoutException(method, resource.getUri(), e);
+    } else if ((cause instanceof SocketTimeoutException)
+               || (cause instanceof ConnectTimeoutException)) {
+      throw new DockerTimeoutException(method, resource.getUri(), ex);
     } else if ((cause instanceof InterruptedIOException)
                || (cause instanceof InterruptedException)) {
       throw new InterruptedException("Interrupted: " + method + " " + resource);
     } else {
-      throw new DockerException(e);
+      throw new DockerException(ex);
     }
   }
 
@@ -2153,7 +2155,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private void assertAPIVersionIsAbove(String minimumVersion)
+  private void assertApiVersionIsAbove(String minimumVersion)
       throws DockerException, InterruptedException {
     final String apiVersion = version().apiVersion();
     final int versionComparison = compareVersion(apiVersion, minimumVersion);
@@ -2327,7 +2329,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     /**
-     * Allows reusing Docker auth info
+     * Allows reusing Docker auth info.
      *
      * @param dockerAuth tells if Docker auth info should be used
      * @return Builder

@@ -1,21 +1,35 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -23,18 +37,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
-
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Info;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.net.URI;
 import java.util.Map;
@@ -50,16 +56,12 @@ import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Variant;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class DefaultDockerClientUnitTest {
 
@@ -121,14 +123,14 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
-  public void testHostForFQDNHttps() {
+  public void testHostForFqdnHttps() {
     final DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://perdu.com:2375").build();
     assertThat(client.getHost(), equalTo("perdu.com"));
   }
 
   @Test
-  public void testHostForIPHttps() {
+  public void testHostForIpHttps() {
     final DefaultDockerClient client = DefaultDockerClient.builder()
         .uri("https://192.168.53.103:2375").build();
     assertThat(client.getHost(), equalTo("192.168.53.103"));
@@ -178,11 +180,11 @@ public class DefaultDockerClientUnitTest {
     final ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
     verify(builderMock, times(headers.size())).header(nameCaptor.capture(), valueCaptor.capture());
 
-    int i = 0;
+    int idx = 0;
     for (final Map.Entry<String, Object> entry : headers.entrySet()) {
-      Assert.assertEquals(entry.getKey(), nameCaptor.getAllValues().get(i));
-      Assert.assertEquals(entry.getValue(), valueCaptor.getAllValues().get(i));
-      ++i;
+      Assert.assertEquals(entry.getKey(), nameCaptor.getAllValues().get(idx));
+      Assert.assertEquals(entry.getValue(), valueCaptor.getAllValues().get(idx));
+      ++idx;
     }
   }
 

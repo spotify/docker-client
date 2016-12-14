@@ -1,18 +1,21 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
@@ -23,8 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,10 +34,7 @@ import java.nio.ByteBuffer;
 
 class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream {
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultLogStream.class);
-
   private final LogReader reader;
-  private volatile boolean closed;
 
   private DefaultLogStream(final InputStream stream) {
     this(new LogReader(stream));
@@ -49,15 +47,6 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
 
   static DefaultLogStream create(final InputStream stream) {
     return new DefaultLogStream(stream);
-  }
-
-  @Override
-  protected void finalize() throws Throwable {
-    super.finalize();
-    if (!closed) {
-      log.warn(this + " not closed properly");
-      close();
-    }
   }
 
   @Override
@@ -76,7 +65,6 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
 
   @Override
   public void close() {
-    closed = true;
     try {
       reader.close();
     } catch (IOException e) {
@@ -96,11 +84,11 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
     attach(stdout, stderr, true);
   }
 
-  public void attach(final OutputStream stdout, final OutputStream stderr, boolean closeAtEOF)
+  public void attach(final OutputStream stdout, final OutputStream stderr, boolean closeAtEof)
       throws IOException {
     final Closer closer = Closer.create();
     try {
-      if (closeAtEOF) {
+      if (closeAtEof) {
         closer.register(stdout);
         closer.register(stderr);
       }

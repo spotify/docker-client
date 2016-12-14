@@ -1,28 +1,30 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client.messages;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.List;
@@ -296,59 +298,58 @@ public class Info {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final Info that = (Info) o;
+    final Info that = (Info) obj;
 
-    return Objects.equals(this.architecture, that.architecture) &&
-           Objects.equals(this.clusterStore, that.clusterStore) &&
-           Objects.equals(this.cgroupDriver, that.cgroupDriver) &&
-           Objects.equals(this.containers, that.containers) &&
-           Objects.equals(this.containersRunning, that.containersRunning) &&
-           Objects.equals(this.containersStopped, that.containersStopped) &&
-           Objects.equals(this.containersPaused, that.containersPaused) &&
-           Objects.equals(this.cpuCfsPeriod, that.cpuCfsPeriod) &&
-           Objects.equals(this.cpuCfsQuota, that.cpuCfsQuota) &&
-           Objects.equals(this.cpus, that.cpus) &&
-           Objects.equals(this.debug, that.debug) &&
-           Objects.equals(this.dockerRootDir, that.dockerRootDir) &&
-           Objects.equals(this.driverStatus, that.driverStatus) &&
-           Objects.equals(this.eventsListener, that.eventsListener) &&
-           Objects.equals(this.executionDriver, that.executionDriver) &&
-           Objects.equals(this.experimentalBuild, that.experimentalBuild) &&
-           Objects.equals(this.fileDescriptors, that.fileDescriptors) &&
-           Objects.equals(this.goroutines, that.goroutines) &&
-           Objects.equals(this.httpProxy, that.httpProxy) &&
-           Objects.equals(this.httpsProxy, that.httpsProxy) &&
-           Objects.equals(this.id, that.id) &&
-           Objects.equals(this.images, that.images) &&
-           Objects.equals(this.indexServerAddress, that.indexServerAddress) &&
-           Objects.equals(this.initPath, that.initPath) &&
-           Objects.equals(this.initSha1, that.initSha1) &&
-           Objects.equals(this.ipv4Forwarding, that.ipv4Forwarding) &&
-           Objects.equals(this.kernelVersion, that.kernelVersion) &&
-           Objects.equals(this.labels, that.labels) &&
-           Objects.equals(this.memoryLimit, that.memoryLimit) &&
-           Objects.equals(this.memTotal, that.memTotal) &&
-           Objects.equals(this.name, that.name) &&
-           Objects.equals(this.noProxy, that.noProxy) &&
-           Objects.equals(this.oomKillDisable, that.oomKillDisable) &&
-           Objects.equals(this.operatingSystem, that.operatingSystem) &&
-           Objects.equals(this.osType, that.osType) &&
-           Objects.equals(this.plugins, that.plugins) &&
-           Objects.equals(this.registryConfig, that.registryConfig) &&
-           Objects.equals(this.serverVersion, that.serverVersion) &&
-           Objects.equals(this.storageDriver, that.storageDriver) &&
-           Objects.equals(this.swapLimit, that.swapLimit) &&
-           Objects.equals(this.systemStatus, that.systemStatus) &&
-           Objects.equals(this.systemTime, that.systemTime)
-        ;
+    return Objects.equals(this.architecture, that.architecture)
+           && Objects.equals(this.clusterStore, that.clusterStore)
+           && Objects.equals(this.cgroupDriver, that.cgroupDriver)
+           && Objects.equals(this.containers, that.containers)
+           && Objects.equals(this.containersRunning, that.containersRunning)
+           && Objects.equals(this.containersStopped, that.containersStopped)
+           && Objects.equals(this.containersPaused, that.containersPaused)
+           && Objects.equals(this.cpuCfsPeriod, that.cpuCfsPeriod)
+           && Objects.equals(this.cpuCfsQuota, that.cpuCfsQuota)
+           && Objects.equals(this.cpus, that.cpus)
+           && Objects.equals(this.debug, that.debug)
+           && Objects.equals(this.dockerRootDir, that.dockerRootDir)
+           && Objects.equals(this.driverStatus, that.driverStatus)
+           && Objects.equals(this.eventsListener, that.eventsListener)
+           && Objects.equals(this.executionDriver, that.executionDriver)
+           && Objects.equals(this.experimentalBuild, that.experimentalBuild)
+           && Objects.equals(this.fileDescriptors, that.fileDescriptors)
+           && Objects.equals(this.goroutines, that.goroutines)
+           && Objects.equals(this.httpProxy, that.httpProxy)
+           && Objects.equals(this.httpsProxy, that.httpsProxy)
+           && Objects.equals(this.id, that.id)
+           && Objects.equals(this.images, that.images)
+           && Objects.equals(this.indexServerAddress, that.indexServerAddress)
+           && Objects.equals(this.initPath, that.initPath)
+           && Objects.equals(this.initSha1, that.initSha1)
+           && Objects.equals(this.ipv4Forwarding, that.ipv4Forwarding)
+           && Objects.equals(this.kernelVersion, that.kernelVersion)
+           && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.memoryLimit, that.memoryLimit)
+           && Objects.equals(this.memTotal, that.memTotal)
+           && Objects.equals(this.name, that.name)
+           && Objects.equals(this.noProxy, that.noProxy)
+           && Objects.equals(this.oomKillDisable, that.oomKillDisable)
+           && Objects.equals(this.operatingSystem, that.operatingSystem)
+           && Objects.equals(this.osType, that.osType)
+           && Objects.equals(this.plugins, that.plugins)
+           && Objects.equals(this.registryConfig, that.registryConfig)
+           && Objects.equals(this.serverVersion, that.serverVersion)
+           && Objects.equals(this.storageDriver, that.storageDriver)
+           && Objects.equals(this.swapLimit, that.swapLimit)
+           && Objects.equals(this.systemStatus, that.systemStatus)
+           && Objects.equals(this.systemTime, that.systemTime);
   }
 
   @Override
@@ -429,18 +430,18 @@ public class Info {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final Plugins that = (Plugins) o;
+      final Plugins that = (Plugins) obj;
 
-      return Objects.equals(volume, that.volume) &&
-             Objects.equals(network, that.network);
+      return Objects.equals(volume, that.volume)
+             && Objects.equals(network, that.network);
     }
 
     @Override
@@ -473,18 +474,18 @@ public class Info {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final RegistryConfig that = (RegistryConfig) o;
+      final RegistryConfig that = (RegistryConfig) obj;
 
-      return Objects.equals(this.indexConfigs, that.indexConfigs) &&
-             Objects.equals(this.insecureRegistryCidrs, that.insecureRegistryCidrs);
+      return Objects.equals(this.indexConfigs, that.indexConfigs)
+             && Objects.equals(this.insecureRegistryCidrs, that.insecureRegistryCidrs);
     }
 
     @Override
@@ -517,19 +518,19 @@ public class Info {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final IndexConfig that = (IndexConfig) o;
-      return Objects.equals(this.name, that.name) &&
-             Objects.equals(this.mirrors, that.mirrors) &&
-             Objects.equals(this.secure, that.secure) &&
-             Objects.equals(this.official, that.official);
+      final IndexConfig that = (IndexConfig) obj;
+      return Objects.equals(this.name, that.name)
+             && Objects.equals(this.mirrors, that.mirrors)
+             && Objects.equals(this.secure, that.secure)
+             && Objects.equals(this.official, that.official);
 
     }
 

@@ -1,21 +1,27 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client.messages;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,9 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Container {
@@ -63,11 +66,11 @@ public class Container {
   private ImmutableList<ContainerMount> mounts;
 
   /**
-   * This method returns port information the way that <code>docker ps</code> does:
-   * <code>0.0.0.0:5432-&gt;5432/tcp</code> or <code>6379/tcp</code>
+   * Returns port information the way that <code>docker ps</code> does.
+   * <code>0.0.0.0:5432-&gt;5432/tcp</code> or <code>6379/tcp</code>.
    *
-   * It should not be used to extract detailed information of ports. To do so, please refer to
-   * {@link com.spotify.docker.client.messages.PortBinding}
+   * <p>It should not be used to extract detailed information of ports. To do so, please refer to
+   * {@link com.spotify.docker.client.messages.PortBinding}.
    *
    * @return port information as docker ps does.
    * @see com.spotify.docker.client.messages.PortBinding
@@ -151,30 +154,30 @@ public class Container {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final Container that = (Container) o;
+    final Container that = (Container) obj;
 
-    return Objects.equals(this.id, that.id) &&
-           Objects.equals(this.names, that.names) &&
-           Objects.equals(this.image, that.image) &&
-           Objects.equals(this.imageId, that.imageId) &&
-           Objects.equals(this.command, that.command) &&
-           Objects.equals(this.created, that.created) &&
-           Objects.equals(this.state, that.state) &&
-           Objects.equals(this.status, that.status) &&
-           Objects.equals(this.ports, that.ports) &&
-           Objects.equals(this.labels, that.labels) &&
-           Objects.equals(this.sizeRw, that.sizeRw) &&
-           Objects.equals(this.sizeRootFs, that.sizeRootFs) &&
-           Objects.equals(this.networkSettings, that.networkSettings) &&
-           Objects.equals(this.mounts, that.mounts);
+    return Objects.equals(this.id, that.id)
+           && Objects.equals(this.names, that.names)
+           && Objects.equals(this.image, that.image)
+           && Objects.equals(this.imageId, that.imageId)
+           && Objects.equals(this.command, that.command)
+           && Objects.equals(this.created, that.created)
+           && Objects.equals(this.state, that.state)
+           && Objects.equals(this.status, that.status)
+           && Objects.equals(this.ports, that.ports)
+           && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.sizeRw, that.sizeRw)
+           && Objects.equals(this.sizeRootFs, that.sizeRootFs)
+           && Objects.equals(this.networkSettings, that.networkSettings)
+           && Objects.equals(this.mounts, that.mounts);
   }
 
   @Override
@@ -230,20 +233,20 @@ public class Container {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
 
-      final PortMapping that = (PortMapping) o;
+      final PortMapping that = (PortMapping) obj;
 
-      return Objects.equals(this.privatePort, that.privatePort) &&
-             Objects.equals(this.publicPort, that.publicPort) &&
-             Objects.equals(this.type, that.type) &&
-             Objects.equals(this.ip, that.ip);
+      return Objects.equals(this.privatePort, that.privatePort)
+             && Objects.equals(this.publicPort, that.publicPort)
+             && Objects.equals(this.type, that.type)
+             && Objects.equals(this.ip, that.ip);
     }
 
     @Override

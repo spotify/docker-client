@@ -1,31 +1,35 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.net.HostAndPort;
 
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Locale;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents a dockerd endpoint. A codified DOCKER_HOST.
@@ -62,7 +66,7 @@ public class DockerHost {
 
   private final String host;
   private final URI uri;
-  private final URI bindURI;
+  private final URI bindUri;
   private final String address;
   private final int port;
   private final String certPath;
@@ -73,7 +77,7 @@ public class DockerHost {
       this.address = DEFAULT_ADDRESS;
       this.host = endpoint;
       this.uri = URI.create(endpoint);
-      this.bindURI = URI.create(endpoint);
+      this.bindUri = URI.create(endpoint);
     } else {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
@@ -84,7 +88,7 @@ public class DockerHost {
       this.address = isNullOrEmpty(hostText) ? DEFAULT_ADDRESS : hostText;
       this.host = address + ":" + port;
       this.uri = URI.create(scheme + "://" + address + ":" + port);
-      this.bindURI = URI.create("tcp://" + address + ":" + port);
+      this.bindUri = URI.create("tcp://" + address + ":" + port);
     }
 
     this.certPath = certPath;
@@ -95,7 +99,7 @@ public class DockerHost {
    * DockerHost.from(endpoint).
    *
    * @return A unix socket path or, in the case of a TCP socket, the hostname and port which
-   * represents a Docker endpoint.
+   *         represents a Docker endpoint.
    */
   public String host() {
     return host;
@@ -115,8 +119,8 @@ public class DockerHost {
    *
    * @return The uri of the host for binding ports (or setting $DOCKER_HOST).
    */
-  public URI bindURI() {
-    return bindURI;
+  public URI bindUri() {
+    return bindUri;
   }
 
   /**
@@ -227,26 +231,26 @@ public class DockerHost {
 
   @Override
   public String toString() {
-    return "DockerHost{" +
-           "host='" + host + '\'' +
-           ", uri=" + uri +
-           ", bindURI=" + bindURI +
-           ", address='" + address + '\'' +
-           ", port=" + port +
-           ", certPath='" + certPath + '\'' +
-           '}';
+    return MoreObjects.toStringHelper(this)
+        .add("host", host)
+        .add("uri", uri)
+        .add("bindUri", bindUri)
+        .add("address", address)
+        .add("port", port)
+        .add("certPath", certPath)
+        .toString();
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final DockerHost that = (DockerHost) o;
+    final DockerHost that = (DockerHost) obj;
 
     if (port != that.port) {
       return false;
@@ -257,7 +261,7 @@ public class DockerHost {
     if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
       return false;
     }
-    if (bindURI != null ? !bindURI.equals(that.bindURI) : that.bindURI != null) {
+    if (bindUri != null ? !bindUri.equals(that.bindUri) : that.bindUri != null) {
       return false;
     }
     if (address != null ? !address.equals(that.address) : that.address != null) {
@@ -271,7 +275,7 @@ public class DockerHost {
   public int hashCode() {
     int result = host != null ? host.hashCode() : 0;
     result = 31 * result + (uri != null ? uri.hashCode() : 0);
-    result = 31 * result + (bindURI != null ? bindURI.hashCode() : 0);
+    result = 31 * result + (bindUri != null ? bindUri.hashCode() : 0);
     result = 31 * result + (address != null ? address.hashCode() : 0);
     result = 31 * result + port;
     result = 31 * result + (certPath != null ? certPath.hashCode() : 0);

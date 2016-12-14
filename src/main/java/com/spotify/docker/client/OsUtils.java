@@ -18,26 +18,17 @@
  * -/-/-
  */
 
-package com.spotify.docker.client.exceptions;
+package com.spotify.docker.client;
 
-import java.net.URI;
+import java.util.Locale;
 
-public class DockerTimeoutException extends DockerException {
+public class OsUtils {
 
-  private final String method;
-  private final URI uri;
-
-  public DockerTimeoutException(final String method, final URI uri, final Throwable cause) {
-    super("Timeout: " + method + " " + uri, cause);
-    this.method = method;
-    this.uri = uri;
+  public static boolean isOsX() {
+    return System.getProperty("os.name").toLowerCase(Locale.US).contains("os x");
   }
 
-  public String method() {
-    return method;
-  }
-
-  public URI uri() {
-    return uri;
+  public static boolean isLinux() {
+    return System.getProperty("os.name").equalsIgnoreCase("linux");
   }
 }

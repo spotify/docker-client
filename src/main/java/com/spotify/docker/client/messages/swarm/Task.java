@@ -1,20 +1,27 @@
-/*
- * Copyright (c) 2015 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
+
 package com.spotify.docker.client.messages.swarm;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,9 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public class Task {
@@ -126,27 +130,27 @@ public class Task {
   public static class Criteria {
 
     /**
-     * Filter by task id
+     * Filter by task id.
      */
     private String taskId;
     /**
-     * Filter by task name
+     * Filter by task name.
      */
     private String taskName;
     /**
-     * Filter by service name
+     * Filter by service name.
      */
     private String serviceName;
     /**
-     * Filter by node id
+     * Filter by node id.
      */
     private String nodeId;
     /**
-     * Filter by label
+     * Filter by label.
      */
     private String label;
     /**
-     * Filter by desired state
+     * Filter by desired state.
      */
     private String desiredState;
 
@@ -237,23 +241,26 @@ public class Task {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
 
-    final Task that = (Task) o;
+    final Task that = (Task) obj;
 
-    return Objects.equals(this.id, that.id) && Objects.equals(this.version, that.version)
+    return Objects.equals(this.id, that.id)
+           && Objects.equals(this.version, that.version)
            && Objects.equals(this.createdAt, that.createdAt)
            && Objects.equals(this.updatedAt, that.updatedAt)
-           && Objects.equals(this.name, that.name) && Objects.equals(this.labels, that.labels)
+           && Objects.equals(this.name, that.name)
+           && Objects.equals(this.labels, that.labels)
            && Objects.equals(this.spec, that.spec)
            && Objects.equals(this.serviceId, that.serviceId)
-           && Objects.equals(this.slot, that.slot) && Objects.equals(this.nodeId, that.nodeId)
+           && Objects.equals(this.slot, that.slot)
+           && Objects.equals(this.nodeId, that.nodeId)
            && Objects.equals(this.status, that.status)
            && Objects.equals(this.desiredState, that.desiredState)
            && Objects.equals(this.networkAttachments, that.networkAttachments);
@@ -267,11 +274,20 @@ public class Task {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
-        .add("createdAt", createdAt).add("updatedAt", updatedAt).add("name", name)
-        .add("labels", labels).add("spec", spec).add("serviceId", serviceId)
-        .add("slot", slot).add("nodeId", nodeId).add("status", status)
-        .add("desiredState", desiredState).add("networkAttachments", networkAttachments)
+    return MoreObjects.toStringHelper(this)
+        .add("id", id)
+        .add("version", version)
+        .add("createdAt", createdAt)
+        .add("updatedAt", updatedAt)
+        .add("name", name)
+        .add("labels", labels)
+        .add("spec", spec)
+        .add("serviceId", serviceId)
+        .add("slot", slot)
+        .add("nodeId", nodeId)
+        .add("status", status)
+        .add("desiredState", desiredState)
+        .add("networkAttachments", networkAttachments)
         .toString();
   }
 }

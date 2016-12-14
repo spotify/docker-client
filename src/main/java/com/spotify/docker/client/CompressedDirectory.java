@@ -1,30 +1,30 @@
-/*
- * Copyright (c) 2014 Spotify AB.
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client;
 
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -46,8 +46,11 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
-import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This helper class is used during the docker build command to create a gzip tarball of a directory
@@ -161,7 +164,7 @@ class CompressedDirectory implements Closeable {
     if (pattern.startsWith("#")) {
       return null;
     }
-    if (OSUtils.isLinux() || OSUtils.isOsX()) {
+    if (OsUtils.isLinux() || OsUtils.isOsX()) {
       return pattern;
     }
     return pattern.replace("/", "\\\\");
@@ -280,7 +283,7 @@ class CompressedDirectory implements Closeable {
     }
 
     /**
-     * Checks if any of the given {@link DockerIgnorePathMatcher} matches the given {@code path}
+     * Checks if any of the given {@link DockerIgnorePathMatcher} matches the given {@code path}.
      *
      * @param matchers the {@link DockerIgnorePathMatcher} to use
      * @param path     the path to match
@@ -296,14 +299,14 @@ class CompressedDirectory implements Closeable {
     }
 
     private static int getFileMode(Path file) throws IOException {
-      if (isPosixComplantFS()) {
+      if (isPosixComplantFs()) {
         return getPosixFileMode(file);
       } else {
         return DEFAULT_FILE_MODE;
       }
     }
 
-    private static boolean isPosixComplantFS() {
+    private static boolean isPosixComplantFs() {
       return FileSystems.getDefault().supportedFileAttributeViews().contains(POSIX_FILE_VIEW);
     }
 
@@ -384,16 +387,16 @@ class CompressedDirectory implements Closeable {
 
     /**
      * @return <code>true</code> if the given {@code pattern} is an exclusion, <code>false</code> if
-     * it is an exclude to an exclusion.
+     *         it is an exclude to an exclusion.
      */
     public boolean isExclude() {
       return this.exclude;
     }
 
     /**
-     * @param path the path to match
+     * @param path the path to match.
      * @return <code>true</code> if the given {@code path} starts with the pattern or matches the
-     * pattern
+     *         pattern
      * @see Path#startsWith(String)
      * @see PathMatcher#matches(Path)
      */

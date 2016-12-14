@@ -1,18 +1,21 @@
-/*
- * Copyright (c) 2016
- *
+/*-
+ * -\-\-
+ * docker-client
+ * --
+ * Copyright (C) 2016 Spotify AB
+ * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
  */
 
 package com.spotify.docker.client.jackson;
@@ -36,16 +39,17 @@ public class UnixTimestampDeserializer extends JsonDeserializer<Date> {
   }
 
   @Override
-  public Date deserialize(final JsonParser p, final DeserializationContext ctxt)
+  public Date deserialize(final JsonParser parser, final DeserializationContext ctxt)
       throws IOException, JsonProcessingException {
-    final JsonToken token = p.getCurrentToken();
+    final JsonToken token = parser.getCurrentToken();
     if (token == JsonToken.VALUE_STRING) {
-      final String str = p.getText().trim();
+      final String str = parser.getText().trim();
       return toDate(Long.parseLong(str));
     } else if (token == JsonToken.VALUE_NUMBER_INT) {
-      return toDate(p.getLongValue());
+      return toDate(parser.getLongValue());
     }
-    throw ctxt.wrongTokenException(p, JsonToken.VALUE_STRING, "Expected a string or numeric value");
+    throw ctxt.wrongTokenException(parser, JsonToken.VALUE_STRING,
+                                   "Expected a string or numeric value");
   }
 
   private static Date toDate(long secondsSinceEpoch) {
