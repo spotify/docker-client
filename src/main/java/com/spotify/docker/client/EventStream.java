@@ -29,15 +29,10 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EventStream extends AbstractIterator<Event> implements Closeable {
 
-  private static final Logger log = LoggerFactory.getLogger(EventStream.class);
-
   private final EventReader reader;
-  private volatile boolean closed;
 
   EventStream(final CloseableHttpResponse response, final ObjectMapper objectMapper) {
     this.reader = new EventReader(response, objectMapper);
@@ -59,12 +54,10 @@ public class EventStream extends AbstractIterator<Event> implements Closeable {
 
   @Override
   public void close() {
-    closed = true;
     try {
       reader.close();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }
-
 }

@@ -23,6 +23,7 @@ package com.spotify.docker.client.messages;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.google.common.base.MoreObjects;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -34,8 +35,6 @@ import java.util.Objects;
  */
 public class AuthRegistryConfig {
 
-
-  private final Map<String, String> properties = new HashMap<String, String>();
 
   private final Map<String, Map<String, String>> configs = new HashMap<>();
   private final String repository;
@@ -69,12 +68,13 @@ public class AuthRegistryConfig {
     this.auth = auth;
     this.email = email;
     this.serverAddress = serverAddress;
-    properties.put("username", username);
-    properties.put("password", password);
-    properties.put("auth", auth);
-    properties.put("email", email);
-    properties.put("serveraddress", serverAddress);
-    configs.put(repository, properties);
+    configs.put(repository, ImmutableMap.of(
+        "username", username,
+        "password", password,
+        "auth", auth,
+        "email", email,
+        "serveraddress", serverAddress
+    ));
   }
 
   /**

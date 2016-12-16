@@ -32,17 +32,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class LogReader implements Closeable {
 
-  private static final Logger log = LoggerFactory.getLogger(LogReader.class);
   private final InputStream stream;
   public static final int HEADER_SIZE = 8;
   public static final int FRAME_SIZE_OFFSET = 4;
-
-  private volatile boolean closed;
 
   public LogReader(final InputStream stream) {
     this.stream = stream;
@@ -82,11 +76,9 @@ public class LogReader implements Closeable {
 
   @Override
   public void close() throws IOException {
-    closed = true;
     // Jersey will close the stream and release the connection after we read all the data.
     // We cannot call the stream's close method because it an instance of UncloseableInputStream,
     // where close is a no-op.
     copy(stream, nullOutputStream());
   }
-
 }

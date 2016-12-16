@@ -84,7 +84,7 @@ public class DockerCertificates {
              Files.newInputStream(builder.clientCertPath);
          BufferedReader clientKeyStream =
              Files.newBufferedReader(builder.clientKeyPath, Charset.defaultCharset());
-         PEMParser pemParser = new PEMParser(clientKeyStream);
+         PEMParser pemParser = new PEMParser(clientKeyStream)
     ) {
       final CertificateFactory cf = CertificateFactory.getInstance("X.509");
       final Certificate caCert = cf.generateCertificate(caCertStream);

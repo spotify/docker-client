@@ -1265,8 +1265,8 @@ public interface DockerClient extends Closeable {
   /**
    * Create a new service. Only available in Docker API &gt;= 1.24.
    *
-   * @param spec the service spec
-   * @param config the registry authentication configuration
+   * @param spec       the service spec
+   * @param authConfig the registry authentication configuration
    * @return Service creation result with service id.
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
