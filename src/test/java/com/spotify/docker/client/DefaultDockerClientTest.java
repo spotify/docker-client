@@ -302,7 +302,7 @@ public class DefaultDockerClientTest {
           }
         }
       } catch (DockerException e) {
-        log.warn("Ignoring DockerException in teardown", e);
+        //log.warn("Ignoring DockerException in teardown", e);
       }
     }
 
@@ -1729,7 +1729,7 @@ public class DefaultDockerClientTest {
                                      final String imageName) throws Exception {
     // pull event assertions
     assertThat(pullEvent.time(), notNullValue());
-    if (dockerApiVersionAtLeast("1.21")) {
+    if (dockerApiVersionAtLeast("1.22")) {
       assertEquals("image", pullEvent.type());
       assertEquals("pull", pullEvent.action());
       assertEquals(BUSYBOX_LATEST, pullEvent.actor().id());
