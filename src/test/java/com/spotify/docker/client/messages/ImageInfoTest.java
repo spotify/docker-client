@@ -21,22 +21,15 @@
 package com.spotify.docker.client.messages;
 
 import static com.spotify.docker.FixtureUtil.fixture;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import com.spotify.docker.client.ObjectMapperProvider;
-
-import java.io.IOException;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class ContainerTest {
+public class ImageInfoTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -45,13 +38,12 @@ public class ContainerTest {
 
   @Before
   public void setUp() throws Exception {
-    objectMapper = new ObjectMapperProvider().getContext(Container.class);
+    objectMapper = new ObjectMapperProvider().getContext(ContainerInfo.class);
   }
 
   @Test
-  public void testLoadFromFixture() throws Exception {
-    final Container container = objectMapper
-        .readValue(fixture("fixtures/container-ports-as-string.json"), Container.class);
-    assertThat(container.portsAsString(), is("0.0.0.0:80->88/tcp"));
+  public void test1_24() throws Exception {
+    objectMapper.readValue(fixture("fixtures/1.24/imageInfo.json"), ImageInfo.class);
   }
+
 }

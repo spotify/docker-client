@@ -1,0 +1,75 @@
+{
+  "Id": "sha256:6f470f6fc044b7fdd48e3e1b63b8360c66ad8e99959e457e96db9093e66dca63",
+  "RepoTags": [
+    "busybox:buildroot-2013.08.1"
+  ],
+  "RepoDigests": [
+    "busybox@sha256:4eccca494e527311eb4a4ebee1f90d9362971d882bb22fd7ded46d517129b1ac"
+  ],
+  "Parent": "",
+  "Comment": "",
+  "Created": "2015-09-18T17:44:28.145855389Z",
+  "Container": "c86542e1a6d3b7b8354bcbcb97a50821aec58b96f7ae3ad0d8e1655477138eca",
+  "ContainerConfig": {
+    "Hostname": "34b4d68f8959",
+    "Domainname": "",
+    "User": "",
+    "AttachStdin": false,
+    "AttachStdout": false,
+    "AttachStderr": false,
+    "Tty": false,
+    "OpenStdin": false,
+    "StdinOnce": false,
+    "Env": null,
+    "Cmd": [
+      "/bin/sh",
+      "-c",
+      "#(nop) CMD [\"/bin/sh\"]"
+    ],
+    "Image": "77608b59d92f23a988df653ad660e91e04c72d20bfaf1a7f06ae6a6a79331482",
+    "Volumes": null,
+    "WorkingDir": "",
+    "Entrypoint": null,
+    "OnBuild": null,
+    "Labels": null
+  },
+  "DockerVersion": "1.8.2",
+  "Author": "Jérôme Petazzoni <jerome@docker.com>",
+  "Config": {
+    "Hostname": "34b4d68f8959",
+    "Domainname": "",
+    "User": "",
+    "AttachStdin": false,
+    "AttachStdout": false,
+    "AttachStderr": false,
+    "Tty": false,
+    "OpenStdin": false,
+    "StdinOnce": false,
+    "Env": null,
+    "Cmd": [
+      "/bin/sh"
+    ],
+    "Image": "77608b59d92f23a988df653ad660e91e04c72d20bfaf1a7f06ae6a6a79331482",
+    "Volumes": null,
+    "WorkingDir": "",
+    "Entrypoint": null,
+    "OnBuild": null,
+    "Labels": null
+  },
+  "Architecture": "amd64",
+  "Os": "linux",
+  "Size": 2489301,
+  "VirtualSize": 2489301,
+  "GraphDriver": {
+    "Name": "aufs",
+    "Data": null
+  },
+  "RootFS": {
+    "Type": "layers",
+    "Layers": [
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "sha256:35041beb23ecd0b18582a7085dd4148bf06a5e01bf875944d676c4cc91241319",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+    ]
+  }
+}
