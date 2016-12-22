@@ -54,15 +54,15 @@ DockerClient docker = DefaultDockerClient.fromEnv().registryAuth(registryAuth).b
 
 // Bind container ports to host ports
 final String[] ports = {"80", "22"};
-final Map<String, List<PortBinding>> portBindings = new HashMap<String, List<PortBinding>>();
+final Map<String, List<PortBinding>> portBindings = new HashMap<>();
 for (String port : ports) {
-    List<PortBinding> hostPorts = new ArrayList<PortBinding>();
+    List<PortBinding> hostPorts = new ArrayList<>();
     hostPorts.add(PortBinding.of("0.0.0.0", port));
     portBindings.put(port, hostPorts);
 }
 
 // Bind container port 443 to an automatically allocated available host port.
-List<PortBinding> randomPort = new ArrayList<PortBinding>();
+List<PortBinding> randomPort = new ArrayList<>();
 randomPort.add(PortBinding.randomPort("0.0.0.0"));
 portBindings.put("443", randomPort);
 
@@ -86,10 +86,10 @@ docker.startContainer(id);
 
 // Exec command inside running container with attached STDOUT and STDERR
 final String[] command = {"bash", "-c", "ls"};
-final String execId = docker.execCreate(
+final ExecCreation execCreation = docker.execCreate(
     id, command, DockerClient.ExecCreateParam.attachStdout(),
     DockerClient.ExecCreateParam.attachStderr());
-final LogStream output = docker.execStart(execId);
+final LogStream output = docker.execStart(execCreation.id());
 final String execOutput = output.readFully();
 
 // Kill container
