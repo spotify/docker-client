@@ -26,8 +26,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.jackson.UnixTimestampDeserializer;
 
 import java.util.Date;
@@ -48,7 +48,7 @@ public class Event {
   @JsonProperty("timeNano") private Long timeNano;
 
   /**
-   * Event status
+   * Event status.
    * @return status
    * @deprecated Use {@link #action()} instead
    */
@@ -61,7 +61,7 @@ public class Event {
    * Event actor id. When the event type is "container" this is the container id.
    * @return id
    * @deprecated Use the {@link com.spotify.docker.client.messages.Event.Actor#id()}
-   *    field from {@link #actor()}
+   *     field from {@link #actor()}
    */
   @Deprecated
   public String id() {
@@ -72,8 +72,8 @@ public class Event {
    * When the event type is "container" this is the image id.
    * @return from
    * @deprecated Use the "image" attribute in the
-   *    {@link com.spotify.docker.client.messages.Event.Actor#attributes()}
-   *    map from {@link #actor()}
+   *     {@link com.spotify.docker.client.messages.Event.Actor#attributes()}
+   *     map from {@link #actor()}
    */
   @Deprecated
   public String from() {
@@ -85,7 +85,7 @@ public class Event {
   }
 
   /**
-   * Event action
+   * Event action.
    * @return action
    * @since API 1.22
    */
@@ -94,7 +94,7 @@ public class Event {
   }
 
   /**
-   * Event actor
+   * Event actor.
    * @return actor
    * @since API 1.22
    */
@@ -121,14 +121,14 @@ public class Event {
 
     final Event that = (Event) obj;
 
-    return Objects.equals(this.status, that.status) &&
-           Objects.equals(this.id, that.id) &&
-           Objects.equals(this.from, that.from) &&
-           Objects.equals(this.type, that.type) &&
-           Objects.equals(this.action, that.action) &&
-           Objects.equals(this.actor, that.actor) &&
-           Objects.equals(this.time, that.time) &&
-           Objects.equals(this.timeNano, that.timeNano);
+    return Objects.equals(this.status, that.status)
+           && Objects.equals(this.id, that.id)
+           && Objects.equals(this.from, that.from)
+           && Objects.equals(this.type, that.type)
+           && Objects.equals(this.action, that.action)
+           && Objects.equals(this.actor, that.actor)
+           && Objects.equals(this.time, that.time)
+           && Objects.equals(this.timeNano, that.timeNano);
 
   }
 
@@ -164,16 +164,16 @@ public class Event {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object obj) {
+      if (this == obj) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
+      if (obj == null || getClass() != obj.getClass()) {
         return false;
       }
-      final Actor that = (Actor) o;
-      return Objects.equals(this.id, that.id) &&
-             Objects.equals(this.attributes, that.attributes);
+      final Actor that = (Actor) obj;
+      return Objects.equals(this.id, that.id)
+             && Objects.equals(this.attributes, that.attributes);
     }
 
     @Override
