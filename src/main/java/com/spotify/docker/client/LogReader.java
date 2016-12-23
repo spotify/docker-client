@@ -27,7 +27,6 @@ import com.google.common.io.ByteStreams;
 import com.spotify.docker.client.LogMessage.Stream;
 
 import java.io.Closeable;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -50,9 +49,6 @@ public class LogReader implements Closeable {
     final int n = ByteStreams.read(stream, headerBytes, 0, HEADER_SIZE);
     if (n == 0) {
       return null;
-    }
-    if (n != HEADER_SIZE) {
-      throw new EOFException();
     }
     final ByteBuffer header = ByteBuffer.wrap(headerBytes);
     int streamId = header.get();
