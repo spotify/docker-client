@@ -117,7 +117,7 @@ public class AuthConfig {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("username", username)
-        .add("password", password)
+        // don't log the password
         .add("email", email)
         .add("serverAddress", serverAddress)
         .toString();

@@ -2146,10 +2146,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
       }
 
-      log.debug("Registry Config Json {}", authRegistryJson);
-      final String authRegistryEncoded = Base64.encodeAsString(authRegistryJson);
-      log.debug("Registry Config Encoded {}", authRegistryEncoded);
-      return authRegistryEncoded;
+      return Base64.encodeAsString(authRegistryJson);
     } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
