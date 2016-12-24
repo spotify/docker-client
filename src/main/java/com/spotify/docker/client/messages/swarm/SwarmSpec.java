@@ -24,99 +24,59 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class SwarmSpec {
+public abstract class SwarmSpec {
 
+  @NotNull
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
 
+  @Nullable
   @JsonProperty("Labels")
-  private Map<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
+  @NotNull
   @JsonProperty("Orchestration")
-  private OrchestrationConfig orchestration;
+  public abstract OrchestrationConfig orchestration();
 
+  @NotNull
   @JsonProperty("Raft")
-  private RaftConfig raft;
+  public abstract RaftConfig raft();
 
+  @NotNull
   @JsonProperty("Dispatcher")
-  private DispatcherConfig dispatcher;
+  public abstract DispatcherConfig dispatcher();
 
+  @NotNull
   @JsonProperty("CAConfig")
-  private CaConfig caConfig;
+  public abstract CaConfig caConfig();
 
+  @NotNull
   @JsonProperty("TaskDefaults")
-  private TaskDefaults taskDefaults;
+  public abstract TaskDefaults taskDefaults();
 
-  public String name() {
-    return name;
-  }
-
-  public Map<String, String> labels() {
-    return labels;
-  }
-
-  public OrchestrationConfig orchestration() {
-    return orchestration;
-  }
-
-  public RaftConfig raft() {
-    return raft;
-  }
-
-  public DispatcherConfig dispatcher() {
-    return dispatcher;
-  }
-
-  public CaConfig caConfig() {
-    return caConfig;
-  }
-
-  public TaskDefaults taskDefaults() {
-    return taskDefaults;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final SwarmSpec that = (SwarmSpec) obj;
-
-    return Objects.equals(this.name, that.name)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.orchestration, that.orchestration)
-           && Objects.equals(this.raft, that.raft)
-           && Objects.equals(this.dispatcher, that.dispatcher)
-           && Objects.equals(this.caConfig, that.caConfig)
-           && Objects.equals(this.taskDefaults, that.taskDefaults);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, labels, orchestration, raft, dispatcher, caConfig, taskDefaults);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("labels", labels)
-        .add("orchestration", orchestration)
-        .add("raft", raft)
-        .add("dispatcher", dispatcher)
-        .add("caConfig", caConfig)
-        .add("taskDefaults", taskDefaults)
-        .toString();
+  @JsonCreator
+  static SwarmSpec create(
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("Orchestration") final OrchestrationConfig orchestration,
+      @JsonProperty("Raft") final RaftConfig raft,
+      @JsonProperty("Dispatcher") final DispatcherConfig dispatcher,
+      @JsonProperty("CAConfig") final CaConfig caConfig,
+      @JsonProperty("TaskDefaults") final TaskDefaults taskDefaults) {
+    final ImmutableMap<String, String> labelsT = labels == null
+                                                 ? null : ImmutableMap.copyOf(labels);
+    return new AutoValue_SwarmSpec(name, labelsT, orchestration, raft, dispatcher, caConfig,
+        taskDefaults);
   }
 }

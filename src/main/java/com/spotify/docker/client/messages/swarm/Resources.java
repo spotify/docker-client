@@ -24,76 +24,47 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Resources {
+public abstract class Resources {
 
+  @Nullable
   @JsonProperty("NanoCPUs")
-  private Long nanoCpus;
+  public abstract Long nanoCpus();
 
+  @NotNull
   @JsonProperty("MemoryBytes")
-  private Long memoryBytes;
+  public abstract Long memoryBytes();
 
-  public Long nanoCpus() {
-    return nanoCpus;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder nanoCpus(Long nanoCpus);
+
+    public abstract Builder memoryBytes(Long memoryBytes);
+
+    public abstract Resources build();
   }
 
-  public Long memoryBytes() {
-    return memoryBytes;
-  }
-
-  public static class Builder {
-
-    private Resources resources = new Resources();
-
-    public Builder withNanoCpus(Long nanoCpus) {
-      resources.nanoCpus = nanoCpus;
-      return this;
-    }
-
-    public Builder withMemoryBytes(Long memoryBytes) {
-      resources.memoryBytes = memoryBytes;
-      return this;
-    }
-
-    public Resources build() {
-      return resources;
-    }
-  }
-
+  @NotNull
   public static Resources.Builder builder() {
-    return new Resources.Builder();
+    return new AutoValue_Resources.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Resources that = (Resources) obj;
-
-    return Objects.equals(this.nanoCpus, that.nanoCpus)
-           && Objects.equals(this.memoryBytes, that.memoryBytes);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(nanoCpus, memoryBytes);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("nanoCpus", nanoCpus)
-        .add("memoryBytes", memoryBytes)
-        .toString();
+  @JsonCreator
+  static Resources create(
+      @JsonProperty("NanoCPUs") final Long nanoCpus,
+      @JsonProperty("MemoryBytes") final Long memoryBytes) {
+    return builder()
+        .nanoCpus(nanoCpus)
+        .memoryBytes(memoryBytes)
+        .build();
   }
 }

@@ -24,250 +24,161 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.messages.mount.Mount;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerSpec {
+public abstract class ContainerSpec {
 
+  @NotNull
   @JsonProperty("Image")
-  private String image;
+  public abstract String image();
 
+  @Nullable
   @JsonProperty("Labels")
-  private Map<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
+  @NotNull
   @JsonProperty("Command")
-  private ImmutableList<String> command;
+  public abstract ImmutableList<String> command();
 
+  @Nullable
   @JsonProperty("Args")
-  private ImmutableList<String> args;
+  public abstract ImmutableList<String> args();
 
+  @Nullable
   @JsonProperty("Env")
-  private ImmutableList<String> env;
+  public abstract ImmutableList<String> env();
 
+  @Nullable
   @JsonProperty("Dir")
-  private String dir;
+  public abstract String dir();
 
+  @Nullable
   @JsonProperty("User")
-  private String user;
+  public abstract String user();
 
+  @Nullable
   @JsonProperty("Groups")
-  private ImmutableList<String> groups;
+  public abstract ImmutableList<String> groups();
 
+  @Nullable
   @JsonProperty("TTY")
-  private Boolean tty;
+  public abstract Boolean tty();
 
+  @Nullable
   @JsonProperty("Mounts")
-  private ImmutableList<Mount> mounts;
+  public abstract ImmutableList<Mount> mounts();
 
+  @Nullable
   @JsonProperty("StopGracePeriod")
-  private Long stopGracePeriod;
+  public abstract Long stopGracePeriod();
 
-  public String image() {
-    return image;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    @JsonProperty("Image")
+    public abstract Builder image(String image);
+
+    abstract ImmutableMap.Builder<String, String> labelsBuilder();
+
+    public Builder addLabel(final String label, final String value) {
+      labelsBuilder().put(label, value);
+      return this;
+    }
+
+    @JsonProperty("Labels")
+    public abstract Builder labels(Map<String, String> labels);
+
+    @JsonProperty("Command")
+    public abstract Builder command(String... commands);
+
+    @JsonProperty("Command")
+    public abstract Builder command(List<String> commands);
+
+    @JsonProperty("Args")
+    public abstract Builder args(String... args);
+
+    @JsonProperty("Args")
+    public abstract Builder args(List<String> args);
+
+    @JsonProperty("Env")
+    public abstract Builder env(String... env);
+
+    @JsonProperty("Env")
+    public abstract Builder env(List<String> env);
+
+    @JsonProperty("Dir")
+    public abstract Builder dir(String dir);
+
+    @JsonProperty("User")
+    public abstract Builder user(String user);
+
+    @JsonProperty("Groups")
+    public abstract Builder groups(String... groups);
+
+    @JsonProperty("Groups")
+    public abstract Builder groups(List<String> groups);
+
+    @JsonProperty("TTY")
+    public abstract Builder tty(Boolean tty);
+
+    @JsonProperty("Mounts")
+    public abstract Builder mounts(Mount... mounts);
+
+    @JsonProperty("Mounts")
+    public abstract Builder mounts(List<Mount> mounts);
+
+    @JsonProperty("StopGracePeriod")
+    public abstract Builder stopGracePeriod(Long stopGracePeriod);
+
+    public abstract ContainerSpec build();
   }
 
-  public Map<String, String> labels() {
-    return labels;
-  }
-
-  public List<String> command() {
-    return command;
-  }
-
-  public List<String> args() {
-    return args;
-  }
-
-  public List<String> env() {
-    return env;
-  }
-
-  public String dir() {
-    return dir;
-  }
-
-  public String user() {
-    return user;
-  }
-
-  public List<String> groups() {
-    return groups;
-  }
-
-  public Boolean tty() {
-    return tty;
-  }
-
-  public List<Mount> mounts() {
-    return mounts;
-  }
-
-  public Long stopGracePeriod() {
-    return stopGracePeriod;
-  }
-
-  public static class Builder {
-
-    private ContainerSpec spec = new ContainerSpec();
-
-    public Builder withImage(String image) {
-      spec.image = image;
-      return this;
-    }
-
-    public Builder withLabel(String label, String value) {
-      if (spec.labels == null) {
-        spec.labels = new HashMap<String, String>();
-      }
-      spec.labels.put(label, value);
-      return this;
-    }
-
-    public Builder withCommands(String... commands) {
-      if (commands != null && commands.length > 0) {
-        spec.command = ImmutableList.copyOf(commands);
-      }
-      return this;
-    }
-
-    public Builder withCommands(List<String> commands) {
-      if (commands != null && !commands.isEmpty()) {
-        spec.command = ImmutableList.copyOf(commands);
-      }
-      return this;
-    }
-
-    public Builder withArgs(String... args) {
-      if (args != null && args.length > 0) {
-        spec.args = ImmutableList.copyOf(args);
-      }
-      return this;
-    }
-
-    public Builder withArgs(List<String> args) {
-      if (args != null && !args.isEmpty()) {
-        spec.args = ImmutableList.copyOf(args);
-      }
-      return this;
-    }
-
-    public Builder withEnv(String... env) {
-      if (env != null && env.length > 0) {
-        spec.env = ImmutableList.copyOf(env);
-      }
-      return this;
-    }
-
-    public Builder withEnv(List<String> env) {
-      spec.env = ImmutableList.copyOf(env);
-      return this;
-    }
-
-    public Builder withDir(String dir) {
-      spec.dir = dir;
-      return this;
-    }
-
-    public Builder withUser(String user) {
-      spec.user = user;
-      return this;
-    }
-
-    public Builder withGroups(String... groups) {
-      if (groups != null && groups.length > 0) {
-        spec.groups = ImmutableList.copyOf(groups);
-      }
-      return this;
-    }
-
-    public Builder withGroups(List<String> groups) {
-      if (groups != null && !groups.isEmpty()) {
-        spec.groups = ImmutableList.copyOf(groups);
-      }
-      return this;
-    }
-
-    public Builder withTty() {
-      spec.tty = true;
-      return this;
-    }
-
-    public Builder withTty(boolean tty) {
-      spec.tty = tty;
-      return this;
-    }
-
-    public Builder withMounts(Mount... mounts) {
-      if (mounts != null && mounts.length > 0) {
-        spec.mounts = ImmutableList.copyOf(mounts);
-      }
-      return this;
-    }
-
-    public Builder withMounts(List<Mount> mounts) {
-      if (mounts != null && !mounts.isEmpty()) {
-        spec.mounts = ImmutableList.copyOf(mounts);
-      }
-      return this;
-    }
-
-    public Builder withStopGracePeriod(long stopGracePeriod) {
-      spec.stopGracePeriod = stopGracePeriod;
-      return this;
-    }
-
-    public ContainerSpec build() {
-      return spec;
-    }
-  }
-
+  @NotNull
   public static ContainerSpec.Builder builder() {
-    return new ContainerSpec.Builder();
+    return new AutoValue_ContainerSpec.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
+  @JsonCreator
+  static ContainerSpec create(
+      @JsonProperty("Image") final String image,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("Command") final List<String> command,
+      @JsonProperty("Args") final List<String> args,
+      @JsonProperty("Env") final List<String> env,
+      @JsonProperty("Dir") final String dir,
+      @JsonProperty("User") final String user,
+      @JsonProperty("Groups") final List<String> groups,
+      @JsonProperty("TTY") final Boolean tty,
+      @JsonProperty("Mounts") final List<Mount> mounts,
+      @JsonProperty("StopGracePeriod") final Long stopGracePeriod) {
+    final Builder builder = builder()
+        .image(image)
+        .command(command)
+        .args(args)
+        .env(env)
+        .dir(dir)
+        .user(user)
+        .groups(groups)
+        .tty(tty)
+        .mounts(mounts)
+        .stopGracePeriod(stopGracePeriod);
+
+    if (labels != null) {
+      builder.labels(labels);
     }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
 
-    final ContainerSpec that = (ContainerSpec) obj;
-
-    return Objects.equals(this.image, that.image)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.command, that.command)
-           && Objects.equals(this.args, that.args)
-           && Objects.equals(this.env, that.env)
-           && Objects.equals(this.dir, that.dir)
-           && Objects.equals(this.user, that.user)
-           && Objects.equals(this.groups, that.groups)
-           && Objects.equals(this.tty, that.tty)
-           && Objects.equals(this.mounts, that.mounts)
-           && Objects.equals(this.stopGracePeriod, that.stopGracePeriod);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(image, labels, command, args, env, dir, user, groups, tty, mounts,
-                        stopGracePeriod);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("image", image).add("labels", labels)
-        .add("command", command).add("args", args).add("env", env).add("dir", dir)
-        .add("user", user).add("groups", groups).add("tty", tty).add("mounts", mounts)
-        .add("stopGracePeriod", stopGracePeriod).toString();
+    return builder.build();
   }
 }

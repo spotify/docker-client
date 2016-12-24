@@ -24,62 +24,34 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class UpdateConfig {
+public abstract class UpdateConfig {
 
+  @NotNull
   @JsonProperty("Parallelism")
-  private Long parallelism;
+  public abstract Long parallelism();
 
+  @NotNull
   @JsonProperty("Delay")
-  private Long delay;
+  public abstract Long delay();
 
+  @NotNull
   @JsonProperty("FailureAction")
-  private String failureAction;
+  public abstract String failureAction();
 
-  public Long parallelism() {
-    return parallelism;
-  }
 
-  public Long delay() {
-    return delay;
-  }
-
-  public String failureAction() {
-    return failureAction;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final UpdateConfig that = (UpdateConfig) obj;
-
-    return Objects.equals(this.parallelism, that.parallelism)
-           && Objects.equals(this.delay, that.delay)
-           && Objects.equals(this.failureAction, that.failureAction);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(parallelism, delay, failureAction);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("parallelism", parallelism)
-        .add("delay", delay)
-        .add("failureAction", failureAction)
-        .toString();
+  @JsonCreator
+  static UpdateConfig create(
+      @JsonProperty("Parallelism") final Long parallelism,
+      @JsonProperty("Delay") final Long delay,
+      @JsonProperty("FailureAction") final String failureAction) {
+    return new AutoValue_UpdateConfig(parallelism, delay, failureAction);
   }
 }

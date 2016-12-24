@@ -24,86 +24,58 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ServiceMode {
+public abstract class ServiceMode {
 
+  @NotNull
   @JsonProperty("Replicated")
-  private ReplicatedService replicated;
+  public abstract ReplicatedService replicated();
 
+  @Nullable
   @JsonProperty("Global")
-  private GlobalService global;
+  public abstract GlobalService global();
 
-  public ReplicatedService replicated() {
-    return replicated;
-  }
-
-  public GlobalService global() {
-    return global;
-  }
-
-  public static ServiceMode withReplicas(long replicas) {
+  public static ServiceMode withReplicas(final long replicas) {
     return ServiceMode.builder()
-        .withReplicatedService(ReplicatedService.builder().withReplicas(replicas).build())
+        .replicated(ReplicatedService.builder().replicas(replicas).build())
         .build();
   }
 
   public static ServiceMode withGlobal() {
-    return ServiceMode.builder().withGlobalService(new GlobalService()).build();
+    return ServiceMode.builder().global(GlobalService.builder().build()).build();
   }
 
-  public static class Builder {
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-    private ServiceMode mode = new ServiceMode();
+    @JsonProperty("Replicated")
+    public abstract Builder replicated(ReplicatedService replicated);
 
-    public Builder withReplicatedService(ReplicatedService replicated) {
-      mode.replicated = replicated;
-      return this;
-    }
+    @JsonProperty("Global")
+    public abstract Builder global(GlobalService global);
 
-    public Builder withGlobalService(GlobalService global) {
-      mode.global = global;
-      return this;
-    }
-
-    public ServiceMode build() {
-      return mode;
-    }
+    public abstract ServiceMode build();
   }
 
   public static ServiceMode.Builder builder() {
-    return new ServiceMode.Builder();
+    return new AutoValue_ServiceMode.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ServiceMode that = (ServiceMode) obj;
-
-    return Objects.equals(this.replicated, that.replicated)
-           && Objects.equals(this.global, that.global);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(replicated, global);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("replicated", replicated)
-        .add("global", global)
-        .toString();
+  @JsonCreator
+  static ServiceMode create(
+      @JsonProperty("Replicated") final ReplicatedService replicated,
+      @JsonProperty("Global") final GlobalService global) {
+    return builder()
+        .replicated(replicated)
+        .global(global)
+        .build();
   }
 }

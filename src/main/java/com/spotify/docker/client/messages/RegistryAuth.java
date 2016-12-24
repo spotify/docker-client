@@ -29,103 +29,59 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 
+import com.google.common.base.MoreObjects;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.Objects;
 
 import org.glassfish.jersey.internal.util.Base64;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class AuthConfig {
+public abstract class RegistryAuth {
 
-  private static final Logger log = LoggerFactory.getLogger(AuthConfig.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RegistryAuth.class);
 
   @SuppressWarnings("FieldCanBeLocal")
   // ObjectMapper is thread-safe and this saves us from having instantiate it every time
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  @Nullable
   @JsonProperty("Username")
-  private String username;
+  public abstract String username();
 
+  @Nullable
   @JsonProperty("Password")
-  private String password;
+  public abstract String password();
 
+  @Nullable
   @JsonProperty("Email")
-  private String email;
+  public abstract String email();
 
+  @NotNull
   @JsonProperty("ServerAddress")
-  private String serverAddress;
-
-  @SuppressWarnings("unused")
-  private AuthConfig() {
-  }
-
-  private AuthConfig(final Builder builder) {
-    this.username = builder.username;
-    this.password = builder.password;
-    this.email = builder.email;
-    this.serverAddress = builder.serverAddress;
-  }
-
-  public String username() {
-    return username;
-  }
-
-  public String password() {
-    return password;
-  }
-
-  public String email() {
-    return email;
-  }
-
-  public String serverAddress() {
-    return serverAddress;
-  }
+  public abstract String serverAddress();
 
   @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final AuthConfig that = (AuthConfig) obj;
-
-    return Objects.equals(this.username, that.username)
-           && Objects.equals(this.password, that.password)
-           && Objects.equals(this.email, that.email)
-           && Objects.equals(this.serverAddress, that.serverAddress);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(username, password, email, serverAddress);
-  }
-
-  @Override
-  public String toString() {
+  public final String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("username", username)
+        .add("username", username())
         // don't log the password
-        .add("email", email)
-        .add("serverAddress", serverAddress)
+        .add("email", email())
+        .add("serverAddress", serverAddress())
         .toString();
   }
 
-  public Builder toBuilder() {
-    return new Builder(this);
-  }
+  public abstract Builder toBuilder();
 
   /**
    * This function looks for and parses credentials for logging into Docker registries. We first
@@ -188,10 +144,10 @@ public class AuthConfig {
     final Path dockerCfg = Paths.get(home, ".dockercfg");
 
     if (Files.exists(dockerConfig)) {
-      log.debug("Using configfile: {}", dockerConfig);
+      LOG.debug("Using configfile: {}", dockerConfig);
       return dockerConfig;
     } else if (Files.exists(dockerCfg)) {
-      log.debug("Using configfile: {} ", dockerCfg);
+      LOG.debug("Using configfile: {} ", dockerCfg);
       return dockerCfg;
     } else {
       throw new RuntimeException(
@@ -199,10 +155,10 @@ public class AuthConfig {
     }
   }
 
-  private static AuthConfig.Builder parseDockerConfig(final Path configPath, String serverAddress)
+  private static RegistryAuth.Builder parseDockerConfig(final Path configPath, String serverAddress)
       throws IOException {
     checkNotNull(configPath);
-    final AuthConfig.Builder authBuilder = AuthConfig.builder();
+    final RegistryAuth.Builder authBuilder = RegistryAuth.builder();
     final JsonNode authJson = extractAuthJson(configPath);
 
     if (isNullOrEmpty(serverAddress)) {
@@ -212,8 +168,8 @@ public class AuthConfig {
       }
     } else {
       if (!authJson.has(serverAddress)) {
-        log.error("Could not find auth config for {}. Returning empty builder", serverAddress);
-        return AuthConfig.builder().serverAddress(serverAddress);
+        LOG.error("Could not find auth config for {}. Returning empty builder", serverAddress);
+        return RegistryAuth.builder().serverAddress(serverAddress);
       }
     }
 
@@ -227,11 +183,11 @@ public class AuthConfig {
         authBuilder.username(authParams[0].trim());
         authBuilder.password(authParams[1].trim());
       } else {
-        log.warn("Failed to parse auth string for {}", serverAddress);
+        LOG.warn("Failed to parse auth string for {}", serverAddress);
         return authBuilder;
       }
     } else {
-      log.warn("Could not find auth field for {}", serverAddress);
+      LOG.warn("Could not find auth field for {}", serverAddress);
       return authBuilder;
     }
 
@@ -253,65 +209,22 @@ public class AuthConfig {
   }
 
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_RegistryAuth.Builder()
+        // Default to the public Docker registry.
+        .serverAddress("https://index.docker.io/v1/");
   }
 
-  public static class Builder {
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-    private String username;
-    private String password;
-    private String email;
-    // Default to the public Docker registry.
-    private String serverAddress = "https://index.docker.io/v1/";
+    public abstract Builder username(@NotNull final String username);
 
-    private Builder() {
-    }
+    public abstract Builder password(@NotNull final String password);
 
-    private Builder(final AuthConfig config) {
-      this.username = config.username;
-      this.password = config.password;
-      this.email = config.email;
-      this.serverAddress = config.serverAddress;
-    }
+    public abstract Builder email(@NotNull final String email);
 
-    public Builder username(final String username) {
-      this.username = username;
-      return this;
-    }
+    public abstract Builder serverAddress(final String serverAddress);
 
-    public String username() {
-      return username;
-    }
-
-    public Builder password(final String password) {
-      this.password = password;
-      return this;
-    }
-
-    public String password() {
-      return password;
-    }
-
-    public Builder email(final String email) {
-      this.email = email;
-      return this;
-    }
-
-    public String email() {
-      return email;
-    }
-
-    public Builder serverAddress(final String serverAddress) {
-      this.serverAddress = serverAddress;
-      return this;
-    }
-
-    public String serverAddress() {
-      return serverAddress;
-    }
-
-    public AuthConfig build() {
-      return new AuthConfig(this);
-    }
+    public abstract RegistryAuth build();
   }
 }

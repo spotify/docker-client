@@ -24,46 +24,24 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Placement {
+public abstract class Placement {
 
+  @NotNull
   @JsonProperty("Constraints")
-  private ImmutableList<String> constraints;
+  public abstract ImmutableList<String> constraints();
 
-  public List<String> constraints() {
-    return constraints;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Placement that = (Placement) obj;
-
-    return Objects.equals(this.constraints, that.constraints);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(constraints);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("constraints", constraints)
-        .toString();
+  @JsonCreator
+  static Placement create(@JsonProperty("Constraints") final List<String> constraints) {
+    return new AutoValue_Placement(ImmutableList.copyOf(constraints));
   }
 }

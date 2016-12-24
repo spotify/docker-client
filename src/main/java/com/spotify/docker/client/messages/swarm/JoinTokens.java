@@ -24,51 +24,28 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class JoinTokens {
+public abstract class JoinTokens {
 
+  @NotNull
   @JsonProperty("Worker")
-  private String worker;
+  public abstract String worker();
 
+  @NotNull
   @JsonProperty("Manager")
-  private String manager;
+  public abstract String manager();
 
-  public String worker() {
-    return worker;
-  }
-
-  public String manager() {
-    return manager;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final JoinTokens that = (JoinTokens) obj;
-
-    return Objects.equals(this.worker, that.worker)
-           && Objects.equals(this.manager, that.manager);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(worker, manager);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("worker", worker).add("manager", manager)
-        .toString();
+  @JsonCreator
+  static JoinTokens create(
+      @JsonProperty("Worker") final String worker,
+      @JsonProperty("Manager") final String manager) {
+    return new AutoValue_JoinTokens(worker, manager);
   }
 }

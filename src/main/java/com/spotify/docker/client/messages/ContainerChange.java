@@ -24,61 +24,48 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerChange {
+public abstract class ContainerChange {
 
+  @NotNull
   @JsonProperty("Path")
-  private String path;
+  public abstract String path();
+
+  @NotNull
   @JsonProperty("Kind")
-  private Integer kind;
+  public abstract Integer kind();
 
-  public String path() {
-    return path;
+  @NotNull
+  public static Builder builder() {
+    return new AutoValue_ContainerChange.Builder();
   }
 
-  public void path(final String path) {
-    this.path = path;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    @JsonProperty("Path")
+    public abstract Builder path(String path);
+
+    @JsonProperty("Kind")
+    public abstract Builder kind(Integer kind);
+
+    public abstract ContainerChange build();
   }
 
-  public Integer kind() {
-    return kind;
-  }
-
-  public void kind(final Integer kind) {
-    this.kind = kind;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerChange that = (ContainerChange) obj;
-
-    return Objects.equals(this.path, that.path)
-           && Objects.equals(this.kind, that.kind);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(path, kind);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("path", path)
-        .add("kind", kind)
-        .toString();
+  @JsonCreator
+  static ContainerChange create(
+      @JsonProperty("Path") final String path,
+      @JsonProperty("Kind") final Integer kind) {
+    return builder()
+        .path(path)
+        .kind(kind)
+        .build();
   }
 }

@@ -24,53 +24,33 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class IpamOptions {
+public abstract class IpamOptions {
 
+  @NotNull
   @JsonProperty("Driver")
-  private Driver driver;
+  public abstract Driver driver();
 
+  @Nullable
   @JsonProperty("Configs")
-  private ImmutableList<IpamConfig> configs;
+  public abstract ImmutableList<IpamConfig> configs();
 
-  public Driver driver() {
-    return driver;
-  }
-
-  public List<IpamConfig> configs() {
-    return configs;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final IpamOptions that = (IpamOptions) obj;
-
-    return Objects.equals(this.driver, that.driver)
-           && Objects.equals(this.configs, that.configs);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(driver, configs);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("driver", driver).add("configs", configs)
-        .toString();
+  @JsonCreator
+  static IpamOptions create(
+      @JsonProperty("Driver") final Driver driver,
+      @JsonProperty("Configs") final List<IpamConfig> configs) {
+    final ImmutableList<IpamConfig> configsT = configs == null
+                                               ? null : ImmutableList.copyOf(configs);
+    return new AutoValue_IpamOptions(driver, configsT);
   }
 }

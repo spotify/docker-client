@@ -24,101 +24,59 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class NetworkStats {
+public abstract class NetworkStats {
 
+  @NotNull
   @JsonProperty("rx_bytes")
-  private Long rxBytes;
+  public abstract Long rxBytes();
+
+  @NotNull
   @JsonProperty("rx_packets")
-  private Long rxPackets;
+  public abstract Long rxPackets();
+
+  @NotNull
   @JsonProperty("rx_dropped")
-  private Long rxDropped;
+  public abstract Long rxDropped();
+
+  @NotNull
   @JsonProperty("rx_errors")
-  private Long rxErrors;
+  public abstract Long rxErrors();
+
+  @NotNull
   @JsonProperty("tx_bytes")
-  private Long txBytes;
+  public abstract Long txBytes();
+
+  @NotNull
   @JsonProperty("tx_packets")
-  private Long txPackets;
+  public abstract Long txPackets();
+
+  @NotNull
   @JsonProperty("tx_dropped")
-  private Long txDropped;
+  public abstract Long txDropped();
+
+  @NotNull
   @JsonProperty("tx_errors")
-  private Long txErrors;
+  public abstract Long txErrors();
 
-  public Long rxBytes() {
-    return rxBytes;
-  }
-
-  public Long rxPackets() {
-    return rxPackets;
-  }
-
-  public Long rxDropped() {
-    return rxDropped;
-  }
-
-  public Long rxErrors() {
-    return rxErrors;
-  }
-
-  public Long txBytes() {
-    return txBytes;
-  }
-
-  public Long txPackets() {
-    return txPackets;
-  }
-
-  public Long txDropped() {
-    return txDropped;
-  }
-
-  public Long txErrors() {
-    return txErrors;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final NetworkStats that = (NetworkStats) obj;
-
-    return Objects.equals(this.rxBytes, that.rxBytes)
-           && Objects.equals(this.rxPackets, that.rxPackets)
-           && Objects.equals(this.rxDropped, that.rxDropped)
-           && Objects.equals(this.rxErrors, that.rxErrors)
-           && Objects.equals(this.txBytes, that.txBytes)
-           && Objects.equals(this.txPackets, that.txPackets)
-           && Objects.equals(this.txDropped, that.txDropped)
-           && Objects.equals(this.txErrors, that.txErrors);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(rxBytes, rxPackets, rxDropped, rxErrors,
-                        txBytes, txPackets, txDropped, txErrors);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("rxBytes", rxBytes)
-        .add("rxDropped", rxDropped)
-        .add("rxErrors", rxErrors)
-        .add("rxPackets", rxPackets)
-        .add("txBytes", txBytes)
-        .add("txDropped", txDropped)
-        .add("txErrors", txErrors)
-        .add("txPackets", txPackets)
-        .toString();
+  @JsonCreator
+  static NetworkStats create(
+      @JsonProperty("rx_bytes") final Long rxBytes,
+      @JsonProperty("rx_packets") final Long rxPackets,
+      @JsonProperty("rx_dropped") final Long rxDropped,
+      @JsonProperty("rx_errors") final Long rxErrors,
+      @JsonProperty("tx_bytes") final Long txBytes,
+      @JsonProperty("tx_packets") final Long txPackets,
+      @JsonProperty("tx_dropped") final Long txDropped,
+      @JsonProperty("tx_errors") final Long txErrors) {
+    return new AutoValue_NetworkStats(rxBytes, rxPackets, rxDropped, rxErrors, txBytes, txPackets,
+        txDropped, txErrors);
   }
 }

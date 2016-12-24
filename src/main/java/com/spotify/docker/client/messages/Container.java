@@ -24,46 +24,76 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Container {
+public abstract class Container {
 
+  @NotNull
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
+  @NotNull
   @JsonProperty("Names")
-  private ImmutableList<String> names;
+  public abstract ImmutableList<String> names();
+
+  @NotNull
   @JsonProperty("Image")
-  private String image;
+  public abstract String image();
+
+  @Nullable
   @JsonProperty("ImageID")
-  private String imageId;
+  public abstract String imageId();
+
+  @NotNull
   @JsonProperty("Command")
-  private String command;
+  public abstract String command();
+
+  @NotNull
   @JsonProperty("Created")
-  private Long created;
+  public abstract Long created();
+
+  @Nullable
   @JsonProperty("State")
-  private String state;
+  public abstract String state();
+
+  @NotNull
   @JsonProperty("Status")
-  private String status;
+  public abstract String status();
+
+  @NotNull
   @JsonProperty("Ports")
-  private ImmutableList<PortMapping> ports;
+  public abstract ImmutableList<PortMapping> ports();
+
+  @Nullable
   @JsonProperty("Labels")
-  private ImmutableMap<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
+
+  @Nullable
   @JsonProperty("SizeRw")
-  private Long sizeRw;
+  public abstract Long sizeRw();
+
+  @Nullable
   @JsonProperty("SizeRootFs")
-  private Long sizeRootFs;
+  public abstract Long sizeRootFs();
+
+  @Nullable
   @JsonProperty("NetworkSettings")
-  private NetworkSettings networkSettings;
+  public abstract NetworkSettings networkSettings();
+
+  @Nullable
   @JsonProperty("Mounts")
-  private ImmutableList<ContainerMount> mounts;
+  public abstract ImmutableList<ContainerMount> mounts();
 
   /**
    * Returns port information the way that <code>docker ps</code> does.
@@ -77,191 +107,77 @@ public class Container {
    */
   public String portsAsString() {
     final StringBuilder sb = new StringBuilder();
-    if (this.ports != null) {
-      for (final PortMapping port : this.ports) {
+    if (ports() != null) {
+      for (final PortMapping port : ports()) {
         if (sb.length() > 0) {
           sb.append(", ");
         }
-        if (port.ip != null) {
-          sb.append(port.ip).append(":");
+        if (port.ip() != null) {
+          sb.append(port.ip()).append(":");
         }
-        if (port.publicPort > 0) {
-          sb.append(port.privatePort).append("->").append(port.publicPort);
+        if (port.publicPort() > 0) {
+          sb.append(port.privatePort()).append("->").append(port.publicPort());
         } else {
-          sb.append(port.privatePort);
+          sb.append(port.privatePort());
         }
-        sb.append("/").append(port.type);
+        sb.append("/").append(port.type());
       }
     }
 
     return sb.toString();
   }
 
-  public String id() {
-    return id;
+  @JsonCreator
+  static Container create(
+      @JsonProperty("Id") final String id,
+      @JsonProperty("Names") final List<String> names,
+      @JsonProperty("Image") final String image,
+      @JsonProperty("ImageID") final String imageId,
+      @JsonProperty("Command") final String command,
+      @JsonProperty("Created") final Long created,
+      @JsonProperty("State") final String state,
+      @JsonProperty("Status") final String status,
+      @JsonProperty("Ports") final List<PortMapping> ports,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("SizeRw") final Long sizeRw,
+      @JsonProperty("SizeRootFs") final Long sizeRootFs,
+      @JsonProperty("NetworkSettings") final NetworkSettings networkSettings,
+      @JsonProperty("Mounts") final List<ContainerMount> mounts) {
+    final ImmutableMap<String, String> labelsT = labels == null
+                                                 ? null : ImmutableMap.copyOf(labels);
+    final ImmutableList<ContainerMount> mountsT = mounts == null
+                                                  ? null : ImmutableList.copyOf(mounts);
+    return new AutoValue_Container(id, ImmutableList.copyOf(names), image, imageId, command,
+        created, state, status, ImmutableList.copyOf(ports), labelsT, sizeRw,
+        sizeRootFs, networkSettings, mountsT);
   }
 
-  public List<String> names() {
-    return names;
-  }
+  @AutoValue
+  public abstract static class PortMapping {
 
-  public String image() {
-    return image;
-  }
-
-  public String imageId() {
-    return imageId;
-  }
-
-  public String command() {
-    return command;
-  }
-
-  public Long created() {
-    return created;
-  }
-
-  public String state() {
-    return state;
-  }
-
-  public String status() {
-    return status;
-  }
-
-  public List<PortMapping> ports() {
-    return ports;
-  }
-
-  public Map<String, String> labels() {
-    return labels;
-  }
-
-  public Long sizeRw() {
-    return sizeRw;
-  }
-
-  public Long sizeRootFs() {
-    return sizeRootFs;
-  }
-
-  public NetworkSettings networkSettings() {
-    return networkSettings;
-  }
-
-  public List<ContainerMount> mounts() {
-    return mounts;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Container that = (Container) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.names, that.names)
-           && Objects.equals(this.image, that.image)
-           && Objects.equals(this.imageId, that.imageId)
-           && Objects.equals(this.command, that.command)
-           && Objects.equals(this.created, that.created)
-           && Objects.equals(this.state, that.state)
-           && Objects.equals(this.status, that.status)
-           && Objects.equals(this.ports, that.ports)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.sizeRw, that.sizeRw)
-           && Objects.equals(this.sizeRootFs, that.sizeRootFs)
-           && Objects.equals(this.networkSettings, that.networkSettings)
-           && Objects.equals(this.mounts, that.mounts);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, names, image, command, created, status, ports, labels, sizeRw,
-                        sizeRootFs, imageId);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("image", image)
-        .add("command", command)
-        .add("created", created)
-        .add("state", state)
-        .add("status", status)
-        .add("ports", ports)
-        .add("labels", labels)
-        .add("sizeRw", sizeRw)
-        .add("sizeRootFs", sizeRootFs)
-        .add("imageId", imageId)
-        .add("networkSettings", networkSettings)
-        .add("mounts", mounts)
-        .toString();
-  }
-
-  public static class PortMapping {
-
+    @NotNull
     @JsonProperty("PrivatePort")
-    private int privatePort;
+    public abstract Integer privatePort();
+
+    @NotNull
     @JsonProperty("PublicPort")
-    private int publicPort;
+    public abstract Integer publicPort();
+
+    @NotNull
     @JsonProperty("Type")
-    private String type;
+    public abstract String type();
+
+    @Nullable
     @JsonProperty("IP")
-    private String ip;
+    public abstract String ip();
 
-    public String getIp() {
-      return ip;
-    }
-
-    public int getPrivatePort() {
-      return privatePort;
-    }
-
-    public int getPublicPort() {
-      return publicPort;
-    }
-
-    public String getType() {
-      return type;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final PortMapping that = (PortMapping) obj;
-
-      return Objects.equals(this.privatePort, that.privatePort)
-             && Objects.equals(this.publicPort, that.publicPort)
-             && Objects.equals(this.type, that.type)
-             && Objects.equals(this.ip, that.ip);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(privatePort, publicPort, type, ip);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("privatePort", privatePort)
-          .add("publicPort", publicPort)
-          .add("type", type)
-          .add("ip", ip)
-          .toString();
+    @JsonCreator
+    static PortMapping create(
+        @JsonProperty("PrivatePort") final int privatePort,
+        @JsonProperty("PublicPort") final int publicPort,
+        @JsonProperty("Type") final String type,
+        @JsonProperty("IP") final String ip) {
+      return new AutoValue_Container_PortMapping(privatePort, publicPort, type, ip);
     }
   }
 }

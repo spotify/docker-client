@@ -24,153 +24,91 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
 import java.util.Date;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Service {
+public abstract class Service {
 
+  @NotNull
   @JsonProperty("ID")
-  private String id;
+  public abstract String id();
 
+  @NotNull
   @JsonProperty("Version")
-  private Version version;
+  public abstract Version version();
 
+  @NotNull
   @JsonProperty("CreatedAt")
-  private Date createdAt;
+  public abstract Date createdAt();
 
+  @NotNull
   @JsonProperty("UpdatedAt")
-  private Date updatedAt;
+  public abstract Date updatedAt();
 
+  @NotNull
   @JsonProperty("Spec")
-  private ServiceSpec spec;
+  public abstract ServiceSpec spec();
 
+  @NotNull
   @JsonProperty("Endpoint")
-  private Endpoint endpoint;
+  public abstract Endpoint endpoint();
 
+  @NotNull
   @JsonProperty("UpdateStatus")
-  private UpdateStatus updateStatus;
+  public abstract UpdateStatus updateStatus();
 
-  public String id() {
-    return id;
-  }
-
-  public Version version() {
-    return version;
-  }
-
-  public Date createdAt() {
-    return createdAt == null ? null : new Date(createdAt.getTime());
-  }
-
-  public Date updatedAt() {
-    return updatedAt == null ? null : new Date(updatedAt.getTime());
-  }
-
-  public ServiceSpec spec() {
-    return spec;
-  }
-
-  public Endpoint endpoint() {
-    return endpoint;
-  }
-
-  public UpdateStatus updateStatus() {
-    return updateStatus;
-  }
-
-  public static class Criteria {
-
-    private Criteria(final Builder builder) {
-      this.serviceId = builder.serviceId;
-      this.serviceName = builder.serviceName;
-    }
+  @AutoValue
+  public abstract static class Criteria {
 
     /**
      * Filter by service id.
      */
-    final String serviceId;
+    @Nullable
+    public abstract String serviceId();
 
     /**
      * Filter by service name.
      */
-    final String serviceName;
+    @Nullable
+    public abstract String serviceName();
 
-    public String getServiceId() {
-      return serviceId;
-    }
-
-    public String getServiceName() {
-      return serviceName;
-    }
-
+    @NotNull
     public static Builder builder() {
-      return new Builder();
+      return new AutoValue_Service_Criteria.Builder();
     }
 
-    public static class Builder {
+    @AutoValue.Builder
+    public abstract static class Builder {
 
-      private String serviceId;
-      private String serviceName;
+      public abstract Builder serviceId(@NotNull final String serviceId);
 
-      public Builder withServiceId(final String serviceId) {
-        this.serviceId = serviceId;
-        return this;
-      }
+      public abstract Builder serviceName(@NotNull final String serviceName);
 
-      public Builder withServiceName(final String serviceName) {
-        this.serviceName = serviceName;
-        return this;
-      }
-
-      public Criteria build() {
-        return new Criteria(this);
-      }
+      public abstract Criteria build();
     }
   }
 
+  @NotNull
   public static Criteria.Builder find() {
     return Service.Criteria.builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Service that = (Service) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.version, that.version)
-           && Objects.equals(this.createdAt, that.createdAt)
-           && Objects.equals(this.updatedAt, that.updatedAt)
-           && Objects.equals(this.spec, that.spec)
-           && Objects.equals(this.endpoint, that.endpoint)
-           && Objects.equals(this.updateStatus, that.updateStatus);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, version, createdAt, updatedAt, spec, endpoint, updateStatus);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("version", version)
-        .add("createdAt", createdAt)
-        .add("updatedAt", updatedAt)
-        .add("spec", spec)
-        .add("endpoint", endpoint)
-        .add("updateStatus", updateStatus)
-        .toString();
+  @JsonCreator
+  static Service create(
+      @JsonProperty("ID") final String id,
+      @JsonProperty("Version") final Version version,
+      @JsonProperty("CreatedAt") final Date createdAt,
+      @JsonProperty("UpdatedAt") final Date updatedAt,
+      @JsonProperty("Spec") final ServiceSpec spec,
+      @JsonProperty("Endpoint") final Endpoint endpoint,
+      @JsonProperty("UpdateStatus") final UpdateStatus updateStatus) {
+    return new AutoValue_Service(id, version, createdAt, updatedAt, spec, endpoint, updateStatus);
   }
 }

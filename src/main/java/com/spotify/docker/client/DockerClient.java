@@ -34,7 +34,6 @@ import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
-import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -52,6 +51,7 @@ import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
@@ -62,7 +62,6 @@ import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,12 +100,12 @@ public interface DockerClient extends Closeable {
   /**
    * Check auth configuration.
    *
-   * @param authConfig The authentication config needed to pull the image.
+   * @param registryAuth The {@link RegistryAuth} needed to pull the image.
    * @return status code of auth request
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  int auth(final AuthConfig authConfig) throws DockerException, InterruptedException;
+  int auth(final RegistryAuth registryAuth) throws DockerException, InterruptedException;
 
   /**
    * Get docker instance information.
@@ -281,7 +280,7 @@ public interface DockerClient extends Closeable {
    * @param image        the name to assign to the image.
    * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
    *                     file).
-   * @param authConfig   The authentication config needed to pull the image.
+   * @param registryAuth the {@link RegistryAuth} needed to pull the image.
    * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    *
@@ -289,7 +288,7 @@ public interface DockerClient extends Closeable {
    * {@link #create(String, InputStream)} to create a single image from the contents of a tarball.
    */
   @Deprecated
-  void load(String image, InputStream imagePayload, AuthConfig authConfig)
+  void load(String image, InputStream imagePayload, RegistryAuth registryAuth)
       throws DockerException, InterruptedException;
 
 
@@ -300,7 +299,7 @@ public interface DockerClient extends Closeable {
    * @param image        the name to assign to the image.
    * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
    *                     file).
-   * @param authConfig   The authentication config needed to pull the image.
+   * @param registryAuth the {@link RegistryAuth} needed to pull the image.
    * @param handler      The handler to use for processing each progress message received from
    *                     Docker.
    * @throws DockerException      if a server error occurred (500).
@@ -311,7 +310,7 @@ public interface DockerClient extends Closeable {
    *             the contents of a tarball.
    */
   @Deprecated
-  void load(String image, InputStream imagePayload, AuthConfig authConfig,
+  void load(String image, InputStream imagePayload, RegistryAuth registryAuth,
             ProgressHandler handler) throws DockerException, InterruptedException;
 
   /**
@@ -374,17 +373,17 @@ public interface DockerClient extends Closeable {
    *              If an image ID, similarly only that image (and its parents) are returned,
    *              but with the exclusion of the 'repositories' file in the tarball,
    *              as there were no image names referenced.
-   * @param authConfig The authentication config needed to pull the image.
+   * @param registryAuth the {@link RegistryAuth} needed to pull the image.
    * @return the image's .tar stream.
    * @throws DockerException      if a server error occurred (500).
    * @throws IOException          if the server started returning, but an I/O error occurred in the
    *                              context of processing it on the client-side.
    * @throws InterruptedException if the thread is interrupted.
    *
-   * @deprecated AuthConfig is not required. Use {@link #save(String...)}.
+   * @deprecated RegistryAuth is not required. Use {@link #save(String...)}.
    */
   @Deprecated
-  InputStream save(String image, AuthConfig authConfig)
+  InputStream save(String image, RegistryAuth registryAuth)
       throws DockerException, IOException, InterruptedException;
 
   /**
@@ -453,19 +452,19 @@ public interface DockerClient extends Closeable {
    * Pull a private docker container image.
    *
    * @param image      The image to pull.
-   * @param authConfig The authentication config needed to pull the image.
+   * @param registryAuth The {@link RegistryAuth} needed to pull the image.
    * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
    *                            if image was not found (404)
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException;
+  void pull(String image, RegistryAuth registryAuth) throws DockerException, InterruptedException;
 
   /**
    * Pull a private docker container image, using a custom ProgressMessageHandler.
    *
    * @param image      The image to pull.
-   * @param authConfig The authentication config needed to pull the image.
+   * @param registryAuth The {@link RegistryAuth} needed to pull the image.
    * @param handler    The handler to use for processing each progress message received from
    *                   Docker.
    * @throws com.spotify.docker.client.exceptions.ImageNotFoundException
@@ -473,7 +472,7 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  void pull(String image, AuthConfig authConfig, ProgressHandler handler)
+  void pull(String image, RegistryAuth registryAuth, ProgressHandler handler)
       throws DockerException, InterruptedException;
 
   /**
@@ -499,10 +498,10 @@ public interface DockerClient extends Closeable {
    */
   void push(String image, ProgressHandler handler) throws DockerException, InterruptedException;
 
-  void push(final String image, final AuthConfig authconfig)
+  void push(final String image, final RegistryAuth registryAuth)
       throws DockerException, InterruptedException;
 
-  void push(final String image, final ProgressHandler handler, final AuthConfig authConfig)
+  void push(final String image, final ProgressHandler handler, final RegistryAuth registryAuth)
       throws DockerException, InterruptedException;
 
   /**
@@ -1266,12 +1265,12 @@ public interface DockerClient extends Closeable {
    * Create a new service. Only available in Docker API &gt;= 1.24.
    *
    * @param spec       the service spec
-   * @param authConfig the registry authentication configuration
+   * @param registryAuth the registry authentication configuration
    * @return Service creation result with service id.
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  ServiceCreateResponse createService(ServiceSpec spec, AuthConfig authConfig)
+  ServiceCreateResponse createService(ServiceSpec spec, RegistryAuth registryAuth)
           throws DockerException, InterruptedException;
 
   /**

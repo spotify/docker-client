@@ -25,59 +25,29 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class BindOptions {
+public abstract class BindOptions {
 
+  @NotNull
   @JsonProperty("Propagation")
-  private String propagation;
+  public abstract String propagation();
 
-  public String propagation() {
-    return propagation;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    @JsonProperty("Propagation")
+    public abstract Builder propagation(String propagation);
+
+    public abstract BindOptions build();
   }
 
-  public static class Builder {
-
-    private BindOptions bind = new BindOptions();
-
-    public Builder withPropagation(String propagation) {
-      bind.propagation = propagation;
-      return this;
-    }
-
-    public BindOptions build() {
-      return bind;
-    }
-  }
-
+  @NotNull
   public static BindOptions.Builder builder() {
-    return new BindOptions.Builder();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final BindOptions that = (BindOptions) obj;
-
-    return Objects.equals(this.propagation, that.propagation);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(propagation);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("propagation", propagation).toString();
+    return new AutoValue_BindOptions.Builder();
   }
 }

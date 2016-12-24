@@ -24,104 +24,65 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class AttachedNetwork {
+public abstract class AttachedNetwork {
 
+  @Nullable
   @JsonProperty("NetworkID")
-  private String networkId;
+  public abstract String networkId();
+
+  @NotNull
   @JsonProperty("EndpointID")
-  private String endpointId;
+  public abstract String endpointId();
+
+  @NotNull
   @JsonProperty("Gateway")
-  private String gateway;
+  public abstract String gateway();
+
+  @NotNull
   @JsonProperty("IPAddress")
-  private String ipAddress;
+  public abstract String ipAddress();
+
+  @NotNull
   @JsonProperty("IPPrefixLen")
-  private Integer ipPrefixLen;
+  public abstract Integer ipPrefixLen();
+
+  @NotNull
   @JsonProperty("IPv6Gateway")
-  private String ipv6Gateway;
+  public abstract String ipv6Gateway();
+
+  @NotNull
   @JsonProperty("GlobalIPv6Address")
-  private String globalIPv6Address;
+  public abstract String globalIpv6Address();
+
+  @NotNull
   @JsonProperty("GlobalIPv6PrefixLen")
-  private Integer globalIPv6PrefixLen;
+  public abstract Integer globalIPv6PrefixLen();
+
+  @NotNull
   @JsonProperty("MacAddress")
-  private String macAddress;
+  public abstract String macAddress();
 
-  public String networkId() {
-    return networkId;
+  @JsonCreator
+  static AttachedNetwork create(
+      @JsonProperty("NetworkID") final String networkId,
+      @JsonProperty("EndpointID") final String endpointId,
+      @JsonProperty("Gateway") final String gateway,
+      @JsonProperty("IPAddress") final String ipAddress,
+      @JsonProperty("IPPrefixLen") final Integer ipPrefixLen,
+      @JsonProperty("IPv6Gateway") final String ipv6Gateway,
+      @JsonProperty("GlobalIPv6Address") final String globalIpv6Address,
+      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIpv6PrefixLen,
+      @JsonProperty("MacAddress") final String macAddress) {
+    return new AutoValue_AttachedNetwork(networkId, endpointId, gateway, ipAddress, ipPrefixLen,
+        ipv6Gateway, globalIpv6Address, globalIpv6PrefixLen, macAddress);
   }
-
-  public String endpointId() {
-    return endpointId;
-  }
-
-  public String gateway() {
-    return gateway;
-  }
-
-  public String ipAddress() {
-    return ipAddress;
-  }
-
-  public Integer ipPrefixLen() {
-    return ipPrefixLen;
-  }
-
-  public String ipv6Gateway() {
-    return ipv6Gateway;
-  }
-
-  public String globalIPv6Address() {
-    return globalIPv6Address;
-  }
-
-  public Integer globalIPv6PrefixLen() {
-    return globalIPv6PrefixLen;
-  }
-
-  public String macAddress() {
-    return macAddress;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final AttachedNetwork that = (AttachedNetwork) obj;
-
-    return Objects.equals(this.networkId, that.networkId)
-           && Objects.equals(this.endpointId, that.endpointId)
-           && Objects.equals(this.gateway, that.gateway)
-           && Objects.equals(this.ipAddress, that.ipAddress)
-           && Objects.equals(this.ipPrefixLen, that.ipPrefixLen)
-           && Objects.equals(this.ipv6Gateway, that.ipv6Gateway)
-           && Objects.equals(this.globalIPv6Address, that.globalIPv6Address)
-           && Objects.equals(this.globalIPv6PrefixLen, that.globalIPv6PrefixLen)
-           && Objects.equals(this.macAddress, that.macAddress);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(networkId, endpointId, gateway, ipAddress, ipPrefixLen, ipv6Gateway,
-                        globalIPv6Address, globalIPv6PrefixLen, macAddress);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("networkID", networkId)
-        .add("endpointID", endpointId).add("gateway", gateway).add("ipAddress", ipAddress)
-        .add("ipPrefixLen", ipPrefixLen).add("ipv6Gateway", ipv6Gateway)
-        .add("globalIPv6Address", globalIPv6Address).add("globalIPv6PrefixLen", globalIPv6PrefixLen)
-        .add("macAddress", macAddress).toString();
-  }
-
 }

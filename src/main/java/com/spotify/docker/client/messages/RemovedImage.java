@@ -20,75 +20,48 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class RemovedImage {
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class RemovedImage {
 
-  private final String imageId;
-  private final Type type;
+  @NotNull
+  public abstract Type type();
 
-  public RemovedImage(@JsonProperty("Untagged") final String untagged,
-                      @JsonProperty("Deleted") final String deleted) {
+  @Nullable
+  public abstract String imageId();
+
+  @JsonCreator
+  public static RemovedImage create(
+      @JsonProperty("Untagged") final String untagged,
+      @JsonProperty("Deleted") final String deleted) {
     if (untagged != null) {
-      this.type = Type.UNTAGGED;
-      this.imageId = untagged;
+      return new AutoValue_RemovedImage(Type.UNTAGGED, untagged);
     } else if (deleted != null) {
-      this.type = Type.DELETED;
-      this.imageId = deleted;
+      return new AutoValue_RemovedImage(Type.DELETED, deleted);
     } else {
-      this.type = Type.UNKNOWN;
-      this.imageId = null;
+      return new AutoValue_RemovedImage(Type.UNKNOWN, null);
     }
   }
 
-  public RemovedImage(Type type, String imageId) {
-    this.type = type;
-    this.imageId = imageId;
+  public static RemovedImage create(final Type type, final String imageId) {
+    return new AutoValue_RemovedImage(type, imageId);
   }
 
-  public String imageId() {
-    return imageId;
-  }
-
-  public Type type() {
-    return type;
-  }
-
-  public static enum Type {
+  public enum Type {
     UNTAGGED,
     DELETED,
     UNKNOWN
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final RemovedImage that = (RemovedImage) obj;
-
-    return Objects.equals(this.type, that.type)
-           && Objects.equals(this.imageId, that.imageId);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(imageId, type);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("type", type)
-        .add("imageId", imageId)
-        .toString();
   }
 }
 

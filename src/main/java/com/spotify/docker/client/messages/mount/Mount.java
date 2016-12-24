@@ -25,130 +25,61 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Mount {
+public abstract class Mount {
 
+  @NotNull
   @JsonProperty("Type")
-  private String type;
+  public abstract String type();
 
+  @NotNull
   @JsonProperty("Source")
-  private String source;
+  public abstract String source();
 
+  @NotNull
   @JsonProperty("Target")
-  private String target;
+  public abstract String target();
 
+  @NotNull
   @JsonProperty("ReadOnly")
-  private Boolean readOnly;
+  public abstract Boolean readOnly();
 
+  @NotNull
   @JsonProperty("BindOptions")
-  private BindOptions bindOptions;
+  public abstract BindOptions bindOptions();
 
+  @NotNull
   @JsonProperty("VolumeOptions")
-  private VolumeOptions volumeOptions;
+  public abstract VolumeOptions volumeOptions();
 
-  public String type() {
-    return type;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    @JsonProperty("Type")
+    public abstract Builder type(String type);
+
+    @JsonProperty("Source")
+    public abstract Builder source(String source);
+
+    @JsonProperty("Target")
+    public abstract Builder target(String target);
+
+    public abstract Builder readOnly(Boolean readOnly);
+
+    public abstract Builder bindOptions(BindOptions bindOptions);
+
+    public abstract Builder volumeOptions(VolumeOptions volumeOptions);
+
+    public abstract Mount build();
   }
 
-  public String source() {
-    return source;
-  }
-
-  public String target() {
-    return target;
-  }
-
-  public Boolean readOnly() {
-    return readOnly;
-  }
-
-  public BindOptions bindOptions() {
-    return bindOptions;
-  }
-
-  public VolumeOptions volumeOptions() {
-    return volumeOptions;
-  }
-
-  public static class Builder {
-
-    private Mount mount = new Mount();
-
-    public Builder withType(String type) {
-      mount.type = type;
-      return this;
-    }
-
-    public Builder withSource(String source) {
-      mount.source = source;
-      return this;
-    }
-
-    public Builder withTarget(String target) {
-      mount.target = target;
-      return this;
-    }
-
-    public Builder makeReadOnly() {
-      mount.readOnly = true;
-      return this;
-    }
-
-    public Builder makeReadOnly(boolean readOnly) {
-      mount.readOnly = readOnly;
-      return this;
-    }
-
-    public Builder withBindOptions(BindOptions bindOptions) {
-      mount.bindOptions = bindOptions;
-      return this;
-    }
-
-    public Builder withVolumeOptions(VolumeOptions volumeOptions) {
-      mount.volumeOptions = volumeOptions;
-      return this;
-    }
-
-    public Mount build() {
-      return mount;
-    }
-  }
-
+  @NotNull
   public static Mount.Builder builder() {
-    return new Mount.Builder();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Mount that = (Mount) obj;
-
-    return Objects.equals(this.type, that.type) && Objects.equals(this.source, that.source)
-           && Objects.equals(this.target, that.target)
-           && Objects.equals(this.readOnly, that.readOnly)
-           && Objects.equals(this.bindOptions, that.bindOptions)
-           && Objects.equals(this.volumeOptions, that.volumeOptions);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(type, source, target, readOnly, bindOptions, volumeOptions);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("type", type).add("source", source)
-        .add("target", target).add("readOnly", readOnly).add("bindOptions", bindOptions)
-        .add("volumeOptions", volumeOptions).toString();
+    return new AutoValue_Mount.Builder();
   }
 }

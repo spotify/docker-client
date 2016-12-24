@@ -24,154 +24,90 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Network {
+public abstract class Network {
 
+  @NotNull
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
+
+  @NotNull
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
+  @NotNull
   @JsonProperty("Scope")
-  private String scope;
+  public abstract String scope();
+
+  @NotNull
   @JsonProperty("Driver")
-  private String driver;
+  public abstract String driver();
+
+  @NotNull
   @JsonProperty("IPAM")
-  private Ipam ipam;
+  public abstract Ipam ipam();
+
+  @Nullable
   @JsonProperty("Containers")
-  Map<String, Container> containers;
+  public abstract ImmutableMap<String, Container> containers();
+
+  @NotNull
   @JsonProperty("Options")
-  private Map<String, String> options;
+  public abstract ImmutableMap<String, String> options();
 
-  public String name() {
-    return name;
+  @JsonCreator
+  static Network create(
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Id") final String id,
+      @JsonProperty("Scope") final String scope,
+      @JsonProperty("Driver") final String driver,
+      @JsonProperty("IPAM") final Ipam ipam,
+      @JsonProperty("Containers") final Map<String, Container> containers,
+      @JsonProperty("Options") final Map<String, String> options) {
+    final ImmutableMap<String, Container> containersCopy = containers == null
+                                                           ? null : ImmutableMap.copyOf(containers);
+    final ImmutableMap<String, String> optionsCopy = options == null
+                                                     ? null : ImmutableMap.copyOf(options);
+    return new AutoValue_Network(name, id, scope, driver, ipam, containersCopy, optionsCopy);
   }
 
-  public String id() {
-    return id;
-  }
-
-  public String scope() {
-    return scope;
-  }
-
-  public String driver() {
-    return driver;
-  }
-
-  public Map<String, String> options() {
-    return options;
-  }
-
-  public Map<String, Container> containers() {
-    return containers;
-  }
-
-  public Ipam ipam() {
-    return ipam;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Network that = (Network) obj;
-
-    return Objects.equals(this.name, that.name)
-           && Objects.equals(this.id, that.id)
-           && Objects.equals(this.scope, that.scope)
-           && Objects.equals(this.driver, that.driver)
-           && Objects.equals(this.ipam, that.ipam)
-           && Objects.equals(this.containers, that.containers)
-           && Objects.equals(this.options, that.options);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, id, scope, driver, ipam, containers, options);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("id", id)
-        .add("scope", scope)
-        .add("driver", driver)
-        .add("ipam", ipam)
-        .add("containers", containers)
-        .add("options", options)
-        .toString();
-  }
-
+  @AutoValue
   @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-  public static class Container {
+  public abstract static class Container {
 
+    @NotNull
     @JsonProperty("EndpointID")
-    private String endpointId;
+    public abstract String endpointId();
+
+    @NotNull
     @JsonProperty("MacAddress")
-    private String macAddress;
+    public abstract String macAddress();
+
+    @NotNull
     @JsonProperty("IPv4Address")
-    private String ipv4address;
+    public abstract String ipv4Address();
+
+    @NotNull
     @JsonProperty("IPv6Address")
-    private String ipv6address;
+    public abstract String ipv6Address();
 
-    public String endpointId() {
-      return endpointId;
-    }
-
-    public String macAddress() {
-      return macAddress;
-    }
-
-    public String ipv4address() {
-      return ipv4address;
-    }
-
-    public String ipv6address() {
-      return ipv6address;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final Container that = (Container) obj;
-
-      return Objects.equals(this.endpointId, that.endpointId)
-             && Objects.equals(this.macAddress, that.macAddress)
-             && Objects.equals(this.ipv4address, that.ipv4address)
-             && Objects.equals(this.ipv6address, that.ipv6address);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(endpointId, macAddress, ipv4address, ipv6address);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("endpointId", endpointId)
-          .add("macAddress", macAddress)
-          .add("ipv4address", ipv4address)
-          .add("ipv6address", ipv6address)
-          .toString();
+    @JsonCreator
+    static Container create(
+        @JsonProperty("EndpointID") final String endpointId,
+        @JsonProperty("MacAddress") final String macAddress,
+        @JsonProperty("IPv4Address") final String ipv4Address,
+        @JsonProperty("IPv6Address") final String ipv6Address) {
+      return new AutoValue_Network_Container(endpointId, macAddress, ipv4Address, ipv6Address);
     }
   }
 }

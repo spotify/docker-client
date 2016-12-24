@@ -24,165 +24,95 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Volume {
+public abstract class Volume {
 
+  @Nullable
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
+
+  @Nullable
   @JsonProperty("Driver")
-  private String driver;
+  public abstract String driver();
+
+  @Nullable
   @JsonProperty("DriverOpts")
-  private ImmutableMap<String, String> driverOpts;
+  public abstract ImmutableMap<String, String> driverOpts();
+
+  @Nullable
   @JsonProperty("Labels")
-  private ImmutableMap<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
+
+  @Nullable
   @JsonProperty("Mountpoint")
-  private String mountpoint;
+  public abstract String mountpoint();
+
+  @Nullable
   @JsonProperty("Scope")
-  private String scope;
+  public abstract String scope();
+
+  @Nullable
   @JsonProperty("Status")
-  private ImmutableMap<String, String> status;
+  public abstract ImmutableMap<String, String> status();
 
-  private Volume() {
-  }
-
-  private Volume(final Builder builder) {
-    this.name = builder.name;
-    this.driver = builder.driver;
-    this.driverOpts = builder.driverOpts;
-    this.labels = builder.labels;
-    this.mountpoint = builder.mountpoint;
-    this.scope = builder.scope;
+  @JsonCreator
+  static Volume create(
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Driver") final String driver,
+      @JsonProperty("DriverOpts") final Map<String, String> driverOpts,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("Mountpoint") final String mountpoint,
+      @JsonProperty("Scope") final String scope,
+      @JsonProperty("Status") final Map<String, String> status) {
+    return builder()
+        .name(name)
+        .driver(driver)
+        .driverOpts(driverOpts)
+        .labels(labels)
+        .mountpoint(mountpoint)
+        .scope(scope)
+        .status(status)
+        .build();
   }
 
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_Volume.Builder();
   }
 
-  public Builder toBuilder() {
-    return new Builder(this);
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public String name() {
-    return name;
-  }
+    @JsonProperty("Name")
+    public abstract Builder name(@NotNull String name);
 
-  public String driver() {
-    return driver;
-  }
+    @JsonProperty("Driver")
+    public abstract Builder driver(@NotNull String driver);
 
-  public Map<String, String> driverOpts() {
-    return driverOpts;
-  }
+    @JsonProperty("DriverOpts")
+    public abstract Builder driverOpts(@NotNull Map<String, String> driverOpts);
 
-  public Map<String, String> labels() {
-    return labels;
-  }
+    @JsonProperty("Labels")
+    public abstract Builder labels(@NotNull Map<String, String> labels);
 
-  public String mountpoint() {
-    return mountpoint;
-  }
+    @JsonProperty("MountPoint")
+    public abstract Builder mountpoint(@NotNull String mountpoint);
 
-  public String scope() {
-    return scope;
-  }
+    @JsonProperty("Scope")
+    public abstract Builder scope(@NotNull String scope);
 
-  public Map<String, String> status() {
-    return status;
-  }
+    @JsonProperty("Status")
+    public abstract Builder status(@NotNull Map<String, String> status);
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Volume that = (Volume) obj;
-
-    return Objects.equals(this.name, that.name)
-           && Objects.equals(this.driver, that.driver)
-           && Objects.equals(this.driverOpts, that.driverOpts)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.mountpoint, that.mountpoint)
-           && Objects.equals(this.scope, that.scope)
-           && Objects.equals(this.status, that.status);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, driver, driverOpts, labels, mountpoint, scope, status);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("driver", driver)
-        .add("driverOpts", driverOpts)
-        .add("labels", labels)
-        .add("mountpoint", mountpoint)
-        .add("scope", scope)
-        .add("status", status)
-        .toString();
-  }
-
-  public static class Builder {
-
-    private String name;
-    private String driver;
-    private ImmutableMap<String, String> driverOpts;
-    private ImmutableMap<String, String> labels;
-    private String mountpoint;
-    private String scope;
-
-    private Builder() {
-    }
-
-    private Builder(final Volume volume) {
-      this.name = volume.name;
-      this.driver = volume.driver;
-      this.driverOpts = volume.driverOpts;
-      this.labels = volume.labels;
-      this.mountpoint = volume.mountpoint;
-      this.scope = volume.scope;
-    }
-
-    public Volume build() {
-      return new Volume(this);
-    }
-
-    public Builder name(final String name) {
-      this.name = name;
-      return this;
-    }
-
-    public Builder driver(final String driver) {
-      this.driver = driver;
-      return this;
-    }
-
-    public Builder driverOpts(final Map<String, String> driverOpts) {
-      this.driverOpts = ImmutableMap.copyOf(driverOpts);
-      return this;
-    }
-
-    public Builder labels(final Map<String, String> labels) {
-      this.labels = ImmutableMap.copyOf(labels);
-      return this;
-    }
-
-    public Builder scope(final String scope) {
-      this.scope = scope;
-      return this;
-    }
+    public abstract Volume build();
   }
 }

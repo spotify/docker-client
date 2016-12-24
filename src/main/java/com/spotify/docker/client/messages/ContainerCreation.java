@@ -24,61 +24,50 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ContainerCreation {
+public abstract class ContainerCreation {
 
+  @Nullable
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
+  @Nullable
   @JsonProperty("Warnings")
-  private ImmutableList<String> warnings;
+  public abstract ImmutableList<String> warnings();
 
-  public ContainerCreation() {
+  public static Builder builder() {
+    return new AutoValue_ContainerCreation.Builder();
   }
 
-  public ContainerCreation(final String id) {
-    this.id = id;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    @JsonProperty("Id")
+    public abstract Builder id(String id);
+
+    @JsonProperty("Warnings")
+    public abstract Builder warnings(@NotNull List<String> warnings);
+
+    public abstract ContainerCreation build();
   }
 
-  public String id() {
-    return id;
-  }
-
-  public List<String> getWarnings() {
-    return warnings;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ContainerCreation that = (ContainerCreation) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.warnings, that.warnings);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, warnings);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("warnings", warnings)
-        .toString();
+  @JsonCreator
+  static ContainerCreation create(
+      @JsonProperty("Id") final String id,
+      @JsonProperty("Warnings") final List<String> warnings) {
+    return builder()
+        .id(id)
+        .warnings(warnings)
+        .build();
   }
 }

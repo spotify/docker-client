@@ -24,311 +24,205 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
 import java.math.BigInteger;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class MemoryStats {
+public abstract class MemoryStats {
 
+  @NotNull
   @JsonProperty("stats")
-  private Stats stats;
+  public abstract Stats stats();
+
+  @NotNull
   @JsonProperty("max_usage")
-  private Long maxUsage;
+  public abstract Long maxUsage();
+
+  @NotNull
   @JsonProperty("usage")
-  private Long usage;
+  public abstract Long usage();
+
+  @NotNull
   @JsonProperty("failcnt")
-  private Long failcnt;
+  public abstract Long failcnt();
+
+  @NotNull
   @JsonProperty("limit")
-  private Long limit;
+  public abstract Long limit();
 
-  public Stats stats() {
-    return stats;
+  @JsonCreator
+  static MemoryStats create(
+      @JsonProperty("stats") final Stats stats,
+      @JsonProperty("max_usage") final Long maxUsage,
+      @JsonProperty("usage") final Long usage,
+      @JsonProperty("failcnt") Long failcnt,
+      @JsonProperty("limit") Long limit
+  ) {
+    return new AutoValue_MemoryStats(stats, maxUsage, usage, failcnt, limit);
   }
 
-  public Long maxUsage() {
-    return maxUsage;
-  }
+  @AutoValue
+  public abstract static class Stats {
 
-  public Long usage() {
-    return usage;
-  }
-
-  public Long failcnt() {
-    return failcnt;
-  }
-
-  public Long limit() {
-    return limit;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final MemoryStats that = (MemoryStats) obj;
-
-    return Objects.equals(this.stats, that.stats)
-           && Objects.equals(this.maxUsage, that.maxUsage)
-           && Objects.equals(this.usage, that.usage)
-           && Objects.equals(this.failcnt, that.failcnt)
-           && Objects.equals(this.limit, that.limit);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(stats, maxUsage, usage, failcnt, limit);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("stats", stats)
-        .add("failcnt", failcnt)
-        .add("limit", limit)
-        .add("maxUsage", maxUsage)
-        .add("usage", usage)
-        .toString();
-  }
-
-  public static class Stats {
-
-    @JsonProperty("total_pgmajfault")
-    private Long totalPgmajfault;
-    @JsonProperty("cache")
-    private Long cache;
-    @JsonProperty("mapped_file")
-    private Long mappedFile;
-    @JsonProperty("total_inactive_file")
-    private Long totalInactiveFile;
-    @JsonProperty("pgpgout")
-    private Long pgpgout;
-    @JsonProperty("rss")
-    private Long rss;
-    @JsonProperty("total_mapped_file")
-    private Long totalMappedFile;
-    @JsonProperty("writeback")
-    private Long writeback;
-    @JsonProperty("unevictable")
-    private Long unevictable;
-    @JsonProperty("pgpgin")
-    private Long pgpgin;
-    @JsonProperty("total_unevictable")
-    private Long totalUnevictable;
-    @JsonProperty("pgmajfault")
-    private Long pgmajfault;
-    @JsonProperty("total_rss")
-    private Long totalRss;
-    @JsonProperty("total_rss_huge")
-    private Long totalRssHuge;
-    @JsonProperty("total_writeback")
-    private Long totalWriteback;
-    @JsonProperty("total_inactive_anon")
-    private Long totalInactiveAnon;
-    @JsonProperty("rss_huge")
-    private Long rssHuge;
-    @JsonProperty("hierarchical_memory_limit")
-    private BigInteger hierarchicalMemoryLimit;
-    @JsonProperty("total_pgfault")
-    private Long totalPgfault;
-    @JsonProperty("total_active_file")
-    private Long totalActiveFile;
-    @JsonProperty("active_anon")
-    private Long activeAnon;
-    @JsonProperty("total_active_anon")
-    private Long totalActiveAnon;
-    @JsonProperty("total_pgpgout")
-    private Long totalPgpgout;
-    @JsonProperty("total_cache")
-    private Long totalCache;
-    @JsonProperty("inactive_anon")
-    private Long inactiveAnon;
+    @NotNull
     @JsonProperty("active_file")
-    private Long activeFile;
-    @JsonProperty("pgfault")
-    private Long pgfault;
+    public abstract Long activeFile();
+
+    @NotNull
+    @JsonProperty("total_active_file")
+    public abstract Long totalActiveFile();
+
+    @NotNull
     @JsonProperty("inactive_file")
-    private Long inactiveFile;
+    public abstract Long inactiveFile();
+
+    @NotNull
+    @JsonProperty("total_inactive_file")
+    public abstract Long totalInactiveFile();
+
+    @NotNull
+    @JsonProperty("cache")
+    public abstract Long cache();
+
+    @NotNull
+    @JsonProperty("total_cache")
+    public abstract Long totalCache();
+
+    @NotNull
+    @JsonProperty("active_anon")
+    public abstract Long activeAnon();
+
+    @NotNull
+    @JsonProperty("total_active_anon")
+    public abstract Long totalActiveAnon();
+
+    @NotNull
+    @JsonProperty("inactive_anon")
+    public abstract Long inactiveAnon();
+
+    @NotNull
+    @JsonProperty("total_inactive_anon")
+    public abstract Long totalInactiveAnon();
+
+    @NotNull
+    @JsonProperty("hierarchical_memory_limit")
+    public abstract BigInteger hierarchicalMemoryLimit();
+
+    @NotNull
+    @JsonProperty("mapped_file")
+    public abstract Long mappedFile();
+
+    @NotNull
+    @JsonProperty("total_mapped_file")
+    public abstract Long totalMappedFile();
+
+    @NotNull
+    @JsonProperty("pgmajfault")
+    public abstract Long pgmajfault();
+
+    @NotNull
+    @JsonProperty("total_pgmajfault")
+    public abstract Long totalPgmajfault();
+
+    @NotNull
+    @JsonProperty("pgpgin")
+    public abstract Long pgpgin();
+
+    @NotNull
     @JsonProperty("total_pgpgin")
-    private Long totalPgpgin;
+    public abstract Long totalPgpgin();
 
-    public Long totalPgmajfault() {
-      return totalPgmajfault;
-    }
+    @NotNull
+    @JsonProperty("pgpgout")
+    public abstract Long pgpgout();
 
-    public Long cache() {
-      return cache;
-    }
+    @NotNull
+    @JsonProperty("total_pgpgout")
+    public abstract Long totalPgpgout();
 
-    public Long mappedFile() {
-      return mappedFile;
-    }
+    @NotNull
+    @JsonProperty("pgfault")
+    public abstract Long pgfault();
 
-    public Long totalInactiveFile() {
-      return totalInactiveFile;
-    }
+    @NotNull
+    @JsonProperty("total_pgfault")
+    public abstract Long totalPgfault();
 
-    public Long pgpgout() {
-      return pgpgout;
-    }
+    @NotNull
+    @JsonProperty("rss")
+    public abstract Long rss();
 
-    public Long rss() {
-      return rss;
-    }
+    @NotNull
+    @JsonProperty("total_rss")
+    public abstract Long totalRss();
 
-    public Long totalMappedFile() {
-      return totalMappedFile;
-    }
+    @NotNull
+    @JsonProperty("rss_huge")
+    public abstract Long rssHuge();
 
-    public Long writeback() {
-      return writeback;
-    }
+    @NotNull
+    @JsonProperty("total_rss_huge")
+    public abstract Long totalRssHuge();
 
-    public Long unevictable() {
-      return unevictable;
-    }
+    @NotNull
+    @JsonProperty("unevictable")
+    public abstract Long unevictable();
 
-    public Long pgpgin() {
-      return pgpgin;
-    }
+    @NotNull
+    @JsonProperty("total_unevictable")
+    public abstract Long totalUnevictable();
 
-    public Long totalUnevictable() {
-      return totalUnevictable;
-    }
+    @NotNull
+    @JsonProperty("total_writeback")
+    public abstract Long totalWriteback();
 
-    public Long pgmajfault() {
-      return pgmajfault;
-    }
+    @NotNull
+    @JsonProperty("writeback")
+    public abstract Long writeback();
 
-    public Long totalRss() {
-      return totalRss;
-    }
-
-    public Long totalRssHuge() {
-      return totalRssHuge;
-    }
-
-    public Long totalWriteback() {
-      return totalWriteback;
-    }
-
-    public Long totalInactiveAnon() {
-      return totalInactiveAnon;
-    }
-
-    public Long rssHuge() {
-      return rssHuge;
-    }
-
-    public BigInteger hierarchicalMemoryLimit() {
-      return hierarchicalMemoryLimit;
-    }
-
-    public Long totalPgfault() {
-      return totalPgfault;
-    }
-
-    public Long totalActiveFile() {
-      return totalActiveFile;
-    }
-
-    public Long activeAnon() {
-      return activeAnon;
-    }
-
-    public Long totalActiveAnon() {
-      return totalActiveAnon;
-    }
-
-    public Long totalPgpgout() {
-      return totalPgpgout;
-    }
-
-    public Long totalCache() {
-      return totalCache;
-    }
-
-    public Long inactiveAnon() {
-      return inactiveAnon;
-    }
-
-    public Long activeFile() {
-      return activeFile;
-    }
-
-    public Long pgfault() {
-      return pgfault;
-    }
-
-    public Long inactiveFile() {
-      return inactiveFile;
-    }
-
-    public Long totalPgpgin() {
-      return totalPgpgin;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final Stats that = (Stats) obj;
-
-      return Objects.equals(this.totalPgmajfault, that.totalPgmajfault)
-             && Objects.equals(this.cache, that.cache)
-             && Objects.equals(this.mappedFile, that.mappedFile)
-             && Objects.equals(this.totalInactiveFile, that.totalInactiveFile)
-             && Objects.equals(this.pgpgout, that.pgpgout)
-             && Objects.equals(this.rss, that.rss)
-             && Objects.equals(this.totalMappedFile, that.totalMappedFile)
-             && Objects.equals(this.writeback, that.writeback)
-             && Objects.equals(this.unevictable, that.unevictable)
-             && Objects.equals(this.pgpgin, that.pgpgin)
-             && Objects.equals(this.totalUnevictable, that.totalUnevictable)
-             && Objects.equals(this.pgmajfault, that.pgmajfault)
-             && Objects.equals(this.totalRss, that.totalRss)
-             && Objects.equals(this.totalRssHuge, that.totalRssHuge)
-             && Objects.equals(this.totalWriteback, that.totalWriteback)
-             && Objects.equals(this.totalInactiveAnon, that.totalInactiveAnon)
-             && Objects.equals(this.rssHuge, that.rssHuge)
-             && Objects.equals(this.hierarchicalMemoryLimit, that.hierarchicalMemoryLimit)
-             && Objects.equals(this.totalPgfault, that.totalPgfault)
-             && Objects.equals(this.totalActiveFile, that.totalActiveFile)
-             && Objects.equals(this.activeAnon, that.activeAnon)
-             && Objects.equals(this.totalActiveAnon, that.totalActiveAnon)
-             && Objects.equals(this.totalPgpgout, that.totalPgpgout)
-             && Objects.equals(this.totalCache, that.totalCache)
-             && Objects.equals(this.inactiveAnon, that.inactiveAnon)
-             && Objects.equals(this.activeFile, that.activeFile)
-             && Objects.equals(this.pgfault, that.pgfault)
-             && Objects.equals(this.inactiveFile, that.inactiveFile)
-             && Objects.equals(this.totalPgpgin, that.totalPgpgin);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(totalPgmajfault, cache, mappedFile, totalInactiveFile,
-                          pgpgout, rss, totalMappedFile, writeback, unevictable, pgpgin,
-                          totalUnevictable,
-                          pgmajfault, totalRss, totalRssHuge, totalWriteback, totalInactiveAnon,
-                          rssHuge,
-                          hierarchicalMemoryLimit, totalPgfault, totalActiveFile, activeAnon,
-                          totalActiveAnon, totalPgpgout, totalCache, inactiveAnon, activeFile,
-                          pgfault,
-                          inactiveFile, totalPgpgin);
+    @JsonCreator
+    static Stats create(
+        @JsonProperty("active_file") final Long activeFile,
+        @JsonProperty("total_active_file") final Long totalActiveFile,
+        @JsonProperty("inactive_file") final Long inactiveFile,
+        @JsonProperty("total_inactive_file") final Long totalInactivefile,
+        @JsonProperty("cache") final Long cache,
+        @JsonProperty("total_cache") final Long totalCache,
+        @JsonProperty("active_anon") final Long activeAnon,
+        @JsonProperty("total_active_anon") final Long totalActiveAnon,
+        @JsonProperty("inactive_anon") final Long inactiveAnon,
+        @JsonProperty("total_inactive_anon") final Long totalInactiveAnon,
+        @JsonProperty("hierarchical_memory_limit") final BigInteger hierarchicalMemoryLimit,
+        @JsonProperty("mapped_file") final Long mappedFile,
+        @JsonProperty("total_mapped_file") final Long totalMappedFile,
+        @JsonProperty("pgmajfault") final Long pgmajfault,
+        @JsonProperty("total_pgmajfault") final Long totalPgmajfault,
+        @JsonProperty("pgpgin") final Long pgpgin,
+        @JsonProperty("total_pgpgin") final Long totalPgpgin,
+        @JsonProperty("pgpgout") final Long pgpgout,
+        @JsonProperty("total_pgpgout") final Long totalPgpgout,
+        @JsonProperty("pgfault") final Long pgfault,
+        @JsonProperty("total_pgfault") final Long totalPgfault,
+        @JsonProperty("rss") final Long rss,
+        @JsonProperty("total_rss") final Long totalRss,
+        @JsonProperty("rss_huge") final Long rssHuge,
+        @JsonProperty("total_rss_huge") final Long totalRssHuge,
+        @JsonProperty("unevictable") final Long unevictable,
+        @JsonProperty("total_unevictable") final Long totalUnevictable,
+        @JsonProperty("writeback") final Long writeback,
+        @JsonProperty("total_writeback") final Long totalWriteback
+    ) {
+      return new AutoValue_MemoryStats_Stats(
+          activeFile, totalActiveFile, inactiveFile, totalInactivefile, cache, totalCache,
+          activeAnon, totalActiveAnon, inactiveAnon, totalInactiveAnon, hierarchicalMemoryLimit,
+          mappedFile, totalMappedFile, pgmajfault, totalPgmajfault, pgpgin, totalPgpgin, pgpgout,
+          totalPgpgout, pgfault, totalPgfault, rss, totalRss, rssHuge, totalRssHuge, unevictable,
+          totalUnevictable, writeback, totalWriteback);
     }
   }
 }

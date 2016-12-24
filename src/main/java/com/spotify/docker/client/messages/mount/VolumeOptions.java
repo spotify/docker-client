@@ -25,95 +25,52 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class VolumeOptions {
+public abstract class VolumeOptions {
 
+  @NotNull
   @JsonProperty("NoCopy")
-  private Boolean noCopy;
+  public abstract Boolean noCopy();
 
+  @NotNull
   @JsonProperty("Labels")
-  private Map<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
+  @NotNull
   @JsonProperty("DriverConfig")
-  private Driver driverConfig;
+  public abstract Driver driverConfig();
 
-  public Boolean noCopy() {
-    return noCopy;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public Map<String, String> labels() {
-    return labels;
-  }
+    @JsonProperty("NoCopy")
+    public abstract Builder noCopy(Boolean noCopy);
 
-  public Driver driverConfig() {
-    return driverConfig;
-  }
+    @JsonProperty("Labels")
+    public abstract Builder labels(Map<String, String> labels);
 
-  public static class Builder {
+    abstract ImmutableMap.Builder<String, String> labelsBuilder();
 
-    private VolumeOptions volume = new VolumeOptions();
-
-    public Builder withNoCopy() {
-      volume.noCopy = true;
+    public Builder addLabel(final String label, final String value) {
+      labelsBuilder().put(label, value);
       return this;
     }
 
-    public Builder withNoCopy(boolean noCopy) {
-      volume.noCopy = noCopy;
-      return this;
-    }
+    @JsonProperty("DriverConfig")
+    public abstract Builder driverConfig(Driver driverConfig);
 
-    public Builder withLabel(String label, String value) {
-      if (volume.labels == null) {
-        volume.labels = new HashMap<String, String>();
-      }
-      volume.labels.put(label, value);
-      return this;
-    }
-
-    public Builder withDriverConfig(Driver driverConfig) {
-      volume.driverConfig = driverConfig;
-      return this;
-    }
-
-    public VolumeOptions build() {
-      return volume;
-    }
+    public abstract VolumeOptions build();
   }
 
+  @NotNull
   public static VolumeOptions.Builder builder() {
-    return new VolumeOptions.Builder();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final VolumeOptions that = (VolumeOptions) obj;
-
-    return Objects.equals(this.noCopy, that.noCopy) && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.driverConfig, that.driverConfig);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(noCopy, labels, driverConfig);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("noCopy", noCopy).add("labels", labels)
-        .add("driverConfig", driverConfig).toString();
+    return new AutoValue_VolumeOptions.Builder();
   }
 }
