@@ -905,14 +905,15 @@ public class DefaultDockerClientTest {
   @Test
   public void testGetImageIdFromBuild() {
     // Include a new line because that's what docker returns.
-    final ProgressMessage message1 = new ProgressMessage()
-        .stream("Successfully built 2d6e00052167\n");
+    final ProgressMessage message1 = ProgressMessage.builder()
+        .stream("Successfully built 2d6e00052167\n")
+        .build();
     assertThat(message1.buildImageId(), is("2d6e00052167"));
 
-    final ProgressMessage message2 = new ProgressMessage().id("123");
+    final ProgressMessage message2 = ProgressMessage.builder().id("123").build();
     assertThat(message2.buildImageId(), nullValue());
 
-    final ProgressMessage message3 = new ProgressMessage().stream("Step 2 : CMD[]");
+    final ProgressMessage message3 = ProgressMessage.builder().stream("Step 2 : CMD[]").build();
     assertThat(message3.buildImageId(), nullValue());
   }
 
