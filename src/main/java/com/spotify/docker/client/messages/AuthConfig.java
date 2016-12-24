@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 
+import com.spotify.docker.client.ObjectMapperProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,8 +50,8 @@ public class AuthConfig {
   private static final Logger log = LoggerFactory.getLogger(AuthConfig.class);
 
   @SuppressWarnings("FieldCanBeLocal")
-  // ObjectMapper is thread-safe and this saves us from having instantiate it every time
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER =
+      new ObjectMapperProvider().getContext(AuthConfig.class);
 
   @JsonProperty("Username")
   private String username;
