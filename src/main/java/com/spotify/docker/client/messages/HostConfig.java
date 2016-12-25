@@ -1297,9 +1297,9 @@ public class HostConfig {
     @JsonProperty("Name")
     private String name;
     @JsonProperty("Soft")
-    private Integer soft;
+    private Long soft;
     @JsonProperty("Hard")
-    private Integer hard;
+    private Long hard;
 
     public Ulimit() {
     }
@@ -1318,11 +1318,11 @@ public class HostConfig {
       return name;
     }
 
-    public Integer soft() {
+    public Long soft() {
       return soft;
     }
 
-    public Integer hard() {
+    public Long hard() {
       return hard;
     }
 
@@ -1359,8 +1359,8 @@ public class HostConfig {
     public static class Builder {
 
       private String name;
-      private Integer soft;
-      private Integer hard;
+      private Long soft;
+      private Long hard;
 
       private Builder() {
       }
@@ -1374,12 +1374,12 @@ public class HostConfig {
         return this;
       }
 
-      public Builder soft(final Integer soft) {
+      public Builder soft(final Long soft) {
         this.soft = soft;
         return this;
       }
 
-      public Builder hard(final Integer hard) {
+      public Builder hard(final Long hard) {
         this.hard = hard;
         return this;
       }
