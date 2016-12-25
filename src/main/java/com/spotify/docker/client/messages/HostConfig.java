@@ -57,6 +57,8 @@ public class HostConfig {
   private Boolean publishAllPorts;
   @JsonProperty("Dns")
   private ImmutableList<String> dns;
+  @JsonProperty("DnsOptions")
+  private ImmutableList<String> dnsOptions;
   @JsonProperty("DnsSearch")
   private ImmutableList<String> dnsSearch;
   @JsonProperty("ExtraHosts")
@@ -124,6 +126,7 @@ public class HostConfig {
     this.links = builder.links;
     this.publishAllPorts = builder.publishAllPorts;
     this.dns = builder.dns;
+    this.dnsOptions = builder.dnsOptions;
     this.dnsSearch = builder.dnsSearch;
     this.extraHosts = builder.extraHosts;
     this.volumesFrom = builder.volumesFrom;
@@ -183,6 +186,10 @@ public class HostConfig {
 
   public List<String> dns() {
     return dns;
+  }
+
+  public List<String> dnsOptions() {
+    return dnsOptions;
   }
 
   public List<String> dnsSearch() {
@@ -312,6 +319,7 @@ public class HostConfig {
            && Objects.equals(this.links, that.links)
            && Objects.equals(this.publishAllPorts, that.publishAllPorts)
            && Objects.equals(this.dns, that.dns)
+           && Objects.equals(this.dnsOptions, that.dnsOptions)
            && Objects.equals(this.dnsSearch, that.dnsSearch)
            && Objects.equals(this.extraHosts, that.extraHosts)
            && Objects.equals(this.volumesFrom, that.volumesFrom)
@@ -342,8 +350,8 @@ public class HostConfig {
   @Override
   public int hashCode() {
     return Objects.hash(binds, containerIdFile, lxcConf, privileged, portBindings, links,
-                        publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
-                        capDrop, networkMode, securityOpt, devices, memory, memorySwap,
+                        publishAllPorts, dns, dnsOptions, dnsSearch, extraHosts, volumesFrom,
+                        capAdd, capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
                         restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
                         oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs, readonlyRootfs);
@@ -360,6 +368,7 @@ public class HostConfig {
         .add("links", links)
         .add("publishAllPorts", publishAllPorts)
         .add("dns", dns)
+        .add("dnsOptions", dnsOptions)
         .add("dnsSearch", dnsSearch)
         .add("extraHosts", extraHosts)
         .add("volumesFrom", volumesFrom)
@@ -522,6 +531,7 @@ public class HostConfig {
     private ImmutableList<String> links;
     private Boolean publishAllPorts;
     private ImmutableList<String> dns;
+    private ImmutableList<String> dnsOptions;
     private ImmutableList<String> dnsSearch;
     private ImmutableList<String> extraHosts;
     private ImmutableList<String> volumesFrom;
@@ -562,6 +572,7 @@ public class HostConfig {
       this.links = hostConfig.links;
       this.publishAllPorts = hostConfig.publishAllPorts;
       this.dns = hostConfig.dns;
+      this.dnsOptions = hostConfig.dnsOptions;
       this.dnsSearch = hostConfig.dnsSearch;
       this.extraHosts = hostConfig.extraHosts;
       this.volumesFrom = hostConfig.volumesFrom;
@@ -797,6 +808,26 @@ public class HostConfig {
 
     public List<String> dns() {
       return dns;
+    }
+
+    public Builder dnsOptions(final List<String> dnsOptions) {
+      if (dnsOptions != null && !dnsOptions.isEmpty()) {
+        this.dnsOptions = ImmutableList.copyOf(dnsOptions);
+      }
+
+      return this;
+    }
+
+    public Builder dnsOptions(final String... dnsOptions) {
+      if (dnsOptions != null && dnsOptions.length > 0) {
+        this.dnsOptions = ImmutableList.copyOf(dnsOptions);
+      }
+
+      return this;
+    }
+
+    public List<String> dnsOptions() {
+      return dnsOptions;
     }
 
     public Builder dnsSearch(final List<String> dnsSearch) {
