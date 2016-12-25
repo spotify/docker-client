@@ -1517,15 +1517,15 @@ public class DefaultDockerClientTest {
         newArrayList(
             Ulimit.builder()
                 .name("nofile")
-                .soft(1024)
-                .hard(2048)
+                .soft(1024L)
+                .hard(2048L)
                 .build()
         );
     final HostConfig expected = HostConfig.builder()
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
-        .cpuShares((long) 4096)
+        .cpuShares(4096L)
         .ulimits(ulimits)
         .build();
 
@@ -1558,7 +1558,7 @@ public class DefaultDockerClientTest {
     final boolean publishAllPorts = true;
     final String dns = "1.2.3.4";
     final HostConfig expected = HostConfig.builder().privileged(privileged)
-        .publishAllPorts(publishAllPorts).dns(dns).cpuShares((long) 4096).build();
+        .publishAllPorts(publishAllPorts).dns(dns).cpuShares(4096L).build();
 
     final String stopSignal = "SIGTERM";
 
@@ -1615,7 +1615,7 @@ public class DefaultDockerClientTest {
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
-        .cpuQuota((long) 50000)
+        .cpuQuota(50000L)
         .build();
 
     final ContainerConfig config = ContainerConfig.builder()
