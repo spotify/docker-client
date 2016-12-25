@@ -81,10 +81,14 @@ public class HostConfig {
   private Long memorySwap;
   @JsonProperty("MemoryReservation")
   private Long memoryReservation;
+  @JsonProperty("CpuPeriod")
+  private Long cpuPeriod;
   @JsonProperty("CpuShares")
   private Long cpuShares;
   @JsonProperty("CpusetCpus")
   private String cpusetCpus;
+  @JsonProperty("CpusetMems")
+  private String cpusetMems;
   @JsonProperty("CpuQuota")
   private Long cpuQuota;
   @JsonProperty("CgroupParent")
@@ -138,8 +142,10 @@ public class HostConfig {
     this.memory = builder.memory;
     this.memorySwap = builder.memorySwap;
     this.memoryReservation = builder.memoryReservation;
+    this.cpuPeriod = builder.cpuPeriod;
     this.cpuShares = builder.cpuShares;
     this.cpusetCpus = builder.cpusetCpus;
+    this.cpusetMems = builder.cpusetMems;
     this.cpuQuota = builder.cpuQuota;
     this.cgroupParent = builder.cgroupParent;
     this.restartPolicy = builder.restartPolicy;
@@ -236,12 +242,20 @@ public class HostConfig {
     return memoryReservation;
   }
 
+  public Long cpuPeriod() {
+    return cpuPeriod;
+  }
+
   public Long cpuShares() {
     return cpuShares;
   }
 
   public String cpusetCpus() {
     return cpusetCpus;
+  }
+
+  public String cpusetMems() {
+    return cpusetMems;
   }
 
   public Long cpuQuota() {
@@ -331,8 +345,10 @@ public class HostConfig {
            && Objects.equals(this.memory, that.memory)
            && Objects.equals(this.memorySwap, that.memorySwap)
            && Objects.equals(this.memoryReservation, that.memoryReservation)
+           && Objects.equals(this.cpuPeriod, that.cpuPeriod)
            && Objects.equals(this.cpuShares, that.cpuShares)
            && Objects.equals(this.cpusetCpus, that.cpusetCpus)
+           && Objects.equals(this.cpusetMems, that.cpusetMems)
            && Objects.equals(this.cpuQuota, that.cpuQuota)
            && Objects.equals(this.cgroupParent, that.cgroupParent)
            && Objects.equals(this.restartPolicy, that.restartPolicy)
@@ -352,8 +368,8 @@ public class HostConfig {
     return Objects.hash(binds, containerIdFile, lxcConf, privileged, portBindings, links,
                         publishAllPorts, dns, dnsOptions, dnsSearch, extraHosts, volumesFrom,
                         capAdd, capDrop, networkMode, securityOpt, devices, memory, memorySwap,
-                        memoryReservation, cpuShares, cpusetCpus, cpuQuota, cgroupParent,
-                        restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
+                        memoryReservation, cpuPeriod, cpuShares, cpusetCpus, cpusetMems, cpuQuota,
+                        cgroupParent, restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
                         oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs, readonlyRootfs);
   }
 
@@ -380,8 +396,10 @@ public class HostConfig {
         .add("memory", memory)
         .add("memorySwap", memorySwap)
         .add("memoryReservation", memoryReservation)
+        .add("cpuPeriod", cpuPeriod)
         .add("cpuShares", cpuShares)
         .add("cpusetCpus", cpusetCpus)
+        .add("cpusetMems", cpusetMems)
         .add("cpuQuota", cpuQuota)
         .add("cgroupParent", cgroupParent)
         .add("restartPolicy", restartPolicy)
@@ -543,8 +561,10 @@ public class HostConfig {
     private Long memory;
     private Long memorySwap;
     private Long memoryReservation;
+    private Long cpuPeriod;
     private Long cpuShares;
     private String cpusetCpus;
+    private String cpusetMems;
     private Long cpuQuota;
     private String cgroupParent;
     private RestartPolicy restartPolicy;
@@ -584,8 +604,10 @@ public class HostConfig {
       this.memory = hostConfig.memory;
       this.memorySwap = hostConfig.memorySwap;
       this.memoryReservation = hostConfig.memoryReservation;
+      this.cpuPeriod = hostConfig.cpuPeriod;
       this.cpuShares = hostConfig.cpuShares;
       this.cpusetCpus = hostConfig.cpusetCpus;
+      this.cpusetMems = hostConfig.cpusetMems;
       this.cpuQuota = hostConfig.cpuQuota;
       this.cgroupParent = hostConfig.cgroupParent;
       this.restartPolicy = hostConfig.restartPolicy;
@@ -1005,6 +1027,15 @@ public class HostConfig {
       return memoryReservation;
     }
 
+    public Builder cpuPeriod(final Long cpuPeriod) {
+      this.cpuPeriod = cpuPeriod;
+      return this;
+    }
+
+    public Long cpuPeriod() {
+      return cpuPeriod;
+    }
+
     public Builder cpuShares(final Long cpuShares) {
       this.cpuShares = cpuShares;
       return this;
@@ -1021,6 +1052,15 @@ public class HostConfig {
 
     public String cpusetCpus() {
       return cpusetCpus;
+    }
+
+    public Builder cpusetMems(final String cpusetMems) {
+      this.cpusetMems = cpusetMems;
+      return this;
+    }
+
+    public String cpusetMems() {
+      return cpusetMems;
     }
 
     public Builder cpuQuota(final Long cpuQuota) {
