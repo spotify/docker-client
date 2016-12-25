@@ -24,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -43,6 +44,18 @@ public class HostConfig {
 
   @JsonProperty("Binds")
   private ImmutableList<String> binds;
+  @JsonProperty("BlkioWeight")
+  private Integer blkioWeight;
+  @JsonProperty("BlkioWeightDevice")
+  private ImmutableList<BlkioWeightDevice> blkioWeightDevice;
+  @JsonProperty("BlkioDeviceReadBps")
+  private ImmutableList<BlkioDeviceRate> blkioDeviceReadBps;
+  @JsonProperty("BlkioDeviceWriteBps")
+  private ImmutableList<BlkioDeviceRate> blkioDeviceWriteBps;
+  @JsonProperty("BlkioDeviceReadIOps")
+  private ImmutableList<BlkioDeviceRate> blkioDeviceReadIOps;
+  @JsonProperty("BlkioDeviceWriteIOps")
+  private ImmutableList<BlkioDeviceRate> blkioDeviceWriteIOps;
   @JsonProperty("ContainerIDFile")
   private String containerIdFile;
   @JsonProperty("LxcConf")
@@ -123,6 +136,12 @@ public class HostConfig {
 
   private HostConfig(final Builder builder) {
     this.binds = builder.binds;
+    this.blkioWeight = builder.blkioWeight;
+    this.blkioWeightDevice = builder.blkioWeightDevice;
+    this.blkioDeviceReadBps = builder.blkioDeviceReadBps;
+    this.blkioDeviceWriteBps = builder.blkioDeviceWriteBps;
+    this.blkioDeviceReadIOps = builder.blkioDeviceReadIOps;
+    this.blkioDeviceWriteIOps = builder.blkioDeviceWriteIOps;
     this.containerIdFile = builder.containerIdFile;
     this.lxcConf = builder.lxcConf;
     this.privileged = builder.privileged;
@@ -164,6 +183,30 @@ public class HostConfig {
 
   public List<String> binds() {
     return binds;
+  }
+
+  public Integer blkioWeight() {
+    return blkioWeight;
+  }
+
+  public List<BlkioWeightDevice> blkioWeightDevice() {
+    return blkioWeightDevice;
+  }
+
+  public List<BlkioDeviceRate> blkioDeviceReadBps() {
+    return blkioDeviceReadBps;
+  }
+
+  public List<BlkioDeviceRate> blkioDeviceWriteBps() {
+    return blkioDeviceWriteBps;
+  }
+
+  public List<BlkioDeviceRate> blkioDeviceReadIOps() {
+    return blkioDeviceReadIOps;
+  }
+
+  public List<BlkioDeviceRate> blkioDeviceWriteIOps() {
+    return blkioDeviceWriteIOps;
   }
 
   public String containerIdFile() {
@@ -326,6 +369,12 @@ public class HostConfig {
     final HostConfig that = (HostConfig) obj;
 
     return Objects.equals(this.binds, that.binds)
+           && Objects.equals(this.blkioWeight, that.blkioWeight)
+           && Objects.equals(this.blkioWeightDevice, that.blkioWeightDevice)
+           && Objects.equals(this.blkioDeviceReadBps, that.blkioDeviceReadBps)
+           && Objects.equals(this.blkioDeviceWriteBps, that.blkioDeviceWriteBps)
+           && Objects.equals(this.blkioDeviceReadIOps, that.blkioDeviceReadIOps)
+           && Objects.equals(this.blkioDeviceWriteBps, that.blkioDeviceWriteBps)
            && Objects.equals(this.containerIdFile, that.containerIdFile)
            && Objects.equals(this.lxcConf, that.lxcConf)
            && Objects.equals(this.privileged, that.privileged)
@@ -365,7 +414,9 @@ public class HostConfig {
 
   @Override
   public int hashCode() {
-    return Objects.hash(binds, containerIdFile, lxcConf, privileged, portBindings, links,
+    return Objects.hash(binds, blkioWeight, blkioWeightDevice, blkioDeviceReadBps,
+                        blkioDeviceWriteBps, blkioDeviceReadIOps, blkioDeviceWriteIOps,
+                        containerIdFile, lxcConf, privileged, portBindings, links,
                         publishAllPorts, dns, dnsOptions, dnsSearch, extraHosts, volumesFrom,
                         capAdd, capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         memoryReservation, cpuPeriod, cpuShares, cpusetCpus, cpusetMems, cpuQuota,
@@ -377,6 +428,12 @@ public class HostConfig {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("binds", binds)
+        .add("blkioWeight", blkioWeight)
+        .add("blkioWeightDevice", blkioWeightDevice)
+        .add("blkioDeviceReadBps", blkioDeviceReadBps)
+        .add("blkioDeviceWriteBps", blkioDeviceWriteBps)
+        .add("blkioDeviceReadIOps", blkioDeviceReadIOps)
+        .add("blkioDeviceWriteIOps", blkioDeviceWriteIOps)
         .add("containerIdFile", containerIdFile)
         .add("lxcConf", lxcConf)
         .add("privileged", privileged)
@@ -542,6 +599,12 @@ public class HostConfig {
   public static class Builder {
 
     private ImmutableList<String> binds;
+    private Integer blkioWeight;
+    private ImmutableList<BlkioWeightDevice> blkioWeightDevice;
+    private ImmutableList<BlkioDeviceRate> blkioDeviceReadBps;
+    private ImmutableList<BlkioDeviceRate> blkioDeviceWriteBps;
+    private ImmutableList<BlkioDeviceRate> blkioDeviceReadIOps;
+    private ImmutableList<BlkioDeviceRate> blkioDeviceWriteIOps;
     private String containerIdFile;
     private ImmutableList<LxcConfParameter> lxcConf;
     private Boolean privileged;
@@ -585,6 +648,12 @@ public class HostConfig {
 
     private Builder(final HostConfig hostConfig) {
       this.binds = hostConfig.binds;
+      this.blkioWeight = hostConfig.blkioWeight;
+      this.blkioWeightDevice = hostConfig.blkioWeightDevice;
+      this.blkioDeviceReadBps = hostConfig.blkioDeviceReadBps;
+      this.blkioDeviceWriteBps = hostConfig.blkioDeviceWriteBps;
+      this.blkioDeviceReadIOps = hostConfig.blkioDeviceReadIOps;
+      this.blkioDeviceWriteIOps = hostConfig.blkioDeviceWriteIOps;
       this.containerIdFile = hostConfig.containerIdFile;
       this.lxcConf = hostConfig.lxcConf;
       this.privileged = hostConfig.privileged;
@@ -733,6 +802,70 @@ public class HostConfig {
         }
       }
       return ImmutableList.copyOf(list);
+    }
+
+    public Builder blkioWeight(final Integer blkioWeight) {
+      this.blkioWeight = blkioWeight;
+      return this;
+    }
+
+    public Integer blkioWeight() {
+      return blkioWeight;
+    }
+
+    public Builder blkioWeightDevice(final List<BlkioWeightDevice> blkioWeightDevice) {
+      if (blkioWeightDevice != null && !blkioWeightDevice.isEmpty()) {
+        this.blkioWeightDevice = ImmutableList.copyOf(blkioWeightDevice);
+      }
+      return this;
+    }
+
+    public List<BlkioWeightDevice> blkioWeightDevice() {
+      return blkioWeightDevice;
+    }
+
+    public Builder blkioDeviceReadBps(final List<BlkioDeviceRate> blkioDeviceReadBps) {
+      if (blkioDeviceReadBps != null && !blkioDeviceReadBps.isEmpty()) {
+        this.blkioDeviceReadBps = ImmutableList.copyOf(blkioDeviceReadBps);
+      }
+      return this;
+    }
+
+    public List<BlkioDeviceRate> blkioDeviceReadBps() {
+      return blkioDeviceReadBps;
+    }
+
+    public Builder blkioDeviceWriteBps(final List<BlkioDeviceRate> blkioDeviceWriteBps) {
+      if (blkioDeviceWriteBps != null && !blkioDeviceWriteBps.isEmpty()) {
+        this.blkioDeviceWriteBps = ImmutableList.copyOf(blkioDeviceWriteBps);
+      }
+      return this;
+    }
+
+    public List<BlkioDeviceRate> blkioDeviceWriteBps() {
+      return blkioDeviceWriteBps;
+    }
+
+    public Builder blkioDeviceReadIOps(final List<BlkioDeviceRate> blkioDeviceReadIOps) {
+      if (blkioDeviceReadIOps != null && !blkioDeviceReadIOps.isEmpty()) {
+        this.blkioDeviceReadIOps = ImmutableList.copyOf(blkioDeviceReadIOps);
+      }
+      return this;
+    }
+
+    public List<BlkioDeviceRate> blkioDeviceReadIOps() {
+      return blkioDeviceReadIOps;
+    }
+
+    public Builder blkioDeviceWriteIOps(final List<BlkioDeviceRate> blkioDeviceWriteIOps) {
+      if (blkioDeviceWriteIOps != null && !blkioDeviceWriteIOps.isEmpty()) {
+        this.blkioDeviceWriteIOps = ImmutableList.copyOf(blkioDeviceWriteIOps);
+      }
+      return this;
+    }
+
+    public List<BlkioDeviceRate> blkioDeviceWriteIOps() {
+      return blkioDeviceWriteIOps;
     }
 
     public Builder containerIdFile(final String containerIdFile) {
@@ -1453,6 +1586,161 @@ public class HostConfig {
       public Builder hard(final Long hard) {
         this.hard = hard;
         return this;
+      }
+    }
+  }
+
+  public static class BlkioWeightDevice {
+
+    @JsonProperty("Path")
+    private String path;
+    @JsonProperty("Weight")
+    private Integer weight;
+
+    public String path() {
+      return path;
+    }
+
+    public Integer weight() {
+      return weight;
+    }
+
+    private BlkioWeightDevice(final Builder builder) {
+      this.path = builder.path;
+      this.weight = builder.weight;
+    }
+
+    public static Builder builder() {
+      return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      BlkioWeightDevice that = (BlkioWeightDevice) obj;
+      return com.google.common.base.Objects.equal(path, that.path)
+             && com.google.common.base.Objects.equal(weight, that.weight);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(path, weight);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("path", path)
+          .add("weight", weight)
+          .toString();
+    }
+
+    public static class Builder {
+
+      private String path;
+      private Integer weight;
+
+      private Builder() {
+      }
+
+      public Builder path(final String path) {
+        this.path = path;
+        return this;
+      }
+
+      public Builder weight(final Integer weight) {
+        this.weight = weight;
+        return this;
+      }
+
+      public BlkioWeightDevice build() {
+        return new BlkioWeightDevice(this);
+      }
+    }
+  }
+
+  public static class BlkioDeviceRate {
+
+    @JsonProperty("Path")
+    private String path;
+    @JsonProperty("Rate")
+    private Integer rate;
+
+    public String path() {
+      return path;
+    }
+
+    public Integer rate() {
+      return rate;
+    }
+
+    @JsonCreator
+    static BlkioDeviceRate create(
+        @JsonProperty("Path") final String path,
+        @JsonProperty("Rate") final Integer rate) {
+      return builder().path(path).rate(rate).build();
+    }
+
+    private BlkioDeviceRate(final Builder builder) {
+      this.path = builder.path;
+      this.rate = builder.rate;
+    }
+
+    public static Builder builder() {
+      return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      BlkioDeviceRate that = (BlkioDeviceRate) obj;
+      return com.google.common.base.Objects.equal(path, that.path)
+             && com.google.common.base.Objects.equal(rate, that.rate);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(path, rate);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("path", path)
+          .add("rate", rate)
+          .toString();
+    }
+
+    public static class Builder {
+
+      private String path;
+      private Integer rate;
+
+      private Builder() {
+      }
+
+      public Builder path(final String path) {
+        this.path = path;
+        return this;
+      }
+
+      public Builder rate(final Integer rate) {
+        this.rate = rate;
+        return this;
+      }
+
+      public BlkioDeviceRate build() {
+        return new BlkioDeviceRate(this);
       }
     }
   }
