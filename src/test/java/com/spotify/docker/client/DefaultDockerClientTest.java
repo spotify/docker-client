@@ -1521,13 +1521,19 @@ public class DefaultDockerClientTest {
                 .hard(2048L)
                 .build()
         );
-    final HostConfig expected = HostConfig.builder()
+    final HostConfig.Builder hostConfigBuilder = HostConfig.builder()
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
+        .dnsSearch("domain1", "domain2")
         .cpuShares(4096L)
-        .ulimits(ulimits)
-        .build();
+        .ulimits(ulimits);
+
+    if (dockerApiVersionAtLeast("1.21")) {
+      hostConfigBuilder.dnsOptions("some", "options");
+    }
+
+    final HostConfig expected = hostConfigBuilder.build();
 
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
@@ -1544,6 +1550,10 @@ public class DefaultDockerClientTest {
     assertThat(actual.privileged(), equalTo(expected.privileged()));
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
+    if (dockerApiVersionAtLeast("1.21")) {
+      assertThat(actual.dnsOptions(), equalTo(expected.dnsOptions()));
+    }
+    assertThat(actual.dnsSearch(), equalTo(expected.dnsSearch()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
     assertEquals(ulimits, actual.ulimits());
   }
