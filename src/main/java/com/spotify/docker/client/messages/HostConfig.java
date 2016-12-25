@@ -79,6 +79,8 @@ public class HostConfig {
   private Long memory;
   @JsonProperty("MemorySwap")
   private Long memorySwap;
+  @JsonProperty("MemorySwappiness")
+  private Integer memorySwappiness;
   @JsonProperty("MemoryReservation")
   private Long memoryReservation;
   @JsonProperty("CpuPeriod")
@@ -141,6 +143,7 @@ public class HostConfig {
     this.devices = builder.devices;
     this.memory = builder.memory;
     this.memorySwap = builder.memorySwap;
+    this.memorySwappiness = builder.memorySwappiness;
     this.memoryReservation = builder.memoryReservation;
     this.cpuPeriod = builder.cpuPeriod;
     this.cpuShares = builder.cpuShares;
@@ -236,6 +239,10 @@ public class HostConfig {
 
   public Long memorySwap() {
     return memorySwap;
+  }
+
+  public Integer memorySwappiness() {
+    return memorySwappiness;
   }
 
   public Long getMemoryReservation() {
@@ -344,6 +351,7 @@ public class HostConfig {
            && Objects.equals(this.devices, that.devices)
            && Objects.equals(this.memory, that.memory)
            && Objects.equals(this.memorySwap, that.memorySwap)
+           && Objects.equals(this.memorySwappiness, that.memorySwappiness)
            && Objects.equals(this.memoryReservation, that.memoryReservation)
            && Objects.equals(this.cpuPeriod, that.cpuPeriod)
            && Objects.equals(this.cpuShares, that.cpuShares)
@@ -368,9 +376,10 @@ public class HostConfig {
     return Objects.hash(binds, containerIdFile, lxcConf, privileged, portBindings, links,
                         publishAllPorts, dns, dnsOptions, dnsSearch, extraHosts, volumesFrom,
                         capAdd, capDrop, networkMode, securityOpt, devices, memory, memorySwap,
-                        memoryReservation, cpuPeriod, cpuShares, cpusetCpus, cpusetMems, cpuQuota,
-                        cgroupParent, restartPolicy, logConfig, ipcMode, ulimits, pidMode, shmSize,
-                        oomKillDisable, oomScoreAdj, autoRemove, pidsLimit, tmpfs, readonlyRootfs);
+                        memorySwappiness, memoryReservation, cpuPeriod, cpuShares, cpusetCpus,
+                        cpusetMems, cpuQuota, cgroupParent, restartPolicy, logConfig, ipcMode,
+                        ulimits, pidMode, shmSize, oomKillDisable, oomScoreAdj, autoRemove,
+                        pidsLimit, tmpfs, readonlyRootfs);
   }
 
   @Override
@@ -395,6 +404,7 @@ public class HostConfig {
         .add("devices", devices)
         .add("memory", memory)
         .add("memorySwap", memorySwap)
+        .add("memorySwappiness", memorySwappiness)
         .add("memoryReservation", memoryReservation)
         .add("cpuPeriod", cpuPeriod)
         .add("cpuShares", cpuShares)
@@ -560,6 +570,7 @@ public class HostConfig {
     private ImmutableList<Device> devices;
     private Long memory;
     private Long memorySwap;
+    private Integer memorySwappiness;
     private Long memoryReservation;
     private Long cpuPeriod;
     private Long cpuShares;
@@ -603,6 +614,7 @@ public class HostConfig {
       this.devices = hostConfig.devices;
       this.memory = hostConfig.memory;
       this.memorySwap = hostConfig.memorySwap;
+      this.memorySwappiness = hostConfig.memorySwappiness;
       this.memoryReservation = hostConfig.memoryReservation;
       this.cpuPeriod = hostConfig.cpuPeriod;
       this.cpuShares = hostConfig.cpuShares;
@@ -1016,6 +1028,15 @@ public class HostConfig {
 
     public Long memorySwap() {
       return memorySwap;
+    }
+
+    public Builder memorySwappiness(final Integer memorySwappiness) {
+      this.memorySwappiness = memorySwappiness;
+      return this;
+    }
+
+    public Integer memorySwappiness() {
+      return memorySwappiness;
     }
 
     public Builder memoryReservation(final Long memoryReservation) {
