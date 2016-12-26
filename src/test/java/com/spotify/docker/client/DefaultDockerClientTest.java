@@ -1526,7 +1526,6 @@ public class DefaultDockerClientTest {
         .publishAllPorts(publishAllPorts)
         .dns(dns)
         .dnsSearch("domain1", "domain2")
-        .cpuShares(4096L)
         .ulimits(ulimits);
 
     if (dockerApiVersionAtLeast("1.21")) {
@@ -1554,8 +1553,67 @@ public class DefaultDockerClientTest {
       assertThat(actual.dnsOptions(), equalTo(expected.dnsOptions()));
     }
     assertThat(actual.dnsSearch(), equalTo(expected.dnsSearch()));
-    assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
     assertEquals(ulimits, actual.ulimits());
+  }
+
+  @Test
+  public void testContainerWithCpuOptions() throws Exception {
+    requireDockerApiVersionAtLeast("1.18", "Container creation with cpu options");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final HostConfig expected = HostConfig.builder()
+        .cpuShares(4096L)
+        .cpusetCpus("0,1")
+        .build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+    assertThat(actual.cpusetCpus(), equalTo(expected.cpusetCpus()));
+  }
+
+  @Test
+  public void testContainerWithMoreCpuOptions() throws Exception {
+    requireDockerApiVersionAtLeast("1.19", "Container creation with more cpu options");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final HostConfig expected = HostConfig.builder()
+        .cpuShares(4096L)
+        .cpuPeriod(100000L)
+        .cpuQuota(50000L)
+        .cpusetCpus("0,1")
+        .cpusetMems("0")
+        .build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
+    assertThat(actual.cpuPeriod(), equalTo(expected.cpuPeriod()));
+    assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
+    assertThat(actual.cpusetCpus(), equalTo(expected.cpusetCpus()));
+    assertThat(actual.cpusetMems(), equalTo(expected.cpusetMems()));
   }
 
   @Test
