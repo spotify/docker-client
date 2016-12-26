@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import com.spotify.docker.client.ObjectMapperProvider;
 import java.util.Date;
 
 import org.joda.time.DateTime;
@@ -36,7 +37,8 @@ import org.junit.Test;
 public class UnixTimestampDeserializerTest {
 
   private final DateTime referenceDateTime = new DateTime(2013, 7, 17, 9, 32, 4, DateTimeZone.UTC);
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER =
+      new ObjectMapperProvider().getContext(UnixTimestampDeserializerTest.class);
 
   private static class TestClass {
 
@@ -58,7 +60,7 @@ public class UnixTimestampDeserializerTest {
   public void testFromString() throws Exception {
     final String json = toJson("{\"date\": \"%s\"}");
 
-    final TestClass value = objectMapper.readValue(json, TestClass.class);
+    final TestClass value = OBJECT_MAPPER.readValue(json, TestClass.class);
     assertThat(value.getDate(), equalTo(referenceDateTime.toDate()));
   }
 
@@ -66,7 +68,7 @@ public class UnixTimestampDeserializerTest {
   public void testFromNumber() throws Exception {
     final String json = toJson("{\"date\": %s}");
 
-    final TestClass value = objectMapper.readValue(json, TestClass.class);
+    final TestClass value = OBJECT_MAPPER.readValue(json, TestClass.class);
     assertThat(value.getDate(), equalTo(referenceDateTime.toDate()));
   }
 
