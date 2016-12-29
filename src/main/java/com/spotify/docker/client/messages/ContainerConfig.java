@@ -180,7 +180,7 @@ public class ContainerConfig {
   }
 
   public Set<String> volumes() {
-    return volumes.keySet();
+    return volumes == null ? null : volumes.keySet();
   }
 
   public String workingDir() {
@@ -336,7 +336,7 @@ public class ContainerConfig {
       this.env = config.env;
       this.cmd = config.cmd;
       this.image = config.image;
-      this.volumes = config.volumes.keySet();
+      this.volumes = config.volumes == null ? null : config.volumes.keySet();
       this.workingDir = config.workingDir;
       this.entrypoint = config.entrypoint;
       this.networkDisabled = config.networkDisabled;
