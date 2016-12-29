@@ -2262,7 +2262,7 @@ public interface DockerClient extends Closeable {
      * Show only certain events. For example, "event=pull" for image pull events.
      * @param event Type of event to show
      * @return EventsParam
-     * @since API 1.21
+     * @since API 1.18
      */
     public static EventsParam event(final String event) {
       return filter("event", event);
