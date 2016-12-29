@@ -1819,9 +1819,21 @@ public class DefaultDockerClientTest {
       final ContainerCreation container = sut.createContainer(config, randomName());
       sut.startContainer(container.id());
 
+      assertTrue("Docker did not return any events. "
+                      + "Expected to see an event for pulling an image.",
+              eventStream.hasNext());
       final Event pullEvent = eventStream.next();
+
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for creating a container.",
+              eventStream.hasNext());
       final Event createEvent = eventStream.next();
+
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for starting a container.",
+              eventStream.hasNext());
       final Event startEvent = eventStream.next();
+
       eventStreamAssertions(pullEvent, createEvent, startEvent, container.id(), BUSYBOX_LATEST);
     }
   }
