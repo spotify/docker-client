@@ -153,13 +153,13 @@ public class Event {
 
   public static class Actor {
     @JsonProperty("ID") private String id;
-    @JsonProperty("Attributes") private ImmutableMap<String, Object> attributes;
+    @JsonProperty("Attributes") private ImmutableMap<String, String> attributes;
 
     public String id() {
       return id;
     }
 
-    public ImmutableMap<String, Object> attributes() {
+    public ImmutableMap<String, String> attributes() {
       return attributes;
     }
 
