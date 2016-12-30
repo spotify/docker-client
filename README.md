@@ -1,15 +1,35 @@
-# Docker Client [![Build Status](https://travis-ci.org/spotify/docker-client.svg?branch=master)](https://travis-ci.org/spotify/docker-client) [![codecov.io](https://codecov.io/github/spotify/docker-client/coverage.svg?branch=master)](https://codecov.io/github/spotify/docker-client?branch=master)
+# Docker Client
+
+[![Build Status](https://travis-ci.org/spotify/docker-client.svg?branch=master)](https://travis-ci.org/spotify/docker-client)
+[![codecov](https://codecov.io/github/spotify/docker-client/coverage.svg?branch=master)](https://codecov.io/github/spotify/docker-client?branch=master)
+[![Maven Central](https://img.shields.io/maven-central/v/com.spotify/docker-client.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.spotify%22%20docker-client)
+[![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
 
 This is a simple [Docker](https://github.com/docker/docker) client written in Java.
 We build and test docker-client on Docker versions 1.6 - 1.12 (specifically the ones [here][1]).
 We upload the artifact tested on Docker 1.12.1.
 See [Docker docs on the mapping between Docker version and API version][3].
+We consider this library pretty stable and use it in many critical production systems.
 
+* [Download](#download)
 * [Usage Example](#usage-example)
 * [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
+* [Prerequisites](#prerequisites)
 * [Testing](#testing)
 * [Releasing](#releasing)
+
+
+## Download
+
+Download the latest JAR or grab [via Maven][maven-search].
+
+```xml
+<dependency>
+  <groupId>com.spotify</groupId>
+  <artifactId>docker-client</artifactId>
+  <version>LATEST-VERSION</version>
+</dependency>
+```
 
 
 ## Usage Example
@@ -86,12 +106,13 @@ If you're looking for how to use docker-client, see the [User Manual][2].
 If you're looking for how to build and develop it, keep reading.
 
 
-### Prerequisites
+## Prerequisites
 
-docker-client should be buildable on any platform with Docker, JDK7+, and a recent version of
+docker-client should be buildable on any platform with Docker 1.6+, JDK7+, and a recent version of
 Maven 3.
 
 ### A note on using Docker for Mac
+
 If you are using Docker for Mac and `DefaultDockerClient.fromEnv()`, it might not be clear
 what value to use for the `DOCKER_HOST` environment variable. The value you should use is
 `DOCKER_HOST=unix:///var/run/docker.sock`, at least as of version 1.11.1-beta11.
@@ -156,3 +177,12 @@ docker-client and Jersey 2.x, you will need to explicitly specify the shaded ver
   [1]: https://travis-ci.org/spotify/docker-client
   [2]: docs/user_manual.md
   [3]: https://docs.docker.com/engine/reference/api/docker_remote_api/
+
+
+## Code of conduct
+
+This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are
+expected to honor this code.
+
+  [code-of-conduct]: https://github.com/spotify/code-of-conduct/blob/master/code-of-conduct.md
+  [maven-search]: https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.spotify%22%20docker-client
