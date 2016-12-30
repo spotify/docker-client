@@ -1613,7 +1613,62 @@ public class DefaultDockerClientTest {
     assertThat(actual.cpuPeriod(), equalTo(expected.cpuPeriod()));
     assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
     assertThat(actual.cpusetCpus(), equalTo(expected.cpusetCpus()));
-    assertThat(actual.cpusetMems(), equalTo(expected.cpusetMems()));
+  }
+
+  @Test
+  public void testContainerWithBlkioOptions() throws Exception {
+    requireDockerApiVersionAtLeast("1.19", "Container creation with blkio options");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
+
+    if (dockerApiVersionAtLeast("1.19")) {
+      hostConfigBuilder.blkioWeight(300);
+    }
+
+    if (dockerApiVersionAtLeast("1.22")) {
+      // TODO (dxia) Some kernels don't support blkio weight. How detect to skip this check?
+      // hostConfigBuilder.blkioWeightDevice(ImmutableList.of(
+      //     HostConfig.BlkioWeightDevice.builder().path("/dev/random").weight(500).build(),
+      //     HostConfig.BlkioWeightDevice.builder().path("/dev/urandom").weight(200).build()
+      // ));
+      final List<HostConfig.BlkioDeviceRate> deviceRates = ImmutableList.of(
+          HostConfig.BlkioDeviceRate.builder().path("/dev/random").rate(1024).build(),
+          HostConfig.BlkioDeviceRate.builder().path("/dev/urandom").rate(2048).build()
+      );
+      hostConfigBuilder.blkioDeviceReadBps(deviceRates);
+      hostConfigBuilder.blkioDeviceWriteBps(deviceRates);
+      hostConfigBuilder.blkioDeviceReadIOps(deviceRates);
+      hostConfigBuilder.blkioDeviceWriteIOps(deviceRates);
+    }
+
+    final HostConfig expected = hostConfigBuilder.build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    if (dockerApiVersionAtLeast("1.19")) {
+      // TODO (dxia) Some kernels don't support blkio weight. How detect to skip this check?
+      // assertThat(actual.blkioWeight(), equalTo(expected.blkioWeight()));
+    }
+    if (dockerApiVersionAtLeast("1.22")) {
+      // TODO (dxia) Some kernels don't support blkio weight device. How detect to skip this check?
+      // assertThat(actual.blkioWeightDevice(), equalTo(expected.blkioWeightDevice()));
+      assertThat(actual.blkioDeviceReadBps(), equalTo(expected.blkioDeviceReadBps()));
+      assertThat(actual.blkioDeviceWriteBps(), equalTo(expected.blkioDeviceWriteBps()));
+      assertThat(actual.blkioDeviceReadIOps(), equalTo(expected.blkioDeviceReadIOps()));
+      assertThat(actual.blkioDeviceWriteBps(), equalTo(expected.blkioDeviceWriteBps()));
+    }
   }
 
   @Test
