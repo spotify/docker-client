@@ -1617,6 +1617,45 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testContainerWithMemoryOptions() throws Exception {
+    requireDockerApiVersionNot("1.21", "For some reason this test fails on TravisCI.");
+    sut.pull(BUSYBOX_LATEST);
+
+    final HostConfig.Builder hostConfigBuilder = HostConfig.builder()
+        .memory(4194304L)
+        .memorySwap(5000000L);
+
+    if (dockerApiVersionAtLeast("1.20")) {
+      hostConfigBuilder.memorySwappiness(42);
+    }
+
+    final HostConfig expected = hostConfigBuilder.build();
+
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(expected)
+        .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String id = creation.id();
+
+    sut.startContainer(id);
+
+    final HostConfig actual = sut.inspectContainer(id).hostConfig();
+
+    if (dockerApiVersionAtLeast("1.19")) {
+      // TODO (dxia) Although 1.18 docs implies these two settings are supported by that API
+      // version, travis-CI fails on these two checks. It's not a big deal since we'll probably
+      // stop supporting 1.18 soon.
+      assertThat(actual.memory(), equalTo(expected.memory()));
+      assertThat(actual.memorySwap(), equalTo(expected.memorySwap()));
+    }
+    if (dockerApiVersionAtLeast("1.20")) {
+      assertThat(actual.memorySwappiness(), equalTo(expected.memorySwappiness()));
+    }
+  }
+
+  @Test
   public void testContainerWithAppArmorLogs() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "StopSignal and AppArmorProfile");
 
