@@ -52,6 +52,9 @@ public abstract class RegistryAuth {
 
   private static final Logger LOG = LoggerFactory.getLogger(RegistryAuth.class);
 
+  private static final String DEFAULT_REGISTRY = "https://index.docker.io/v1/";
+  private static final String DUMMY_EMAIL = "1234@5678.com";
+
   @SuppressWarnings("FieldCanBeLocal")
   private static final ObjectMapper MAPPER =
       new ObjectMapperProvider().getContext(RegistryAuth.class);
@@ -64,6 +67,9 @@ public abstract class RegistryAuth {
   @JsonProperty("Password")
   public abstract String password();
 
+  /**
+   * Unused but must be a well-formed email address (e.g. 1234@5678.com).
+   */
   @Nullable
   @JsonProperty("Email")
   public abstract String email();
@@ -75,8 +81,7 @@ public abstract class RegistryAuth {
   public final String toString() {
     return MoreObjects.toStringHelper(this)
         .add("username", username())
-        // don't log the password
-        .add("email", email())
+        // don't log the password or email
         .add("serverAddress", serverAddress())
         .toString();
   }
@@ -211,7 +216,8 @@ public abstract class RegistryAuth {
   public static Builder builder() {
     return new AutoValue_RegistryAuth.Builder()
         // Default to the public Docker registry.
-        .serverAddress("https://index.docker.io/v1/");
+        .serverAddress(DEFAULT_REGISTRY)
+        .email(DUMMY_EMAIL);
   }
 
   @AutoValue.Builder
