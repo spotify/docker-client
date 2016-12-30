@@ -68,7 +68,6 @@ public class PushPullIT {
   private static final String REGISTRY_IMAGE = "registry:2";
   private static final String REGISTRY_NAME = "registry";
 
-  private static final String LOCAL_AUTH_EMAIL = "test@example.com";
   private static final String LOCAL_AUTH_USERNAME = "testuser";
   private static final String LOCAL_AUTH_PASSWORD = "testpassword";
   private static final String LOCAL_IMAGE = "localhost:5000/testuser/test-image:latest";
@@ -79,7 +78,6 @@ public class PushPullIT {
 
   // Using a dummy individual's test account because organizations
   // cannot have private repos on Docker Hub.
-  private static final String HUB_AUTH_EMAIL = "dxia+4@spotify.com";
   private static final String HUB_AUTH_USERNAME = "dxia4";
   private static final String HUB_AUTH_PASSWORD = "03yDT6Yee4iFaggi";
   private static final String HUB_PUBLIC_IMAGE =
@@ -87,7 +85,6 @@ public class PushPullIT {
   private static final String HUB_PRIVATE_IMAGE =
       "dxia4/docker-client-test-push-private-image-with-auth";
 
-  private static final String HUB_AUTH_EMAIL2 = "dxia+2@spotify.com";
   private static final String HUB_AUTH_USERNAME2 = "dxia2";
   private static final String HUB_AUTH_PASSWORD2 = "Tv38KLPd]M";
   private static final String CIRROS_PRIVATE = "dxia/cirros-private";
@@ -111,7 +108,6 @@ public class PushPullIT {
   @Before
   public void setup() throws Exception {
     final RegistryAuth registryAuth = RegistryAuth.builder()
-        .email(LOCAL_AUTH_EMAIL)
         .username(LOCAL_AUTH_USERNAME)
         .password(LOCAL_AUTH_PASSWORD)
         .build();
@@ -218,7 +214,6 @@ public class PushPullIT {
     final DockerClient client = DefaultDockerClient
         .fromEnv()
         .registryAuth(RegistryAuth.builder()
-                        .email(HUB_AUTH_EMAIL)
                         .username(HUB_AUTH_USERNAME)
                         .password(HUB_AUTH_PASSWORD)
                         .build())
@@ -235,7 +230,6 @@ public class PushPullIT {
     final DockerClient client = DefaultDockerClient
         .fromEnv()
         .registryAuth(RegistryAuth.builder()
-                        .email(HUB_AUTH_EMAIL)
                         .username(HUB_AUTH_USERNAME)
                         .password(HUB_AUTH_PASSWORD)
                         .build())
@@ -248,7 +242,6 @@ public class PushPullIT {
   @Test
   public void testPullHubPrivateRepoWithBadAuth() throws Exception {
     final RegistryAuth badRegistryAuth = RegistryAuth.builder()
-        .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password("foobar")
         .build();
@@ -261,7 +254,6 @@ public class PushPullIT {
   public void testBuildHubPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
     final RegistryAuth registryAuth = RegistryAuth.builder()
-        .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password(HUB_AUTH_PASSWORD2)
         .build();
@@ -276,7 +268,6 @@ public class PushPullIT {
   @Test
   public void testPullHubPrivateRepoWithAuth() throws Exception {
     final RegistryAuth registryAuth = RegistryAuth.builder()
-        .email(HUB_AUTH_EMAIL2)
         .username(HUB_AUTH_USERNAME2)
         .password(HUB_AUTH_PASSWORD2)
         .build();

@@ -252,7 +252,6 @@ public class DefaultDockerClientTest {
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
   private static final boolean TRAVIS = "true".equals(getenv("TRAVIS"));
 
-  private static final String AUTH_EMAIL = "dxia+2@spotify.com";
   private static final String AUTH_USERNAME = "dxia2";
   private static final String AUTH_PASSWORD = "Tv38KLPd]M";
 
@@ -276,8 +275,7 @@ public class DefaultDockerClientTest {
 
   @Before
   public void setup() throws Exception {
-    registryAuth = RegistryAuth.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-        .password(AUTH_PASSWORD).build();
+    registryAuth = RegistryAuth.builder().username(AUTH_USERNAME).password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
     // Make it easier to test no read timeout occurs by using a smaller value
     // Such test methods should end in 'NoTimeout'
@@ -518,7 +516,6 @@ public class DefaultDockerClientTest {
   @Test
   public void testBadAuth() throws Exception {
     final RegistryAuth badRegistryAuth = RegistryAuth.builder()
-        .email(AUTH_EMAIL)
         .username(AUTH_USERNAME)
         .password("foobar")
         .build();
@@ -531,7 +528,6 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionNot("1.23", "https://github.com/docker/docker/issues/24093");
     requireDockerApiVersionNot("1.24", "https://github.com/docker/docker/issues/24093");
     final RegistryAuth badRegistryAuth = RegistryAuth.builder()
-        .email(AUTH_EMAIL)
         .username(AUTH_USERNAME)
         .build();
     final int statusCode = sut.auth(badRegistryAuth);
