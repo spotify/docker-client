@@ -28,6 +28,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
 import static com.spotify.docker.client.DockerClient.EventsParam.EventType.CONTAINER;
 import static com.spotify.docker.client.DockerClient.EventsParam.EventType.IMAGE;
+import static com.spotify.docker.client.DockerClient.EventsParam.EventType.NETWORK;
+import static com.spotify.docker.client.DockerClient.EventsParam.EventType.VOLUME;
 import static com.spotify.docker.client.DockerClient.EventsParam.since;
 import static com.spotify.docker.client.DockerClient.EventsParam.type;
 import static com.spotify.docker.client.DockerClient.EventsParam.until;
@@ -1812,29 +1814,47 @@ public class DefaultDockerClientTest {
                                        + "So we skip this test.");
     try (final EventStream eventStream = getImageAndContainerEventStream()) {
 
-      sut.pull(BUSYBOX_LATEST);
+      final String containerName = randomName();
       final ContainerConfig config = ContainerConfig.builder()
-          .image(BUSYBOX_LATEST)
-          .build();
-      final ContainerCreation container = sut.createContainer(config, randomName());
-      sut.startContainer(container.id());
+              .image(BUSYBOX_LATEST)
+              .build();
 
+      // Image pull
+      sut.pull(BUSYBOX_LATEST);
       assertTrue("Docker did not return any events. "
                       + "Expected to see an event for pulling an image.",
               eventStream.hasNext());
-      final Event pullEvent = eventStream.next();
+      imagePullEventAssertions(eventStream.next());
 
+      // Container create
+      final ContainerCreation container = sut.createContainer(config, containerName);
+      final String containerId = container.id();
       assertTrue("Docker did not return enough events. "
                       + "Expected to see an event for creating a container.",
               eventStream.hasNext());
-      final Event createEvent = eventStream.next();
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "create", BUSYBOX_LATEST);
 
+      // Container start / container die
+      sut.startContainer(containerId);
       assertTrue("Docker did not return enough events. "
                       + "Expected to see an event for starting a container.",
               eventStream.hasNext());
-      final Event startEvent = eventStream.next();
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "start", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for the container finishing.",
+              eventStream.hasNext());
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "die", BUSYBOX_LATEST);
 
-      eventStreamAssertions(pullEvent, createEvent, startEvent, container.id(), BUSYBOX_LATEST);
+      // Container destroy
+      sut.removeContainer(container.id());
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for removing the container.",
+              eventStream.hasNext());
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "destroy", BUSYBOX_LATEST);
     }
   }
 
@@ -1844,17 +1864,22 @@ public class DefaultDockerClientTest {
     // time window where we did the stuff, and make sure all the events
     // we did are in there
 
+    final String containerName = randomName();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .build();
+
     // Wait once to clean our event "palette" of events from other tests
     Thread.sleep(1000);
-
     final Date start = new Date();
     final long startTime = start.getTime() / 1000;
+
     sut.pull(BUSYBOX_LATEST);
-    final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .build();
-    final ContainerCreation container = sut.createContainer(config, randomName());
-    sut.startContainer(container.id());
+    final ContainerCreation container = sut.createContainer(config, containerName);
+    final String containerId = container.id();
+    sut.startContainer(containerId);
+    Thread.sleep(1000);
+    sut.removeContainer(containerId);
 
     // Wait again to ensure we get back events for everything we did
     Thread.sleep(1000);
@@ -1874,10 +1899,149 @@ public class DefaultDockerClientTest {
     assertNotNull(eventList);
     assertThat(eventList, not(empty()));
 
-    final Event pullEvent = eventList.get(0);
-    final Event createEvent = eventList.get(1);
-    final Event startEvent = eventList.get(2);
-    eventStreamAssertions(pullEvent, createEvent, startEvent, container.id(), BUSYBOX_LATEST);
+    imagePullEventAssertions(eventList.get(0));
+
+    // create and start event assertions
+    containerEventAssertions(eventList.get(1), containerId, containerName,
+            "create", BUSYBOX_LATEST);
+    containerEventAssertions(eventList.get(2), containerId, containerName,
+            "start", BUSYBOX_LATEST);
+    containerEventAssertions(eventList.get(3), containerId, containerName,
+            "die", BUSYBOX_LATEST);
+    containerEventAssertions(eventList.get(4), containerId, containerName,
+            "destroy", BUSYBOX_LATEST);
+  }
+
+  @Test(timeout = 10000)
+  public void testEventTypes() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "Event types");
+
+    final String volumeName = randomName();
+    final String containerName = randomName();
+    final String mountPath = "/anywhere";
+    final Volume volume = Volume.builder().name(volumeName).build();
+    final HostConfig hostConfig = HostConfig.builder()
+            .binds(Bind.from(volume).to(mountPath).build())
+            .build();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .hostConfig(hostConfig)
+            .build();
+
+    // Wait once to clean our event "palette" of events from other tests
+    Thread.sleep(1000);
+    final Date start = new Date();
+    final long startTime = start.getTime() / 1000;
+
+    sut.pull(BUSYBOX_LATEST);
+    sut.createVolume(volume);
+    final ContainerCreation container = sut.createContainer(config, containerName);
+    final String containerId = container.id();
+    sut.startContainer(containerId);
+    Thread.sleep(1000);
+    sut.removeContainer(containerId);
+
+    // Wait again to ensure we get back events for everything we did
+    Thread.sleep(1000);
+    final Date end = new Date();
+    final long endTime = end.getTime() / 1000;
+
+    // Image events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(IMAGE))) {
+      assertTrue("Docker did not return any image events.",
+              stream.hasNext());
+      imagePullEventAssertions(stream.next());
+    }
+
+    // Container events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(CONTAINER))) {
+      assertTrue("Docker did not return any container events.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "create", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for starting a container.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "start", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for the container finishing.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "die", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for removing the container.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "destroy", BUSYBOX_LATEST);
+    }
+
+    // Volume events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(VOLUME))) {
+      assertTrue("Docker did not return any volume events.",
+              stream.hasNext());
+
+      final Event volumeCreate = stream.next();
+      assertEquals(VOLUME.getName(), volumeCreate.type());
+      assertEquals("create", volumeCreate.action());
+      assertEquals(volumeName, volumeCreate.actor().id());
+      assertThat(volumeCreate.actor().attributes(), hasEntry("driver", "local"));
+      assertNotNull(volumeCreate.timeNano());
+
+      assertTrue("Docker did not return enough volume events."
+                      + "Expected a volume mount event.",
+              stream.hasNext());
+      final Event volumeMount = stream.next();
+      assertEquals(VOLUME.getName(), volumeMount.type());
+      assertEquals("mount", volumeMount.action());
+      assertEquals(volumeName, volumeMount.actor().id());
+      final Map<String, String> mountAttributes = volumeMount.actor().attributes();
+      assertThat(mountAttributes, hasEntry("driver", "local"));
+      assertThat(mountAttributes, hasEntry("container", containerId));
+      assertThat(mountAttributes, hasEntry("destination", mountPath));
+      assertThat(mountAttributes, hasEntry("read/write", "true"));
+      assertThat(mountAttributes, hasEntry("propagation", ""));
+      assertNotNull(volumeMount.timeNano());
+
+      assertTrue("Docker did not return enough volume events."
+                      + "Expected a volume unmount event.",
+              stream.hasNext());
+      final Event volumeUnmount = stream.next();
+      assertEquals(VOLUME.getName(), volumeUnmount.type());
+      assertEquals("unmount", volumeUnmount.action());
+      assertEquals(volumeName, volumeUnmount.actor().id());
+      assertThat(volumeUnmount.actor().attributes(), hasEntry("driver", "local"));
+      assertThat(volumeUnmount.actor().attributes(), hasEntry("container", containerId));
+      assertNotNull(volumeUnmount.timeNano());
+    }
+
+    // Network events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(NETWORK))) {
+      assertTrue("Docker did not return any network events.",
+              stream.hasNext());
+      final Event networkConnect = stream.next();
+      assertEquals(NETWORK.getName(), networkConnect.type());
+      assertEquals("connect", networkConnect.action());
+      assertNotNull(networkConnect.actor().id()); // not sure how to get the network id
+      assertThat(networkConnect.actor().attributes(), hasEntry("container", containerId));
+      assertThat(networkConnect.actor().attributes(), hasEntry("name", "bridge"));
+      assertThat(networkConnect.actor().attributes(), hasEntry("type", "bridge"));
+
+      assertTrue("Docker did not return enough network events."
+                      + "Expected a network disconnect event.",
+              stream.hasNext());
+      final Event networkDisconnect = stream.next();
+      assertEquals(NETWORK.getName(), networkDisconnect.type());
+      assertEquals("disconnect", networkDisconnect.action());
+      assertEquals(networkDisconnect.actor().id(), networkDisconnect.actor().id());
+      assertThat(networkDisconnect.actor().attributes(), hasEntry("container", containerId));
+      assertThat(networkDisconnect.actor().attributes(), hasEntry("name", "bridge"));
+      assertThat(networkDisconnect.actor().attributes(), hasEntry("type", "bridge"));
+    }
   }
 
   private EventStream getImageAndContainerEventStream(final EventsParam... eventsParams)
@@ -1897,15 +2061,10 @@ public class DefaultDockerClientTest {
   }
 
   @SuppressWarnings("deprecation")
-  private void eventStreamAssertions(final Event pullEvent,
-                                     final Event createEvent,
-                                     final Event startEvent,
-                                     final String containerId,
-                                     final String imageName) throws Exception {
-    // pull event assertions
+  private void imagePullEventAssertions(final Event pullEvent) throws Exception {
     assertThat(pullEvent.time(), notNullValue());
     if (dockerApiVersionAtLeast("1.22")) {
-      assertEquals("image", pullEvent.type());
+      assertEquals(IMAGE.getName(), pullEvent.type());
       assertEquals("pull", pullEvent.action());
       assertEquals(BUSYBOX_LATEST, pullEvent.actor().id());
 
@@ -1914,28 +2073,25 @@ public class DefaultDockerClientTest {
       assertEquals("pull", pullEvent.status());
       assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
     }
-
-    // create and start event assertions
-    containerEventAssertions(createEvent, containerId, "create", imageName);
-    containerEventAssertions(startEvent, containerId, "start", imageName);
   }
 
   @SuppressWarnings("deprecation")
   private void containerEventAssertions(final Event event,
                                         final String containerId,
+                                        final String containerName,
                                         final String action,
                                         final String imageName) throws Exception {
     assertThat(event.time(), notNullValue());
     if (dockerApiVersionAtLeast("1.22")) {
-      assertEquals("container", event.type());
+      assertEquals(CONTAINER.getName(), event.type());
       assertEquals(action, event.action());
 
-      final Event.Actor createEventActor = event.actor();
-      assertEquals(containerId, createEventActor.id());
-      assertThat(createEventActor.attributes(), hasKey("image"));
-      final Object image = createEventActor.attributes().get("image");
-      assertThat(image, instanceOf(String.class));
-      assertEquals(imageName, image);
+      assertNotNull(event.actor());
+      assertEquals(containerId, event.actor().id());
+
+      final Map<String, String> attributes = event.actor().attributes();
+      assertThat(attributes, hasEntry("image", imageName));
+      assertThat(attributes, hasEntry("name", containerName));
 
       assertNotNull(event.timeNano());
     } else {
