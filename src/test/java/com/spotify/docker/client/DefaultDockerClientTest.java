@@ -2003,7 +2003,7 @@ public class DefaultDockerClientTest {
       assertThat(mountAttributes, hasEntry("container", containerId));
       assertThat(mountAttributes, hasEntry("destination", mountPath));
       assertThat(mountAttributes, hasEntry("read/write", "true"));
-      assertThat(mountAttributes, hasEntry("propagation", ""));
+      assertThat(mountAttributes, hasKey("propagation")); // Default value is system-dependent
       assertNotNull(volumeMount.timeNano());
 
       assertTrue("Docker did not return enough volume events."
