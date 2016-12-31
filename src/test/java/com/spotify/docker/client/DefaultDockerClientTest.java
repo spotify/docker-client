@@ -2362,6 +2362,27 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testAttachExitedContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String volumeContainer = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("ls", "-la")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+
+    exception.expect(IllegalStateException.class);
+    exception.expectMessage(containsString("is not running"));
+
+    sut.attachContainer(volumeContainer,
+        AttachParameter.LOGS, AttachParameter.STDOUT,
+        AttachParameter.STDERR, AttachParameter.STREAM);
+  }
+
+  @Test
   public void testLogNoTimeout() throws Exception {
     final String volumeContainer = createSleepingContainer();
     final StringBuffer result = new StringBuffer();
