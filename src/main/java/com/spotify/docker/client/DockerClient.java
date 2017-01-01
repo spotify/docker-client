@@ -1309,6 +1309,7 @@ public interface DockerClient extends Closeable {
    * List services that match the given criteria. Only available in Docker API &gt;= 1.24.
    *
    * @param criteria Service listing and filtering options.
+   * @return A list of {@link Service}s
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */

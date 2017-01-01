@@ -346,7 +346,8 @@ public class HostConfig {
 
   /**
    * Tune container pids limit (set -1 for unlimited).
-   * Only works for kernels >= 4.3
+   * Only works for kernels &gt;= 4.3
+   * @return An integer indicating the pids limit.
    */
   public Integer pidsLimit() {
     return pidsLimit;
@@ -1324,7 +1325,9 @@ public class HostConfig {
     }
 
     /**
-     * Only works for Docker API version >= 1.25.
+     * Only works for Docker API version &gt;= 1.25.
+     * @param autoRemove Whether to automatically remove the container when it exits
+     * @return {@link Builder}
      */
     public Builder autoRemove(final Boolean autoRemove) {
       this.autoRemove = autoRemove;
