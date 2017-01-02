@@ -1885,7 +1885,7 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, containerName);
     final String containerId = container.id();
     sut.startContainer(containerId);
-    Thread.sleep(1000);
+    Thread.sleep(1000); // Wait for container to start, then exit
     sut.removeContainer(containerId);
 
     // Wait again to ensure we get back events for everything we did
@@ -1945,7 +1945,7 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, containerName);
     final String containerId = container.id();
     sut.startContainer(containerId);
-    Thread.sleep(1000);
+    Thread.sleep(1000); // Wait for container to start, then exit
     sut.removeContainer(containerId);
 
     // Wait again to ensure we get back events for everything we did
