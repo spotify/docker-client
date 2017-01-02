@@ -2228,8 +2228,9 @@ public interface DockerClient extends Closeable {
      *
      * @param until Return events up until this Unix timestamp.
      * @return {@link EventsParam}
+     * @since API 1.18
      */
-    public static EventsParam until(Long until) {
+    public static EventsParam until(final Long until) {
       return new EventsParam("until", String.valueOf(until));
     }
 
@@ -2238,8 +2239,9 @@ public interface DockerClient extends Closeable {
      *
      * @param since Return events since this Unix timestamp.
      * @return {@link EventsParam}
+     * @since API 1.18
      */
-    public static EventsParam since(Long since) {
+    public static EventsParam since(final Long since) {
       return new EventsParam("since", String.valueOf(since));
     }
 
@@ -2249,8 +2251,9 @@ public interface DockerClient extends Closeable {
      * @param name  Name
      * @param value Value
      * @return {@link EventsParam}
+     * @since API 1.18
      */
-    private static EventsParam filter(String name, String value) {
+    private static EventsParam filter(final String name, final String value) {
       return new EventsFilterParam(name, value);
     }
 
@@ -2258,6 +2261,7 @@ public interface DockerClient extends Closeable {
      * Show only certain events. For example, "event=pull" for image pull events.
      * @param event Type of event to show
      * @return EventsParam
+     * @since API 1.21
      */
     public static EventsParam event(final String event) {
       return filter("event", event);
@@ -2267,6 +2271,7 @@ public interface DockerClient extends Closeable {
      * Show events for an image.
      * @param image An image tag or id
      * @return EventsParam
+     * @since API 1.18
      */
     public static EventsParam image(final String image) {
       return filter("image", image);
@@ -2276,6 +2281,7 @@ public interface DockerClient extends Closeable {
      * Show events for a container.
      * @param container A container name or id
      * @return EventsParam
+     * @since API 1.18
      */
     public static EventsParam container(final String container) {
       return filter("container", container);
@@ -2285,6 +2291,7 @@ public interface DockerClient extends Closeable {
      * Show events for a volume.
      * @param volume A volume name or id
      * @return EventsParam
+     * @since API 1.22
      */
     public static EventsParam volume(final String volume) {
       return filter("volume", volume);
@@ -2294,6 +2301,7 @@ public interface DockerClient extends Closeable {
      * Show events for a network.
      * @param network A network name or id
      * @return EventsParam
+     * @since API 1.22
      */
     public static EventsParam network(final String network) {
       return filter("network", network);
@@ -2303,6 +2311,7 @@ public interface DockerClient extends Closeable {
      * Show events for a daemon.
      * @param daemon A daemon name or id
      * @return EventsParam
+     * @since API 1.24
      */
     public static EventsParam daemon(final String daemon) {
       return filter("daemon", daemon);
@@ -2312,9 +2321,22 @@ public interface DockerClient extends Closeable {
      * Show events of a given type. For instance, "type=image" for all image events.
      * @param type A type of event. Possible values: container, image, volume, network, or daemon
      * @return EventsParam
+     * @deprecated Use {@link #type(EventType)}.
+     * @since API 1.22
      */
+    @Deprecated
     public static EventsParam type(final String type) {
       return filter("type", type);
+    }
+
+    /**
+     * Show events of a given type. For instance, "type=image" for all image events.
+     * @param type A type of event. Possible values: container, image, volume, network, or daemon
+     * @return EventsParam
+     * @since API 1.22
+     */
+    public static EventsParam type(final EventType type) {
+      return filter("type", type.getName());
     }
 
     /**
@@ -2323,6 +2345,7 @@ public interface DockerClient extends Closeable {
      * @param label The label to filter on
      * @param value The value of the label
      * @return EventsParam
+     * @since API 1.21
      */
     public static EventsParam label(final String label, final String value) {
       return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
@@ -2333,10 +2356,33 @@ public interface DockerClient extends Closeable {
      *
      * @param label The label to filter on
      * @return EventsParam
+     * @since API 1.21
      */
     public static EventsParam label(final String label) {
       return label(label, null);
     }
+
+    /**
+     * Valid event types for EventsParam.type
+     */
+    public enum EventType {
+      CONTAINER("container"),
+      IMAGE("image"),
+      VOLUME("volume"),
+      NETWORK("network"),
+      DAEMON("daemon");
+
+      private final String name;
+
+      EventType(final String name) {
+        this.name = name;
+      }
+
+      public String getName() {
+        return name;
+      }
+    }
+
   }
 
   /**
