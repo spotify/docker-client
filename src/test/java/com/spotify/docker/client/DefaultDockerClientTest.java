@@ -88,6 +88,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -1897,7 +1898,7 @@ public class DefaultDockerClientTest {
     }
 
     assertNotNull(eventList);
-    assertThat(eventList, not(empty()));
+    assertThat(eventList, hasSize(5));
 
     imageEventAssertions(eventList.get(0), BUSYBOX_LATEST, "pull");
 
@@ -1952,6 +1953,7 @@ public class DefaultDockerClientTest {
       assertTrue("Docker did not return any image events.",
               stream.hasNext());
       imageEventAssertions(stream.next(), BUSYBOX_LATEST, "pull");
+      assertFalse("Expect no more image events", stream.hasNext());
     }
 
     // Container events
@@ -1976,6 +1978,7 @@ public class DefaultDockerClientTest {
               stream.hasNext());
       containerEventAssertions(stream.next(), containerId, containerName,
               "destroy", BUSYBOX_LATEST);
+      assertFalse("Expect no more container events", stream.hasNext());
     }
 
     // Volume events
@@ -2016,6 +2019,8 @@ public class DefaultDockerClientTest {
       assertThat(volumeUnmount.actor().attributes(), hasEntry("driver", "local"));
       assertThat(volumeUnmount.actor().attributes(), hasEntry("container", containerId));
       assertNotNull(volumeUnmount.timeNano());
+
+      assertFalse("Expect no more volume events", stream.hasNext());
     }
 
     // Network events
@@ -2041,6 +2046,8 @@ public class DefaultDockerClientTest {
       assertThat(networkDisconnect.actor().attributes(), hasEntry("container", containerId));
       assertThat(networkDisconnect.actor().attributes(), hasEntry("name", "bridge"));
       assertThat(networkDisconnect.actor().attributes(), hasEntry("type", "bridge"));
+
+      assertFalse("Expect no more network events", stream.hasNext());
     }
   }
 
