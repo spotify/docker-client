@@ -26,10 +26,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
-import static com.spotify.docker.client.DockerClient.EventsParam.EventType.CONTAINER;
-import static com.spotify.docker.client.DockerClient.EventsParam.EventType.IMAGE;
-import static com.spotify.docker.client.DockerClient.EventsParam.EventType.NETWORK;
-import static com.spotify.docker.client.DockerClient.EventsParam.EventType.VOLUME;
 import static com.spotify.docker.client.DockerClient.EventsParam.since;
 import static com.spotify.docker.client.DockerClient.EventsParam.type;
 import static com.spotify.docker.client.DockerClient.EventsParam.until;
@@ -53,6 +49,10 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 import static com.spotify.docker.client.DockerClient.LogsParam.tail;
 import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static com.spotify.docker.client.messages.Event.Type.CONTAINER;
+import static com.spotify.docker.client.messages.Event.Type.IMAGE;
+import static com.spotify.docker.client.messages.Event.Type.NETWORK;
+import static com.spotify.docker.client.messages.Event.Type.VOLUME;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -1994,7 +1994,7 @@ public class DefaultDockerClientTest {
               stream.hasNext());
 
       final Event volumeCreate = stream.next();
-      assertEquals(VOLUME.getName(), volumeCreate.type());
+      assertEquals(VOLUME, volumeCreate.type());
       assertEquals("create", volumeCreate.action());
       assertEquals(volumeName, volumeCreate.actor().id());
       assertThat(volumeCreate.actor().attributes(), hasEntry("driver", "local"));
@@ -2004,7 +2004,7 @@ public class DefaultDockerClientTest {
                       + "Expected a volume mount event.",
               stream.hasNext());
       final Event volumeMount = stream.next();
-      assertEquals(VOLUME.getName(), volumeMount.type());
+      assertEquals(VOLUME, volumeMount.type());
       assertEquals("mount", volumeMount.action());
       assertEquals(volumeName, volumeMount.actor().id());
       final Map<String, String> mountAttributes = volumeMount.actor().attributes();
@@ -2019,7 +2019,7 @@ public class DefaultDockerClientTest {
                       + "Expected a volume unmount event.",
               stream.hasNext());
       final Event volumeUnmount = stream.next();
-      assertEquals(VOLUME.getName(), volumeUnmount.type());
+      assertEquals(VOLUME, volumeUnmount.type());
       assertEquals("unmount", volumeUnmount.action());
       assertEquals(volumeName, volumeUnmount.actor().id());
       assertThat(volumeUnmount.actor().attributes(), hasEntry("driver", "local"));
@@ -2035,7 +2035,7 @@ public class DefaultDockerClientTest {
       assertTrue("Docker did not return any network events.",
               stream.hasNext());
       final Event networkConnect = stream.next();
-      assertEquals(NETWORK.getName(), networkConnect.type());
+      assertEquals(NETWORK, networkConnect.type());
       assertEquals("connect", networkConnect.action());
       assertNotNull(networkConnect.actor().id()); // not sure how to get the network id
       assertThat(networkConnect.actor().attributes(), hasEntry("container", containerId));
@@ -2046,7 +2046,7 @@ public class DefaultDockerClientTest {
                       + "Expected a network disconnect event.",
               stream.hasNext());
       final Event networkDisconnect = stream.next();
-      assertEquals(NETWORK.getName(), networkDisconnect.type());
+      assertEquals(NETWORK, networkDisconnect.type());
       assertEquals("disconnect", networkDisconnect.action());
       assertEquals(networkDisconnect.actor().id(), networkDisconnect.actor().id());
       assertThat(networkDisconnect.actor().attributes(), hasEntry("container", containerId));
@@ -2079,7 +2079,7 @@ public class DefaultDockerClientTest {
                                     final String action) throws Exception {
     assertThat(event.time(), notNullValue());
     if (dockerApiVersionAtLeast("1.22")) {
-      assertEquals(IMAGE.getName(), event.type());
+      assertEquals(IMAGE, event.type());
       assertEquals(action, event.action());
       assertEquals(imageName, event.actor().id());
 
@@ -2098,7 +2098,7 @@ public class DefaultDockerClientTest {
                                         final String imageName) throws Exception {
     assertThat(event.time(), notNullValue());
     if (dockerApiVersionAtLeast("1.22")) {
-      assertEquals(CONTAINER.getName(), event.type());
+      assertEquals(CONTAINER, event.type());
       assertEquals(action, event.action());
 
       assertNotNull(event.actor());

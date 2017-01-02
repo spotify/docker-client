@@ -24,7 +24,9 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
@@ -39,7 +41,7 @@ public class Event {
   @JsonProperty("status") private String status;
   @JsonProperty("id") private String id;
   @JsonProperty("from") private String from;
-  @JsonProperty("Type") private String type;
+  @JsonProperty("Type") private Type type;
   @JsonProperty("Action") private String action;
   @JsonProperty("Actor") private Actor actor;
   @JsonProperty("time")
@@ -80,7 +82,7 @@ public class Event {
     return from;
   }
 
-  public String type() {
+  public Type type() {
     return type;
   }
 
@@ -187,6 +189,26 @@ public class Event {
           .add("id", id)
           .add("attributes", attributes)
           .toString();
+    }
+  }
+
+  public enum Type {
+    CONTAINER("container"),
+    IMAGE("image"),
+    VOLUME("volume"),
+    NETWORK("network"),
+    DAEMON("daemon");
+
+    private final String name;
+
+    @JsonCreator
+    Type(final String name) {
+      this.name = name;
+    }
+
+    @JsonValue
+    public String getName() {
+      return name;
     }
   }
 }

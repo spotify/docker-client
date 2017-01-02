@@ -42,6 +42,7 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.Image;
@@ -2322,7 +2323,7 @@ public interface DockerClient extends Closeable {
      * Show events of a given type. For instance, "type=image" for all image events.
      * @param type A type of event. Possible values: container, image, volume, network, or daemon
      * @return EventsParam
-     * @deprecated Use {@link #type(EventType)}.
+     * @deprecated Use {@link #type(Event.Type)}.
      * @since API 1.22
      */
     @Deprecated
@@ -2336,7 +2337,7 @@ public interface DockerClient extends Closeable {
      * @return EventsParam
      * @since API 1.22
      */
-    public static EventsParam type(final EventType type) {
+    public static EventsParam type(final Event.Type type) {
       return filter("type", type.getName());
     }
 
@@ -2361,27 +2362,6 @@ public interface DockerClient extends Closeable {
      */
     public static EventsParam label(final String label) {
       return label(label, null);
-    }
-
-    /**
-     * Valid event types for EventsParam.type
-     */
-    public enum EventType {
-      CONTAINER("container"),
-      IMAGE("image"),
-      VOLUME("volume"),
-      NETWORK("network"),
-      DAEMON("daemon");
-
-      private final String name;
-
-      EventType(final String name) {
-        this.name = name;
-      }
-
-      public String getName() {
-        return name;
-      }
     }
 
   }
