@@ -1824,7 +1824,7 @@ public class DefaultDockerClientTest {
       assertTrue("Docker did not return any events. "
                       + "Expected to see an event for pulling an image.",
               eventStream.hasNext());
-      imagePullEventAssertions(eventStream.next());
+      imageEventAssertions(eventStream.next(), BUSYBOX_LATEST, "pull");
 
       // Container create
       final ContainerCreation container = sut.createContainer(config, containerName);
@@ -1899,7 +1899,7 @@ public class DefaultDockerClientTest {
     assertNotNull(eventList);
     assertThat(eventList, not(empty()));
 
-    imagePullEventAssertions(eventList.get(0));
+    imageEventAssertions(eventList.get(0), BUSYBOX_LATEST, "pull");
 
     // create and start event assertions
     containerEventAssertions(eventList.get(1), containerId, containerName,
@@ -1951,7 +1951,7 @@ public class DefaultDockerClientTest {
                  sut.events(since(startTime), until(endTime), type(IMAGE))) {
       assertTrue("Docker did not return any image events.",
               stream.hasNext());
-      imagePullEventAssertions(stream.next());
+      imageEventAssertions(stream.next(), BUSYBOX_LATEST, "pull");
     }
 
     // Container events
@@ -2061,17 +2061,19 @@ public class DefaultDockerClientTest {
   }
 
   @SuppressWarnings("deprecation")
-  private void imagePullEventAssertions(final Event pullEvent) throws Exception {
-    assertThat(pullEvent.time(), notNullValue());
+  private void imageEventAssertions(final Event event,
+                                    final String imageName,
+                                    final String action) throws Exception {
+    assertThat(event.time(), notNullValue());
     if (dockerApiVersionAtLeast("1.22")) {
-      assertEquals(IMAGE.getName(), pullEvent.type());
-      assertEquals("pull", pullEvent.action());
-      assertEquals(BUSYBOX_LATEST, pullEvent.actor().id());
+      assertEquals(IMAGE.getName(), event.type());
+      assertEquals(action, event.action());
+      assertEquals(imageName, event.actor().id());
 
-      assertNotNull(pullEvent.timeNano());
+      assertNotNull(event.timeNano());
     } else {
-      assertEquals("pull", pullEvent.status());
-      assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
+      assertEquals(action, event.status());
+      assertThat(event.id(), equalTo(imageName));
     }
   }
 
