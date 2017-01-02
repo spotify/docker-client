@@ -1856,6 +1856,12 @@ public class DefaultDockerClientTest {
               eventStream.hasNext());
       containerEventAssertions(eventStream.next(), containerId, containerName,
               "destroy", BUSYBOX_LATEST);
+
+      // assertFalse("Expect no more image or container events", eventStream.hasNext());
+      // NOTE: we cannot make this assertion here. It is a valid assertion, because there
+      // are no more events in the stream. However, the connection is still open. Calling
+      // hasNext() on a stream with an open connection and no events will hang indefinitely.
+      // This will trigger the test's timeout, causing an ERROR and a test failure.
     }
   }
 
