@@ -2680,6 +2680,33 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testExecCreateOnNonRunningContainer() throws Exception {
+    requireDockerApiVersionAtLeast("1.15", "Exec");
+    // Execution driver is removed in Docker API >= 1.24
+    if (dockerApiVersionLessThan("1.24")) {
+      assumeThat("Only native (libcontainer) driver supports Exec",
+          sut.info().executionDriver(), startsWith("native"));
+    }
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("ls", "-la")
+        .build();
+    final ContainerCreation container = sut.createContainer(containerConfig, randomName());
+
+    exception.expect(IllegalStateException.class);
+    exception.expectMessage(containsString("is not running"));
+    sut.execCreate(container.id(), new String[] {"ls", "-la"});
+
+    sut.startContainer(container.id());
+    await().until(isContainerRunning(sut, container.id()), is(false));
+
+    sut.execCreate(container.id(), new String[] {"ls", "-la"});
+  }
+
+  @Test
   public void testExecInspect() throws Exception {
     requireDockerApiVersionAtLeast("1.16", "Exec Inspect");
     assumeThat("Only native (libcontainer) driver supports Exec",

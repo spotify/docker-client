@@ -1488,6 +1488,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                  final String[] cmd,
                                  final ExecCreateParam... params)
       throws DockerException, InterruptedException {
+    final ContainerInfo containerInfo = inspectContainer(containerId);
+    if (!containerInfo.state().running()) {
+      throw new IllegalStateException("Container " + containerId + " is not running.");
+    }
+
     final WebTarget resource = resource().path("containers").path(containerId).path("exec");
 
     final StringWriter writer = new StringWriter();
