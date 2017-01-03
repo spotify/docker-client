@@ -1829,6 +1829,7 @@ public interface DockerClient extends Closeable {
    *                              if container is not found (404)
    * @throws DockerException            if a server error occurred (500)
    * @throws InterruptedException       If the thread is interrupted
+   * @throws IllegalStateException      If the container is not running
    */
   LogStream attachContainer(String containerId, AttachParameter... params)
       throws DockerException, InterruptedException;
