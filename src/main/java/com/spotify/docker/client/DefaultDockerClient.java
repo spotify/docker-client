@@ -1451,6 +1451,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public LogStream attachContainer(final String containerId,
                                    final AttachParameter... params) throws DockerException,
                                                                            InterruptedException {
+    final ContainerInfo containerInfo = inspectContainer(containerId);
+    if (!containerInfo.state().running()) {
+      throw new IllegalStateException("Container " + containerId + " is not running.");
+    }
+
     WebTarget resource = noTimeoutResource().path("containers").path(containerId).path("attach");
 
     for (final AttachParameter param : params) {

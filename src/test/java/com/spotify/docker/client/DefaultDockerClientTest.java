@@ -51,6 +51,7 @@ import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.anyOf;
@@ -2362,6 +2363,29 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testAttachExitedContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final String volumeContainer = randomName();
+
+    final ContainerConfig volumeConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("ls", "-la")
+        .build();
+    final ContainerCreation container = sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+
+    exception.expect(IllegalStateException.class);
+    exception.expectMessage(containsString("is not running"));
+
+    await().until(isContainerRunning(sut, container.id()), is(false));
+
+    sut.attachContainer(volumeContainer,
+        AttachParameter.LOGS, AttachParameter.STDOUT,
+        AttachParameter.STDERR, AttachParameter.STREAM);
+  }
+
+  @Test
   public void testLogNoTimeout() throws Exception {
     final String volumeContainer = createSleepingContainer();
     final StringBuffer result = new StringBuffer();
@@ -3932,5 +3956,15 @@ public class DefaultDockerClientTest {
       }
     };
     return Lists.transform(images, imageToShortId);
+  }
+
+  private Callable<Boolean> isContainerRunning(final DockerClient client,
+                                               final String containerId) {
+    return new Callable<Boolean>() {
+      public Boolean call() throws Exception {
+        final ContainerInfo containerInfo = client.inspectContainer(containerId);
+        return containerInfo.state().running();
+      }
+    };
   }
 }
