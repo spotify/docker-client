@@ -64,7 +64,17 @@ public class ContainerStateTest {
     assertThat(containerState.error(), is("this is an error"));
     assertThat(containerState.oomKilled(), is(false));
     assertThat(containerState.status(), is("running"));
-
+    
+    ContainerState.Health health = containerState.health();
+    assertThat(health.failingStreak(), is(1));
+    assertThat(health.status(), is("starting"));
+    assertThat(health.log().size(), is(1));
+    
+    ContainerState.HealthLog log = health.log().get(0);
+    assertThat(log.start(), is(new Date(1412236801547L)));
+    assertThat(log.end(), is(new Date(1412236802697L)));
+    assertThat(log.exitCode(), is(1));
+    assertThat(log.output(), is("output"));
   }
 
   @Test

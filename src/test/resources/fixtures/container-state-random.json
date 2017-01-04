@@ -8,5 +8,15 @@
   "Pid": 27629,
   "Restarting": false,
   "Running": true,
-  "StartedAt": "2014-10-02T07:59:58.929064724Z"
+  "StartedAt": "2014-10-02T07:59:58.929064724Z",
+  "Health": {
+  	"Status": "starting",
+  	"FailingStreak": 1,
+  	"Log": [{
+  		"Start": "2014-10-02T08:00:01.547932158Z",
+  		"End": "2014-10-02T08:00:02.697134816Z",
+  		"ExitCode": 1,
+  		"Output": "output"
+  	}]
+  }
 }

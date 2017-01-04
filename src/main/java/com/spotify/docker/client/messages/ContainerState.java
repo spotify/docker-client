@@ -26,6 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
 import java.util.Date;
 import java.util.Objects;
@@ -53,6 +54,9 @@ public class ContainerState {
   private String error;
   @JsonProperty("OOMKilled")
   private Boolean oomKilled;
+  @JsonProperty("Health")
+  private Health health;
+  
 
   public String status() {
     return status;
@@ -93,6 +97,10 @@ public class ContainerState {
   public Boolean oomKilled() {
     return oomKilled;
   }
+  
+  public Health health() {
+    return health;
+  }
 
   @Override
   public boolean equals(final Object obj) {
@@ -114,13 +122,14 @@ public class ContainerState {
            && Objects.equals(this.startedAt, that.startedAt)
            && Objects.equals(this.finishedAt, that.finishedAt)
            && Objects.equals(this.error, that.error)
-           && Objects.equals(this.oomKilled, that.oomKilled);
+           && Objects.equals(this.oomKilled, that.oomKilled)
+           && Objects.equals(this.health, that.health);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(status, running, pid, paused, restarting, exitCode, startedAt, finishedAt,
-                        error, oomKilled);
+                        error, oomKilled, health);
   }
 
   @Override
@@ -136,6 +145,118 @@ public class ContainerState {
         .add("finishedAt", finishedAt)
         .add("error", error)
         .add("oomKilled", oomKilled)
+        .add("health", health)
         .toString();
+  }
+  
+  
+  public static class HealthLog {
+    @JsonProperty("Start")
+    private Date start;
+    @JsonProperty("End")
+    private Date end;
+    @JsonProperty("ExitCode")
+    private Integer exitCode;
+    @JsonProperty("Output")
+    private String output;
+    
+    public Date start() {
+      return start == null ? null : new Date(start.getTime());
+    }
+
+    public Date end() {
+      return end == null ? null : new Date(end.getTime());
+    }
+
+    public Integer exitCode() {
+      return exitCode;
+    }
+
+    public String output() {
+      return output;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+    
+      final HealthLog that = (HealthLog) obj;
+    
+      return Objects.equals(this.start, that.start)
+             && Objects.equals(this.end, that.end)
+             && Objects.equals(this.exitCode, that.exitCode)
+             && Objects.equals(this.output, that.output);
+    }
+      
+    @Override
+    public int hashCode() {
+      return Objects.hash(start, end, exitCode, output);
+    }
+    
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("start", start)
+          .add("end", end)
+          .add("exitCode", exitCode)
+          .add("output", output)
+          .toString();
+    }
+  }
+  
+  public static class Health {
+    @JsonProperty("Status")
+    private String status;
+    @JsonProperty("FailingStreak")
+    private Integer failingStreak;
+    @JsonProperty("Log")
+    private ImmutableList<HealthLog> log;
+    
+    public String status() {
+      return status;
+    }
+
+    public Integer failingStreak() {
+      return failingStreak;
+    }
+
+    public ImmutableList<HealthLog> log() {
+      return log;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      
+      final Health that = (Health) obj;
+
+      return Objects.equals(this.status, that.status)
+             && Objects.equals(this.failingStreak, that.failingStreak)
+             && Objects.equals(this.log, that.log);
+    }
+      
+    @Override
+    public int hashCode() {
+      return Objects.hash(status, failingStreak, log);
+    }
+      
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("status", status)
+          .add("failingStreak", failingStreak)
+          .add("log", log)
+          .toString();
+    }
   }
 }
