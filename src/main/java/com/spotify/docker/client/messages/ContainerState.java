@@ -27,8 +27,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 
 import java.util.Date;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 @AutoValue
@@ -69,6 +72,10 @@ public abstract class ContainerState {
   @JsonProperty("OOMKilled")
   public abstract Boolean oomKilled();
 
+  @Nullable
+  @JsonProperty("Health")
+  public abstract Health health();
+
   @JsonCreator
   static ContainerState create(
       @JsonProperty("Status") final String status,
@@ -80,8 +87,57 @@ public abstract class ContainerState {
       @JsonProperty("StartedAt") final Date startedAt,
       @JsonProperty("FinishedAt") final Date finishedAt,
       @JsonProperty("Error") final String error,
-      @JsonProperty("OOMKilled") final Boolean oomKilled) {
+      @JsonProperty("OOMKilled") final Boolean oomKilled,
+      @JsonProperty("Health") final Health health) {
     return new AutoValue_ContainerState(status, running, addr, restarting, pid, exitCode,
-        startedAt, finishedAt, error, oomKilled);
+        startedAt, finishedAt, error, oomKilled, health);
+  }
+
+  @AutoValue
+  public abstract static class HealthLog {
+
+    @JsonProperty("Start")
+    public abstract Date start();
+
+    @JsonProperty("End")
+    public abstract Date end();
+
+    @JsonProperty("ExitCode")
+    public abstract Integer exitCode();
+
+    @JsonProperty("Output")
+    public abstract String output();
+
+    @JsonCreator
+    static HealthLog create(
+        @JsonProperty("Start") final Date start,
+        @JsonProperty("End") final Date end,
+        @JsonProperty("ExitCode") final Integer exitCode,
+        @JsonProperty("Output") final String output) {
+      return new AutoValue_ContainerState_HealthLog(start, end, exitCode, output);
+    }
+  }
+
+  @AutoValue
+  public abstract static class Health {
+
+    @JsonProperty("Status")
+    public abstract String status();
+
+    @JsonProperty("FailingStreak")
+    public abstract Integer failingStreak();
+
+    @JsonProperty("Log")
+    public abstract ImmutableList<HealthLog> log();
+
+    @JsonCreator
+    static Health create(
+        @JsonProperty("Status") final String status,
+        @JsonProperty("FailingStreak") final Integer failingStreak,
+        @JsonProperty("Log") final List<HealthLog> log) {
+      final ImmutableList<HealthLog> logT =
+          log == null ? ImmutableList.<HealthLog>of() : ImmutableList.copyOf(log);
+      return new AutoValue_ContainerState_Health(status, failingStreak, logT);
+    }
   }
 }
