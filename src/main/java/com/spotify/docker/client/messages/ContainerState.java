@@ -161,11 +161,11 @@ public class ContainerState {
     private String output;
     
     public Date start() {
-      return start;
+      return start == null ? null : new Date(start.getTime());
     }
 
     public Date end() {
-      return end;
+      return end == null ? null : new Date(end.getTime());
     }
 
     public Integer exitCode() {
