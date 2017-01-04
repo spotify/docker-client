@@ -17,6 +17,8 @@ We consider this library pretty stable and use it in many critical production sy
 * [Prerequisites](#prerequisites)
 * [Testing](#testing)
 * [Releasing](#releasing)
+* [A Note on Shading](#a-note-on-shading)
+* [Code of Conduct](#code-of-conduct)
 
 
 ## Download
@@ -138,12 +140,10 @@ release by uploading to Sonatype. If you are a project maintainer with the neces
 you can also build and release locally by running the below.
 
 ```sh
-mvn release:clean
-mvn release:prepare
-mvn release:perform
+mvn clean [-DskipTests -Darguments=-DskipTests] -Dgpg.keyname=<key ID used for signing artifacts> release:prepare release:perform
 ```
 
-### A note on shading
+## A note on shading
 
 Please note that in releases 2.7.6 and earlier, the default artifact was the shaded version.
 When upgrading to version 2.7.7, you will need to include the shaded classifier if you relied on
