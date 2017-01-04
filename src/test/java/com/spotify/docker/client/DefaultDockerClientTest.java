@@ -26,6 +26,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
+import static com.spotify.docker.client.DockerClient.EventsParam.since;
+import static com.spotify.docker.client.DockerClient.EventsParam.type;
+import static com.spotify.docker.client.DockerClient.EventsParam.until;
 import static com.spotify.docker.client.DockerClient.ListContainersParam.allContainers;
 import static com.spotify.docker.client.DockerClient.ListContainersParam.withLabel;
 import static com.spotify.docker.client.DockerClient.ListContainersParam.withStatusCreated;
@@ -46,6 +49,10 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 import static com.spotify.docker.client.DockerClient.LogsParam.tail;
 import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static com.spotify.docker.client.messages.Event.Type.CONTAINER;
+import static com.spotify.docker.client.messages.Event.Type.IMAGE;
+import static com.spotify.docker.client.messages.Event.Type.NETWORK;
+import static com.spotify.docker.client.messages.Event.Type.VOLUME;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
@@ -81,6 +88,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -102,7 +110,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
@@ -110,6 +117,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
+import com.spotify.docker.client.DockerClient.EventsParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.exceptions.BadParamException;
@@ -196,7 +204,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1799,90 +1806,314 @@ public class DefaultDockerClientTest {
     assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
   }
 
-  @Test
+  @Test(timeout = 5000)
   public void testEventStream() throws Exception {
+    // In this test we open an event stream, do stuff, and check that
+    // the events for the stuff we did got pushed over the stream
+
     requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
                                        + "So we skip this test.");
-    sut.pull(BUSYBOX_LATEST);
-    final EventStream eventStream = sut.events();
-    final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .build();
-    final ContainerCreation container = sut.createContainer(config, randomName());
-    sut.startContainer(container.id());
+    try (final EventStream eventStream = getImageAndContainerEventStream()) {
 
-    assumeTrue("Sometimes there are no events, and it is unclear why.", eventStream.hasNext());
+      final String containerName = randomName();
+      final ContainerConfig config = ContainerConfig.builder()
+              .image(BUSYBOX_LATEST)
+              .build();
 
-    final Event createEvent = eventStream.next();
-    assertThat(createEvent.status(), equalTo("create"));
-    assertThat(createEvent.id(), equalTo(container.id()));
-    assertThat(createEvent.from(), startsWith("busybox:"));
-    assertThat(createEvent.time(), notNullValue());
+      // Image pull
+      sut.pull(BUSYBOX_LATEST);
+      assertTrue("Docker did not return any events. "
+                      + "Expected to see an event for pulling an image.",
+              eventStream.hasNext());
+      imageEventAssertions(eventStream.next(), BUSYBOX_LATEST, "pull");
 
-    Event startEvent = eventStream.next();
-    if (dockerApiVersionAtLeast("1.22") && eventStream.hasNext()) {
-      // For some reason, version 1.22 has an extra null Event sometimes. So we read the next one.
-      startEvent = eventStream.next();
+      // Container create
+      final ContainerCreation container = sut.createContainer(config, containerName);
+      final String containerId = container.id();
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for creating a container.",
+              eventStream.hasNext());
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "create", BUSYBOX_LATEST);
+
+      // Container start / container die
+      sut.startContainer(containerId);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for starting a container.",
+              eventStream.hasNext());
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "start", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for the container finishing.",
+              eventStream.hasNext());
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "die", BUSYBOX_LATEST);
+
+      // Container destroy
+      sut.removeContainer(container.id());
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for removing the container.",
+              eventStream.hasNext());
+      containerEventAssertions(eventStream.next(), containerId, containerName,
+              "destroy", BUSYBOX_LATEST);
+
+      // assertFalse("Expect no more image or container events", eventStream.hasNext());
+      // NOTE: we cannot make this assertion here. It is a valid assertion, because there
+      // are no more events in the stream. However, the connection is still open. Calling
+      // hasNext() on a stream with an open connection and no events will hang indefinitely.
+      // This will trigger the test's timeout, causing an ERROR and a test failure.
     }
-
-    assertThat(startEvent.status(), equalTo("start"));
-    assertThat(startEvent.id(), equalTo(container.id()));
-    assertThat(startEvent.from(), startsWith("busybox:"));
-    assertThat(startEvent.time(), notNullValue());
-
-    eventStream.close();
   }
 
   @Test
-  public void testEventStreamWithSinceTime() throws Exception {
-    Thread.sleep(1000); // ensure we push to the next second
-    // so we don't get events from the last test
-    final Date date = new Date();
-    sut.pull(BUSYBOX_LATEST);
+  public void testEventStreamPolling() throws Exception {
+    // In this test we do stuff, then open an event stream for the
+    // time window where we did the stuff, and make sure all the events
+    // we did are in there
+
+    final String containerName = randomName();
     final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .build();
-    final ContainerCreation container = sut.createContainer(config, randomName());
-    sut.startContainer(container.id());
+            .image(BUSYBOX_LATEST)
+            .build();
 
-    final Predicate<Event> hasStatus = new Predicate<Event>() {
-      @Override
-      public boolean apply(final Event input) {
-        return input.status() != null;
-      }
-    };
+    // Wait once to clean our event "palette" of events from other tests
+    Thread.sleep(1000);
+    final Date start = new Date();
+    final long startTime = start.getTime() / 1000;
 
-    try (EventStream stream = sut.events(DockerClient.EventsParam.since(date.getTime() / 1000))) {
-      final Iterator<Event> events = Iterators.filter(stream, hasStatus);
+    sut.pull(BUSYBOX_LATEST);
+    final ContainerCreation container = sut.createContainer(config, containerName);
+    final String containerId = container.id();
+    sut.startContainer(containerId);
+    Thread.sleep(1000); // Wait for container to start, then exit
+    sut.removeContainer(containerId);
 
-      final Event pullEvent = events.next();
-      assertThat(pullEvent.status(), equalTo("pull"));
-      assertThat(pullEvent.id(), equalTo(BUSYBOX_LATEST));
+    // Wait again to ensure we get back events for everything we did
+    Thread.sleep(1000);
+    final Date end = new Date();
+    final long endTime = end.getTime() / 1000;
 
-      final Event createEvent = events.next();
-      assertThat(createEvent.status(), equalTo("create"));
-      assertThat(createEvent.id(), equalTo(container.id()));
-      assertThat(createEvent.from(), startsWith("busybox:"));
-      assertThat(createEvent.time(), notNullValue());
+    // By reading the event stream into a list, we can retain all the events
+    // but still ensure that we are able to close the stream.
+    // In other words, the HTTP connection has been closed.
+    final List<Event> eventList;
+    try (final EventStream stream =
+        getImageAndContainerEventStream(since(startTime), until(endTime))) {
 
-      final Event startEvent = events.next();
-      assertThat(startEvent.status(), equalTo("start"));
-      assertThat(startEvent.id(), equalTo(container.id()));
-      assertThat(startEvent.from(), startsWith("busybox:"));
-      assertThat(startEvent.time(), notNullValue());
+      eventList = Lists.newArrayList(stream);
+    }
+
+    assertNotNull(eventList);
+    assertThat(eventList, hasSize(5));
+
+    imageEventAssertions(eventList.get(0), BUSYBOX_LATEST, "pull");
+
+    // create and start event assertions
+    containerEventAssertions(eventList.get(1), containerId, containerName,
+            "create", BUSYBOX_LATEST);
+    containerEventAssertions(eventList.get(2), containerId, containerName,
+            "start", BUSYBOX_LATEST);
+    containerEventAssertions(eventList.get(3), containerId, containerName,
+            "die", BUSYBOX_LATEST);
+    containerEventAssertions(eventList.get(4), containerId, containerName,
+            "destroy", BUSYBOX_LATEST);
+  }
+
+  @Test(timeout = 10000)
+  public void testEventTypes() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "Event types");
+
+    final String volumeName = randomName();
+    final String containerName = randomName();
+    final String mountPath = "/anywhere";
+    final Volume volume = Volume.builder().name(volumeName).build();
+    final HostConfig hostConfig = HostConfig.builder()
+            .binds(Bind.from(volume).to(mountPath).build())
+            .build();
+    final ContainerConfig config = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            .hostConfig(hostConfig)
+            .build();
+
+    // Wait once to clean our event "palette" of events from other tests
+    Thread.sleep(1000);
+    final Date start = new Date();
+    final long startTime = start.getTime() / 1000;
+
+    sut.pull(BUSYBOX_LATEST);
+    sut.createVolume(volume);
+    final ContainerCreation container = sut.createContainer(config, containerName);
+    final String containerId = container.id();
+    sut.startContainer(containerId);
+    Thread.sleep(1000); // Wait for container to start, then exit
+    sut.removeContainer(containerId);
+
+    // Wait again to ensure we get back events for everything we did
+    Thread.sleep(1000);
+    final Date end = new Date();
+    final long endTime = end.getTime() / 1000;
+
+    // Image events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(IMAGE))) {
+      assertTrue("Docker did not return any image events.",
+              stream.hasNext());
+      imageEventAssertions(stream.next(), BUSYBOX_LATEST, "pull");
+      assertFalse("Expect no more image events", stream.hasNext());
+    }
+
+    // Container events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(CONTAINER))) {
+      assertTrue("Docker did not return any container events.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "create", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for starting a container.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "start", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for the container finishing.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "die", BUSYBOX_LATEST);
+      assertTrue("Docker did not return enough events. "
+                      + "Expected to see an event for removing the container.",
+              stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+              "destroy", BUSYBOX_LATEST);
+      assertFalse("Expect no more container events", stream.hasNext());
+    }
+
+    // Volume events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(VOLUME))) {
+      assertTrue("Docker did not return any volume events.",
+              stream.hasNext());
+
+      final Event volumeCreate = stream.next();
+      assertEquals(VOLUME, volumeCreate.type());
+      assertEquals("create", volumeCreate.action());
+      assertEquals(volumeName, volumeCreate.actor().id());
+      assertThat(volumeCreate.actor().attributes(), hasEntry("driver", "local"));
+      assertNotNull(volumeCreate.timeNano());
+
+      assertTrue("Docker did not return enough volume events."
+                      + "Expected a volume mount event.",
+              stream.hasNext());
+      final Event volumeMount = stream.next();
+      assertEquals(VOLUME, volumeMount.type());
+      assertEquals("mount", volumeMount.action());
+      assertEquals(volumeName, volumeMount.actor().id());
+      final Map<String, String> mountAttributes = volumeMount.actor().attributes();
+      assertThat(mountAttributes, hasEntry("driver", "local"));
+      assertThat(mountAttributes, hasEntry("container", containerId));
+      assertThat(mountAttributes, hasEntry("destination", mountPath));
+      assertThat(mountAttributes, hasEntry("read/write", "true"));
+      assertThat(mountAttributes, hasKey("propagation")); // Default value is system-dependent
+      assertNotNull(volumeMount.timeNano());
+
+      assertTrue("Docker did not return enough volume events."
+                      + "Expected a volume unmount event.",
+              stream.hasNext());
+      final Event volumeUnmount = stream.next();
+      assertEquals(VOLUME, volumeUnmount.type());
+      assertEquals("unmount", volumeUnmount.action());
+      assertEquals(volumeName, volumeUnmount.actor().id());
+      assertThat(volumeUnmount.actor().attributes(), hasEntry("driver", "local"));
+      assertThat(volumeUnmount.actor().attributes(), hasEntry("container", containerId));
+      assertNotNull(volumeUnmount.timeNano());
+
+      assertFalse("Expect no more volume events", stream.hasNext());
+    }
+
+    // Network events
+    try (final EventStream stream =
+                 sut.events(since(startTime), until(endTime), type(NETWORK))) {
+      assertTrue("Docker did not return any network events.",
+              stream.hasNext());
+      final Event networkConnect = stream.next();
+      assertEquals(NETWORK, networkConnect.type());
+      assertEquals("connect", networkConnect.action());
+      assertNotNull(networkConnect.actor().id()); // not sure how to get the network id
+      assertThat(networkConnect.actor().attributes(), hasEntry("container", containerId));
+      assertThat(networkConnect.actor().attributes(), hasEntry("name", "bridge"));
+      assertThat(networkConnect.actor().attributes(), hasEntry("type", "bridge"));
+
+      assertTrue("Docker did not return enough network events."
+                      + "Expected a network disconnect event.",
+              stream.hasNext());
+      final Event networkDisconnect = stream.next();
+      assertEquals(NETWORK, networkDisconnect.type());
+      assertEquals("disconnect", networkDisconnect.action());
+      assertEquals(networkDisconnect.actor().id(), networkDisconnect.actor().id());
+      assertThat(networkDisconnect.actor().attributes(), hasEntry("container", containerId));
+      assertThat(networkDisconnect.actor().attributes(), hasEntry("name", "bridge"));
+      assertThat(networkDisconnect.actor().attributes(), hasEntry("type", "bridge"));
+
+      assertFalse("Expect no more network events", stream.hasNext());
     }
   }
 
-  @Test(timeout = 5000)
-  public void testEventStreamWithUntilTime() throws Exception {
-    final EventStream eventStream =
-        sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
-
-    while (eventStream.hasNext()) {
-      eventStream.next();
+  private EventStream getImageAndContainerEventStream(final EventsParam... eventsParams)
+      throws Exception {
+    // I only want my event streams to contain image and container events.
+    // For API 1.22 and greater, we can use the type() filter. But for earlier versions,
+    // that filter didn't exist, so we should not add it.
+    if (dockerApiVersionAtLeast("1.22")) {
+      final int originalNumberOfParams = eventsParams.length;
+      final EventsParam[] eventsParamsWithTypes =
+          Arrays.copyOf(eventsParams, originalNumberOfParams + 2);
+      eventsParamsWithTypes[originalNumberOfParams] = type(IMAGE);
+      eventsParamsWithTypes[originalNumberOfParams + 1] = type(CONTAINER);
+      return sut.events(eventsParamsWithTypes);
     }
+    return sut.events(eventsParams);
+  }
 
-    eventStream.close();
+  @SuppressWarnings("deprecation")
+  private void imageEventAssertions(final Event event,
+                                    final String imageName,
+                                    final String action) throws Exception {
+    assertThat(event.time(), notNullValue());
+    if (dockerApiVersionAtLeast("1.22")) {
+      assertEquals(IMAGE, event.type());
+      assertEquals(action, event.action());
+      assertEquals(imageName, event.actor().id());
+
+      assertNotNull(event.timeNano());
+    } else {
+      assertEquals(action, event.status());
+      assertThat(event.id(), equalTo(imageName));
+    }
+  }
+
+  @SuppressWarnings("deprecation")
+  private void containerEventAssertions(final Event event,
+                                        final String containerId,
+                                        final String containerName,
+                                        final String action,
+                                        final String imageName) throws Exception {
+    assertThat(event.time(), notNullValue());
+    if (dockerApiVersionAtLeast("1.22")) {
+      assertEquals(CONTAINER, event.type());
+      assertEquals(action, event.action());
+
+      assertNotNull(event.actor());
+      assertEquals(containerId, event.actor().id());
+
+      final Map<String, String> attributes = event.actor().attributes();
+      assertThat(attributes, hasEntry("image", imageName));
+      assertThat(attributes, hasEntry("name", containerName));
+
+      assertNotNull(event.timeNano());
+    } else {
+      assertEquals(action, event.status());
+      assertEquals(containerId, event.id());
+      assertEquals(imageName, event.from());
+    }
   }
 
   @Test
