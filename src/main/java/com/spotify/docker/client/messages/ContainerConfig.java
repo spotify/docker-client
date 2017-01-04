@@ -85,6 +85,8 @@ public class ContainerConfig {
   private HostConfig hostConfig;
   @JsonProperty("StopSignal")
   private String stopSignal;
+  @JsonProperty("Healthcheck")
+  private ImmutableMap<String, ImmutableList<String>> healthcheck;
 
 
   private ContainerConfig() {
@@ -113,6 +115,7 @@ public class ContainerConfig {
     this.macAddress = builder.macAddress;
     this.hostConfig = builder.hostConfig;
     this.stopSignal = builder.stopSignal;
+    this.healthcheck = builder.healthcheck;
 
     if (builder.volumes != null) {
       final Map<String, Map> volumesToAdd = Maps.newHashMap();
@@ -244,7 +247,8 @@ public class ContainerConfig {
            && Objects.equals(this.labels, that.labels)
            && Objects.equals(this.macAddress, that.macAddress)
            && Objects.equals(this.hostConfig, that.hostConfig)
-           && Objects.equals(this.stopSignal, that.stopSignal);
+           && Objects.equals(this.stopSignal, that.stopSignal)
+           && Objects.equals(this.healthcheck, that.healthcheck);
   }
 
   @Override
@@ -252,7 +256,7 @@ public class ContainerConfig {
     return Objects.hash(hostname, domainname, user, attachStdin, attachStdout,
                         attachStderr, portSpecs, exposedPorts, tty, openStdin, stdinOnce, env,
                         cmd, image, volumes, workingDir, entrypoint, networkDisabled, onBuild,
-                        labels, macAddress, hostConfig, stopSignal);
+                        labels, macAddress, hostConfig, stopSignal, healthcheck);
   }
 
   @Override
@@ -281,6 +285,7 @@ public class ContainerConfig {
         .add("macAddress", macAddress)
         .add("hostConfig", hostConfig)
         .add("stopSignal", stopSignal)
+        .add("healthcheck", healthcheck)
         .toString();
   }
 
@@ -317,6 +322,7 @@ public class ContainerConfig {
     private String macAddress;
     private HostConfig hostConfig;
     private String stopSignal;
+    private ImmutableMap<String, ImmutableList<String>> healthcheck;
 
     private Builder() {
     }
@@ -345,6 +351,7 @@ public class ContainerConfig {
       this.macAddress = config.macAddress;
       this.hostConfig = config.hostConfig;
       this.stopSignal = config.stopSignal;
+      this.healthcheck = config.healthcheck;
     }
 
     public Builder hostname(final String hostname) {
@@ -641,5 +648,9 @@ public class ContainerConfig {
 
   public String getStopSignal() {
     return stopSignal;
+  }
+  
+  public Map<String, ImmutableList<String>> healthcheck() {
+      return healthcheck;
   }
 }
