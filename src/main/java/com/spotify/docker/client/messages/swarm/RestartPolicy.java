@@ -24,108 +24,98 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class RestartPolicy {
+public abstract class RestartPolicy {
 
   public static final String RESTART_POLICY_NONE = "none";
   public static final String RESTART_POLICY_ON_FAILURE = "on-failure";
   public static final String RESTART_POLICY_ANY = "any";
 
   @JsonProperty("Condition")
-  private String condition;
+  public abstract String condition();
 
   @JsonProperty("Delay")
-  private Long delay;
+  public abstract Long delay();
 
   @JsonProperty("MaxAttempts")
-  private Integer maxAttempts;
+  public abstract Integer maxAttempts();
 
+  @Nullable
   @JsonProperty("Window")
-  private Long window;
+  public abstract Long window();
 
-  public String condition() {
-    return condition;
-  }
+  @AutoValue.Builder
+  public abstract static class Builder {
 
-  public Long delay() {
-    return delay;
-  }
+    public abstract Builder condition(String condition);
 
-  public Integer maxAttempts() {
-    return maxAttempts;
-  }
-
-  public Long window() {
-    return window;
-  }
-
-  public static class Builder {
-
-    private RestartPolicy restart = new RestartPolicy();
-
-    public Builder withCondition(String condition) {
-      restart.condition = condition;
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #condition(String)}.
+     */
+    @Deprecated
+    public Builder withCondition(final String condition) {
+      condition(condition);
       return this;
     }
 
-    public Builder withDelay(long delay) {
-      restart.delay = delay;
+    public abstract Builder delay(Long delay);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #delay(Long)}.
+     */
+    @Deprecated
+    public Builder withDelay(final Long delay) {
+      delay(delay);
       return this;
     }
 
-    public Builder withMaxAttempts(int maxAttempts) {
-      restart.maxAttempts = maxAttempts;
+    public abstract Builder maxAttempts(Integer maxAttempts);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #maxAttempts(Integer)}.
+     */
+    @Deprecated
+    public Builder withMaxAttempts(final Integer maxAttempts) {
+      maxAttempts(maxAttempts);
       return this;
     }
 
+    public abstract Builder window(Long window);
+
+    /**
+     * @deprecated  As of release 7.0.0, replaced by {@link #window(Long)}.
+     */
+    @Deprecated
     public Builder withWindow(long window) {
-      restart.window = window;
+      window(window);
       return this;
     }
 
-    public RestartPolicy build() {
-      return restart;
-    }
+    public abstract RestartPolicy build();
   }
 
   public static RestartPolicy.Builder builder() {
-    return new RestartPolicy.Builder();
+    return new AutoValue_RestartPolicy.Builder();
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final RestartPolicy that = (RestartPolicy) obj;
-
-    return Objects.equals(this.condition, that.condition)
-           && Objects.equals(this.delay, that.delay)
-           && Objects.equals(this.maxAttempts, that.maxAttempts)
-           && Objects.equals(this.window, that.window);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(condition, delay, maxAttempts, window);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("condition", condition)
-        .add("delay", delay)
-        .add("maxAttempts", maxAttempts)
-        .add("window", window)
-        .toString();
+  @JsonCreator
+  static RestartPolicy create(
+      @JsonProperty("Condition") final String condition,
+      @JsonProperty("Delay") final Long delay,
+      @JsonProperty("MaxAttempts") final Integer maxAttempts,
+      @JsonProperty("Window") final Long window) {
+    return builder()
+        .condition(condition)
+        .delay(delay)
+        .maxAttempts(maxAttempts)
+        .window(window)
+        .build();
   }
 }

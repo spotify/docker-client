@@ -24,61 +24,32 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ExecCreation {
+public abstract class ExecCreation {
 
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
+  @Nullable
   @JsonProperty("Warnings")
-  private ImmutableList<String> warnings;
+  public abstract ImmutableList<String> warnings();
 
-  public ExecCreation() {
-  }
-
-  public ExecCreation(final String id) {
-    this.id = id;
-  }
-
-  public String id() {
-    return id;
-  }
-
-  public List<String> getWarnings() {
-    return warnings;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ExecCreation that = (ExecCreation) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.warnings, that.warnings);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, warnings);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("warnings", warnings)
-        .toString();
+  @JsonCreator
+  static ExecCreation create(
+      @JsonProperty("Id") final String id,
+      @JsonProperty("Warnings") final List<String> warnings) {
+    final ImmutableList<String> warningsCopy = warnings == null
+                                               ? null : ImmutableList.copyOf(warnings);
+    return new AutoValue_ExecCreation(id, warningsCopy);
   }
 }

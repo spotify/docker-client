@@ -20,59 +20,37 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
-public class ProgressDetail {
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class ProgressDetail {
 
-  @JsonProperty
-  private long current;
-  @JsonProperty
-  private long start;
-  @JsonProperty
-  private long total;
+  @Nullable
+  @JsonProperty("current")
+  public abstract Long current();
 
-  public long current() {
-    return current;
-  }
+  @Nullable
+  @JsonProperty("start")
+  public abstract Long start();
 
-  public long start() {
-    return start;
-  }
+  @Nullable
+  @JsonProperty("total")
+  public abstract Long total();
 
-  public long total() {
-    return total;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("current", current)
-        .add("start", start)
-        .add("total", total)
-        .toString();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    ProgressDetail that = (ProgressDetail) obj;
-
-    return Objects.equals(this.current, that.current)
-           && Objects.equals(this.start, that.start)
-           && Objects.equals(this.total, that.total);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(current, start, total);
+  @JsonCreator
+  static ProgressDetail create(
+      @JsonProperty("current") final Long current,
+      @JsonProperty("start") final Long start,
+      @JsonProperty("total") final Long total) {
+    return new AutoValue_ProgressDetail(current, start, total);
   }
 }

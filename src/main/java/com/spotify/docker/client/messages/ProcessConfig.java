@@ -20,80 +20,47 @@
 
 package com.spotify.docker.client.messages;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * An object that represents the JSON returned by the Docker API for an exec command's process
  * configuration.
  */
-public class ProcessConfig {
+@AutoValue
+@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+public abstract class ProcessConfig {
 
   @JsonProperty("privileged")
-  private Boolean privileged;
+  public abstract Boolean privileged();
+
   @JsonProperty("user")
-  private String user;
+  public abstract String user();
+
   @JsonProperty("tty")
-  private Boolean tty;
+  public abstract Boolean tty();
+
   @JsonProperty("entrypoint")
-  private String entrypoint;
+  public abstract String entrypoint();
+
   @JsonProperty("arguments")
-  private List<String> arguments;
+  public abstract ImmutableList<String> arguments();
 
-  public Boolean privileged() {
-    return privileged;
-  }
-
-  public String user() {
-    return user;
-  }
-
-  public Boolean tty() {
-    return tty;
-  }
-
-  public String entrypoint() {
-    return entrypoint;
-  }
-
-  public List<String> arguments() {
-    return arguments;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ProcessConfig that = (ProcessConfig) obj;
-
-    return Objects.equals(this.privileged, that.privileged)
-           && Objects.equals(this.user, that.user)
-           && Objects.equals(this.tty, that.tty)
-           && Objects.equals(this.entrypoint, that.entrypoint)
-           && Objects.equals(this.arguments, that.arguments);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(privileged, user, tty, entrypoint, arguments);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("privileged", privileged)
-        .add("user", user)
-        .add("tty", tty)
-        .add("entrypoint", entrypoint)
-        .add("arguments", arguments)
-        .toString();
+  @JsonCreator
+  static ProcessConfig create(
+      @JsonProperty("privileged") final Boolean privileged,
+      @JsonProperty("user") final String user,
+      @JsonProperty("tty") final Boolean tty,
+      @JsonProperty("entrypoint") final String entrypoint,
+      @JsonProperty("arguments") final List<String> arguments) {
+    return new AutoValue_ProcessConfig(privileged, user, tty, entrypoint,
+        ImmutableList.copyOf(arguments));
   }
 }

@@ -32,6 +32,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
@@ -74,8 +75,6 @@ import com.spotify.docker.client.exceptions.ServiceNotFoundException;
 import com.spotify.docker.client.exceptions.TaskNotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.exceptions.VolumeNotFoundException;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.AuthRegistryConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -94,6 +93,8 @@ import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
@@ -104,7 +105,7 @@ import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -126,7 +127,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
-
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
@@ -137,7 +137,6 @@ import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -273,7 +272,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private final URI uri;
   private final String apiVersion;
-  private final AuthConfig authConfig;
+  private final RegistryAuth registryAuth;
 
   private final Map<String, Object> headers;
 
@@ -352,7 +351,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
-    this.authConfig = builder.authConfig;
+    this.registryAuth = builder.registryAuth;
 
     this.client = clientBuilderSupplier.get().withConfig(config).build();
 
@@ -426,11 +425,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public int auth(final AuthConfig authConfig) throws DockerException, InterruptedException {
+  public int auth(final RegistryAuth registryAuth) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("auth");
     final Response response =
         request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
-                Entity.json(authConfig));
+                Entity.json(registryAuth));
     return response.getStatus();
   }
 
@@ -1002,7 +1001,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   @Deprecated
   public void load(final String image, final InputStream imagePayload,
-                   final AuthConfig authConfig)
+                   final RegistryAuth registryAuth)
       throws DockerException, InterruptedException {
     create(image, imagePayload);
   }
@@ -1018,7 +1017,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   @Deprecated
   public void load(final String image, final InputStream imagePayload,
-                   final AuthConfig authConfig, final ProgressHandler handler)
+                   final RegistryAuth registryAuth, final ProgressHandler handler)
       throws DockerException, InterruptedException {
     create(image, imagePayload, handler);
   }
@@ -1094,7 +1093,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   @Deprecated
-  public InputStream save(final String image, final AuthConfig authConfig)
+  public InputStream save(final String image, final RegistryAuth registryAuth)
       throws DockerException, IOException, InterruptedException {
     return save(image);
   }
@@ -1114,7 +1113,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         GET,
         InputStream.class,
         resource,
-        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(authConfig))
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(registryAuth))
     );
   }
 
@@ -1126,17 +1125,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void pull(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    pull(image, authConfig, handler);
+    pull(image, registryAuth, handler);
   }
 
   @Override
-  public void pull(final String image, final AuthConfig authConfig)
+  public void pull(final String image, final RegistryAuth registryAuth)
       throws DockerException, InterruptedException {
-    pull(image, authConfig, new LoggingPullHandler(image));
+    pull(image, registryAuth, new LoggingPullHandler(image));
   }
 
   @Override
-  public void pull(final String image, final AuthConfig authConfig, final ProgressHandler handler)
+  public void pull(final String image, final RegistryAuth registryAuth,
+                   final ProgressHandler handler)
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
@@ -1151,7 +1151,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
              request(POST, ProgressStream.class, resource,
                      resource
                          .request(APPLICATION_JSON_TYPE)
-                         .header("X-Registry-Auth", authHeader(authConfig)))) {
+                         .header("X-Registry-Auth", authHeader(registryAuth)))) {
       pull.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -1171,19 +1171,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public void push(final String image, final AuthConfig authconfig)
+  public void push(final String image, final RegistryAuth registryAuth)
       throws DockerException, InterruptedException {
-    push(image, new LoggingPushHandler(image), authconfig);
+    push(image, new LoggingPushHandler(image), registryAuth);
   }
 
   @Override
   public void push(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    push(image, handler, authConfig);
+    push(image, handler, registryAuth);
   }
 
   @Override
-  public void push(final String image, final ProgressHandler handler, final AuthConfig authConfig)
+  public void push(final String image,
+                   final ProgressHandler handler,
+                   final RegistryAuth registryAuth)
       throws DockerException, InterruptedException {
     final ImageRef imageRef = new ImageRef(image);
 
@@ -1198,7 +1200,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
-                         .header("X-Registry-Auth", authHeader(authConfig)))) {
+                         .header("X-Registry-Auth", authHeader(registryAuth)))) {
       push.tail(handler, POST, resource.getUri());
     } catch (IOException e) {
       throw new DockerException(e);
@@ -1276,6 +1278,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return build(directory, name, null, handler, params);
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   @Override
   public String build(final Path directory, final String name, final String dockerfile,
                       final ProgressHandler handler, final BuildParam... params)
@@ -1294,18 +1297,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam("dockerfile", dockerfile);
     }
 
-    log.debug("Auth Config {}", authConfig);
-
     // Convert auth to X-Registry-Config format
-    AuthRegistryConfig authRegistryConfig;
-    if (authConfig == null) {
-      authRegistryConfig = AuthRegistryConfig.EMPTY;
+    final RegistryConfigs registryConfigs;
+    if (registryAuth == null) {
+      registryConfigs = RegistryConfigs.empty();
     } else {
-      authRegistryConfig = new AuthRegistryConfig(authConfig.serverAddress(),
-                                                  authConfig.username(),
-                                                  authConfig.password(),
-                                                  authConfig.email(),
-                                                  authConfig.serverAddress());
+      registryConfigs = RegistryConfigs.create(singletonMap(
+          registryAuth.serverAddress(),
+          RegistryConfigs.RegistryConfig.create(
+              registryAuth.serverAddress(),
+              registryAuth.username(),
+              registryAuth.password(),
+              registryAuth.email())));
     }
 
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
@@ -1314,7 +1317,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
                          .header("X-Registry-Config",
-                                 authRegistryHeader(authRegistryConfig)),
+                                 authRegistryHeader(registryConfigs)),
                      Entity.entity(fileStream, "application/tar"))) {
 
       String imageId = null;
@@ -1579,12 +1582,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public ServiceCreateResponse createService(ServiceSpec spec)
       throws DockerException, InterruptedException {
     
-    return createService(spec, authConfig);
+    return createService(spec, registryAuth);
   }
   
   @Override
   public ServiceCreateResponse createService(final ServiceSpec spec,
-                                             final AuthConfig config)
+                                             final RegistryAuth config)
       throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services").path("create");
@@ -1655,11 +1658,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("services");
     final Map<String, List<String>> filters = new HashMap<>();
 
-    if (criteria.getServiceId() != null) {
-      filters.put("id", Collections.singletonList(criteria.getServiceId()));
+    if (criteria.serviceId() != null) {
+      filters.put("id", Collections.singletonList(criteria.serviceId()));
     }
-    if (criteria.getServiceName() != null) {
-      filters.put("name", Collections.singletonList(criteria.getServiceName()));
+    if (criteria.serviceName() != null) {
+      filters.put("name", Collections.singletonList(criteria.serviceName()));
     }
 
     resource = resource.queryParam("filters", urlEncodeFilters(filters));
@@ -1711,23 +1714,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     assertApiVersionIsAbove("1.24");
     final Map<String, List<String>> filters = new HashMap<>();
 
-    if (criteria.getTaskId() != null) {
-      filters.put("id", Collections.singletonList(criteria.getTaskId()));
+    if (criteria.taskId() != null) {
+      filters.put("id", Collections.singletonList(criteria.taskId()));
     }
-    if (criteria.getTaskName() != null) {
-      filters.put("name", Collections.singletonList(criteria.getTaskName()));
+    if (criteria.taskName() != null) {
+      filters.put("name", Collections.singletonList(criteria.taskName()));
     }
-    if (criteria.getServiceName() != null) {
-      filters.put("service", Collections.singletonList(criteria.getServiceName()));
+    if (criteria.serviceName() != null) {
+      filters.put("service", Collections.singletonList(criteria.serviceName()));
     }
-    if (criteria.getNodeId() != null) {
-      filters.put("node", Collections.singletonList(criteria.getNodeId()));
+    if (criteria.nodeId() != null) {
+      filters.put("node", Collections.singletonList(criteria.nodeId()));
     }
-    if (criteria.getLabel() != null) {
-      filters.put("label", Collections.singletonList(criteria.getLabel()));
+    if (criteria.label() != null) {
+      filters.put("label", Collections.singletonList(criteria.label()));
     }
-    if (criteria.getDesiredState() != null) {
-      filters.put("desired-state", Collections.singletonList(criteria.getDesiredState()));
+    if (criteria.desiredState() != null) {
+      filters.put("desired-state", Collections.singletonList(criteria.desiredState()));
     }
 
     WebTarget resource = resource().path("tasks");
@@ -2110,7 +2113,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private String message(final Response response) {
-    final Readable reader = new InputStreamReader(response.readEntity(InputStream.class), UTF_8);
+    final Readable reader;
+    try {
+      reader = new InputStreamReader(response.readEntity(InputStream.class), UTF_8);
+    } catch (IllegalStateException e) {
+      return null;
+    }
+
     try {
       return CharStreams.toString(reader);
     } catch (IOException ignore) {
@@ -2118,27 +2127,27 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private String authHeader(final AuthConfig authConfig) throws DockerException {
-    if (authConfig == null) {
+  private String authHeader(final RegistryAuth registryAuth) throws DockerException {
+    if (registryAuth == null) {
       return "null";
     }
     try {
       return Base64.encodeAsString(ObjectMapperProvider
                                        .objectMapper()
-                                       .writeValueAsString(authConfig));
+                                       .writeValueAsString(registryAuth));
     } catch (JsonProcessingException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
     }
   }
 
-  private String authRegistryHeader(final AuthRegistryConfig authRegistryConfig)
+  private String authRegistryHeader(final RegistryConfigs registryConfigs)
       throws DockerException {
-    if (authRegistryConfig == null) {
+    if (registryConfigs == null) {
       return "null";
     }
     try {
       String authRegistryJson =
-          ObjectMapperProvider.objectMapper().writeValueAsString(authRegistryConfig);
+          ObjectMapperProvider.objectMapper().writeValueAsString(registryConfigs.configs());
 
       final String apiVersion = version().apiVersion();
       final int versionComparison = compareVersion(apiVersion, "1.19");
@@ -2224,7 +2233,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificates dockerCertificates;
     private boolean dockerAuth;
-    private AuthConfig authConfig;
+    private RegistryAuth registryAuth;
     private Map<String, Object> headers = new HashMap<>();
 
     public URI uri() {
@@ -2341,25 +2350,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return this;
     }
 
-    public AuthConfig authConfig() {
-      return authConfig;
+    public RegistryAuth registryAuth() {
+      return registryAuth;
     }
 
     /**
      * Set the auth parameters for pull/push requests from/to private repositories.
      *
-     * @param authConfig AuthConfig object
+     * @param registryAuth RegistryAuth object
      * @return Builder
      */
-    public Builder authConfig(final AuthConfig authConfig) {
-      this.authConfig = authConfig;
+    public Builder registryAuth(final RegistryAuth registryAuth) {
+      this.registryAuth = registryAuth;
       return this;
     }
 
     public DefaultDockerClient build() {
       if (dockerAuth) {
         try {
-          this.authConfig = AuthConfig.fromDockerConfig().build();
+          this.registryAuth = RegistryAuth.fromDockerConfig().build();
         } catch (IOException e) {
           log.warn("Unable to use Docker auth info", e);
         }

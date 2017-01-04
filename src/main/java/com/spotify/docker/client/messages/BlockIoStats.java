@@ -22,111 +22,57 @@ package com.spotify.docker.client.messages;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static com.google.common.collect.ImmutableList.copyOf;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class BlockIoStats {
+public abstract class BlockIoStats {
 
   @JsonProperty("io_service_bytes_recursive")
-  private ImmutableList<Object> ioServiceBytesRecursive;
+  public abstract ImmutableList<Object> ioServiceBytesRecursive();
+
   @JsonProperty("io_serviced_recursive")
-  private ImmutableList<Object> ioServicedRecursive;
+  public abstract ImmutableList<Object> ioServicedRecursive();
+
   @JsonProperty("io_queue_recursive")
-  private ImmutableList<Object> ioQueueRecursive;
+  public abstract ImmutableList<Object> ioQueueRecursive();
+
   @JsonProperty("io_service_time_recursive")
-  private ImmutableList<Object> ioServiceTimeRecursive;
+  public abstract ImmutableList<Object> ioServiceTimeRecursive();
+
   @JsonProperty("io_wait_time_recursive")
-  private ImmutableList<Object> ioWaitTimeRecursive;
+  public abstract ImmutableList<Object> ioWaitTimeRecursive();
+
   @JsonProperty("io_merged_recursive")
-  private ImmutableList<Object> ioMergedRecursive;
+  public abstract ImmutableList<Object> ioMergedRecursive();
+
   @JsonProperty("io_time_recursive")
-  private ImmutableList<Object> ioTimeRecursive;
+  public abstract ImmutableList<Object> ioTimeRecursive();
+
   @JsonProperty("sectors_recursive")
-  private ImmutableList<Object> sectorsRecursive;
+  public abstract ImmutableList<Object> sectorsRecursive();
 
-  public List<Object> ioServiceBytesRecursive() {
-    return ioServiceBytesRecursive;
-  }
-
-  public List<Object> ioServicedRecursive() {
-    return ioServicedRecursive;
-  }
-
-  public List<Object> ioQueueRecursive() {
-    return ioQueueRecursive;
-  }
-
-  public List<Object> ioServiceTimeRecursive() {
-    return ioServiceTimeRecursive;
-  }
-
-  public List<Object> ioWaitTimeRecursive() {
-    return ioWaitTimeRecursive;
-  }
-
-  public List<Object> ioMergedRecursive() {
-    return ioMergedRecursive;
-  }
-
-  public List<Object> ioTimeRecursive() {
-    return ioTimeRecursive;
-  }
-
-  public List<Object> sectorsRecursive() {
-    return sectorsRecursive;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(ioServiceBytesRecursive,
-                        ioServicedRecursive,
-                        ioQueueRecursive,
-                        ioServiceTimeRecursive,
-                        ioWaitTimeRecursive,
-                        ioMergedRecursive,
-                        ioTimeRecursive,
-                        sectorsRecursive);
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final BlockIoStats that = (BlockIoStats) obj;
-
-    return Objects.equals(this.ioServiceBytesRecursive, that.ioServiceBytesRecursive)
-           && Objects.equals(this.ioServicedRecursive, that.ioServicedRecursive)
-           && Objects.equals(this.ioQueueRecursive, that.ioQueueRecursive)
-           && Objects.equals(this.ioServiceTimeRecursive, that.ioServiceTimeRecursive)
-           && Objects.equals(this.ioWaitTimeRecursive, that.ioWaitTimeRecursive)
-           && Objects.equals(this.ioMergedRecursive, that.ioMergedRecursive)
-           && Objects.equals(this.ioTimeRecursive, that.ioTimeRecursive)
-           && Objects.equals(this.sectorsRecursive, that.sectorsRecursive);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("ioServiceBytesRecursive", ioServiceBytesRecursive)
-        .add("ioServicedRecursive", ioServicedRecursive)
-        .add("ioQueueRecursive", ioQueueRecursive)
-        .add("ioServiceTimeRecursive", ioServiceTimeRecursive)
-        .add("ioWaitTimeRecursive", ioWaitTimeRecursive)
-        .add("ioMergedRecursive", ioMergedRecursive)
-        .add("ioTimeRecursive", ioTimeRecursive)
-        .add("sectorsRecursive", sectorsRecursive)
-        .toString();
+  @JsonCreator
+  static BlockIoStats create(
+      @JsonProperty("io_service_bytes_recursive") final List<Object> ioServiceBytesRecursive,
+      @JsonProperty("io_serviced_recursive") final List<Object> ioServicedRecursive,
+      @JsonProperty("io_queue_recursive") final List<Object> ioQueueRecursive,
+      @JsonProperty("io_service_time_recursive") final List<Object> ioServiceTimeRecursive,
+      @JsonProperty("io_wait_time_recursive") final List<Object> ioWaitTimeRecursive,
+      @JsonProperty("io_merged_recursive") final List<Object> ioMergedRecursive,
+      @JsonProperty("io_time_recursive") final List<Object> ioTimeRecursive,
+      @JsonProperty("sectors_recursive") final List<Object> sectorsRecursive) {
+    return new AutoValue_BlockIoStats(
+        copyOf(ioServiceBytesRecursive), copyOf(ioServicedRecursive), copyOf(ioQueueRecursive),
+        copyOf(ioServiceTimeRecursive), copyOf(ioWaitTimeRecursive), copyOf(ioMergedRecursive),
+        copyOf(ioTimeRecursive), copyOf(sectorsRecursive));
   }
 }
