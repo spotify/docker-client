@@ -99,7 +99,7 @@ public class ContainerState {
   }
   
   public Health health() {
-      return health;
+    return health;
   }
 
   @Override
@@ -161,19 +161,19 @@ public class ContainerState {
     private String output;
     
     public Date start() {
-        return start;
+      return start;
     }
 
     public Date end() {
-        return end;
+      return end;
     }
 
     public Integer exitCode() {
-        return exitCode;
+      return exitCode;
     }
 
     public String output() {
-        return output;
+      return output;
     }
 
     @Override
@@ -218,15 +218,15 @@ public class ContainerState {
     private ImmutableList<HealthLog> log;
     
     public String status() {
-        return status;
+      return status;
     }
 
     public Integer failingStreak() {
-        return failingStreak;
+      return failingStreak;
     }
 
     public ImmutableList<HealthLog> log() {
-        return log;
+      return log;
     }
 
     @Override
