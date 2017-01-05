@@ -20,6 +20,7 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
 
@@ -142,7 +143,7 @@ class CompressedDirectory implements Closeable {
     if (Files.isReadable(dockerIgnorePath) && Files.isRegularFile(dockerIgnorePath)) {
       for (final String line : Files.readAllLines(dockerIgnorePath, StandardCharsets.UTF_8)) {
         final String pattern = createPattern(line);
-        if (pattern == null || pattern.isEmpty()) {
+        if (isNullOrEmpty(pattern)) {
           log.debug("Will skip '{}' - because it's empty after trimming or it's a comment", line);
           continue;
         }

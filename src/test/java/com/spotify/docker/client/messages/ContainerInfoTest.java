@@ -20,26 +20,30 @@
 
 package com.spotify.docker.client.messages;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static com.spotify.docker.FixtureUtil.fixture;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spotify.docker.client.ObjectMapperProvider;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class ContainerConfigTest {
+public class ContainerInfoTest {
 
   @Rule
-  public final ExpectedException expectedException = ExpectedException.none();
+  public ExpectedException expectedException = ExpectedException.none();
+
+  private ObjectMapper objectMapper;
+
+  @Before
+  public void setUp() throws Exception {
+    objectMapper = new ObjectMapperProvider().getContext(ContainerInfo.class);
+  }
 
   @Test
-  public void testNoVolumes() throws Exception {
-    final ContainerConfig containerConfig = ContainerConfig.builder().build();
-    assertThat(containerConfig.volumes(), is(nullValue()));
-
-    final ContainerConfig.Builder builder = containerConfig.toBuilder();
-    assertThat(builder.volumes(), is(nullValue()));
+  public void test1_24() throws Exception {
+    objectMapper.readValue(fixture("fixtures/1.24/containerInfo.json"), ContainerInfo.class);
   }
 
 }

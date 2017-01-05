@@ -24,142 +24,71 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
 import java.util.Date;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class ImageInfo {
+public abstract class ImageInfo {
 
   @JsonProperty("Id")
-  private String id;
+  public abstract String id();
+
   @JsonProperty("Parent")
-  private String parent;
+  public abstract String parent();
+
   @JsonProperty("Comment")
-  private String comment;
+  public abstract String comment();
+
   @JsonProperty("Created")
-  private Date created;
+  public abstract Date created();
+
   @JsonProperty("Container")
-  private String container;
+  public abstract String container();
+
   @JsonProperty("ContainerConfig")
-  private ContainerConfig containerConfig;
+  public abstract ContainerConfig containerConfig();
+
   @JsonProperty("DockerVersion")
-  private String dockerVersion;
+  public abstract String dockerVersion();
+
   @JsonProperty("Author")
-  private String author;
+  public abstract String author();
+
   @JsonProperty("Config")
-  private ContainerConfig config;
+  public abstract ContainerConfig config();
+
   @JsonProperty("Architecture")
-  private String architecture;
+  public abstract String architecture();
+
   @JsonProperty("Os")
-  private String os;
+  public abstract String os();
+
   @JsonProperty("Size")
-  private Long size;
+  public abstract Long size();
+
   @JsonProperty("VirtualSize")
-  private Long virtualSize;
+  public abstract Long virtualSize();
 
-  public String id() {
-    return id;
-  }
-
-  public String parent() {
-    return parent;
-  }
-
-  public String comment() {
-    return comment;
-  }
-
-  public Date created() {
-    return created == null ? null : new Date(created.getTime());
-  }
-
-  public String container() {
-    return container;
-  }
-
-  public ContainerConfig containerConfig() {
-    return containerConfig;
-  }
-
-  public String dockerVersion() {
-    return dockerVersion;
-  }
-
-  public String author() {
-    return author;
-  }
-
-  public ContainerConfig config() {
-    return config;
-  }
-
-  public String architecture() {
-    return architecture;
-  }
-
-  public String os() {
-    return os;
-  }
-
-  public Long size() {
-    return size;
-  }
-
-  public Long virtualSize() {
-    return virtualSize;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ImageInfo that = (ImageInfo) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.parent, that.parent)
-           && Objects.equals(this.comment, that.comment)
-           && Objects.equals(this.created, that.created)
-           && Objects.equals(this.container, that.container)
-           && Objects.equals(this.containerConfig, that.containerConfig)
-           && Objects.equals(this.dockerVersion, that.dockerVersion)
-           && Objects.equals(this.author, that.author)
-           && Objects.equals(this.config, that.config)
-           && Objects.equals(this.architecture, that.architecture)
-           && Objects.equals(this.os, that.os)
-           && Objects.equals(this.size, that.size)
-           && Objects.equals(this.virtualSize, that.virtualSize);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, parent, comment, created, container, containerConfig, dockerVersion,
-                        author, config, architecture, os, size, virtualSize);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("parent", parent)
-        .add("comment", comment)
-        .add("created", created)
-        .add("container", container)
-        .add("containerConfig", containerConfig)
-        .add("dockerVersion", dockerVersion)
-        .add("author", author)
-        .add("config", config)
-        .add("architecture", architecture)
-        .add("os", os)
-        .add("size", size)
-        .add("virtualSize", virtualSize)
-        .toString();
+  @JsonCreator
+  static ImageInfo create(
+      @JsonProperty("Id") final String id,
+      @JsonProperty("Parent") final String parent,
+      @JsonProperty("Comment") final String comment,
+      @JsonProperty("Created") final Date created,
+      @JsonProperty("Container") final String container,
+      @JsonProperty("ContainerConfig") final ContainerConfig containerConfig,
+      @JsonProperty("DockerVersion") final String dockerVersion,
+      @JsonProperty("Author") final String author,
+      @JsonProperty("Config") final ContainerConfig config,
+      @JsonProperty("Architecture") final String architecture,
+      @JsonProperty("Os") final String os,
+      @JsonProperty("Size") final Long size,
+      @JsonProperty("VirtualSize") final Long virtualSize) {
+    return new AutoValue_ImageInfo(id, parent, comment, created, container, containerConfig,
+        dockerVersion, author, config, architecture, os, size, virtualSize);
   }
 }

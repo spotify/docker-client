@@ -24,42 +24,20 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class DispatcherConfig {
+public abstract class DispatcherConfig {
 
   @JsonProperty("HeartbeatPeriod")
-  private Long heartbeatPeriod;
+  public abstract Long heartbeatPeriod();
 
-  public Long heartbeatPeriod() {
-    return heartbeatPeriod;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final DispatcherConfig that = (DispatcherConfig) obj;
-
-    return Objects.equals(this.heartbeatPeriod, that.heartbeatPeriod);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(heartbeatPeriod);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("heartbeatPeriod", heartbeatPeriod).toString();
+  @JsonCreator
+  static DispatcherConfig create(@JsonProperty("HeartbeatPeriod") final Long heartbeatPeriod) {
+    return new AutoValue_DispatcherConfig(heartbeatPeriod);
   }
 }

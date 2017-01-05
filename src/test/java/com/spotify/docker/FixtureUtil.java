@@ -18,27 +18,20 @@
  * -/-/-
  */
 
-package com.spotify.docker.client.messages.swarm;
+package com.spotify.docker;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import java.io.IOException;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.google.auto.value.AutoValue;
+public class FixtureUtil {
 
-@AutoValue
-@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class GlobalService {
-
-  public static Builder builder() {
-    return new AutoValue_GlobalService.Builder();
+  private FixtureUtil() {
+    // Prevent instantiation
   }
 
-  @AutoValue.Builder
-  public abstract static class Builder {
-
-    public abstract GlobalService build();
-
+  public static String fixture(final String filename) throws IOException {
+    return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
   }
 
 }

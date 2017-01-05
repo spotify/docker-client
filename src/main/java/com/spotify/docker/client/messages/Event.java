@@ -28,26 +28,18 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.jackson.UnixTimestampDeserializer;
 
 import java.util.Date;
-import java.util.Objects;
+import java.util.Map;
 
+import javax.annotation.Nullable;
+
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)
-public class Event {
-
-  @JsonProperty("status") private String status;
-  @JsonProperty("id") private String id;
-  @JsonProperty("from") private String from;
-  @JsonProperty("Type") private Type type;
-  @JsonProperty("Action") private String action;
-  @JsonProperty("Actor") private Actor actor;
-  @JsonProperty("time")
-  @JsonDeserialize(using = UnixTimestampDeserializer.class)
-  private Date time;
-  @JsonProperty("timeNano") private Long timeNano;
+public abstract class Event {
 
   /**
    * Event status.
@@ -55,9 +47,9 @@ public class Event {
    * @deprecated Use {@link #action()} instead
    */
   @Deprecated
-  public String status() {
-    return status;
-  }
+  @Nullable
+  @JsonProperty("status")
+  public abstract String status();
 
   /**
    * Event actor id. When the event type is "container" this is the container id.
@@ -66,9 +58,9 @@ public class Event {
    *     field from {@link #actor()}
    */
   @Deprecated
-  public String id() {
-    return id;
-  }
+  @Nullable
+  @JsonProperty("id")
+  public abstract String id();
 
   /**
    * When the event type is "container" this is the image id.
@@ -78,117 +70,70 @@ public class Event {
    *     map from {@link #actor()}
    */
   @Deprecated
-  public String from() {
-    return from;
-  }
+  @Nullable
+  @JsonProperty("from")
+  public abstract String from();
 
-  public Type type() {
-    return type;
-  }
+  @Nullable
+  @JsonProperty("Type")
+  public abstract Type type();
 
   /**
    * Event action.
    * @return action
    * @since API 1.22
    */
-  public String action() {
-    return action;
-  }
+  @Nullable
+  @JsonProperty("Action")
+  public abstract String action();
 
   /**
    * Event actor.
-   * @return actor
+   * @return {@link Actor}
    * @since API 1.22
    */
-  public Actor actor() {
-    return actor;
+  @Nullable
+  @JsonProperty("Actor")
+  public abstract Actor actor();
+
+  @JsonProperty("time")
+  @JsonDeserialize(using = UnixTimestampDeserializer.class)
+  public abstract Date time();
+
+  @Nullable
+  @JsonProperty("timeNano")
+  public abstract Long timeNano();
+
+  @JsonCreator
+  static Event create(
+      @JsonProperty("status") final String status,
+      @JsonProperty("id") final String id,
+      @JsonProperty("from") final String from,
+      @JsonProperty("Type") final Type type,
+      @JsonProperty("Action") final String action,
+      @JsonProperty("Actor") final Actor actor,
+      @JsonProperty("time") final Date time,
+      @JsonProperty("timeNano") final Long timeNano) {
+    return new AutoValue_Event(status, id, from, type, action, actor, time, timeNano);
   }
 
-  public Date time() {
-    return time == null ? null : new Date(time.getTime());
-  }
+  @AutoValue
+  public abstract static class Actor {
 
-  public Long timeNano() {
-    return timeNano;
-  }
+    @JsonProperty("ID")
+    public abstract String id();
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
+    @Nullable
+    @JsonProperty("Attributes")
+    public abstract ImmutableMap<String, String> attributes();
 
-    final Event that = (Event) obj;
-
-    return Objects.equals(this.status, that.status)
-           && Objects.equals(this.id, that.id)
-           && Objects.equals(this.from, that.from)
-           && Objects.equals(this.type, that.type)
-           && Objects.equals(this.action, that.action)
-           && Objects.equals(this.actor, that.actor)
-           && Objects.equals(this.time, that.time)
-           && Objects.equals(this.timeNano, that.timeNano);
-
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(status, id, from, time);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("status", status)
-        .add("id", id)
-        .add("from", from)
-        .add("type", type)
-        .add("action", action)
-        .add("actor", actor)
-        .add("time", time)
-        .add("timeNano", timeNano)
-        .toString();
-  }
-
-  public static class Actor {
-    @JsonProperty("ID") private String id;
-    @JsonProperty("Attributes") private ImmutableMap<String, String> attributes;
-
-    public String id() {
-      return id;
-    }
-
-    public ImmutableMap<String, String> attributes() {
-      return attributes;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-      final Actor that = (Actor) obj;
-      return Objects.equals(this.id, that.id)
-             && Objects.equals(this.attributes, that.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(id, attributes);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("id", id)
-          .add("attributes", attributes)
-          .toString();
+    @JsonCreator
+    static Actor create(
+        @JsonProperty("ID") final String id,
+        @JsonProperty("Attributes") final Map<String, String> attributes) {
+      final ImmutableMap<String, String> attributesT = attributes == null
+                                                       ? null : ImmutableMap.copyOf(attributes);
+      return new AutoValue_Event_Actor(id, attributesT);
     }
   }
 
