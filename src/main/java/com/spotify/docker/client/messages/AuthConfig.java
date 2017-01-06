@@ -65,6 +65,9 @@ public class AuthConfig {
   @JsonProperty("ServerAddress")
   private String serverAddress;
 
+  @JsonProperty("IdentityToken")
+  private String identityToken;
+
   @SuppressWarnings("unused")
   private AuthConfig() {
   }
@@ -74,6 +77,7 @@ public class AuthConfig {
     this.password = builder.password;
     this.email = builder.email;
     this.serverAddress = builder.serverAddress;
+    this.identityToken = builder.identityToken;
   }
 
   public String username() {
@@ -92,6 +96,10 @@ public class AuthConfig {
     return serverAddress;
   }
 
+  public String identityToken() {
+    return identityToken;
+  }
+
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) {
@@ -106,7 +114,8 @@ public class AuthConfig {
     return Objects.equals(this.username, that.username)
            && Objects.equals(this.password, that.password)
            && Objects.equals(this.email, that.email)
-           && Objects.equals(this.serverAddress, that.serverAddress);
+           && Objects.equals(this.serverAddress, that.serverAddress)
+           && Objects.equals(this.identityToken, that.identityToken);
   }
 
   @Override
@@ -121,6 +130,7 @@ public class AuthConfig {
         // don't log the password
         .add("email", email)
         .add("serverAddress", serverAddress)
+        .add("identityToken", identityToken)
         .toString();
   }
 
@@ -227,6 +237,9 @@ public class AuthConfig {
       if (authParams.length == 2) {
         authBuilder.username(authParams[0].trim());
         authBuilder.password(authParams[1].trim());
+      } else if (serverAuth.has("identityToken")) {
+        authBuilder.identityToken(serverAuth.get("identityToken").asText());
+        return authBuilder;
       } else {
         log.warn("Failed to parse auth string for {}", serverAddress);
         return authBuilder;
@@ -264,6 +277,7 @@ public class AuthConfig {
     private String email;
     // Default to the public Docker registry.
     private String serverAddress = "https://index.docker.io/v1/";
+    private String identityToken;
 
     private Builder() {
     }
@@ -273,6 +287,7 @@ public class AuthConfig {
       this.password = config.password;
       this.email = config.email;
       this.serverAddress = config.serverAddress;
+      this.identityToken = config.identityToken;
     }
 
     public Builder username(final String username) {
@@ -309,6 +324,15 @@ public class AuthConfig {
 
     public String serverAddress() {
       return serverAddress;
+    }
+
+    public Builder identityToken(final String identityToken) {
+      this.identityToken = identityToken;
+      return this;
+    }
+
+    public String identityToken() {
+      return identityToken;
     }
 
     public AuthConfig build() {

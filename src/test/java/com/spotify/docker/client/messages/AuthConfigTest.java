@@ -45,6 +45,10 @@ public class AuthConfigTest {
       .password("sw4gy0lo")
       .email("dockerman@hub.com")
       .build();
+  private static final AuthConfig IDENTITY_TOKEN_AUTH_CONFIG = AuthConfig.builder()
+      .serverAddress("docker.customdomain.com")
+      .identityToken("52ce5fd5-eb60-42bf-931f-5eeec128211a")
+      .build();
   private static final AuthConfig MY_AUTH_CONFIG = AuthConfig.builder()
       .serverAddress("https://narnia.mydock.io/v1/")
       .username("megaman")
@@ -109,6 +113,13 @@ public class AuthConfigTest {
     final AuthConfig authConfig = AuthConfig.fromDockerConfig(getTestFilePath(
         "dockerConfig/fullDockerCfg")).build();
     assertThat(authConfig, equalTo(DOCKER_AUTH_CONFIG));
+  }
+
+  @Test
+  public void testFromDockerConfig_IdentityToken() throws Exception {
+    final AuthConfig authConfig = AuthConfig.fromDockerConfig(getTestFilePath(
+            "dockerConfig/identityTokenConfig.json")).build();
+    assertThat(authConfig, equalTo(IDENTITY_TOKEN_AUTH_CONFIG));
   }
 
   @Test

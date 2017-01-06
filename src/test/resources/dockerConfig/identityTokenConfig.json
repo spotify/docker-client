@@ -1,0 +1,9 @@
+{
+  "auths": {
+    "docker.customdomain.com": {
+      "auth": "ZG9ja2VybWFuOg==",
+      "email": "dockerman@hub.com",
+      "identityToken": "52ce5fd5-eb60-42bf-931f-5eeec128211a"
+    }
+  }
+}
