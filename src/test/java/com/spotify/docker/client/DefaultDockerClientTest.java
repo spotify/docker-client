@@ -406,6 +406,37 @@ public class DefaultDockerClientTest {
         buildParam
     );
   }
+  
+  @Test
+  public void testHealthCheck() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "health check");
+    
+    // Create image
+    final String dockerDirectory = Resources.getResource("dockerDirectoryWithHealthCheck")
+            .getPath();
+    final String imageId = sut.build(
+            Paths.get(dockerDirectory),
+            "test-healthcheck"
+            );
+   
+    // Inpect image to check healthcheck configuration
+    final ImageInfo imageInfo = sut.inspectImage(imageId);
+    assertThat(imageInfo.config().healthcheck(), notNullValue());
+    assertThat(imageInfo.config().healthcheck().get("Test"),
+            is(Arrays.asList("CMD-SHELL", "exit 1")));
+    
+    // Create container based on this image to check initial container health state
+    final ContainerConfig config = ContainerConfig.builder()
+            .image("test-healthcheck")
+            .build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    sut.startContainer(creation.id());
+    final ContainerInfo containerInfo = sut.inspectContainer(creation.id());
+    
+    assertThat(containerInfo.state().health(), notNullValue());
+    assertThat(containerInfo.state().health().status(), is("starting")); 
+  }
 
   @SuppressWarnings("emptyCatchBlock")
   @Test

@@ -142,6 +142,10 @@ public abstract class ContainerConfig {
   @JsonProperty("StopSignal")
   public abstract String stopSignal();
 
+  @Nullable
+  @JsonProperty("Healthcheck")
+  public abstract ImmutableMap<String, List<String>> healthcheck();
+
   /**
    * @deprecated  As of release 7.0.0, replaced by {@link #stopSignal()}.
    */
@@ -174,7 +178,8 @@ public abstract class ContainerConfig {
       @JsonProperty("Labels") final Map<String, String> labels,
       @JsonProperty("MacAddress") final String macAddress,
       @JsonProperty("HostConfig") final HostConfig hostConfig,
-      @JsonProperty("StopSignal") final String stopSignal ) {
+      @JsonProperty("StopSignal") final String stopSignal,
+      @JsonProperty("Healthcheck") final Map<String, List<String>> healthcheck) {
     final Builder builder = builder()
         .hostname(hostname)
         .domainname(domainname)
@@ -215,6 +220,9 @@ public abstract class ContainerConfig {
     }
     if (labels != null) {
       builder.labels(labels);
+    }
+    if (healthcheck != null) {
+      builder.healthcheck(healthcheck);
     }
 
     return builder.build();
@@ -326,6 +334,8 @@ public abstract class ContainerConfig {
     public abstract Builder hostConfig(final HostConfig hostConfig);
 
     public abstract Builder stopSignal(final String stopSignal);
+
+    public abstract Builder healthcheck(final Map<String, List<String>> healthcheck);
 
     public abstract ContainerConfig build();
   }
