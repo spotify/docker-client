@@ -57,6 +57,7 @@ import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.allOf;
@@ -114,7 +115,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
-
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.EventsParam;
@@ -134,7 +134,6 @@ import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.exceptions.VolumeNotFoundException;
 import com.spotify.docker.client.messages.AttachedNetwork;
-import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -155,12 +154,15 @@ import com.spotify.docker.client.messages.ImageInfo;
 import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Ipam;
+import com.spotify.docker.client.messages.IpamConfig;
 import com.spotify.docker.client.messages.LogConfig;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
 import com.spotify.docker.client.messages.NetworkCreation;
+import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
+import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
@@ -180,7 +182,6 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -202,6 +203,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -219,7 +221,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -251,7 +252,6 @@ public class DefaultDockerClientTest {
   private static final boolean CIRCLECI = !isNullOrEmpty(getenv("CIRCLECI"));
   private static final boolean TRAVIS = "true".equals(getenv("TRAVIS"));
 
-  private static final String AUTH_EMAIL = "dxia+2@spotify.com";
   private static final String AUTH_USERNAME = "dxia2";
   private static final String AUTH_PASSWORD = "Tv38KLPd]M";
 
@@ -269,14 +269,13 @@ public class DefaultDockerClientTest {
 
   private DefaultDockerClient sut;
 
-  private AuthConfig authConfig;
+  private RegistryAuth registryAuth;
 
   private String dockerApiVersion;
 
   @Before
   public void setup() throws Exception {
-    authConfig = AuthConfig.builder().email(AUTH_EMAIL).username(AUTH_USERNAME)
-        .password(AUTH_PASSWORD).build();
+    registryAuth = RegistryAuth.builder().username(AUTH_USERNAME).password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
     // Make it easier to test no read timeout occurs by using a smaller value
     // Such test methods should end in 'NoTimeout'
@@ -510,18 +509,17 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAuth() throws Exception {
-    final int statusCode = sut.auth(authConfig);
+    final int statusCode = sut.auth(registryAuth);
     assertThat(statusCode, equalTo(200));
   }
 
   @Test
   public void testBadAuth() throws Exception {
-    final AuthConfig badAuthConfig = AuthConfig.builder()
-        .email(AUTH_EMAIL)
+    final RegistryAuth badRegistryAuth = RegistryAuth.builder()
         .username(AUTH_USERNAME)
         .password("foobar")
         .build();
-    final int statusCode = sut.auth(badAuthConfig);
+    final int statusCode = sut.auth(badRegistryAuth);
     assertThat(statusCode, equalTo(401));
   }
 
@@ -529,11 +527,10 @@ public class DefaultDockerClientTest {
   public void testMissingAuthParam() throws Exception {
     requireDockerApiVersionNot("1.23", "https://github.com/docker/docker/issues/24093");
     requireDockerApiVersionNot("1.24", "https://github.com/docker/docker/issues/24093");
-    final AuthConfig badAuthConfig = AuthConfig.builder()
-        .email(AUTH_EMAIL)
+    final RegistryAuth badRegistryAuth = RegistryAuth.builder()
         .username(AUTH_USERNAME)
         .build();
-    final int statusCode = sut.auth(badAuthConfig);
+    final int statusCode = sut.auth(badRegistryAuth);
     assertThat(statusCode, equalTo(500));
   }
 
@@ -553,7 +550,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(info.id(), not(isEmptyOrNullString()));
     assertThat(info.ipv4Forwarding(), is(anything()));
-    assertThat(info.images(), greaterThan(0));
+    assertThat(info.images(), greaterThan(-1));
     assertThat(info.indexServerAddress(), not(isEmptyOrNullString()));
     if (dockerApiVersionLessThan("1.23")) {
       // Init path seems to have been removed in API 1.23.
@@ -626,8 +623,8 @@ public class DefaultDockerClientTest {
     removedImages.addAll(sut.removeImage(imageVersion));
 
     assertThat(removedImages, hasItems(
-        new RemovedImage(UNTAGGED, imageLatest),
-        new RemovedImage(UNTAGGED, imageVersion)
+        RemovedImage.create(UNTAGGED, imageLatest),
+        RemovedImage.create(UNTAGGED, imageVersion)
     ));
 
     // Try to inspect deleted image and make sure ImageNotFoundException is thrown
@@ -649,7 +646,7 @@ public class DefaultDockerClientTest {
 
     // Verify tag was successful by trying to remove it.
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(newImageName));
-    assertThat(removedImage, equalTo(new RemovedImage(UNTAGGED, newImageName)));
+    assertThat(removedImage, equalTo(RemovedImage.create(UNTAGGED, newImageName)));
   }
 
   @Test
@@ -666,7 +663,7 @@ public class DefaultDockerClientTest {
 
     // Verify that re-tagging was successful
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(name));
-    assertThat(removedImage, is(new RemovedImage(UNTAGGED, name)));
+    assertThat(removedImage, is(RemovedImage.create(UNTAGGED, name)));
   }
 
   @Test
@@ -765,7 +762,7 @@ public class DefaultDockerClientTest {
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
-        .authConfig(authConfig)
+        .registryAuth(registryAuth)
         .build();
 
     final String returnedImageId = sut2.build(
@@ -912,14 +909,15 @@ public class DefaultDockerClientTest {
   @Test
   public void testGetImageIdFromBuild() {
     // Include a new line because that's what docker returns.
-    final ProgressMessage message1 = new ProgressMessage()
-        .stream("Successfully built 2d6e00052167\n");
+    final ProgressMessage message1 = ProgressMessage.builder()
+        .stream("Successfully built 2d6e00052167\n")
+        .build();
     assertThat(message1.buildImageId(), is("2d6e00052167"));
 
-    final ProgressMessage message2 = new ProgressMessage().id("123");
+    final ProgressMessage message2 = ProgressMessage.builder().id("123").build();
     assertThat(message2.buildImageId(), nullValue());
 
-    final ProgressMessage message3 = new ProgressMessage().stream("Step 2 : CMD[]");
+    final ProgressMessage message3 = ProgressMessage.builder().stream("Step 2 : CMD[]").build();
     assertThat(message3.buildImageId(), nullValue());
   }
 
@@ -1216,7 +1214,7 @@ public class DefaultDockerClientTest {
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
-    assertThat(creation.getWarnings(), anyOf(is(empty()), is(nullValue())));
+    assertThat(creation.warnings(), anyOf(is(empty()), is(nullValue())));
     assertThat(id, is(any(String.class)));
 
     // Inspect using container ID
@@ -1485,7 +1483,8 @@ public class DefaultDockerClientTest {
     sut.startContainer(container.id());
     final ContainerInfo containerInfo = sut.inspectContainer(container.id());
     assertThat(containerInfo, notNullValue());
-    assertThat(containerInfo.networkSettings().ports(), hasEntry("11211/tcp", null));
+    assertThat(containerInfo.networkSettings().ports(),
+        hasEntry("11211/tcp", Collections.<PortBinding>emptyList()));
   }
 
   @Test
@@ -1747,9 +1746,9 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuShares(), equalTo(expected.cpuShares()));
-    assertThat(sut.inspectContainer(id).config().getStopSignal(), equalTo(config.getStopSignal()));
+    assertThat(sut.inspectContainer(id).config().stopSignal(), equalTo(config.stopSignal()));
     assertThat(inspection.appArmorProfile(), equalTo(""));
-    assertThat(inspection.execId(), equalTo(null));
+    assertThat(inspection.execIds(), equalTo(null));
     assertThat(inspection.logPath(), containsString(id + "-json.log"));
     assertThat(inspection.restartCount(), equalTo(0L));
     assertThat(inspection.mounts().isEmpty(), equalTo(true));
@@ -2388,7 +2387,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .volumes("/foo")
+        .addVolume("/foo")
         .hostConfig(hostConfig)
         .build();
     final String id = sut.createContainer(volumeConfig, randomName()).id();
@@ -2412,7 +2411,7 @@ public class DefaultDockerClientTest {
     final String expectedLocalPath = "/local/path";
     assertThat(volumeContainer.volumes().values(), hasItem(containsString(expectedLocalPath)));
 
-    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
+    assertThat(volumeContainer.config().volumeNames(), hasItem("/foo"));
   }
 
   @Test
@@ -2492,7 +2491,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .volumes("/foo")
+        .addVolume("/foo")
         .hostConfig(hostConfig)
         .build();
     final String id = sut.createContainer(volumeConfig, randomName()).id();
@@ -2520,7 +2519,7 @@ public class DefaultDockerClientTest {
         });
     assertThat(expectedSources, everyItem(isIn(actualSources)));
 
-    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
+    assertThat(volumeContainer.config().volumeNames(), hasItem("/foo"));
   }
 
   @Test
@@ -2532,7 +2531,7 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .volumes("/foo")
+        .addVolume("/foo")
         .cmd("touch", "/foo/bar")
         .build();
     sut.createContainer(volumeConfig, volumeContainer);
@@ -2571,7 +2570,7 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .volumes("/foo")
+        .addVolume("/foo")
         // TODO (mbrown): remove sleep - added to make sure container is still alive when attaching
         //.cmd("ls", "-la")
         .cmd("sh", "-c", "ls -la; sleep 3")
@@ -3268,9 +3267,12 @@ public class DefaultDockerClientTest {
     assumeFalse(CIRCLECI);
 
     final String networkName = randomName();
-    final Ipam ipam =
-        Ipam.builder().driver("default").config("192.168.0.0/24", "192.168.0.0/24", "192.168.0.1")
-            .build();
+    final IpamConfig ipamConfig =
+        IpamConfig.create("192.168.0.0/24", "192.168.0.0/24", "192.168.0.1");
+    final Ipam ipam = Ipam.builder()
+        .driver("default")
+        .config(singletonList(ipamConfig))
+        .build();
     final NetworkConfig networkConfig =
         NetworkConfig.builder().name(networkName).driver("bridge").checkDuplicate(true).ipam(ipam)
             .build();
@@ -3455,9 +3457,7 @@ public class DefaultDockerClientTest {
     final String id = creation.id();
     sut.startContainer(id);
 
-    final ContainerChange expected = new ContainerChange();
-    expected.kind(1);
-    expected.path("/tmp/foo.txt");
+    final ContainerChange expected = ContainerChange.create("/tmp/foo.txt", 1);
 
     assertThat(expected, isIn(sut.inspectContainerChanges(id)));
   }
@@ -3918,8 +3918,7 @@ public class DefaultDockerClientTest {
     final NetworkCreation networkCreation = sut
             .createNetwork(NetworkConfig.builder().driver("overlay")
                     // TODO: workaround for https://github.com/docker/docker/issues/25735
-                    .ipam(Ipam.builder().driver("default").build())
-                    //
+                    .ipam(Ipam.create("default", Collections.<IpamConfig>emptyList()))
                     .name(networkName).build());
 
     final String networkId = networkCreation.id();
@@ -3927,13 +3926,13 @@ public class DefaultDockerClientTest {
     assertThat(networkId, is(notNullValue()));
 
     final TaskSpec taskSpec = TaskSpec.builder()
-            .withContainerSpec(ContainerSpec.builder().withImage("alpine")
-                    .withCommands(new String[] { "ping", "-c1000", "localhost" }).build())
+            .containerSpec(ContainerSpec.builder().image("alpine")
+                    .command(new String[] { "ping", "-c1000", "localhost" }).build())
             .build();
 
-    final ServiceSpec spec = ServiceSpec.builder().withName(serviceName)
-            .withTaskTemplate(taskSpec).withServiceMode(ServiceMode.withReplicas(1L))
-            .withNetworks(NetworkAttachmentConfig.builder().withTarget(networkName).build())
+    final ServiceSpec spec = ServiceSpec.builder().name(serviceName)
+            .taskTemplate(taskSpec).mode(ServiceMode.withReplicas(1L))
+            .networks(NetworkAttachmentConfig.builder().target(networkName).build())
             .build();
 
     final ServiceCreateResponse response = sut.createService(spec);
@@ -3949,11 +3948,11 @@ public class DefaultDockerClientTest {
             return networkId.equals(config.target());
           }
         }, null), is(notNullValue()));
-    
+
     sut.removeService(serviceName);
     sut.removeNetwork(networkName);
   }
-  
+
   @Test
   public void testCreateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
@@ -3971,34 +3970,34 @@ public class DefaultDockerClientTest {
     final String[] commandLine = {"ping", "-c4", "localhost"};
     final TaskSpec taskSpec = TaskSpec
         .builder()
-        .withContainerSpec(ContainerSpec.builder().withImage("alpine")
-                               .withCommands(commandLine).build())
-        .withLogDriver(Driver.builder().withName("json-file").withOption("max-file", "3")
-                           .withOption("max-size", "10M").build())
-        .withResources(ResourceRequirements.builder()
-                           .withLimits(com.spotify.docker.client.messages.swarm.Resources.builder()
-                                           .withMemoryBytes(10 * 1024 * 1024L).build())
+        .containerSpec(ContainerSpec.builder().image("alpine")
+                               .command(commandLine).build())
+        .logDriver(Driver.builder().name("json-file").addOption("max-file", "3")
+                           .addOption("max-size", "10M").build())
+        .resources(ResourceRequirements.builder()
+                           .limits(com.spotify.docker.client.messages.swarm.Resources.builder()
+                                           .memoryBytes(10 * 1024 * 1024L).build())
                            .build())
-        .withRestartPolicy(RestartPolicy.builder().withCondition("on-failure")
-                               .withDelay(10000000).withMaxAttempts(10).build())
+        .restartPolicy(RestartPolicy.builder().condition("on-failure")
+                               .delay(10000000L).maxAttempts(10).build())
         .build();
 
     final EndpointSpec endpointSpec = EndpointSpec.builder()
-        .withPorts(PortConfig.builder()
-                       .withName("web")
-                       .withProtocol("tcp")
-                       .withPublishedPort(8080)
-                       .withTargetPort(80)
+        .addPort(PortConfig.builder()
+                       .name("web")
+                       .protocol("tcp")
+                       .publishedPort(8080)
+                       .targetPort(80)
                        .build())
         .build();
     final ServiceMode serviceMode = ServiceMode.withReplicas(4);
 
     final String serviceName = randomName();
     final ServiceSpec spec = ServiceSpec.builder()
-        .withName(serviceName)
-        .withTaskTemplate(taskSpec)
-        .withServiceMode(serviceMode)
-        .withEndpointSpec(endpointSpec)
+        .name(serviceName)
+        .taskTemplate(taskSpec)
+        .mode(serviceMode)
+        .endpointSpec(endpointSpec)
         .build();
 
     final ServiceCreateResponse response = sut.createService(spec);
@@ -4024,11 +4023,11 @@ public class DefaultDockerClientTest {
 
     // update service with same spec, but bump the number of replicas by 1
     sut.updateService(response.id(), service.version().index(), ServiceSpec.builder()
-        .withName(service.spec().name())
-        .withTaskTemplate(service.spec().taskTemplate())
-        .withServiceMode(ServiceMode.withReplicas(5))
-        .withEndpointSpec(service.spec().endpointSpec())
-        .withUpdateConfig(service.spec().updateConfig())
+        .name(service.spec().name())
+        .taskTemplate(service.spec().taskTemplate())
+        .mode(ServiceMode.withReplicas(5))
+        .endpointSpec(service.spec().endpointSpec())
+        .updateConfig(service.spec().updateConfig())
         .build());
     service = sut.inspectService(response.id());
     assertThat(service.spec().mode().replicated().replicas(), is(5L));
@@ -4056,7 +4055,7 @@ public class DefaultDockerClientTest {
     final ServiceCreateResponse response = sut.createService(spec);
 
     final List<Service> services = sut
-        .listServices(Service.find().withServiceId(response.id()).build());
+        .listServices(Service.find().serviceId(response.id()).build());
     assertThat(services.size(), is(1));
     assertThat(services.get(0).id(), is(response.id()));
   }
@@ -4069,7 +4068,7 @@ public class DefaultDockerClientTest {
     sut.createService(spec);
 
     final List<Service> services =
-        sut.listServices(Service.find().withServiceName(serviceName).build());
+        sut.listServices(Service.find().serviceName(serviceName).build());
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().name(), is(serviceName));
   }
@@ -4120,7 +4119,7 @@ public class DefaultDockerClientTest {
 
     final Task task = sut.listTasks().get(1);
 
-    final List<Task> tasksWithId = sut.listTasks(Task.find().withTaskId(task.id()).build());
+    final List<Task> tasksWithId = sut.listTasks(Task.find().taskId(task.id()).build());
 
     assertThat(tasksWithId.size(), is(1));
     assertThat(tasksWithId.get(0), equalTo(task));
@@ -4129,14 +4128,14 @@ public class DefaultDockerClientTest {
   private ServiceSpec createServiceSpec(final String serviceName) {
     final TaskSpec taskSpec = TaskSpec
         .builder()
-        .withContainerSpec(ContainerSpec.builder().withImage("alpine")
-                               .withCommands(new String[] {"ping", "-c1000", "localhost"}).build())
+        .containerSpec(ContainerSpec.builder().image("alpine")
+                               .command(new String[] {"ping", "-c1000", "localhost"}).build())
         .build();
 
     final ServiceMode serviceMode = ServiceMode.withReplicas(4);
 
-    return ServiceSpec.builder().withName(serviceName).withTaskTemplate(taskSpec)
-        .withServiceMode(serviceMode)
+    return ServiceSpec.builder().name(serviceName).taskTemplate(taskSpec)
+        .mode(serviceMode)
         .build();
   }
 

@@ -24,61 +24,38 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
+
 import com.google.common.collect.ImmutableList;
-
 import java.util.List;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Endpoint {
+public abstract class Endpoint {
 
   @JsonProperty("Spec")
-  private EndpointSpec spec;
+  public abstract EndpointSpec spec();
 
+  @Nullable
   @JsonProperty("ExposedPorts")
-  private ImmutableList<PortConfig> exposedPorts;
+  public abstract ImmutableList<PortConfig> exposedPorts();
 
+  @Nullable
   @JsonProperty("VirtualIPs")
-  private ImmutableList<EndpointVirtualIp> virtualIps;
+  public abstract ImmutableList<EndpointVirtualIp> virtualIps();
 
-  public EndpointSpec spec() {
-    return spec;
-  }
-
-  public List<PortConfig> exposedPorts() {
-    return exposedPorts;
-  }
-
-  public List<EndpointVirtualIp> virtualIps() {
-    return virtualIps;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Endpoint that = (Endpoint) obj;
-
-    return Objects.equals(this.spec, that.spec)
-           && Objects.equals(this.exposedPorts, that.exposedPorts)
-           && Objects.equals(this.virtualIps, that.virtualIps);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec, exposedPorts, virtualIps);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("spec", spec).add("ports", exposedPorts)
-        .add("virtualIps", virtualIps).toString();
+  @JsonCreator
+  static Endpoint create(
+      @JsonProperty("Spec") final EndpointSpec spec,
+      @JsonProperty("ExposedPorts") final List<PortConfig> exposedPorts,
+      @JsonProperty("VirtualIPs") final List<EndpointVirtualIp> virtualIps) {
+    final ImmutableList<PortConfig> exposedPortsT = exposedPorts == null
+                                                    ? null : ImmutableList.copyOf(exposedPorts);
+    final ImmutableList<EndpointVirtualIp> virtualIpsT = virtualIps == null
+                                                         ? null : ImmutableList.copyOf(virtualIps);
+    return new AutoValue_Endpoint(spec, exposedPortsT, virtualIpsT);
   }
 }

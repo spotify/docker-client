@@ -24,93 +24,46 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
 import java.util.Date;
-import java.util.Objects;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Network {
+public abstract class Network {
 
   @JsonProperty("ID")
-  private String id;
+  public abstract String id();
 
   @JsonProperty("Version")
-  private Version version;
+  public abstract Version version();
 
   @JsonProperty("CreatedAt")
-  private Date createdAt;
+  public abstract Date createdAt();
 
   @JsonProperty("UpdatedAt")
-  private Date updatedAt;
+  public abstract Date updatedAt();
 
   @JsonProperty("Spec")
-  private NetworkSpec spec;
+  public abstract NetworkSpec spec();
 
   @JsonProperty("DriverState")
-  private Driver driverState;
+  public abstract Driver driverState();
 
   @JsonProperty("IPAMOptions")
-  private IpamOptions ipamOptions;
+  public abstract IpamOptions ipamOptions();
 
-  public String id() {
-    return id;
-  }
-
-  public Version version() {
-    return version;
-  }
-
-  public Date createdAt() {
-    return createdAt == null ? null : new Date(createdAt.getTime());
-  }
-
-  public Date updatedAt() {
-    return updatedAt == null ? null : new Date(updatedAt.getTime());
-  }
-
-  public NetworkSpec spec() {
-    return spec;
-  }
-
-  public Driver driverState() {
-    return driverState;
-  }
-
-  public IpamOptions ipamOptions() {
-    return ipamOptions;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Network that = (Network) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.version, that.version)
-           && Objects.equals(this.createdAt, that.createdAt)
-           && Objects.equals(this.updatedAt, that.updatedAt)
-           && Objects.equals(this.spec, that.spec)
-           && Objects.equals(this.driverState, that.driverState)
-           && Objects.equals(this.ipamOptions, that.ipamOptions);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, version, createdAt, updatedAt, spec, driverState, ipamOptions);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", id).add("version", version)
-        .add("createdAt", createdAt).add("updatedAt", updatedAt).add("spec", spec)
-        .add("driverState", driverState).add("ipamOptions", ipamOptions).toString();
+  @JsonCreator
+  static Network create(
+      @JsonProperty("ID") final String id,
+      @JsonProperty("Version") final Version version,
+      @JsonProperty("CreatedAt") final Date createdAt,
+      @JsonProperty("UpdatedAt") final Date updatedAt,
+      @JsonProperty("Spec") final NetworkSpec spec,
+      @JsonProperty("DriverState") final Driver driverState,
+      @JsonProperty("IPAMOptions") final IpamOptions ipamOptions) {
+    return new AutoValue_Network(id, version, createdAt, updatedAt, spec, driverState, ipamOptions);
   }
 }

@@ -24,95 +24,55 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class NetworkSpec {
+public abstract class NetworkSpec {
 
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
 
+  @Nullable
   @JsonProperty("Labels")
-  private Map<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
   @JsonProperty("DriverConfiguration")
-  private Driver driverConfiguration;
+  public abstract Driver driverConfiguration();
 
+  @Nullable
   @JsonProperty("IPv6Enabled")
-  private Boolean ipv6Enabled;
+  public abstract Boolean ipv6Enabled();
 
+  @Nullable
   @JsonProperty("Internal")
-  private Boolean internal;
+  public abstract Boolean internal();
 
+  @Nullable
   @JsonProperty("Attachable")
-  private Boolean attachable;
+  public abstract Boolean attachable();
 
   @JsonProperty("IPAMOptions")
-  private IpamOptions ipamOptions;
+  public abstract IpamOptions ipamOptions();
 
-  public String name() {
-    return name;
-  }
-
-  public Map<String, String> labels() {
-    return labels;
-  }
-
-  public Driver driverConfiguration() {
-    return driverConfiguration;
-  }
-
-  public Boolean ipv6Enabled() {
-    return ipv6Enabled;
-  }
-
-  public Boolean internal() {
-    return internal;
-  }
-
-  public Boolean attachable() {
-    return attachable;
-  }
-
-  public IpamOptions ipamOptions() {
-    return ipamOptions;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final NetworkSpec that = (NetworkSpec) obj;
-
-    return Objects.equals(this.name, that.name)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.driverConfiguration, that.driverConfiguration)
-           && Objects.equals(this.ipv6Enabled, that.ipv6Enabled)
-           && Objects.equals(this.internal, that.internal)
-           && Objects.equals(this.attachable, that.attachable)
-           && Objects.equals(this.ipamOptions, that.ipamOptions);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, labels, driverConfiguration, ipv6Enabled, internal, attachable,
-                        ipamOptions);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("name", name).add("labels", labels)
-        .add("driverConfiguration", driverConfiguration).add("ipv6Enabled", ipv6Enabled)
-        .add("internal", internal).add("attachable", attachable)
-        .add("ipamOptions", ipamOptions).toString();
+  @JsonCreator
+  static NetworkSpec create(
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("DriverConfiguration") final Driver driver,
+      @JsonProperty("IPv6Enabled") final Boolean ipv6Enabled,
+      @JsonProperty("Internal") final Boolean internal,
+      @JsonProperty("Attachable") final Boolean attachable,
+      @JsonProperty("IPAMOptions") final IpamOptions ipamOptions) {
+    final ImmutableMap<String, String> labelsT = labels == null
+                                                 ? null : ImmutableMap.copyOf(labels);
+    return new AutoValue_NetworkSpec(name, labelsT, driver, ipv6Enabled, internal, attachable,
+        ipamOptions);
   }
 }

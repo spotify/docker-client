@@ -24,270 +24,202 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class Task {
+public abstract class Task {
 
   @JsonProperty("ID")
-  private String id;
+  public abstract String id();
 
   @JsonProperty("Version")
-  private Version version;
+  public abstract Version version();
 
   @JsonProperty("CreatedAt")
-  private Date createdAt;
+  public abstract Date createdAt();
 
   @JsonProperty("UpdatedAt")
-  private Date updatedAt;
+  public abstract Date updatedAt();
 
+  @Nullable
   @JsonProperty("Name")
-  private String name;
+  public abstract String name();
 
+  @Nullable
   @JsonProperty("Labels")
-  private Map<String, String> labels;
+  public abstract ImmutableMap<String, String> labels();
 
   @JsonProperty("Spec")
-  private TaskSpec spec;
+  public abstract TaskSpec spec();
 
   @JsonProperty("ServiceID")
-  private String serviceId;
+  public abstract String serviceId();
 
   @JsonProperty("Slot")
-  private Integer slot;
+  public abstract Integer slot();
 
   @JsonProperty("NodeID")
-  private String nodeId;
+  public abstract String nodeId();
 
   @JsonProperty("Status")
-  private TaskStatus status;
+  public abstract TaskStatus status();
 
   @JsonProperty("DesiredState")
-  private String desiredState;
+  public abstract String desiredState();
 
+  @Nullable
   @JsonProperty("NetworksAttachments")
-  private ImmutableList<NetworkAttachment> networkAttachments;
+  public abstract ImmutableList<NetworkAttachment> networkAttachments();
 
-  public String id() {
-    return id;
+  @JsonCreator
+  static Task create(
+      @JsonProperty("ID") final String id,
+      @JsonProperty("Version") final Version version,
+      @JsonProperty("CreatedAt") final Date createdAt,
+      @JsonProperty("UpdatedAt") final Date updatedAt,
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("Spec") final TaskSpec spec,
+      @JsonProperty("ServiceID") final String serviceId,
+      @JsonProperty("Slot") final Integer slot,
+      @JsonProperty("NodeID") final String nodeId,
+      @JsonProperty("Status") final TaskStatus status,
+      @JsonProperty("DesiredState") final String desiredState,
+      @JsonProperty("NetworksAttachments") final List<NetworkAttachment> networkAttachments) {
+    final ImmutableMap<String, String> labelsT = labels == null
+                                                 ? null : ImmutableMap.copyOf(labels);
+    final ImmutableList<NetworkAttachment> networkAttachmentsT =
+        networkAttachments == null ? null : ImmutableList.copyOf(networkAttachments);
+    return new AutoValue_Task(id, version, createdAt, updatedAt, name, labelsT,
+        spec, serviceId, slot, nodeId, status, desiredState, networkAttachmentsT);
   }
 
-  public Version version() {
-    return version;
-  }
-
-  public Date createdAt() {
-    return createdAt == null ? null : new Date(createdAt.getTime());
-  }
-
-  public Date updatedAt() {
-    return updatedAt == null ? null : new Date(updatedAt.getTime());
-  }
-
-  public String name() {
-    return name;
-  }
-
-  public Map<String, String> labels() {
-    return labels;
-  }
-
-  public TaskSpec spec() {
-    return spec;
-  }
-
-  public String serviceId() {
-    return serviceId;
-  }
-
-  public Integer slot() {
-    return slot;
-  }
-
-  public String nodeId() {
-    return nodeId;
-  }
-
-  public TaskStatus status() {
-    return status;
-  }
-
-  public String desiredState() {
-    return desiredState;
-  }
-
-  public List<NetworkAttachment> networkAttachments() {
-    return networkAttachments;
-  }
-
-  public static class Criteria {
+  @AutoValue
+  public abstract static class Criteria {
 
     /**
      * Filter by task id.
      */
-    private String taskId;
+    public abstract String taskId();
+
     /**
      * Filter by task name.
      */
-    private String taskName;
+    @Nullable
+    public abstract String taskName();
+
     /**
      * Filter by service name.
      */
-    private String serviceName;
+    @Nullable
+    public abstract String serviceName();
+
     /**
      * Filter by node id.
      */
-    private String nodeId;
+    @Nullable
+    public abstract String nodeId();
+
     /**
      * Filter by label.
      */
-    private String label;
+    @Nullable
+    public abstract String label();
+
     /**
      * Filter by desired state.
      */
-    private String desiredState;
-
-    private Criteria(final Builder builder) {
-      this.taskId = builder.taskId;
-      this.taskName = builder.taskName;
-      this.serviceName = builder.serviceName;
-      this.nodeId = builder.nodeId;
-      this.label = builder.label;
-      this.desiredState = builder.desiredState;
-    }
-
-    public String getTaskId() {
-      return taskId;
-    }
-
-    public String getTaskName() {
-      return taskName;
-    }
-
-    public String getServiceName() {
-      return serviceName;
-    }
-
-    public String getNodeId() {
-      return nodeId;
-    }
-
-    public String getLabel() {
-      return label;
-    }
-
-    public String getDesiredState() {
-      return desiredState;
-    }
+    @Nullable
+    public abstract String desiredState();
 
     public static Builder builder() {
-      return new Builder();
+      return new AutoValue_Task_Criteria.Builder();
     }
 
-    public static class Builder {
+    @AutoValue.Builder
+    public abstract static class Builder {
 
-      private String taskId;
-      private String taskName;
-      private String serviceName;
-      private String nodeId;
-      private String label;
-      private String desiredState;
+      public abstract Builder taskId(final String taskId);
 
+      /**
+       * @deprecated  As of release 7.0.0, replaced by {@link #taskId(String)}.
+       */
+      @Deprecated
       public Builder withTaskId(final String taskId) {
-        this.taskId = taskId;
+        taskId(taskId);
         return this;
       }
 
+      public abstract Builder taskName(final String taskName);
+
+      /**
+       * @deprecated  As of release 7.0.0, replaced by {@link #taskName(String)}.
+       */
+      @Deprecated
       public Builder withTaskName(final String taskName) {
-        this.taskName = taskName;
+        taskName(taskName);
         return this;
       }
 
+      public abstract Builder serviceName(final String serviceName);
+
+      /**
+       * @deprecated  As of release 7.0.0, replaced by {@link #serviceName(String)}.
+       */
+      @Deprecated
       public Builder withServiceName(final String serviceName) {
-        this.serviceName = serviceName;
+        serviceName(serviceName);
         return this;
       }
 
+      public abstract Builder nodeId(final String nodeId);
+
+      /**
+       * @deprecated  As of release 7.0.0, replaced by {@link #nodeId(String)}.
+       */
+      @Deprecated
       public Builder withNodeId(final String nodeId) {
-        this.nodeId = nodeId;
+        nodeId(nodeId);
         return this;
       }
 
+      public abstract Builder label(final String label);
+
+      /**
+       * @deprecated  As of release 7.0.0, replaced by {@link #label(String)}.
+       */
+      @Deprecated
       public Builder withLabel(final String label) {
-        this.label = label;
+        label(label);
         return this;
       }
 
+      public abstract Builder desiredState(final String desiredState);
+
+      /**
+       * @deprecated  As of release 7.0.0, replaced by {@link #desiredState(String)}.
+       */
+      @Deprecated
       public Builder withDesiredState(final String desiredState) {
-        this.desiredState = desiredState;
+        desiredState(desiredState);
         return this;
       }
 
-      public Criteria build() {
-        return new Criteria(this);
-      }
+      public abstract Criteria build();
     }
   }
 
   public static Criteria.Builder find() {
-    return Task.Criteria.builder();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Task that = (Task) obj;
-
-    return Objects.equals(this.id, that.id)
-           && Objects.equals(this.version, that.version)
-           && Objects.equals(this.createdAt, that.createdAt)
-           && Objects.equals(this.updatedAt, that.updatedAt)
-           && Objects.equals(this.name, that.name)
-           && Objects.equals(this.labels, that.labels)
-           && Objects.equals(this.spec, that.spec)
-           && Objects.equals(this.serviceId, that.serviceId)
-           && Objects.equals(this.slot, that.slot)
-           && Objects.equals(this.nodeId, that.nodeId)
-           && Objects.equals(this.status, that.status)
-           && Objects.equals(this.desiredState, that.desiredState)
-           && Objects.equals(this.networkAttachments, that.networkAttachments);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, version, createdAt, updatedAt, name, labels, spec, serviceId, slot,
-                        nodeId, status, desiredState, networkAttachments);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id)
-        .add("version", version)
-        .add("createdAt", createdAt)
-        .add("updatedAt", updatedAt)
-        .add("name", name)
-        .add("labels", labels)
-        .add("spec", spec)
-        .add("serviceId", serviceId)
-        .add("slot", slot)
-        .add("nodeId", nodeId)
-        .add("status", status)
-        .add("desiredState", desiredState)
-        .add("networkAttachments", networkAttachments)
-        .toString();
+    return AutoValue_Task_Criteria.builder();
   }
 }

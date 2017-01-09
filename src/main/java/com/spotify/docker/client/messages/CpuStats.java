@@ -24,174 +24,77 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 
-import java.util.Objects;
-
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class CpuStats {
+public abstract class CpuStats {
 
   @JsonProperty("cpu_usage")
-  private CpuUsage cpuUsage;
+  public abstract CpuUsage cpuUsage();
+
   @JsonProperty("system_cpu_usage")
-  private Long systemCpuUsage;
+  public abstract Long systemCpuUsage();
+
   @JsonProperty("throttling_data")
-  private ThrottlingData throttlingData;
+  public abstract ThrottlingData throttlingData();
 
-  public CpuUsage cpuUsage() {
-    return cpuUsage;
+  @JsonCreator
+  static CpuStats create(
+      @JsonProperty("cpu_usage") final CpuUsage cpuUsage,
+      @JsonProperty("system_cpu_usage") final Long systemCpuUsage,
+      @JsonProperty("throttling_data") final ThrottlingData throttlingData) {
+    return new AutoValue_CpuStats(cpuUsage, systemCpuUsage, throttlingData);
   }
 
-  public Long systemCpuUsage() {
-    return systemCpuUsage;
-  }
-
-  public ThrottlingData throttlingData() {
-    return throttlingData;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final CpuStats that = (CpuStats) obj;
-
-    return Objects.equals(this.cpuUsage, that.cpuUsage)
-           && Objects.equals(this.systemCpuUsage, that.systemCpuUsage)
-           && Objects.equals(this.throttlingData, that.throttlingData);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(cpuUsage, systemCpuUsage, throttlingData);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("cpuUsage", cpuUsage)
-        .add("systemCpuUsage", systemCpuUsage)
-        .add("throttlingData", throttlingData)
-        .toString();
-  }
-
-  public static class CpuUsage {
+  @AutoValue
+  public abstract static class CpuUsage {
 
     @JsonProperty("total_usage")
-    private Long totalUsage;
+    public abstract Long totalUsage();
+
     @JsonProperty("percpu_usage")
-    private ImmutableList<Long> percpuUsage;
+    public abstract ImmutableList<Long> percpuUsage();
+
     @JsonProperty("usage_in_kernelmode")
-    private Long usageInKernelmode;
+    public abstract Long usageInKernelmode();
+
     @JsonProperty("usage_in_usermode")
-    private Long usageInUsermode;
+    public abstract Long usageInUsermode();
 
-    public Long totalUsage() {
-      return totalUsage;
-    }
-
-    public ImmutableList<Long> percpuUsage() {
-      return percpuUsage;
-    }
-
-    public Long usageInKernelmode() {
-      return usageInKernelmode;
-    }
-
-    public Long usageInUsermode() {
-      return usageInUsermode;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final CpuUsage that = (CpuUsage) obj;
-
-      return Objects.equals(this.totalUsage, that.totalUsage)
-             && Objects.equals(this.percpuUsage, that.percpuUsage)
-             && Objects.equals(this.usageInKernelmode, that.usageInKernelmode)
-             && Objects.equals(this.usageInUsermode, that.usageInUsermode);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(totalUsage, percpuUsage, usageInKernelmode, usageInUsermode);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("percpuUsage", percpuUsage)
-          .add("totalUsage", totalUsage)
-          .add("usageInKernelmode", usageInKernelmode)
-          .add("usageInUsermode", usageInUsermode)
-          .toString();
+    @JsonCreator
+    static CpuUsage create(
+        @JsonProperty("total_usage") final Long totalUsage,
+        @JsonProperty("percpu_usage") final List<Long> perCpuUsage,
+        @JsonProperty("usage_in_kernelmode") final Long usageInKernelmode,
+        @JsonProperty("usage_in_usermode") final Long usageInUsermode) {
+      return new AutoValue_CpuStats_CpuUsage(totalUsage, ImmutableList.copyOf(perCpuUsage),
+          usageInKernelmode, usageInUsermode);
     }
   }
 
-  public static class ThrottlingData {
+  @AutoValue
+  public abstract static class ThrottlingData {
 
     @JsonProperty("periods")
-    private Long periods;
+    public abstract Long periods();
+
     @JsonProperty("throttled_periods")
-    private Long throttledPeriods;
+    public abstract Long throttledPeriods();
+
     @JsonProperty("throttled_time")
-    private Long throttledTime;
+    public abstract Long throttledTime();
 
-    public Long throttledTime() {
-      return throttledTime;
-    }
-
-    public Long throttledPeriods() {
-      return throttledPeriods;
-    }
-
-    public Long periods() {
-      return periods;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final ThrottlingData that = (ThrottlingData) obj;
-
-      return Objects.equals(this.periods, that.periods)
-             && Objects.equals(this.throttledPeriods, that.throttledPeriods)
-             && Objects.equals(this.throttledTime, that.throttledTime);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(periods, throttledPeriods, throttledTime);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("periods", periods)
-          .add("throttledPeriods", throttledPeriods)
-          .add("throttledTime", throttledTime)
-          .toString();
+    @JsonCreator
+    static ThrottlingData create(
+        @JsonProperty("periods") final Long periods,
+        @JsonProperty("throttled_periods") final Long throttledPeriods,
+        @JsonProperty("throttled_time") final Long throttledTime) {
+      return new AutoValue_CpuStats_ThrottlingData(periods, throttledPeriods, throttledTime);
     }
   }
 }

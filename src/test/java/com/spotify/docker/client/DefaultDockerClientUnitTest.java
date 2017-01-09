@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -101,7 +102,7 @@ public class DefaultDockerClientUnitTest {
 
     when(builderMock.async()).thenReturn(asyncInvoker);
 
-    final Future<Info> futureMock = Futures.immediateFuture(new Info());
+    final Future<Info> futureMock = Futures.immediateFuture(mock(Info.class));
     when(asyncInvoker.method(anyString(), any(Class.class))).thenReturn(futureMock);
 
     builder = DefaultDockerClient.builder();
@@ -205,7 +206,7 @@ public class DefaultDockerClientUnitTest {
     //noinspection unchecked
     when(asyncInvoker.method(
         anyString(), any(Entity.class), any(Class.class)))
-        .thenReturn(Futures.immediateFuture(new ContainerCreation()));
+        .thenReturn(Futures.immediateFuture(ContainerCreation.builder().build()));
 
     dockerClient.createContainer(containerConfig);
 

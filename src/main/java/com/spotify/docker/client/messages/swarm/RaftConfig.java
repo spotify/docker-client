@@ -24,81 +24,41 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
 
+@AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class RaftConfig {
+public abstract class RaftConfig {
 
   @JsonProperty("SnapshotInterval")
-  private Integer snapshotInterval;
+  public abstract Integer snapshotInterval();
 
+  @Nullable
   @JsonProperty("KeepOldSnapshots")
-  private Integer keepOldSnapshots;
+  public abstract Integer keepOldSnapshots();
 
   @JsonProperty("LogEntriesForSlowFollowers")
-  private Integer logEntriesForSlowFollowers;
+  public abstract Integer logEntriesForSlowFollowers();
 
   @JsonProperty("ElectionTick")
-  private Integer electionTick;
+  public abstract Integer electionTick();
 
   @JsonProperty("HeartbeatTick")
-  private Integer heartbeatTick;
+  public abstract Integer heartbeatTick();
 
-  public Integer snapshotInterval() {
-    return snapshotInterval;
-  }
 
-  public Integer keepOldSnapshots() {
-    return keepOldSnapshots;
-  }
-
-  public Integer logEntriesForSlowFollowers() {
-    return logEntriesForSlowFollowers;
-  }
-
-  public Integer electionTick() {
-    return electionTick;
-  }
-
-  public Integer heartbeatTick() {
-    return heartbeatTick;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final RaftConfig that = (RaftConfig) obj;
-
-    return Objects.equals(this.snapshotInterval, that.snapshotInterval)
-           && Objects.equals(this.keepOldSnapshots, that.keepOldSnapshots)
-           && Objects.equals(this.logEntriesForSlowFollowers, that.logEntriesForSlowFollowers)
-           && Objects.equals(this.electionTick, that.electionTick)
-           && Objects.equals(this.heartbeatTick, that.heartbeatTick);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(snapshotInterval, keepOldSnapshots, logEntriesForSlowFollowers,
-                        electionTick, heartbeatTick);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("snapshotInterval", snapshotInterval)
-        .add("keepOldSnapshots", keepOldSnapshots)
-        .add("logEntriesForSlowFollowers", logEntriesForSlowFollowers)
-        .add("electionTick", electionTick)
-        .add("heartbeatTick", heartbeatTick)
-        .toString();
+  @JsonCreator
+  static RaftConfig create(
+      @JsonProperty("SnapshotInterval") final Integer snapshotInterval,
+      @JsonProperty("KeepOldSnapshots") final Integer keepOldSnapshots,
+      @JsonProperty("LogEntriesForSlowFollowers") final Integer logEntriesForSlowFollowers,
+      @JsonProperty("ElectionTick") final Integer electionTick,
+      @JsonProperty("HeartbeatTick") final Integer heartbeatTick) {
+    return new AutoValue_RaftConfig(snapshotInterval, keepOldSnapshots, logEntriesForSlowFollowers,
+        electionTick, heartbeatTick);
   }
 }
