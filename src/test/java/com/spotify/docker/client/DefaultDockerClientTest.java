@@ -80,6 +80,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
@@ -3072,7 +3073,7 @@ public class DefaultDockerClientTest {
     assertThat(state.id(), is(execId));
 
     final ProcessConfig processConfig = state.processConfig();
-    assertThat(processConfig.user(), is(nullValue()));
+    assertThat(processConfig.user(), isEmptyOrNullString());
   }
 
   @Test
