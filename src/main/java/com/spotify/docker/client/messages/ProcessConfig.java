@@ -30,6 +30,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 /**
  * An object that represents the JSON returned by the Docker API for an exec command's process
  * configuration.
@@ -41,6 +43,7 @@ public abstract class ProcessConfig {
   @JsonProperty("privileged")
   public abstract Boolean privileged();
 
+  @Nullable
   @JsonProperty("user")
   public abstract String user();
 

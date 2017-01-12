@@ -80,6 +80,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
@@ -3034,6 +3035,45 @@ public class DefaultDockerClientTest {
     } else {
       assertNotNull(state.containerId(), "containerId");
     }
+  }
+
+  @Test
+  public void testExecInspectNoUser() throws Exception {
+    requireDockerApiVersionAtLeast("1.16", "Exec Inspect");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "while :; do sleep 1; done")
+        .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    final List<ExecCreateParam> createParams = newArrayList(
+        ExecCreateParam.attachStdout(),
+        ExecCreateParam.attachStderr(),
+        ExecCreateParam.attachStdin(),
+        ExecCreateParam.tty());
+
+    final ExecCreation execCreation = sut.execCreate(
+        containerId, new String[] {"sh", "-c", "exit 2"},
+        createParams.toArray(new ExecCreateParam[createParams.size()]));
+    final String execId = execCreation.id();
+
+    log.info("execId = {}", execId);
+    try (final LogStream stream = sut.execStart(execId)) {
+      stream.readFully();
+    }
+
+    final ExecState state = sut.execInspect(execId);
+    assertThat(state.id(), is(execId));
+
+    final ProcessConfig processConfig = state.processConfig();
+    assertThat(processConfig.user(), isEmptyOrNullString());
   }
 
   @Test
