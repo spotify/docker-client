@@ -2909,8 +2909,6 @@ public class DefaultDockerClientTest {
   @Test
   public void testExec() throws Exception {
     requireDockerApiVersionAtLeast("1.15", "Exec");
-    assumeThat("Only native (libcontainer) driver supports Exec",
-               sut.info().executionDriver(), startsWith("native"));
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -2944,11 +2942,6 @@ public class DefaultDockerClientTest {
   @Test
   public void testExecCreateOnNonRunningContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.15", "Exec");
-    // Execution driver is removed in Docker API >= 1.24
-    if (dockerApiVersionLessThan("1.24")) {
-      assumeThat("Only native (libcontainer) driver supports Exec",
-          sut.info().executionDriver(), startsWith("native"));
-    }
 
     sut.pull(BUSYBOX_LATEST);
 
@@ -2971,8 +2964,6 @@ public class DefaultDockerClientTest {
   @Test
   public void testExecInspect() throws Exception {
     requireDockerApiVersionAtLeast("1.16", "Exec Inspect");
-    assumeThat("Only native (libcontainer) driver supports Exec",
-               sut.info().executionDriver(), startsWith("native"));
 
     sut.pull(BUSYBOX_LATEST);
 
