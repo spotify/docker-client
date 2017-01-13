@@ -21,24 +21,25 @@
 package com.spotify.docker.client.exceptions;
 
 import java.net.URI;
+import javax.annotation.Nullable;
 
 public class DockerRequestException extends DockerException {
 
   private final String method;
   private final URI uri;
   private final int status;
-  private final String message;
+  private final String responseBody;
 
   public DockerRequestException(final String method, final URI uri,
-                                final int status, final String message,
+                                final int status, final String responseBody,
                                 final Throwable cause) {
     super("Request error: " + method + " " + uri + ": " + status
-          + ((message != null) ? ", body: " + message : ""),
+          + ((responseBody != null) ? ", body: " + responseBody : ""),
         cause);
     this.method = method;
     this.uri = uri;
     this.status = status;
-    this.message = message;
+    this.responseBody = responseBody;
   }
 
   public String method() {
@@ -53,7 +54,25 @@ public class DockerRequestException extends DockerException {
     return status;
   }
 
+  /**
+   * The response body from the HTTP response containing an error, if any.
+   *
+   * @deprecated use {@link #getResponseBody()} instead to avoid confusion with {@link
+   * Throwable#getMessage()}.
+   */
+  @Deprecated
+  @Nullable
   public String message() {
-    return message;
+    return responseBody;
+  }
+
+  /**
+   * The response body from the HTTP response containing an error, if any.
+   *
+   * @return response body or null.
+   */
+  @Nullable
+  public String getResponseBody() {
+    return responseBody;
   }
 }
