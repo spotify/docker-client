@@ -94,4 +94,9 @@ public interface LogStream extends Iterator<LogMessage>, Closeable {
    * @see java.io.PipedOutputStream
    */
   void attach(OutputStream stdout, OutputStream stderr, boolean closeAtEof) throws IOException;
+
+  /**
+   * Redefine to not throw checked exceptions.
+   */
+  void close();
 }
