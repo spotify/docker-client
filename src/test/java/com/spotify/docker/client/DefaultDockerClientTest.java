@@ -3368,10 +3368,8 @@ public class DefaultDockerClientTest {
     assertThat(sut.inspectNetwork(network.id()).name(), is(networkName));
     assertThat(network.ipam(), equalTo(ipam));
 
-    if (dockerApiVersionAtLeast("1.22")) {
-      assertThat(network.internal(), is(false));
-    }
     if (dockerApiVersionAtLeast("1.23")) {
+      assertThat(network.internal(), is(false));
       assertThat(network.enableIPv6(), is(false));
     }
     
