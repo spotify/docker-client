@@ -230,6 +230,10 @@ public abstract class HostConfig {
   @Nullable
   @JsonProperty("ReadonlyRootfs")
   public abstract Boolean readonlyRootfs();
+  
+  @Nullable
+  @JsonProperty("StorageOpt")
+  public abstract ImmutableMap<String, String> storageOpt();
 
   @JsonCreator
   static HostConfig create(
@@ -277,7 +281,8 @@ public abstract class HostConfig {
       @JsonProperty("AutoRemove") final Boolean autoRemove,
       @JsonProperty("PidsLimit") final Integer pidsLimit,
       @JsonProperty("Tmpfs") final Map<String, String> tmpfs,
-      @JsonProperty("ReadonlyRootfs") final Boolean readonlyRootfs) {
+      @JsonProperty("ReadonlyRootfs") final Boolean readonlyRootfs,
+      @JsonProperty("StorageOpt") final Map<String, String> storageOpt) {
     return builder()
         .binds(binds)
         .blkioWeight(blkioWeight)
@@ -324,6 +329,7 @@ public abstract class HostConfig {
         .pidsLimit(pidsLimit)
         .tmpfs(tmpfs)
         .readonlyRootfs(readonlyRootfs)
+        .storageOpt(storageOpt)
         .build();
   }
 
@@ -618,6 +624,8 @@ public abstract class HostConfig {
     public abstract Builder tmpfs(Map<String, String> tmpfs);
 
     public abstract Builder readonlyRootfs(Boolean readonlyRootfs);
+    
+    public abstract Builder storageOpt(Map<String, String> tmpfs);
 
     public abstract HostConfig build();
   }
