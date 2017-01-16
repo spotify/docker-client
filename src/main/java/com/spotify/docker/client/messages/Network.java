@@ -57,7 +57,11 @@ public abstract class Network {
 
   @JsonProperty("Options")
   public abstract ImmutableMap<String, String> options();
-
+  
+  @Nullable
+  @JsonProperty("Internal")
+  public abstract Boolean internal();
+  
   @JsonCreator
   static Network create(
       @JsonProperty("Name") final String name,
@@ -66,12 +70,14 @@ public abstract class Network {
       @JsonProperty("Driver") final String driver,
       @JsonProperty("IPAM") final Ipam ipam,
       @JsonProperty("Containers") final Map<String, Container> containers,
-      @JsonProperty("Options") final Map<String, String> options) {
+      @JsonProperty("Options") final Map<String, String> options,
+      @JsonProperty("Internal") final Boolean internal) {
     final ImmutableMap<String, Container> containersCopy = containers == null
                                                            ? null : ImmutableMap.copyOf(containers);
     final ImmutableMap<String, String> optionsCopy = options == null
                                                      ? null : ImmutableMap.copyOf(options);
-    return new AutoValue_Network(name, id, scope, driver, ipam, containersCopy, optionsCopy);
+    return new AutoValue_Network(name, id, scope, driver, ipam, containersCopy, optionsCopy,
+    		internal);
   }
 
   @AutoValue

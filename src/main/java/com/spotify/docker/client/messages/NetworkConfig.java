@@ -53,7 +53,11 @@ public abstract class NetworkConfig {
   @Nullable
   @JsonProperty("CheckDuplicate")
   public abstract Boolean checkDuplicate();
-
+  
+  @Nullable
+  @JsonProperty("Internal")
+  public abstract Boolean internal();
+  
   public static Builder builder() {
     return new AutoValue_NetworkConfig.Builder()
         .options(new HashMap<String, String>());
@@ -78,7 +82,9 @@ public abstract class NetworkConfig {
     public abstract Builder driver(final String driver);
 
     public abstract Builder checkDuplicate(Boolean check);
-
+    
+    public abstract Builder internal(Boolean internal);
+    
     public abstract NetworkConfig build();
   }
 
