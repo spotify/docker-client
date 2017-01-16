@@ -62,6 +62,10 @@ public abstract class Network {
   @JsonProperty("Internal")
   public abstract Boolean internal();
   
+  @Nullable
+  @JsonProperty("EnableIPv6")
+  public abstract Boolean enableIPv6();
+
   @JsonCreator
   static Network create(
       @JsonProperty("Name") final String name,
@@ -71,13 +75,14 @@ public abstract class Network {
       @JsonProperty("IPAM") final Ipam ipam,
       @JsonProperty("Containers") final Map<String, Container> containers,
       @JsonProperty("Options") final Map<String, String> options,
-      @JsonProperty("Internal") final Boolean internal) {
+      @JsonProperty("Internal") final Boolean internal,
+      @JsonProperty("EnableIPv6") final Boolean enableIPv6) {
     final ImmutableMap<String, Container> containersCopy = containers == null
                                                            ? null : ImmutableMap.copyOf(containers);
     final ImmutableMap<String, String> optionsCopy = options == null
                                                      ? null : ImmutableMap.copyOf(options);
     return new AutoValue_Network(name, id, scope, driver, ipam, containersCopy, optionsCopy,
-    		internal);
+            internal, enableIPv6);
   }
 
   @AutoValue

@@ -3346,7 +3346,7 @@ public class DefaultDockerClientTest {
         .build();
     final NetworkConfig networkConfig =
         NetworkConfig.builder().name(networkName).driver("bridge").checkDuplicate(true).ipam(ipam)
-            .internal(false)
+            .internal(false).enableIPv6(false)
             .build();
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
@@ -3370,6 +3370,9 @@ public class DefaultDockerClientTest {
 
     if (dockerApiVersionAtLeast("1.22")) {
       assertThat(network.internal(), is(false));
+    }
+    if (dockerApiVersionAtLeast("1.23")) {
+      assertThat(network.enableIPv6(), is(false));
     }
     
     sut.removeNetwork(network.id());

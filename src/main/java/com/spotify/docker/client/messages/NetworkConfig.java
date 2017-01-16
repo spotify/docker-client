@@ -58,6 +58,10 @@ public abstract class NetworkConfig {
   @JsonProperty("Internal")
   public abstract Boolean internal();
   
+  @Nullable
+  @JsonProperty("EnableIPv6")
+  public abstract Boolean enableIPv6();
+
   public static Builder builder() {
     return new AutoValue_NetworkConfig.Builder()
         .options(new HashMap<String, String>());
@@ -85,6 +89,8 @@ public abstract class NetworkConfig {
     
     public abstract Builder internal(Boolean internal);
     
+    public abstract Builder enableIPv6(Boolean ipv6);
+
     public abstract NetworkConfig build();
   }
 
