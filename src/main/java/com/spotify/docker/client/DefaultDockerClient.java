@@ -82,8 +82,10 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ContainerUpdate;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -977,6 +979,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw new ContainerNotFoundException(containerId, e);
         case 409:
           throw new ContainerRenameConflictException(containerId, name, e);
+        default:
+          throw e;
+      }
+    }
+  }
+  
+  @Override
+  public ContainerUpdate updateContainer(final String containerId, final HostConfig config)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.22");
+    try {
+      WebTarget resource = resource().path("containers").path(containerId).path("update");
+      return request(POST, ContainerUpdate.class, resource, resource.request(APPLICATION_JSON_TYPE),
+              Entity.json(config));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId);
         default:
           throw e;
       }
