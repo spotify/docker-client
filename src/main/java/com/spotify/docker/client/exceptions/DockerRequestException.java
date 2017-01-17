@@ -21,46 +21,25 @@
 package com.spotify.docker.client.exceptions;
 
 import java.net.URI;
+import javax.annotation.Nullable;
 
 public class DockerRequestException extends DockerException {
 
   private final String method;
   private final URI uri;
   private final int status;
-  private final String message;
-
-  public DockerRequestException(final String method, final URI uri, final Throwable cause) {
-    this(method, uri, 0, null, cause);
-  }
+  private final String responseBody;
 
   public DockerRequestException(final String method, final URI uri,
-                                final int status,
+                                final int status, final String responseBody,
                                 final Throwable cause) {
-    this(method, uri, status, null, cause);
-  }
-
-  public DockerRequestException(final String method, final URI uri) {
-    this(method, uri, 0, null, null);
-  }
-
-  public DockerRequestException(final String method, final URI uri,
-                                final int status) {
-    this(method, uri, status, null, null);
-  }
-
-  public DockerRequestException(final String method, final URI uri,
-                                final int status, final String message) {
-    this(method, uri, status, message, null);
-  }
-
-  public DockerRequestException(final String method, final URI uri,
-                                final int status, final String message,
-                                final Throwable cause) {
-    super("Request error: " + method + " " + uri + ": " + status, cause);
+    super("Request error: " + method + " " + uri + ": " + status
+          + ((responseBody != null) ? ", body: " + responseBody : ""),
+        cause);
     this.method = method;
     this.uri = uri;
     this.status = status;
-    this.message = message;
+    this.responseBody = responseBody;
   }
 
   public String method() {
@@ -75,7 +54,25 @@ public class DockerRequestException extends DockerException {
     return status;
   }
 
+  /**
+   * The response body from the HTTP response containing an error, if any.
+   *
+   * @deprecated use {@link #getResponseBody()} instead to avoid confusion with {@link
+   * Throwable#getMessage()}.
+   */
+  @Deprecated
+  @Nullable
   public String message() {
-    return message;
+    return responseBody;
+  }
+
+  /**
+   * The response body from the HTTP response containing an error, if any.
+   *
+   * @return response body or null.
+   */
+  @Nullable
+  public String getResponseBody() {
+    return responseBody;
   }
 }

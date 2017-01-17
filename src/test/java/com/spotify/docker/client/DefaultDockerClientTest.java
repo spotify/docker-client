@@ -3560,15 +3560,15 @@ public class DefaultDockerClientTest {
       if (dockerApiVersionLessThan("1.20")) {
         assertEquals(
             String.format("Cannot resize container %s, container is not running\n", id),
-            e.message());
+            e.getResponseBody());
       } else if (dockerApiVersionLessThan("1.24")) {
         assertEquals(String.format("Container %s is not running\n", id),
-                     e.message());
+                     e.getResponseBody());
       } else {
         final ObjectMapper mapper =
             new ObjectMapperProvider().getContext(DefaultDockerClientTest.class);
         final Map<String, String> jsonMessage =
-            mapper.readValue(e.message(), new TypeReference<Map<String, String>>() {
+            mapper.readValue(e.getResponseBody(), new TypeReference<Map<String, String>>() {
             });
         assertThat(jsonMessage, hasKey("message"));
         assertEquals(String.format("Container %s is not running", id),
