@@ -618,18 +618,10 @@ public interface DockerClient extends Closeable {
   /**
    * Flags which can be passed to the <code>build</code> method.
    */
-  class BuildParam {
+  class BuildParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
+    public BuildParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -644,20 +636,6 @@ public interface DockerClient extends Closeable {
 
     public static BuildParam name(final String name) {
       return create("t", name);
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
-    }
-
-    public BuildParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
     }
 
     /**
@@ -785,26 +763,6 @@ public interface DockerClient extends Closeable {
      */
     public static BuildParam cpusetCpus(final Integer cpusetCpus) {
       return create("cpusetcpus", cpusetCpus.toString());
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final BuildParam that = (BuildParam) obj;
-
-      return Objects.equals(this.name, that.name)
-             && Objects.equals(this.value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
     }
   }
 
@@ -1007,32 +965,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #removeContainer(String)}.
    */
-  class RemoveContainerParam {
+  class RemoveContainerParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public RemoveContainerParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
+    public RemoveContainerParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -1083,26 +1019,6 @@ public interface DockerClient extends Closeable {
      */
     public static RemoveContainerParam forceKill(final boolean force) {
       return create("force", force ? "1" : "0");
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      RemoveContainerParam that = (RemoveContainerParam) obj;
-
-      return Objects.equals(name, that.name)
-              && Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
     }
   }
 
@@ -1538,22 +1454,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #execCreate(String, String[], ExecCreateParam...)}
    */
-  class ExecCreateParam {
+  class ExecCreateParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    private ExecCreateParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    public String name() {
-      return name;
-    }
-
-    public String value() {
-      return value;
+    public ExecCreateParam(String name, String value) {
+      super(name, value);
     }
 
     private static ExecCreateParam create(final String name, final String value) {
@@ -1683,26 +1587,6 @@ public interface DockerClient extends Closeable {
     public static ExecCreateParam user(final String user) {
       return create("User", user);
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      ExecCreateParam that = (ExecCreateParam) obj;
-
-      return Objects.equals(name, that.name)
-              && Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
-    }
   }
 
 
@@ -1710,32 +1594,10 @@ public interface DockerClient extends Closeable {
    * Parameters for {@link #logs(String, LogsParam...)}
    */
 
-  class LogsParam {
+  class LogsParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public LogsParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
+    public LogsParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -1845,26 +1707,6 @@ public interface DockerClient extends Closeable {
     public static LogsParam create(final String name, final String value) {
       return new LogsParam(name, value);
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      LogsParam logsParam = (LogsParam) obj;
-
-      return Objects.equals(name, logsParam.name)
-              && Objects.equals(value, logsParam.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
-    }
   }
 
   /**
@@ -1905,14 +1747,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
-  class ListContainersParam {
+  class ListContainersParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public ListContainersParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
+    public ListContainersParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -1935,24 +1773,6 @@ public interface DockerClient extends Closeable {
      */
     public static ListContainersParam filter(final String key, final String value) {
       return new ListContainersFilterParam(key, value);
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
     }
 
     /**
@@ -2100,26 +1920,6 @@ public interface DockerClient extends Closeable {
     public static ListContainersParam withLabel(final String label) {
       return withLabel(label, null);
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      ListContainersParam that = (ListContainersParam) obj;
-
-      return Objects.equals(name, that.name)
-              && Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
-    }
   }
 
   class ListContainersFilterParam extends ListContainersParam {
@@ -2132,14 +1932,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listImages(ListImagesParam...)}.
    */
-  class ListImagesParam {
+  class ListImagesParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public ListImagesParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
+    public ListImagesParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -2162,24 +1958,6 @@ public interface DockerClient extends Closeable {
      */
     public static ListImagesParam filter(final String name, final String value) {
       return new ListImagesFilterParam(name, value);
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
     }
 
     /**
@@ -2259,26 +2037,6 @@ public interface DockerClient extends Closeable {
      */
     public static ListImagesParam byName(final String name) {
       return create("filter", name);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      ListImagesParam that = (ListImagesParam) obj;
-
-      return Objects.equals(name, that.name)
-              && Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
     }
   }
 
@@ -2462,25 +2220,6 @@ public interface DockerClient extends Closeable {
     public static EventsParam label(final String label) {
       return label(label, null);
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-      EventsParam that = (EventsParam) obj;
-
-      return Objects.equals(name, that.name)
-              && Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
-    }
   }
 
   /**
@@ -2582,5 +2321,4 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
-
 }
