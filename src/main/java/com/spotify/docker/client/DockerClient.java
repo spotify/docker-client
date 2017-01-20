@@ -1086,12 +1086,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      RemoveContainerParam that = (RemoveContainerParam) o;
-      return Objects.equals(name, that.name) &&
-              Objects.equals(value, that.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      RemoveContainerParam that = (RemoveContainerParam) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
     }
 
     @Override
@@ -1679,12 +1685,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      ExecCreateParam that = (ExecCreateParam) o;
-      return Objects.equals(name, that.name) &&
-              Objects.equals(value, that.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      ExecCreateParam that = (ExecCreateParam) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
     }
 
     @Override
@@ -1835,12 +1847,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      LogsParam logsParam = (LogsParam) o;
-      return Objects.equals(name, logsParam.name) &&
-              Objects.equals(value, logsParam.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      LogsParam logsParam = (LogsParam) obj;
+
+      return Objects.equals(name, logsParam.name)
+              && Objects.equals(value, logsParam.value);
     }
 
     @Override
@@ -2084,12 +2102,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      ListContainersParam that = (ListContainersParam) o;
-      return Objects.equals(name, that.name) &&
-              Objects.equals(value, that.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      ListContainersParam that = (ListContainersParam) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
     }
 
     @Override
@@ -2238,12 +2262,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      ListImagesParam that = (ListImagesParam) o;
-      return Objects.equals(name, that.name) &&
-              Objects.equals(value, that.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      ListImagesParam that = (ListImagesParam) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
     }
 
     @Override
@@ -2434,12 +2464,17 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      EventsParam that = (EventsParam) o;
-      return Objects.equals(name, that.name) &&
-              Objects.equals(value, that.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      EventsParam that = (EventsParam) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
     }
 
     @Override
@@ -2559,12 +2594,18 @@ public interface DockerClient extends Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      ListVolumesParam that = (ListVolumesParam) o;
-      return Objects.equals(name, that.name) &&
-              Objects.equals(value, that.value);
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      ListVolumesParam that = (ListVolumesParam) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
     }
 
     @Override
