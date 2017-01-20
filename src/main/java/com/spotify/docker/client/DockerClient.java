@@ -8,9 +8,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -128,7 +128,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   List<Container> listContainers(ListContainersParam... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * List docker images.
@@ -175,7 +175,7 @@ public interface DockerClient extends Closeable {
                                     final ContainerConfig config,
                                     final String comment,
                                     final String author)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Inspect a docker container image.
@@ -219,7 +219,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   List<RemovedImage> removeImage(String image, boolean force, boolean noPrune)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Search for images on Docker Hub
@@ -250,7 +250,7 @@ public interface DockerClient extends Closeable {
    */
   @Deprecated
   void load(String image, InputStream imagePayload)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -271,7 +271,7 @@ public interface DockerClient extends Closeable {
    */
   @Deprecated
   void load(String image, InputStream imagePayload, ProgressHandler handler)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -290,7 +290,7 @@ public interface DockerClient extends Closeable {
    */
   @Deprecated
   void load(String image, InputStream imagePayload, RegistryAuth registryAuth)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -385,7 +385,7 @@ public interface DockerClient extends Closeable {
    */
   @Deprecated
   InputStream save(String image, RegistryAuth registryAuth)
-          throws DockerException, IOException, InterruptedException;
+      throws DockerException, IOException, InterruptedException;
 
   /**
    * Get a tarball containing all images and metadata for one or more repositories.
@@ -401,7 +401,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   InputStream saveMultiple(String... images)
-          throws DockerException, IOException, InterruptedException;
+      throws DockerException, IOException, InterruptedException;
 
   /**
    * List processes running inside the container by using <code>ps</code>.
@@ -424,7 +424,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   TopResults topContainer(String containerId, String psArgs)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Pull a docker container image.
@@ -474,7 +474,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void pull(String image, RegistryAuth registryAuth, ProgressHandler handler)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Push a docker container image.
@@ -500,10 +500,10 @@ public interface DockerClient extends Closeable {
   void push(String image, ProgressHandler handler) throws DockerException, InterruptedException;
 
   void push(final String image, final RegistryAuth registryAuth)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   void push(final String image, final ProgressHandler handler, final RegistryAuth registryAuth)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Tag a docker image.
@@ -538,7 +538,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void tag(final String image, final String name, final boolean force)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Build a docker image.
@@ -551,7 +551,7 @@ public interface DockerClient extends Closeable {
    * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final BuildParam... params)
-          throws DockerException, InterruptedException, IOException;
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Build a docker image.
@@ -565,7 +565,7 @@ public interface DockerClient extends Closeable {
    * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final String name, final BuildParam... params)
-          throws DockerException, InterruptedException, IOException;
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Build a docker image.
@@ -579,7 +579,7 @@ public interface DockerClient extends Closeable {
    * @throws IOException          If some IO shit happened.
    */
   String build(final Path directory, final ProgressHandler handler, final BuildParam... params)
-          throws DockerException, InterruptedException, IOException;
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Build a docker image.
@@ -595,7 +595,7 @@ public interface DockerClient extends Closeable {
    */
   String build(final Path directory, final String name, final ProgressHandler handler,
                final BuildParam... params)
-          throws DockerException, InterruptedException, IOException;
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Build a docker image.
@@ -613,7 +613,7 @@ public interface DockerClient extends Closeable {
    */
   String build(final Path directory, final String name, final String dockerfile,
                final ProgressHandler handler, final BuildParam... params)
-          throws DockerException, InterruptedException, IOException;
+      throws DockerException, InterruptedException, IOException;
 
   /**
    * Flags which can be passed to the <code>build</code> method.
@@ -799,7 +799,7 @@ public interface DockerClient extends Closeable {
       final BuildParam that = (BuildParam) obj;
 
       return Objects.equals(this.name, that.name)
-              && Objects.equals(this.value, that.value);
+             && Objects.equals(this.value, that.value);
     }
 
     @Override
@@ -829,7 +829,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerCreation createContainer(ContainerConfig config)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Create a docker container.
@@ -844,7 +844,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerCreation createContainer(ContainerConfig config, String name)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Rename a docker container.
@@ -859,7 +859,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void renameContainer(String containerId, String name)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Start a docker container.
@@ -884,7 +884,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void stopContainer(String containerId, int secondsToWaitBeforeKilling)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Pause a docker container.
@@ -931,7 +931,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void restartContainer(String containerId, int secondsToWaitBeforeRestart)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Wait for a docker container to exit.
@@ -985,7 +985,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void removeContainer(String containerId, RemoveContainerParam... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Remove a docker container.
@@ -1002,7 +1002,7 @@ public interface DockerClient extends Closeable {
    */
   @Deprecated
   void removeContainer(String containerId, boolean removeVolumes)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Parameters for {@link #removeContainer(String)}.
@@ -1142,7 +1142,7 @@ public interface DockerClient extends Closeable {
    */
   @Deprecated
   InputStream copyContainer(String containerId, String path)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -1166,7 +1166,7 @@ public interface DockerClient extends Closeable {
    * @since 1.20
    */
   InputStream archiveContainer(String containerId, String path)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Copies some files from host to container. (API version 1.20+)
@@ -1186,7 +1186,7 @@ public interface DockerClient extends Closeable {
    * @since 1.20
    */
   void copyToContainer(final Path directory, String containerId, String path)
-          throws DockerException, InterruptedException, IOException;
+      throws DockerException, InterruptedException, IOException;
 
 
   /**
@@ -1200,7 +1200,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   List<ContainerChange> inspectContainerChanges(String containerId)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Get docker container logs.
@@ -1216,7 +1216,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   LogStream logs(String containerId, LogsParam... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Watches the docker API for events.
@@ -1230,7 +1230,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   EventStream events(EventsParam... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Sets up an exec instance in a running container id.
@@ -1243,7 +1243,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ExecCreation execCreate(String containerId, String[] cmd, ExecCreateParam... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Starts a previously set up exec instance id. If detach is true, this API returns after starting
@@ -1260,7 +1260,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   LogStream execStart(String execId, ExecStartParameter... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Inspect the Swarm cluster. Only available in Docker API &gt;= 1.24.
@@ -1281,7 +1281,7 @@ public interface DockerClient extends Closeable {
    */
   ServiceCreateResponse createService(ServiceSpec spec)
           throws DockerException, InterruptedException;
-
+  
   /**
    * Create a new service. Only available in Docker API &gt;= 1.24.
    *
@@ -1454,7 +1454,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void resizeTty(String containerId, Integer height, Integer width)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -1489,7 +1489,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   NetworkCreation createNetwork(final NetworkConfig networkConfig)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Remove a docker network.
@@ -1514,7 +1514,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException       If the thread is interrupted
    */
   void connectToNetwork(String containerId, String networkId)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
 
   /**
@@ -1527,7 +1527,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException       If the thread is interrupted
    */
   void disconnectFromNetwork(String containerId, String networkId)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Closes any and all underlying connections to docker, and release resources.
@@ -1893,7 +1893,7 @@ public interface DockerClient extends Closeable {
    * @throws IllegalStateException      If the container is not running
    */
   LogStream attachContainer(String containerId, AttachParameter... params)
-          throws DockerException, InterruptedException;
+      throws DockerException, InterruptedException;
 
   /**
    * Get the Docker host address.
