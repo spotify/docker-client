@@ -19,6 +19,7 @@ We consider this library pretty stable and use it in many critical production sy
 * [Releasing](#releasing)
 * [A Note on Shading](#a-note-on-shading)
 * [Code of Conduct](#code-of-conduct)
+* [User Manual](https://github.com/spotify/docker-client/blob/master/docs/user_manual.md)
 
 
 ## Download
