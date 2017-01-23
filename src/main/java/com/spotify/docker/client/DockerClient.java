@@ -615,6 +615,57 @@ public interface DockerClient extends Closeable {
                final ProgressHandler handler, final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
 
+
+  abstract class Param {
+    private final String name;
+    private final String value;
+
+    Param(String name, String value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    /**
+     * Parameter name.
+     *
+     * @return name of parameter
+     * @since Docker 1.9, API version 1.21
+     */
+    public String name() {
+      return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     * @since Docker 1.9, API version 1.21
+     */
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      Param that = (Param) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, value);
+    }
+  }
+
   /**
    * Flags which can be passed to the <code>build</code> method.
    */
