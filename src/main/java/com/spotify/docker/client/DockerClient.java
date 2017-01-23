@@ -615,21 +615,64 @@ public interface DockerClient extends Closeable {
                final ProgressHandler handler, final BuildParam... params)
       throws DockerException, InterruptedException, IOException;
 
-  /**
-   * Flags which can be passed to the <code>build</code> method.
-   */
-  class BuildParam {
 
+  abstract class Param {
     private final String name;
     private final String value;
+
+    Param(String name, String value) {
+      this.name = name;
+      this.value = value;
+    }
 
     /**
      * Parameter name.
      *
      * @return name of parameter
+     * @since Docker 1.9, API version 1.21
      */
     public String name() {
       return name;
+    }
+
+    /**
+     * Parameter value.
+     *
+     * @return value of parameter
+     * @since Docker 1.9, API version 1.21
+     */
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+
+      Param that = (Param) obj;
+
+      return Objects.equals(name, that.name)
+              && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, value);
+    }
+  }
+
+  /**
+   * Flags which can be passed to the <code>build</code> method.
+   */
+  class BuildParam extends Param {
+
+    public BuildParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -644,20 +687,6 @@ public interface DockerClient extends Closeable {
 
     public static BuildParam name(final String name) {
       return create("t", name);
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
-    }
-
-    public BuildParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
     }
 
     /**
@@ -785,26 +814,6 @@ public interface DockerClient extends Closeable {
      */
     public static BuildParam cpusetCpus(final Integer cpusetCpus) {
       return create("cpusetcpus", cpusetCpus.toString());
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (obj == null || getClass() != obj.getClass()) {
-        return false;
-      }
-
-      final BuildParam that = (BuildParam) obj;
-
-      return Objects.equals(this.name, that.name)
-             && Objects.equals(this.value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, value);
     }
   }
 
@@ -1007,32 +1016,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #removeContainer(String)}.
    */
-  class RemoveContainerParam {
+  class RemoveContainerParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public RemoveContainerParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
+    public RemoveContainerParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -1518,22 +1505,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #execCreate(String, String[], ExecCreateParam...)}
    */
-  class ExecCreateParam {
+  class ExecCreateParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    private ExecCreateParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    public String name() {
-      return name;
-    }
-
-    public String value() {
-      return value;
+    public ExecCreateParam(String name, String value) {
+      super(name, value);
     }
 
     private static ExecCreateParam create(final String name, final String value) {
@@ -1670,32 +1645,10 @@ public interface DockerClient extends Closeable {
    * Parameters for {@link #logs(String, LogsParam...)}
    */
 
-  class LogsParam {
+  class LogsParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public LogsParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
+    public LogsParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -1845,14 +1798,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listContainers(ListContainersParam...)}
    */
-  class ListContainersParam {
+  class ListContainersParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public ListContainersParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
+    public ListContainersParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -1875,24 +1824,6 @@ public interface DockerClient extends Closeable {
      */
     public static ListContainersParam filter(final String key, final String value) {
       return new ListContainersFilterParam(key, value);
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
     }
 
     /**
@@ -2052,14 +1983,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #listImages(ListImagesParam...)}.
    */
-  class ListImagesParam {
+  class ListImagesParam extends Param {
 
-    private final String name;
-    private final String value;
-
-    public ListImagesParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
+    public ListImagesParam(String name, String value) {
+      super(name, value);
     }
 
     /**
@@ -2082,24 +2009,6 @@ public interface DockerClient extends Closeable {
      */
     public static ListImagesParam filter(final String name, final String value) {
       return new ListImagesFilterParam(name, value);
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     */
-    public String value() {
-      return value;
     }
 
     /**
@@ -2362,7 +2271,6 @@ public interface DockerClient extends Closeable {
     public static EventsParam label(final String label) {
       return label(label, null);
     }
-
   }
 
   /**
@@ -2391,23 +2299,10 @@ public interface DockerClient extends Closeable {
    * Parameters for {@link #listVolumes(ListVolumesParam...)}.
    * @since Docker 1.9, API version 1.21
    */
-  class ListVolumesParam {
-    private final String name;
-    private final String value;
+  class ListVolumesParam extends Param {
 
     private ListVolumesParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return name of parameter
-     * @since Docker 1.9, API version 1.21
-     */
-    public String name() {
-      return name;
+      super(name, value);
     }
 
     /**
@@ -2418,16 +2313,6 @@ public interface DockerClient extends Closeable {
      */
     public static ListVolumesParam name(final String name) {
       return filter("name", name);
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return value of parameter
-     * @since Docker 1.9, API version 1.21
-     */
-    public String value() {
-      return value;
     }
 
     /**
@@ -2474,6 +2359,7 @@ public interface DockerClient extends Closeable {
     public static ListVolumesParam driver(final String driver) {
       return filter("driver", driver);
     }
+
   }
 
   /**
@@ -2486,5 +2372,4 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
-
 }
