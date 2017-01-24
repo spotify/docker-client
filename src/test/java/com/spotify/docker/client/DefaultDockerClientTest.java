@@ -3969,6 +3969,30 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().readonlyRootfs(), is(true));
   }
+  
+
+  @Test
+  public void testStorageOpt() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "StorageOpt");
+      
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    final ImmutableMap<String, String> storageOpt = ImmutableMap.of("size", "20G");
+    
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .hostConfig(HostConfig.builder()
+                        .storageOpt(storageOpt)
+                        .build())
+        .build();
+
+    final ContainerCreation container = sut.createContainer(config, randomName());
+    final ContainerInfo info = sut.inspectContainer(container.id());
+
+    assertThat(info.hostConfig().storageOpt().size(), is(1));
+    assertThat(info.hostConfig().storageOpt().get("size"), is("20G"));
+  }
 
   @Test(expected = ContainerNotFoundException.class)
   public void testAutoRemoveWhenSetToTrue() throws Exception {
