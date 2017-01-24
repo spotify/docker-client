@@ -41,9 +41,11 @@ import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ContainerUpdate;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
+import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.ImageHistory;
 import com.spotify.docker.client.messages.ImageInfo;
@@ -868,6 +870,18 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void renameContainer(String containerId, String name)
+      throws DockerException, InterruptedException;
+  
+  
+  /**
+   * Update an existing container. Only available in Docker API &gt;= 1.22.
+   *
+   * @param containerId the identifier of the container
+   * @param config the new container host config
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  ContainerUpdate updateContainer(String containerId, HostConfig config)
       throws DockerException, InterruptedException;
 
   /**

@@ -143,6 +143,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerMount;
 import com.spotify.docker.client.messages.ContainerStats;
+import com.spotify.docker.client.messages.ContainerUpdate;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
@@ -1835,6 +1836,37 @@ public class DefaultDockerClientTest {
     assertThat(actual.publishAllPorts(), equalTo(expected.publishAllPorts()));
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
+  }
+  
+  @Test
+  public void testUpdateContainer() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "update container");
+    
+    final String containerName = randomName();
+    final HostConfig hostConfig = HostConfig.builder()
+            .cpuShares(256L)
+            .build();
+    final ContainerConfig config = ContainerConfig.builder()
+            .hostConfig(hostConfig)
+            .image(BUSYBOX_LATEST)
+            .build();
+
+    sut.pull(BUSYBOX_LATEST);
+    final ContainerCreation container = sut.createContainer(config, containerName);
+    
+    final ContainerInfo containerInfo = sut.inspectContainer(container.id());
+    assertThat(containerInfo.hostConfig().cpuShares(), is(256L));
+    
+    final HostConfig newHostConfig = HostConfig.builder()
+            .cpuShares(512L)
+            .build();
+    final ContainerUpdate containerUpdate = sut.updateContainer(containerInfo.id(), newHostConfig);
+    
+    assertThat(containerUpdate.warnings(), is(nullValue()));
+    
+    final ContainerInfo newContainerInfo = sut.inspectContainer(container.id());
+    
+    assertThat(newContainerInfo.hostConfig().cpuShares(), is(512L));
   }
 
   @Test(timeout = 5000)
