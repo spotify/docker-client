@@ -53,6 +53,14 @@ public abstract class NetworkConfig {
   @Nullable
   @JsonProperty("CheckDuplicate")
   public abstract Boolean checkDuplicate();
+  
+  @Nullable
+  @JsonProperty("Internal")
+  public abstract Boolean internal();
+  
+  @Nullable
+  @JsonProperty("EnableIPv6")
+  public abstract Boolean enableIPv6();
 
   public static Builder builder() {
     return new AutoValue_NetworkConfig.Builder()
@@ -78,6 +86,10 @@ public abstract class NetworkConfig {
     public abstract Builder driver(final String driver);
 
     public abstract Builder checkDuplicate(Boolean check);
+    
+    public abstract Builder internal(Boolean internal);
+    
+    public abstract Builder enableIPv6(Boolean ipv6);
 
     public abstract NetworkConfig build();
   }

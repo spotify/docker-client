@@ -3378,6 +3378,7 @@ public class DefaultDockerClientTest {
         .build();
     final NetworkConfig networkConfig =
         NetworkConfig.builder().name(networkName).driver("bridge").checkDuplicate(true).ipam(ipam)
+            .internal(false).enableIPv6(false)
             .build();
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
@@ -3399,6 +3400,11 @@ public class DefaultDockerClientTest {
     assertThat(sut.inspectNetwork(network.id()).name(), is(networkName));
     assertThat(network.ipam(), equalTo(ipam));
 
+    if (dockerApiVersionAtLeast("1.23")) {
+      assertThat(network.internal(), is(false));
+      assertThat(network.enableIPv6(), is(false));
+    }
+    
     sut.removeNetwork(network.id());
 
     exception.expect(NetworkNotFoundException.class);
