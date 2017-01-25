@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,6 @@
 
 package com.spotify.docker.client;
 
-import static com.google.common.io.ByteStreams.copy;
-import static com.google.common.io.ByteStreams.nullOutputStream;
-
 import com.google.common.io.ByteStreams;
 import com.spotify.docker.client.LogMessage.Stream;
 
@@ -30,12 +27,20 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.io.ByteStreams.copy;
+import static com.google.common.io.ByteStreams.nullOutputStream;
 
 public class LogReader implements Closeable {
 
   private final InputStream stream;
   public static final int HEADER_SIZE = 8;
   public static final int FRAME_SIZE_OFFSET = 4;
+
+  protected ExecutorService readStreamExecutorService =
+      Executors.newSingleThreadExecutor();
 
   public LogReader(final InputStream stream) {
     this.stream = stream;
@@ -46,7 +51,7 @@ public class LogReader implements Closeable {
 
     // Read header
     final byte[] headerBytes = new byte[HEADER_SIZE];
-    final int n = ByteStreams.read(stream, headerBytes, 0, HEADER_SIZE);
+    final int n = readWithTimeout(stream, headerBytes, 0, HEADER_SIZE);
     if (n == 0) {
       return null;
     }
@@ -76,5 +81,47 @@ public class LogReader implements Closeable {
     // We cannot call the stream's close method because it an instance of UncloseableInputStream,
     // where close is a no-op.
     copy(stream, nullOutputStream());
+  }
+
+  protected synchronized int readWithTimeout(final InputStream in, final byte[] b,
+      final int off, final int len) {
+    Future<Integer> readCount =  readStreamExecutorService.submit(new Callable<Integer>() {
+      @Override
+      public Integer call() throws Exception {
+        int count = LogReader.this.read(in, b, off, len);
+        return count;
+      }
+    });
+
+    try {
+      int readCountInt = readCount.get(1000, TimeUnit.MILLISECONDS);
+      return readCountInt;
+    } catch (InterruptedException theException) {
+    } catch (ExecutionException theException) {
+    } catch (TimeoutException theException) {
+    }
+
+    readStreamExecutorService.shutdown();
+    readStreamExecutorService = Executors.newSingleThreadExecutor();
+    return 0;
+  }
+
+  protected int read(InputStream in, byte[] b, int off, int len)
+      throws IOException {
+    checkNotNull(in);
+    checkNotNull(b);
+    if (len < 0) {
+      throw new IndexOutOfBoundsException("len is negative");
+    }
+    int total = 0;
+    while (total < len) {
+      // This call blocks indefinitely if there is no data in the stream.
+      int result = in.read(b, off + total, len - total);
+      if (result == -1) {
+        break;
+      }
+      total += result;
+    }
+    return total;
   }
 }
