@@ -166,11 +166,6 @@ public class IvanDockerContainer {
      */
     public IvanDockerContainer attachToLogStreams()
         throws DockerException, InterruptedException {
-//            mContainerLogStream = mDockerClient.attachContainer(mDockerContainerId,
-//                DockerClient.AttachParameter.LOGS,
-//                DockerClient.AttachParameter.STDOUT,
-//                DockerClient.AttachParameter.STDERR,
-//                DockerClient.AttachParameter.STREAM);
         mContainerLogStream = mDockerClient.logs(
             mDockerContainerId,
             DockerClient.LogsParam.stdout(),
@@ -210,7 +205,7 @@ public class IvanDockerContainer {
         String theContainerLogString = "";
 
         do {
-            /* Timeout waiting for the container? */
+            /* Timed out waiting for log from the container? */
             final DateTime theCurrentTime = new DateTime();
             final Duration theCurrentWaitDuration =
                 new Interval(theStartTime, theCurrentTime).toDuration();

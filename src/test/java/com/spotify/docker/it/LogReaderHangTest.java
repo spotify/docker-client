@@ -1,13 +1,20 @@
 package com.spotify.docker.it;
 
 
+import com.google.common.io.Resources;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import org.joda.time.Duration;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.nio.file.Paths;
 
 /**
  * Test for issue 552: Obtaining next log message from Docker container hangs
@@ -18,15 +25,55 @@ import org.junit.Test;
  * @author Ivan Krizsan
  */
 public class LogReaderHangTest {
+    /* Constant(s): */
+    public static final String LOGHANG_DOCKERIMAGE = "loghang:latest";
+
     /* Class variable(s): */
     protected static DockerClient mDockerClient;
 
+    /* Instance variable(s): */
+    protected IvanDockerContainer mIvanDockerContainer;
+
     /**
      * Performs setup before all the test methods.
+     *
+     * @throws DockerCertificateException If creation of Docker client failed.
      */
     @BeforeClass
     public static void setUpOnceBeforeAllTests() throws DockerCertificateException {
         mDockerClient = DefaultDockerClient.fromEnv().readTimeoutMillis(10000).build();
+    }
+
+    /**
+     * Performs setup before one test method.
+     *
+     * @throws Exception If error occurred creating test Docker image.
+     */
+    @Before
+    public void setupBeforeOneTest() throws Exception {
+        createDockerLogReaderHangTestImage();
+
+        mIvanDockerContainer =
+            new IvanDockerContainer(mDockerClient, LOGHANG_DOCKERIMAGE);
+    }
+
+    /**
+     * Cleans up after one test method.
+     */
+    @After
+    public void cleanupAfterOneTest() {
+        /* Stop and remove container, remove image. */
+        mIvanDockerContainer.stopIgnoreExceptions();
+        try {
+            mIvanDockerContainer.remove();
+        } catch (final Exception theException) {
+            /* Ignore exceptions. */
+        }
+        try {
+            mDockerClient.removeImage(LOGHANG_DOCKERIMAGE);
+        } catch (final Exception theException) {
+            /* Ignore exceptions. */
+        }
     }
 
     /**
@@ -40,23 +87,39 @@ public class LogReaderHangTest {
      * @throws DockerException If error occurs running Docker container.
      * @throws InterruptedException Expected exception.
      */
-    @Test(timeout = 40000L, expected = InterruptedException.class)
+    @Test(timeout = 50000L, expected = InterruptedException.class)
     public void testContainerLogHang()
         throws DockerException, InterruptedException {
-        final IvanDockerContainer theTomcatContainer =
-            new IvanDockerContainer(mDockerClient, "tomcat:latest");
 
         try {
-            theTomcatContainer.
-                setDockerContainerName("TomcatContainer").
+            mIvanDockerContainer.
+                setDockerContainerName("LoghangTestContainer").
                 create().
                 start().
                 attachToLogStreams().
                 waitForLog("Yellow", Duration.standardSeconds(30));
         } finally {
-            theTomcatContainer
+            mIvanDockerContainer
                 .stopIgnoreExceptions()
                 .remove();
         }
+    }
+
+    private void createDockerLogReaderHangTestImage()
+        throws InterruptedException, DockerException, IOException {
+        /* Remove test Docker image if it already exists. */
+        try {
+            mDockerClient.inspectImage(LOGHANG_DOCKERIMAGE);
+            mDockerClient.removeImage(LOGHANG_DOCKERIMAGE);
+        } catch (final ImageNotFoundException theException) {
+            /* Ignore exception and just continue to create the Docker image. */
+        }
+
+        /* Create the test Docker image. */
+        final String theDockerDirectory =
+            Resources.getResource("dockerDirectoryLogHang").getPath();
+
+        final String theDockerImageId =
+            mDockerClient.build(Paths.get(theDockerDirectory), LOGHANG_DOCKERIMAGE);
     }
 }
