@@ -17,7 +17,7 @@ import org.junit.Test;
  *
  * @author Ivan Krizsan
  */
-public class LogStreamHangTest {
+public class LogReaderHangTest {
     /* Class variable(s): */
     protected static DockerClient mDockerClient;
 
@@ -51,8 +51,6 @@ public class LogStreamHangTest {
                 setDockerContainerName("TomcatContainer").
                 create().
                 start().
-                waitUntilRunning(Duration.standardSeconds(10)).
-                logContainerInfo().
                 attachToLogStreams().
                 waitForLog("Yellow", Duration.standardSeconds(30));
         } finally {
