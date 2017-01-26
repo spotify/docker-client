@@ -19,8 +19,6 @@ import java.nio.file.Paths;
 /**
  * Test for issue 552: Obtaining next log message from Docker container hangs
  * indefinitely.
- * Note that prior to running this test, the tomcat:latest Docker image needs
- * to be pulled.
  *
  * @author Ivan Krizsan
  */
