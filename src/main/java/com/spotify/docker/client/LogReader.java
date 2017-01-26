@@ -20,18 +20,21 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.io.ByteStreams.copy;
+import static com.google.common.io.ByteStreams.nullOutputStream;
+
 import com.google.common.io.ByteStreams;
 import com.spotify.docker.client.LogMessage.Stream;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.*;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.io.ByteStreams.copy;
-import static com.google.common.io.ByteStreams.nullOutputStream;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class LogReader implements Closeable {
 
@@ -83,12 +86,12 @@ public class LogReader implements Closeable {
     copy(stream, nullOutputStream());
   }
 
-  protected synchronized int readWithTimeout(final InputStream in, final byte[] b,
+  protected synchronized int readWithTimeout(final InputStream in, final byte[] buff,
       final int off, final int len) {
     Future<Integer> readCount =  readStreamExecutorService.submit(new Callable<Integer>() {
       @Override
       public Integer call() throws Exception {
-        int count = LogReader.this.read(in, b, off, len);
+        int count = LogReader.this.read(in, buff, off, len);
         return count;
       }
     });
@@ -96,9 +99,8 @@ public class LogReader implements Closeable {
     try {
       int readCountInt = readCount.get(1000, TimeUnit.MILLISECONDS);
       return readCountInt;
-    } catch (InterruptedException theException) {
-    } catch (ExecutionException theException) {
-    } catch (TimeoutException theException) {
+    } catch (Exception theException) {
+      System.currentTimeMillis();
     }
 
     readStreamExecutorService.shutdown();
@@ -106,17 +108,17 @@ public class LogReader implements Closeable {
     return 0;
   }
 
-  protected int read(InputStream in, byte[] b, int off, int len)
+  protected int read(InputStream in, byte[] buff, int off, int len)
       throws IOException {
     checkNotNull(in);
-    checkNotNull(b);
+    checkNotNull(buff);
     if (len < 0) {
       throw new IndexOutOfBoundsException("len is negative");
     }
     int total = 0;
     while (total < len) {
       // This call blocks indefinitely if there is no data in the stream.
-      int result = in.read(b, off + total, len - total);
+      int result = in.read(buff, off + total, len - total);
       if (result == -1) {
         break;
       }
