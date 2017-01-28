@@ -138,6 +138,8 @@ public class IvanDockerContainer {
         DockerClient.LogsParam.timestamps(),
         DockerClient.LogsParam.follow());
 
+    containerLogStream.setReadTimeoutInMilliseconds(1000L);
+
     return this;
   }
 

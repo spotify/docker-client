@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class LogReader implements Closeable {
 
   private final InputStream stream;
+  private Long readTimeoutInMilliseconds;
   public static final int HEADER_SIZE = 8;
   public static final int FRAME_SIZE_OFFSET = 4;
 
@@ -54,8 +55,13 @@ public class LogReader implements Closeable {
 
     // Read header
     final byte[] headerBytes = new byte[HEADER_SIZE];
-    final int n = readWithTimeout(stream, headerBytes, 0, HEADER_SIZE);
-    if (n == 0) {
+    int count;
+    if (readTimeoutInMilliseconds != null) {
+      count = readWithTimeout(stream, headerBytes, 0, HEADER_SIZE);
+    } else {
+      count = read(stream, headerBytes, 0, HEADER_SIZE);
+    }
+    if (count == 0) {
       return null;
     }
     final ByteBuffer header = ByteBuffer.wrap(headerBytes);
@@ -97,7 +103,7 @@ public class LogReader implements Closeable {
     });
 
     try {
-      int readCountInt = readCount.get(1000, TimeUnit.MILLISECONDS);
+      int readCountInt = readCount.get(readTimeoutInMilliseconds, TimeUnit.MILLISECONDS);
       return readCountInt;
     } catch (Exception theException) {
       System.currentTimeMillis();
@@ -125,5 +131,9 @@ public class LogReader implements Closeable {
       total += result;
     }
     return total;
+  }
+
+  public void setReadTimeoutInMilliseconds(final Long inReadTimeoutInMilliseconds) {
+    readTimeoutInMilliseconds = inReadTimeoutInMilliseconds;
   }
 }
