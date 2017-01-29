@@ -24,65 +24,70 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import javax.annotation.Nullable;
 
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class AttachedNetwork {
+public abstract class EndpointConfig {
 
   @Nullable
   @JsonProperty("Aliases")
   public abstract ImmutableList<String> aliases();
 
   @Nullable
-  @JsonProperty("NetworkID")
-  public abstract String networkId();
-
-  @JsonProperty("EndpointID")
-  public abstract String endpointId();
-
   @JsonProperty("Gateway")
   public abstract String gateway();
 
+  @Nullable
   @JsonProperty("IPAddress")
   public abstract String ipAddress();
 
+  @Nullable
   @JsonProperty("IPPrefixLen")
   public abstract Integer ipPrefixLen();
 
+  @Nullable
   @JsonProperty("IPv6Gateway")
   public abstract String ipv6Gateway();
 
+  @Nullable
   @JsonProperty("GlobalIPv6Address")
   public abstract String globalIPv6Address();
 
+  @Nullable
   @JsonProperty("GlobalIPv6PrefixLen")
   public abstract Integer globalIPv6PrefixLen();
 
+  @Nullable
   @JsonProperty("MacAddress")
   public abstract String macAddress();
 
-  @JsonCreator
-  static AttachedNetwork create(
-      @JsonProperty("Aliases") final List<String> aliases,
-      @JsonProperty("NetworkID") final String networkId,
-      @JsonProperty("EndpointID") final String endpointId,
-      @JsonProperty("Gateway") final String gateway,
-      @JsonProperty("IPAddress") final String ipAddress,
-      @JsonProperty("IPPrefixLen") final Integer ipPrefixLen,
-      @JsonProperty("IPv6Gateway") final String ipv6Gateway,
-      @JsonProperty("GlobalIPv6Address") final String globalIpv6Address,
-      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIpv6PrefixLen,
-      @JsonProperty("MacAddress") final String macAddress) {
-    return new AutoValue_AttachedNetwork(
-            aliases == null ? null : ImmutableList.copyOf(aliases),
-            networkId, endpointId, gateway, ipAddress, ipPrefixLen,
-            ipv6Gateway, globalIpv6Address, globalIpv6PrefixLen, macAddress);
+  public static Builder builder() {
+    return new AutoValue_EndpointConfig.Builder();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+    public abstract Builder aliases(ImmutableList<String> aliases);
+
+    public abstract Builder gateway(String gateway);
+
+    public abstract Builder ipAddress(String ipAddress);
+
+    public abstract Builder ipPrefixLen(Integer ipPrefixLen);
+
+    public abstract Builder ipv6Gateway(String ipv6Gateway);
+
+    public abstract Builder globalIPv6Address(String globalIPv6Address);
+
+    public abstract Builder globalIPv6PrefixLen(Integer globalIPv6PrefixLen);
+
+    public abstract Builder macAddress(String macAddress);
+
+    public abstract EndpointConfig build();
   }
 }

@@ -93,6 +93,7 @@ import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkConnection;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RegistryAuth;
@@ -159,7 +160,6 @@ import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -984,7 +984,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
     }
   }
-  
+
   @Override
   public ContainerUpdate updateContainer(final String containerId, final HostConfig config)
       throws DockerException, InterruptedException {
@@ -1601,10 +1601,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public ServiceCreateResponse createService(ServiceSpec spec)
       throws DockerException, InterruptedException {
-    
+
     return createService(spec, registryAuth);
   }
-  
+
   @Override
   public ServiceCreateResponse createService(final ServiceSpec spec,
                                              final RegistryAuth config)
@@ -1912,6 +1912,26 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void connectToNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException {
     manageNetworkConnection(containerId, "connect", networkId);
+  }
+
+  @Override
+  public void connectToNetwork(String networkId, NetworkConnection networkConnection)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId).path("connect");
+
+    try {
+      request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+              Entity.json(networkConnection));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          final String message = String.format("Container %s or network %s not found.",
+                  networkConnection.containerId(), networkId);
+          throw new NotFoundException(message, e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override
