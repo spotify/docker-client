@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class VolumeList {
 
+  @Nullable
   @JsonProperty("Volumes")
   public abstract ImmutableList<Volume> volumes();
 
