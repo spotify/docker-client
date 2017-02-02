@@ -52,7 +52,6 @@ import org.slf4j.LoggerFactory;
  * @author Ivan Krizsan
  */
 public class IvanDockerContainer {
-  /* Constant(s): */
   private static final Logger LOGGER = LoggerFactory.getLogger(DockerContainer.class);
 
   /* Instance variable(s): */
