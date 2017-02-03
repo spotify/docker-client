@@ -340,6 +340,11 @@ public class DefaultDockerClientTest {
     assumeTrue(msg, dockerApiVersionAtLeast(required));
   }
 
+  private void requireStorageDriverNotAufs() throws Exception {
+    Info info = sut.info();
+    assumeFalse(info.storageDriver().equals("aufs"));
+  }
+
   private boolean dockerApiVersionAtLeast(final String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
   }
@@ -408,11 +413,11 @@ public class DefaultDockerClientTest {
         buildParam
     );
   }
-  
+
   @Test
   public void testHealthCheck() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "health check");
-    
+
     // Create image
     final String dockerDirectory = Resources.getResource("dockerDirectoryWithHealthCheck")
             .getPath();
@@ -420,13 +425,13 @@ public class DefaultDockerClientTest {
             Paths.get(dockerDirectory),
             "test-healthcheck"
             );
-   
+
     // Inpect image to check healthcheck configuration
     final ImageInfo imageInfo = sut.inspectImage(imageId);
     assertThat(imageInfo.config().healthcheck(), notNullValue());
     assertThat(imageInfo.config().healthcheck().get("Test"),
             is(Arrays.asList("CMD-SHELL", "exit 1")));
-    
+
     // Create container based on this image to check initial container health state
     final ContainerConfig config = ContainerConfig.builder()
             .image("test-healthcheck")
@@ -435,9 +440,9 @@ public class DefaultDockerClientTest {
     final ContainerCreation creation = sut.createContainer(config, name);
     sut.startContainer(creation.id());
     final ContainerInfo containerInfo = sut.inspectContainer(creation.id());
-    
+
     assertThat(containerInfo.state().health(), notNullValue());
-    assertThat(containerInfo.state().health().status(), is("starting")); 
+    assertThat(containerInfo.state().health().status(), is("starting"));
   }
 
   @SuppressWarnings("emptyCatchBlock")
@@ -1837,11 +1842,11 @@ public class DefaultDockerClientTest {
     assertThat(actual.dns(), equalTo(expected.dns()));
     assertThat(actual.cpuQuota(), equalTo(expected.cpuQuota()));
   }
-  
+
   @Test
   public void testUpdateContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.22", "update container");
-    
+
     final String containerName = randomName();
     final HostConfig hostConfig = HostConfig.builder()
             .cpuShares(256L)
@@ -1853,19 +1858,19 @@ public class DefaultDockerClientTest {
 
     sut.pull(BUSYBOX_LATEST);
     final ContainerCreation container = sut.createContainer(config, containerName);
-    
+
     final ContainerInfo containerInfo = sut.inspectContainer(container.id());
     assertThat(containerInfo.hostConfig().cpuShares(), is(256L));
-    
+
     final HostConfig newHostConfig = HostConfig.builder()
             .cpuShares(512L)
             .build();
     final ContainerUpdate containerUpdate = sut.updateContainer(containerInfo.id(), newHostConfig);
-    
+
     assertThat(containerUpdate.warnings(), is(nullValue()));
-    
+
     final ContainerInfo newContainerInfo = sut.inspectContainer(container.id());
-    
+
     assertThat(newContainerInfo.hostConfig().cpuShares(), is(512L));
   }
 
@@ -3404,7 +3409,7 @@ public class DefaultDockerClientTest {
       assertThat(network.internal(), is(false));
       assertThat(network.enableIPv6(), is(false));
     }
-    
+
     sut.removeNetwork(network.id());
 
     exception.expect(NetworkNotFoundException.class);
@@ -3911,7 +3916,7 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
   }
-  
+
   @Test
   public void testPidsLimit() throws Exception {
     if (OsUtils.isLinux()) {
@@ -3935,7 +3940,7 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().pidsLimit(), is(100));
   }
-  
+
   @Test
   public void testTmpfs() throws Exception {
     requireDockerApiVersionAtLeast("1.22", "TmpFs");
@@ -3944,7 +3949,7 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final ImmutableMap<String, String> tmpfs = ImmutableMap.of("/tmp", "rw,noexec,nosuid,size=50m");
-    
+
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .hostConfig(HostConfig.builder()
@@ -3975,23 +3980,23 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().readonlyRootfs(), is(true));
   }
-  
+
 
   @Test
   public void testStorageOpt() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "StorageOpt");
-      
+    requireStorageDriverNotAufs();
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
     final ImmutableMap<String, String> storageOpt = ImmutableMap.of("size", "20G");
-    
+
     final ContainerConfig config = ContainerConfig.builder()
-        .image(BUSYBOX_LATEST)
-        .hostConfig(HostConfig.builder()
-                        .storageOpt(storageOpt)
-                        .build())
-        .build();
+                      .image(BUSYBOX_LATEST)
+                      .hostConfig(HostConfig.builder()
+                          .storageOpt(storageOpt)
+                          .build())
+                      .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
@@ -4055,7 +4060,7 @@ public class DefaultDockerClientTest {
                     .name(networkName).build());
 
     final String networkId = networkCreation.id();
-    
+
     assertThat(networkId, is(notNullValue()));
 
     final TaskSpec taskSpec = TaskSpec.builder()
