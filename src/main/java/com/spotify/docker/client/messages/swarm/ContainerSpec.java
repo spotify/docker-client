@@ -46,6 +46,7 @@ public abstract class ContainerSpec {
   @JsonProperty("Labels")
   public abstract ImmutableMap<String, String> labels();
 
+  @Nullable
   @JsonProperty("Command")
   public abstract ImmutableList<String> command();
 
@@ -316,7 +317,6 @@ public abstract class ContainerSpec {
       @JsonProperty("StopGracePeriod") final Long stopGracePeriod) {
     final Builder builder = builder()
         .image(image)
-        .command(command)
         .args(args)
         .env(env)
         .dir(dir)
@@ -328,6 +328,10 @@ public abstract class ContainerSpec {
 
     if (labels != null) {
       builder.labels(labels);
+    }
+
+    if (command != null) {
+      builder.command(command);
     }
 
     return builder.build();
