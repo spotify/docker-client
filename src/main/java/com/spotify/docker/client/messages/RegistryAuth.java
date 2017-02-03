@@ -77,12 +77,16 @@ public abstract class RegistryAuth {
   @JsonProperty("ServerAddress")
   public abstract String serverAddress();
 
-  @Override
+  @Nullable
+  @JsonProperty("IdentityToken")
+  public abstract String identityToken();
+
   public final String toString() {
     return MoreObjects.toStringHelper(this)
         .add("username", username())
         // don't log the password or email
         .add("serverAddress", serverAddress())
+        .add("identityToken", identityToken())
         .toString();
   }
 
@@ -187,6 +191,9 @@ public abstract class RegistryAuth {
       if (authParams.length == 2) {
         authBuilder.username(authParams[0].trim());
         authBuilder.password(authParams[1].trim());
+      } else if (serverAuth.has("identityToken")) {
+        authBuilder.identityToken(serverAuth.get("identityToken").asText());
+        return authBuilder;
       } else {
         LOG.warn("Failed to parse auth string for {}", serverAddress);
         return authBuilder;
@@ -229,6 +236,8 @@ public abstract class RegistryAuth {
     public abstract Builder email(final String email);
 
     public abstract Builder serverAddress(final String serverAddress);
+
+    public abstract Builder identityToken(final String token);
 
     public abstract RegistryAuth build();
   }

@@ -44,12 +44,19 @@ public class RegistryAuthTest {
       .password("sw4gy0lo")
       .email("dockerman@hub.com")
       .build();
+
   private static final RegistryAuth MY_AUTH_CONFIG = RegistryAuth.builder()
       .serverAddress("https://narnia.mydock.io/v1/")
       .username("megaman")
       .password("riffraff")
       .email("megaman@mydock.com")
       .build();
+
+  private static final RegistryAuth IDENTITY_TOKEN_AUTH_CONFIG = RegistryAuth.builder()
+      .serverAddress("docker.customdomain.com")
+      .identityToken("52ce5fd5-eb60-42bf-931f-5eeec128211a")
+      .build();
+
   private static final RegistryAuth EMPTY_AUTH_CONFIG = RegistryAuth.builder().build();
 
   @Rule
@@ -67,6 +74,13 @@ public class RegistryAuthTest {
     final RegistryAuth registryAuth = RegistryAuth.fromDockerConfig(getTestFilePath(
         "dockerConfig/fullDockerCfg")).build();
     assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
+  }
+
+  @Test
+  public void testFromDockerConfig_IdentityToken() throws Exception {
+    final RegistryAuth authConfig = RegistryAuth.fromDockerConfig(getTestFilePath(
+            "dockerConfig/identityTokenConfig.json")).build();
+    assertThat(authConfig, equalTo(IDENTITY_TOKEN_AUTH_CONFIG));
   }
 
   @Test
