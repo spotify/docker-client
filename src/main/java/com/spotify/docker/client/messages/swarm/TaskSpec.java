@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class TaskSpec {
 
+  @Nullable
   @JsonProperty("ContainerSpec")
   public abstract ContainerSpec containerSpec();
 

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import java.math.BigInteger;
+import javax.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -43,6 +44,7 @@ public abstract class MemoryStats {
   @JsonProperty("usage")
   public abstract Long usage();
 
+  @Nullable
   @JsonProperty("failcnt")
   public abstract Long failcnt();
 
