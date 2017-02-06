@@ -144,6 +144,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerMount;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
+import com.spotify.docker.client.messages.EndpointConfig;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
@@ -160,6 +161,7 @@ import com.spotify.docker.client.messages.IpamConfig;
 import com.spotify.docker.client.messages.LogConfig;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkConnection;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.ProcessConfig;
@@ -239,7 +241,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class DefaultDockerClientTest {
 
@@ -3454,7 +3455,67 @@ public class DefaultDockerClientTest {
     assertThat(attachedNetwork.ipv6Gateway(), is(notNullValue()));
     assertThat(attachedNetwork.globalIPv6Address(), is(notNullValue()));
     assertThat(attachedNetwork.globalIPv6PrefixLen(), greaterThanOrEqualTo(0));
+    sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
+    network = sut.inspectNetwork(networkCreation.id());
+    assertThat(network.containers().size(), equalTo(0));
 
+    sut.stopContainer(containerCreation.id(), 1);
+    sut.removeContainer(containerCreation.id());
+    sut.removeNetwork(networkCreation.id());
+
+  }
+
+  @Test
+  public void testNetworksConnectContainerWithEndpointConfig() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "createNetwork and listNetworks");
+
+    assumeFalse(CIRCLECI);
+    final String networkName = randomName();
+    final String containerName = randomName();
+    final String dummyAlias = "badass-alias";
+    final NetworkCreation networkCreation =
+            sut.createNetwork(NetworkConfig.builder().name(networkName).build());
+    assertThat(networkCreation.id(), is(notNullValue()));
+    final ContainerConfig containerConfig =
+            ContainerConfig.builder()
+                .image(BUSYBOX_LATEST)
+                .cmd("sh", "-c", "while :; do sleep 1; done")
+                .build();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    assertThat(containerCreation.id(), is(notNullValue()));
+    sut.startContainer(containerCreation.id());
+
+    // Those are some of the extra parameters that can be set along with the network connection
+    EndpointConfig endpointConfig = EndpointConfig.builder()
+            .aliases(ImmutableList.<String>of(dummyAlias))
+            .build();
+
+    NetworkConnection networkConnection = NetworkConnection.builder()
+            .containerId(containerCreation.id())
+            .endpointConfig(endpointConfig)
+            .build();
+
+    sut.connectToNetwork(networkCreation.id(), networkConnection);
+
+    Network network = sut.inspectNetwork(networkCreation.id());
+    Network.Container networkContainer = network.containers().get(containerCreation.id());
+    assertThat(network.containers().size(), equalTo(1));
+    assertThat(networkContainer, notNullValue());
+    final ContainerInfo containerInfo = sut.inspectContainer(containerCreation.id());
+    assertThat(containerInfo.networkSettings().networks().size(), is(2));
+    final AttachedNetwork attachedNetwork =
+            containerInfo.networkSettings().networks().get(networkName);
+    assertThat(attachedNetwork, is(notNullValue()));
+    assertThat(attachedNetwork.networkId(), is(notNullValue()));
+    assertThat(attachedNetwork.endpointId(), is(notNullValue()));
+    assertThat(attachedNetwork.gateway(), is(notNullValue()));
+    assertThat(attachedNetwork.ipAddress(), is(notNullValue()));
+    assertThat(attachedNetwork.ipPrefixLen(), is(notNullValue()));
+    assertThat(attachedNetwork.macAddress(), is(notNullValue()));
+    assertThat(attachedNetwork.ipv6Gateway(), is(notNullValue()));
+    assertThat(attachedNetwork.globalIPv6Address(), is(notNullValue()));
+    assertThat(attachedNetwork.globalIPv6PrefixLen(), greaterThanOrEqualTo(0));
+    assertTrue(attachedNetwork.aliases().contains(dummyAlias));
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
     network = sut.inspectNetwork(networkCreation.id());
     assertThat(network.containers().size(), equalTo(0));

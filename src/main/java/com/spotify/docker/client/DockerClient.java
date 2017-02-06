@@ -53,6 +53,7 @@ import com.spotify.docker.client.messages.ImageSearchResult;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Network;
 import com.spotify.docker.client.messages.NetworkConfig;
+import com.spotify.docker.client.messages.NetworkConnection;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -871,8 +872,8 @@ public interface DockerClient extends Closeable {
    */
   void renameContainer(String containerId, String name)
       throws DockerException, InterruptedException;
-  
-  
+
+
   /**
    * Update an existing container. Only available in Docker API &gt;= 1.22.
    *
@@ -1262,7 +1263,7 @@ public interface DockerClient extends Closeable {
    */
   ServiceCreateResponse createService(ServiceSpec spec)
           throws DockerException, InterruptedException;
-  
+
   /**
    * Create a new service. Only available in Docker API &gt;= 1.24.
    *
@@ -1497,6 +1498,19 @@ public interface DockerClient extends Closeable {
   void connectToNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException;
 
+  /**
+   * Connects a docker container to a network, with extended configuration.
+   * This is useful when you want to set specific details (aliases, gateway, etc...)
+   * for your container inside the network.
+   *
+   * @param networkId          The id of the network to connect.
+   * @param networkConnection  The target connection parameters.
+   * @throws NotFoundException          if either container or network is not found (404)
+   * @throws DockerException            if a server error occurred (500)
+   * @throws InterruptedException       if the thread is interrupted
+   */
+  void connectToNetwork(String networkId, NetworkConnection networkConnection)
+      throws DockerException, InterruptedException;
 
   /**
    * Disconnects a docker container to a network.
