@@ -121,11 +121,13 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
@@ -1675,7 +1677,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public List<Service> listServices(final Service.Criteria criteria)
       throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.24");
-    WebTarget resource = resource().path("services");
     final Map<String, List<String>> filters = new HashMap<>();
 
     if (criteria.serviceId() != null) {
@@ -1685,6 +1686,20 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       filters.put("name", Collections.singletonList(criteria.serviceName()));
     }
 
+    final List<String> labels = new ArrayList<>();
+    for (Entry<String, String> input: criteria.labels().entrySet()) {
+      if ("".equals(input.getValue())) {
+        labels.add(input.getKey());
+      } else {
+        labels.add(String.format("%s=%s", input.getKey(), input.getValue()));
+      }
+    }
+
+    if (!labels.isEmpty()) {
+      filters.put("label", labels);
+    }
+
+    WebTarget resource = resource().path("services");
     resource = resource.queryParam("filters", urlEncodeFilters(filters));
     return request(GET, SERVICE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
