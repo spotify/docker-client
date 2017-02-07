@@ -27,8 +27,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Date;
+import java.util.Map;
+
 import javax.annotation.Nullable;
 
 @AutoValue
@@ -71,6 +74,12 @@ public abstract class Service {
     @Nullable
     public abstract String serviceName();
 
+    /**
+     * Filter by label.
+     */
+    @Nullable
+    public abstract ImmutableMap<String, String> labels();
+    
     public static Builder builder() {
       return new AutoValue_Service_Criteria.Builder();
     }
@@ -100,6 +109,15 @@ public abstract class Service {
         return this;
       }
 
+      public abstract Builder labels(final Map<String, String> labels);
+      
+      abstract ImmutableMap.Builder<String, String> labelsBuilder();
+
+      public Builder addLabel(final String label, final String value) {
+        labelsBuilder().put(label, value);
+        return this;
+      }
+      
       public abstract Criteria build();
     }
   }

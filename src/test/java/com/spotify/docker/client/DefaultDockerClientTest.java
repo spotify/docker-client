@@ -4271,6 +4271,27 @@ public class DefaultDockerClientTest {
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().name(), is(serviceName));
   }
+  
+  @Test
+  public void testListServicesFilterByLabel() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final String serviceName = randomName();
+    
+    Map<String, String> labels = new HashMap<>();
+    labels.put("foo", "bar");
+    
+    final ServiceSpec spec = createServiceSpec(serviceName, labels);
+    sut.createService(spec);
+
+    final List<Service> services = sut.listServices(Service.find().addLabel("foo", "bar").build());
+    
+    assertThat(services.size(), is(1));
+    assertThat(services.get(0).spec().labels().get("foo"), is("bar"));
+    
+    final List<Service> notFoundServices = sut.listServices(Service.find()
+        .addLabel("bar", "foo").build());
+    assertThat(notFoundServices.size(), is(0));
+  }
 
   @Test
   public void testRemoveService() throws Exception {
@@ -4325,6 +4346,12 @@ public class DefaultDockerClientTest {
   }
 
   private ServiceSpec createServiceSpec(final String serviceName) {
+    return this.createServiceSpec(serviceName, new HashMap<String, String>());
+  }
+  
+  private ServiceSpec createServiceSpec(final String serviceName, 
+      final Map<String, String> labels) {
+    
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder().image("alpine")
@@ -4335,6 +4362,7 @@ public class DefaultDockerClientTest {
 
     return ServiceSpec.builder().name(serviceName).taskTemplate(taskSpec)
         .mode(serviceMode)
+        .labels(labels)
         .build();
   }
 
