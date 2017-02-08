@@ -23,6 +23,8 @@ package com.spotify.docker.client.messages.mount;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
@@ -40,6 +42,7 @@ public abstract class Mount {
   @JsonProperty("Target")
   public abstract String target();
 
+  @Nullable
   @JsonProperty("ReadOnly")
   public abstract Boolean readOnly();
 
