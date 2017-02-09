@@ -144,7 +144,7 @@ public abstract class ContainerConfig {
 
   @Nullable
   @JsonProperty("Healthcheck")
-  public abstract ImmutableMap<String, List<String>> healthcheck();
+  public abstract Healthcheck healthcheck();
 
   /**
    * @deprecated  As of release 7.0.0, replaced by {@link #stopSignal()}.
@@ -179,7 +179,7 @@ public abstract class ContainerConfig {
       @JsonProperty("MacAddress") final String macAddress,
       @JsonProperty("HostConfig") final HostConfig hostConfig,
       @JsonProperty("StopSignal") final String stopSignal,
-      @JsonProperty("Healthcheck") final Map<String, List<String>> healthcheck) {
+      @JsonProperty("Healthcheck") final Healthcheck healthcheck) {
     final Builder builder = builder()
         .hostname(hostname)
         .domainname(domainname)
@@ -335,8 +335,67 @@ public abstract class ContainerConfig {
 
     public abstract Builder stopSignal(final String stopSignal);
 
-    public abstract Builder healthcheck(final Map<String, List<String>> healthcheck);
+    public abstract Builder healthcheck(final Healthcheck healthcheck);
 
     public abstract ContainerConfig build();
+  }
+
+  @AutoValue
+  public static abstract class Healthcheck {
+    @Nullable
+    @JsonProperty("Test")
+    public abstract ImmutableList<String> test();
+
+    @Nullable
+    @JsonProperty("Interval")
+    public abstract Integer interval();
+
+    @Nullable
+    @JsonProperty("Timeout")
+    public abstract Integer timeout();
+
+    @Nullable
+    @JsonProperty("Retries")
+    public abstract Integer retries();
+
+    @JsonCreator
+    public static Healthcheck create(
+            @JsonProperty("Test") final List<String> test,
+            @JsonProperty("Interval") final Integer interval,
+            @JsonProperty("Timeout") final Integer timeout,
+            @JsonProperty("Retries") final Integer retries) {
+      final Builder builder = builder();
+
+      if (test != null) {
+        builder.test(test);
+      }
+      if (interval != null) {
+        builder.interval(interval);
+      }
+      if (timeout != null) {
+        builder.timeout(timeout);
+      }
+      if (retries != null) {
+        builder.retries(retries);
+      }
+      return builder.build();
+    }
+
+    public static Builder builder() {
+      return new AutoValue_ContainerConfig_Healthcheck.Builder();
+    }
+
+    @AutoValue.Builder
+    public abstract static class Builder {
+      public abstract Builder test(final List<String> test);
+
+      public abstract Builder interval(final Integer interval);
+
+      public abstract Builder timeout(final Integer timeout);
+
+      public abstract Builder retries(final Integer retries);
+
+      public abstract Healthcheck build();
+    }
   }
 }

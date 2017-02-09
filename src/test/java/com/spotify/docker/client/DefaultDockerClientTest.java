@@ -429,9 +429,9 @@ public class DefaultDockerClientTest {
 
     // Inpect image to check healthcheck configuration
     final ImageInfo imageInfo = sut.inspectImage(imageId);
-    assertThat(imageInfo.config().healthcheck(), notNullValue());
-    assertThat(imageInfo.config().healthcheck().get("Test"),
-            is(Arrays.asList("CMD-SHELL", "exit 1")));
+    assertNotNull(imageInfo.config().healthcheck());
+    assertEquals(Arrays.asList("CMD-SHELL", "exit 1"),
+            imageInfo.config().healthcheck().test());
 
     // Create container based on this image to check initial container health state
     final ContainerConfig config = ContainerConfig.builder()
@@ -442,8 +442,8 @@ public class DefaultDockerClientTest {
     sut.startContainer(creation.id());
     final ContainerInfo containerInfo = sut.inspectContainer(creation.id());
 
-    assertThat(containerInfo.state().health(), notNullValue());
-    assertThat(containerInfo.state().health().status(), is("starting"));
+    assertNotNull(containerInfo.state().health());
+    assertEquals("starting", containerInfo.state().health().status());
   }
 
   @SuppressWarnings("emptyCatchBlock")
