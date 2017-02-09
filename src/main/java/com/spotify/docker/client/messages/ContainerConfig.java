@@ -341,7 +341,7 @@ public abstract class ContainerConfig {
   }
 
   @AutoValue
-  public static abstract class Healthcheck {
+  public abstract static class Healthcheck {
     @Nullable
     @JsonProperty("Test")
     public abstract ImmutableList<String> test();
