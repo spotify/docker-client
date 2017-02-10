@@ -1185,6 +1185,26 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Copies some files from a container. (API version 1.20+)
+   *
+   * @param containerId The id of the container to sent files.
+   * @param path        The path inside of the container to put files.
+   * @return A stream in tar format that contains the copied files.  If a directory was copied, the
+   * directory will be at the root of the tar archive (so {@code copy(..., "/usr/share")} will
+   * result in a directory called {@code share} in the tar archive).  The directory name is
+   * completely resolved, so copying {@code "/usr/share/././."} will still create a directory called
+   * {@code "share"} in the tar archive.  If a single file was copied, that file will be the sole
+   * entry in the tar archive.  Copying {@code "."} or equivalently {@code "/"} will result in the
+   * tar archive containing a single folder named after the container ID.
+   * @throws com.spotify.docker.client.exceptions.ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  InputStream copyFromContainer(String containerId, String path)
+      throws DockerException, InterruptedException;
+
+  /**
    * Get docker container logs.
    *
    * @param containerId The id of the container to get logs for.
