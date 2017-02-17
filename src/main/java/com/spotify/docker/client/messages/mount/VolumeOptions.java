@@ -30,10 +30,13 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class VolumeOptions {
 
+  @Nullable
   @JsonProperty("NoCopy")
   public abstract Boolean noCopy();
 
