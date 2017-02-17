@@ -1170,6 +1170,8 @@ public interface DockerClient extends Closeable {
   void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException;
 
+  void copyToContainer(final InputStream tarStream, String containerId, String path)
+          throws DockerException, InterruptedException, IOException;
 
   /**
    * Inspect changes on a container's filesystem.

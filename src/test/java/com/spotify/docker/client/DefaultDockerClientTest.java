@@ -1118,6 +1118,27 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCopyToContainerWithTarInputStream() throws Exception {
+    requireDockerApiVersionAtLeast("1.20", "copyToContainer");
+
+    // Pull image
+    sut.pull(BUSYBOX_LATEST);
+
+    // Create container
+    final ContainerConfig config = ContainerConfig.builder().image(BUSYBOX_LATEST).build();
+    final String name = randomName();
+    final ContainerCreation creation = sut.createContainer(config, name);
+    final String containerId = creation.id();
+
+    try (final InputStream tarStream =
+             Resources.getResource("dockerCopyToContainer.tar.gz").openStream()) {
+      sut.copyToContainer(tarStream, containerId, "/tmp");
+    } catch (Exception e) {
+      fail("error to copy files to container");
+    }
+  }
+
+  @Test
   public void testCommitContainer() throws Exception {
     // Pull image
     sut.pull(BUSYBOX_LATEST);
