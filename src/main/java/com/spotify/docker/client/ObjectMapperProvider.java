@@ -86,7 +86,7 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
     return OBJECT_MAPPER;
   }
 
-  static ObjectMapper objectMapper() {
+  public static ObjectMapper objectMapper() {
     return OBJECT_MAPPER;
   }
 
