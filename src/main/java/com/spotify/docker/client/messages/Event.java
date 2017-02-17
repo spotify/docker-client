@@ -28,9 +28,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.jackson.UnixTimestampDeserializer;
+import com.spotify.docker.client.jackson.UnixTimestampSerializer;
 
 import java.util.Date;
 import java.util.Map;
@@ -98,6 +100,7 @@ public abstract class Event {
 
   @JsonProperty("time")
   @JsonDeserialize(using = UnixTimestampDeserializer.class)
+  @JsonSerialize(using = UnixTimestampSerializer.class)
   public abstract Date time();
 
   @Nullable
