@@ -4364,7 +4364,8 @@ public class DefaultDockerClientTest {
     assertThat(tasksWithId.size(), is(1));
     assertThat(tasksWithId.get(0), equalTo(task));
 
-    final List<Task> tasksWithServiceName = sut.listTasks(Task.find().serviceName(spec.name()).build());
+    final List<Task> tasksWithServiceName =
+            sut.listTasks(Task.find().serviceName(spec.name()).build());
     assertThat(tasksWithServiceName.size(), is(1));
     assertThat(tasksWithServiceName.get(0), equalTo(task));
   }
