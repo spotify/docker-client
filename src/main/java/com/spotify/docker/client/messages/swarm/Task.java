@@ -110,6 +110,7 @@ public abstract class Task {
     /**
      * Filter by task id.
      */
+    @Nullable
     public abstract String taskId();
 
     /**
