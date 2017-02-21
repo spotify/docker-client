@@ -4366,8 +4366,8 @@ public class DefaultDockerClientTest {
 
     final List<Task> tasksWithServiceName =
             sut.listTasks(Task.find().serviceName(spec.name()).build());
-    assertThat(tasksWithServiceName.size(), is(1));
-    assertThat(tasksWithServiceName.get(0), equalTo(task));
+    assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
+    assertThat(task, isIn(tasksWithServiceName));
   }
 
   private ServiceSpec createServiceSpec(final String serviceName) {
