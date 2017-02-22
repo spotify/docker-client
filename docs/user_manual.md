@@ -189,6 +189,12 @@ docker.resizeTty("containerID", height, width);
 docker.startContainer("containerID");
 ```
 
+### Stop a container
+
+```java
+docker.stopContainer("containerID", 10); // kill after 10 seconds
+```
+
 ### Restart a container
 
 ```java
