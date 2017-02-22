@@ -24,6 +24,7 @@ env:
     - DOCKER_VERSION=1.10.3
     - DOCKER_VERSION=1.11.2
     - DOCKER_VERSION=1.12.1 UPLOAD_SONATYPE=1
+    - DOCKER_VERSION=1.13.1
 
 before_install:
   # check what version of docker is installed beforehand
