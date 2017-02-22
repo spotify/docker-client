@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class NetworkAttachmentConfig {
 
+  @Nullable
   @JsonProperty("Target")
   public abstract String target();
 

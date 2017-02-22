@@ -38,6 +38,7 @@ public abstract class Resources {
   @JsonProperty("NanoCPUs")
   public abstract Long nanoCpus();
 
+  @Nullable
   @JsonProperty("MemoryBytes")
   public abstract Long memoryBytes();
 

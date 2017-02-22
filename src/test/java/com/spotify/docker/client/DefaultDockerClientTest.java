@@ -54,9 +54,13 @@ import static com.spotify.docker.client.messages.Event.Type.IMAGE;
 import static com.spotify.docker.client.messages.Event.Type.NETWORK;
 import static com.spotify.docker.client.messages.Event.Type.VOLUME;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
+import static com.spotify.docker.client.messages.swarm.PortConfig.PROTOCOL_TCP;
+import static com.spotify.docker.client.messages.swarm.RestartPolicy.RESTART_POLICY_ANY;
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
@@ -173,12 +177,18 @@ import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.mount.BindOptions;
+import com.spotify.docker.client.messages.mount.Mount;
+import com.spotify.docker.client.messages.mount.VolumeOptions;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
 import com.spotify.docker.client.messages.swarm.Endpoint;
 import com.spotify.docker.client.messages.swarm.EndpointSpec;
+import com.spotify.docker.client.messages.swarm.NetworkAttachment;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
+import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.PortConfig;
+import com.spotify.docker.client.messages.swarm.ReplicatedService;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
 import com.spotify.docker.client.messages.swarm.Service;
@@ -187,6 +197,8 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
+import com.spotify.docker.client.messages.swarm.UpdateConfig;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -4184,6 +4196,72 @@ public class DefaultDockerClientTest {
     assertThat(response.id(), is(notNullValue()));
   }
 
+  @SuppressWarnings("ConstantConditions")
+  @Test
+  public void testCreateServiceWithDefaults() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final String serviceName = randomName();
+    final TaskSpec taskSpec = TaskSpec
+        .builder()
+        .containerSpec(ContainerSpec.builder()
+            .image("alpine")
+            .command(new String[] {"ping", "-c1000", "localhost"})
+            .mounts(Mount.builder()
+                .volumeOptions(VolumeOptions.builder().build())
+                .bindOptions(BindOptions.builder().build())
+                .build())
+            .build())
+        .resources(ResourceRequirements.builder().build())
+        .restartPolicy(RestartPolicy.builder().build())
+        .placement(Placement.create(null))
+        .networks(NetworkAttachmentConfig.builder().build())
+        .logDriver(Driver.builder().build())
+        .build();
+
+    final ServiceMode serviceMode = ServiceMode.builder()
+        .replicated(ReplicatedService.builder().build())
+        .build();
+
+    final ServiceSpec serviceSpec = ServiceSpec.builder()
+        .name(serviceName)
+        .taskTemplate(taskSpec)
+        .mode(serviceMode)
+        .updateConfig(UpdateConfig.create(null, null, null))
+        .networks(Collections.<NetworkAttachmentConfig>emptyList())
+        .endpointSpec(EndpointSpec.builder()
+            .addPort(PortConfig.builder().build())
+            .build())
+        .build();
+
+    final ServiceCreateResponse response = sut.createService(serviceSpec);
+    assertThat(response.id(), is(notNullValue()));
+
+    sut.listTasks();
+
+    final Service service = sut.inspectService(serviceName);
+    final ServiceSpec actualServiceSpec = service.spec();
+    assertThat(actualServiceSpec.mode().replicated().replicas(), equalTo(1L));
+    assertThat(actualServiceSpec.taskTemplate().logDriver().options(),
+        equalTo(Collections.<String, String>emptyMap()));
+    assertThat(actualServiceSpec.endpointSpec().mode(),
+        equalTo(EndpointSpec.Mode.RESOLUTION_MODE_VIP));
+    assertThat(actualServiceSpec.updateConfig().failureAction(), equalTo("pause"));
+
+    final PortConfig expectedPortConfig = PortConfig.builder().protocol(PROTOCOL_TCP).build();
+    assertThat(actualServiceSpec.endpointSpec().ports(), contains(expectedPortConfig));
+    assertThat(service.endpoint().spec().ports(), contains(expectedPortConfig));
+
+    final ContainerSpec containerSpec = actualServiceSpec.taskTemplate().containerSpec();
+    assertThat(containerSpec.labels(), equalTo(Collections.<String, String>emptyMap()));
+    assertThat(containerSpec.mounts().size(), equalTo(1));
+    assertThat(containerSpec.mounts().get(0).type(), equalTo("bind"));
+
+    final RestartPolicy restartPolicy = actualServiceSpec.taskTemplate().restartPolicy();
+    assertThat(restartPolicy.condition(), equalTo(RESTART_POLICY_ANY));
+    assertThat(restartPolicy.maxAttempts(), equalTo(0));
+  }
+
   @Test
   public void testInspectService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
@@ -4304,14 +4382,14 @@ public class DefaultDockerClientTest {
   public void testListServices() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     List<Service> services = sut.listServices();
-    assertThat(services, is(empty()));
+    final int startingNumServices = services.size();
 
     final ServiceSpec spec = createServiceSpec(randomName());
 
     sut.createService(spec);
 
     services = sut.listServices();
-    assertThat(services.size(), is(1));
+    assertThat(services.size(), is(startingNumServices + 1));
   }
 
   @Test

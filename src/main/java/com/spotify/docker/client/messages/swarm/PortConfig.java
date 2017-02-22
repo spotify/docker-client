@@ -30,7 +30,6 @@ import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nullable;
 
-
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class PortConfig {
@@ -46,6 +45,7 @@ public abstract class PortConfig {
   @JsonProperty("Protocol")
   public abstract String protocol();
 
+  @Nullable
   @JsonProperty("TargetPort")
   public abstract Integer targetPort();
 

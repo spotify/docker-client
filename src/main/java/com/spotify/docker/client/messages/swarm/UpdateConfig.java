@@ -28,23 +28,27 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+import javax.annotation.Nullable;
+
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class UpdateConfig {
 
+  @Nullable
   @JsonProperty("Parallelism")
   public abstract Long parallelism();
 
+  @Nullable
   @JsonProperty("Delay")
   public abstract Long delay();
 
+  @Nullable
   @JsonProperty("FailureAction")
   public abstract String failureAction();
 
-
   @JsonCreator
-  static UpdateConfig create(
+  public static UpdateConfig create(
       @JsonProperty("Parallelism") final Long parallelism,
       @JsonProperty("Delay") final Long delay,
       @JsonProperty("FailureAction") final String failureAction) {

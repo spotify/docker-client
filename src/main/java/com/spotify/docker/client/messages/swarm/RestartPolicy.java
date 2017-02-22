@@ -38,12 +38,15 @@ public abstract class RestartPolicy {
   public static final String RESTART_POLICY_ON_FAILURE = "on-failure";
   public static final String RESTART_POLICY_ANY = "any";
 
+  @Nullable
   @JsonProperty("Condition")
   public abstract String condition();
 
+  @Nullable
   @JsonProperty("Delay")
   public abstract Long delay();
 
+  @Nullable
   @JsonProperty("MaxAttempts")
   public abstract Integer maxAttempts();
 

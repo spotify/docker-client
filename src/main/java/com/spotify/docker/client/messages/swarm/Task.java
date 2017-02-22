@@ -68,6 +68,7 @@ public abstract class Task {
   @JsonProperty("Slot")
   public abstract Integer slot();
 
+  @Nullable
   @JsonProperty("NodeID")
   public abstract String nodeId();
 

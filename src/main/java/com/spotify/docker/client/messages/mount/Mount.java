@@ -24,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
@@ -33,12 +34,15 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Mount {
 
+  @Nullable
   @JsonProperty("Type")
   public abstract String type();
 
+  @Nullable
   @JsonProperty("Source")
   public abstract String source();
 
+  @Nullable
   @JsonProperty("Target")
   public abstract String target();
 
@@ -46,9 +50,11 @@ public abstract class Mount {
   @JsonProperty("ReadOnly")
   public abstract Boolean readOnly();
 
+  @Nullable
   @JsonProperty("BindOptions")
   public abstract BindOptions bindOptions();
 
+  @Nullable
   @JsonProperty("VolumeOptions")
   public abstract VolumeOptions volumeOptions();
 
@@ -72,5 +78,23 @@ public abstract class Mount {
 
   public static Mount.Builder builder() {
     return new AutoValue_Mount.Builder();
+  }
+
+  @JsonCreator
+  static Mount create(
+      @JsonProperty("Type") final String type,
+      @JsonProperty("Source") final String source,
+      @JsonProperty("Target") final String target,
+      @JsonProperty("ReadOnly") final Boolean readOnly,
+      @JsonProperty("BindOptions") final BindOptions bindOptions,
+      @JsonProperty("VolumeOptions") final VolumeOptions volumeOptions) {
+    return builder()
+        .type(type)
+        .source(source)
+        .target(target)
+        .readOnly(readOnly)
+        .bindOptions(bindOptions)
+        .volumeOptions(volumeOptions)
+        .build();
   }
 }
