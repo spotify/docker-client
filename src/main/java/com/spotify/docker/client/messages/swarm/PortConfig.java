@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+import javax.annotation.Nullable;
+
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -36,15 +38,18 @@ public abstract class PortConfig {
   public static final String PROTOCOL_TCP = "tcp";
   public static final String PROTOCOL_UDP = "udp";
 
+  @Nullable
   @JsonProperty("Name")
   public abstract String name();
 
+  @Nullable
   @JsonProperty("Protocol")
   public abstract String protocol();
 
   @JsonProperty("TargetPort")
   public abstract Integer targetPort();
 
+  @Nullable
   @JsonProperty("PublishedPort")
   public abstract Integer publishedPort();
 

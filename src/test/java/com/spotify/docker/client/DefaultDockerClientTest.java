@@ -175,6 +175,7 @@ import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
+import com.spotify.docker.client.messages.swarm.Endpoint;
 import com.spotify.docker.client.messages.swarm.EndpointSpec;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.PortConfig;
@@ -4231,6 +4232,51 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testInspectServiceEndpoint() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    
+    final String name = randomName();
+    final String imageName = "demo/test";
+    final PortConfig expectedPort1 = PortConfig.builder()
+        .name("web")
+        .protocol("tcp")
+        .publishedPort(8080)
+        .targetPort(80)
+        .build();
+    final ServiceSpec spec = ServiceSpec.builder()
+        .name(name)
+        .endpointSpec(EndpointSpec.builder()
+            .addPort(expectedPort1)
+            .addPort(PortConfig.builder()
+                .targetPort(22)
+                .build())
+            .build())
+        .taskTemplate(TaskSpec.builder()
+            .containerSpec(ContainerSpec.builder()
+                .image(imageName)
+                .build())
+            .build())
+        .build();
+    sut.createService(spec);
+
+    final Service service = sut.inspectService(name);
+    final Endpoint endpoint = service.endpoint();
+
+    final PortConfig expectedPort2 = PortConfig.builder()
+        .targetPort(22)
+        .protocol("tcp")
+        .build();
+    assertThat(endpoint.spec().ports(), containsInAnyOrder(expectedPort1, expectedPort2));
+    //noinspection unchecked
+    assertThat(endpoint.ports(), containsInAnyOrder(
+        equalTo(expectedPort1),
+        portConfigWith(nullValue(String.class), equalTo("tcp"),
+            equalTo(22), any(Integer.class))));
+    //noinspection ConstantConditions
+    assertThat(endpoint.virtualIps().size(), equalTo(1));
+  }
+
+  @Test
   public void testUpdateService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     final ServiceSpec spec = createServiceSpec(randomName());
@@ -4473,6 +4519,21 @@ public class DefaultDockerClientTest {
       public Boolean call() throws Exception {
         final ContainerInfo containerInfo = client.inspectContainer(containerId);
         return containerInfo.state().running();
+      }
+    };
+  }
+
+  private static Matcher<PortConfig> portConfigWith(
+      final Matcher<String> nameMatcher, final Matcher<String> protocolMatcher,
+      final Matcher<Integer> targetPortMatcher, final Matcher<Integer> publishedPortMatcher) {
+    final String description = "for PortConfig";
+    return new CustomTypeSafeMatcher<PortConfig>(description) {
+      @Override
+      protected boolean matchesSafely(final PortConfig portConfig) {
+        return nameMatcher.matches(portConfig.name())
+               && protocolMatcher.matches(portConfig.protocol())
+               && targetPortMatcher.matches(portConfig.targetPort())
+               && publishedPortMatcher.matches(portConfig.publishedPort());
       }
     };
   }

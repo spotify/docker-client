@@ -44,6 +44,10 @@ public abstract class Endpoint {
   public abstract ImmutableList<PortConfig> exposedPorts();
 
   @Nullable
+  @JsonProperty("Ports")
+  public abstract ImmutableList<PortConfig> ports();
+
+  @Nullable
   @JsonProperty("VirtualIPs")
   public abstract ImmutableList<EndpointVirtualIp> virtualIps();
 
@@ -51,11 +55,13 @@ public abstract class Endpoint {
   static Endpoint create(
       @JsonProperty("Spec") final EndpointSpec spec,
       @JsonProperty("ExposedPorts") final List<PortConfig> exposedPorts,
+      @JsonProperty("Ports") final List<PortConfig> ports,
       @JsonProperty("VirtualIPs") final List<EndpointVirtualIp> virtualIps) {
     final ImmutableList<PortConfig> exposedPortsT = exposedPorts == null
                                                     ? null : ImmutableList.copyOf(exposedPorts);
+    final ImmutableList<PortConfig> portsT = ports == null ? null : ImmutableList.copyOf(ports);
     final ImmutableList<EndpointVirtualIp> virtualIpsT = virtualIps == null
                                                          ? null : ImmutableList.copyOf(virtualIps);
-    return new AutoValue_Endpoint(spec, exposedPortsT, virtualIpsT);
+    return new AutoValue_Endpoint(spec, exposedPortsT, portsT, virtualIpsT);
   }
 }

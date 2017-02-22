@@ -48,6 +48,7 @@ public abstract class ServiceSpec {
   @JsonProperty("TaskTemplate")
   public abstract TaskSpec taskTemplate();
 
+  @Nullable
   @JsonProperty("Mode")
   public abstract ServiceMode mode();
 
