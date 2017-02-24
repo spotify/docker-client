@@ -348,11 +348,11 @@ public abstract class ContainerConfig {
 
     @Nullable
     @JsonProperty("Interval")
-    public abstract Integer interval();
+    public abstract Long interval();
 
     @Nullable
     @JsonProperty("Timeout")
-    public abstract Integer timeout();
+    public abstract Long timeout();
 
     @Nullable
     @JsonProperty("Retries")
@@ -361,8 +361,8 @@ public abstract class ContainerConfig {
     @JsonCreator
     public static Healthcheck create(
             @JsonProperty("Test") final List<String> test,
-            @JsonProperty("Interval") final Integer interval,
-            @JsonProperty("Timeout") final Integer timeout,
+            @JsonProperty("Interval") final Long interval,
+            @JsonProperty("Timeout") final Long timeout,
             @JsonProperty("Retries") final Integer retries) {
       final Builder builder = builder();
 
@@ -389,9 +389,9 @@ public abstract class ContainerConfig {
     public abstract static class Builder {
       public abstract Builder test(final List<String> test);
 
-      public abstract Builder interval(final Integer interval);
+      public abstract Builder interval(final Long interval);
 
-      public abstract Builder timeout(final Integer timeout);
+      public abstract Builder timeout(final Long timeout);
 
       public abstract Builder retries(final Integer retries);
 
