@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class ResourceRequirements {
 
+  @Nullable
   @JsonProperty("Limits")
   public abstract Resources limits();
 

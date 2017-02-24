@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class ServiceMode {
 
+  @Nullable
   @JsonProperty("Replicated")
   public abstract ReplicatedService replicated();
 

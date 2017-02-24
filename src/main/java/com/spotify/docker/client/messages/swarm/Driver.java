@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Driver {
 
+  @Nullable
   @JsonProperty("Name")
   public abstract String name();
 

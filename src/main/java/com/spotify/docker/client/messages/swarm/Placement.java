@@ -31,15 +31,20 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Placement {
 
+  @Nullable
   @JsonProperty("Constraints")
   public abstract ImmutableList<String> constraints();
 
   @JsonCreator
-  static Placement create(@JsonProperty("Constraints") final List<String> constraints) {
-    return new AutoValue_Placement(ImmutableList.copyOf(constraints));
+  public static Placement create(@JsonProperty("Constraints") final List<String> constraints) {
+    final ImmutableList<String> constraintsT = constraints == null
+                                               ? null : ImmutableList.copyOf(constraints);
+    return new AutoValue_Placement(constraintsT);
   }
 }

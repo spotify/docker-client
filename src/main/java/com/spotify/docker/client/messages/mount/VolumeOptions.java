@@ -24,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
@@ -40,9 +41,11 @@ public abstract class VolumeOptions {
   @JsonProperty("NoCopy")
   public abstract Boolean noCopy();
 
+  @Nullable
   @JsonProperty("Labels")
   public abstract ImmutableMap<String, String> labels();
 
+  @Nullable
   @JsonProperty("DriverConfig")
   public abstract Driver driverConfig();
 
@@ -67,5 +70,17 @@ public abstract class VolumeOptions {
 
   public static VolumeOptions.Builder builder() {
     return new AutoValue_VolumeOptions.Builder();
+  }
+
+  @JsonCreator
+  static VolumeOptions create(
+      @JsonProperty("NoCopy") final Boolean noCopy,
+      @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("DriverConfig") final Driver driverConfig) {
+    return builder()
+        .noCopy(noCopy)
+        .labels(labels)
+        .driverConfig(driverConfig)
+        .build();
   }
 }
