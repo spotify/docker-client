@@ -146,6 +146,7 @@ public abstract class MemoryStats {
     @JsonProperty("total_unevictable")
     public abstract Long totalUnevictable();
 
+    @Nullable
     @JsonProperty("total_writeback")
     public abstract Long totalWriteback();
 
