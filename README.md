@@ -6,7 +6,8 @@
 [![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
 
 This is a simple [Docker](https://github.com/docker/docker) client written in Java.
-We build and test docker-client on Docker versions 1.6 - 1.12 (specifically the ones [here][1]).
+We build and test docker-client on the six most recent minor releases of Docker.
+Right now these are 1.8 - 1.13 (specifically the ones [here][1]).
 We upload the artifact tested on Docker 1.12.1.
 See [Docker docs on the mapping between Docker version and API version][3].
 We consider this library pretty stable and use it in many critical production systems.
