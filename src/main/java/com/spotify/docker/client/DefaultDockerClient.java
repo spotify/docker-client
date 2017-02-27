@@ -310,10 +310,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * Create a new client with default configuration.
    *
    * @param uri                The docker rest api uri.
-   * @param dockerCertificates The certificates to use for HTTPS.
+   * @param dockerCertificatesStore The certificates to use for HTTPS.
    */
-  public DefaultDockerClient(final URI uri, final DockerCertificates dockerCertificates) {
-    this(new Builder().uri(uri).dockerCertificates(dockerCertificates));
+  public DefaultDockerClient(final URI uri, final DockerCertificatesStore dockerCertificatesStore) {
+    this(new Builder().uri(uri).dockerCertificates(dockerCertificatesStore));
   }
 
   /**
@@ -330,7 +330,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
-    if ((builder.dockerCertificates != null) && !originalUri.getScheme().equals("https")) {
+    if ((builder.dockerCertificatesStore != null) && !originalUri.getScheme().equals("https")) {
       throw new IllegalArgumentException(
           "An HTTPS URI for DOCKER_HOST must be provided to use Docker client certificates");
     }
@@ -391,11 +391,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {
     final SSLConnectionSocketFactory https;
-    if (builder.dockerCertificates == null) {
+    if (builder.dockerCertificatesStore == null) {
       https = SSLConnectionSocketFactory.getSocketFactory();
     } else {
-      https = new SSLConnectionSocketFactory(builder.dockerCertificates.sslContext(),
-                                             builder.dockerCertificates.hostnameVerifier());
+      https = new SSLConnectionSocketFactory(builder.dockerCertificatesStore.sslContext(),
+                                             builder.dockerCertificatesStore.hostnameVerifier());
     }
 
     final RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder
@@ -2260,7 +2260,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final Builder builder = new Builder();
 
-    final Optional<DockerCertificates> certs = DockerCertificates.builder()
+    final Optional<DockerCertificatesStore> certs = DockerCertificates.builder()
         .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
@@ -2291,7 +2291,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private long connectTimeoutMillis = DEFAULT_CONNECT_TIMEOUT_MILLIS;
     private long readTimeoutMillis = DEFAULT_READ_TIMEOUT_MILLIS;
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
-    private DockerCertificates dockerCertificates;
+    private DockerCertificatesStore dockerCertificatesStore;
     private boolean dockerAuth;
     private RegistryAuth registryAuth;
     private Map<String, Object> headers = new HashMap<>();
@@ -2362,18 +2362,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return this;
     }
 
-    public DockerCertificates dockerCertificates() {
-      return dockerCertificates;
+    public DockerCertificatesStore dockerCertificates() {
+      return dockerCertificatesStore;
     }
 
     /**
      * Provide certificates to secure the connection to Docker.
      *
-     * @param dockerCertificates DockerCertificates object
+     * @param dockerCertificatesStore DockerCertificatesStore object
      * @return Builder
      */
-    public Builder dockerCertificates(final DockerCertificates dockerCertificates) {
-      this.dockerCertificates = dockerCertificates;
+    public Builder dockerCertificates(final DockerCertificatesStore dockerCertificatesStore) {
+      this.dockerCertificatesStore = dockerCertificatesStore;
       return this;
     }
 
