@@ -41,6 +41,7 @@ public abstract class Container {
   @JsonProperty("Id")
   public abstract String id();
 
+  @Nullable
   @JsonProperty("Names")
   public abstract ImmutableList<String> names();
 
@@ -64,6 +65,7 @@ public abstract class Container {
   @JsonProperty("Status")
   public abstract String status();
 
+  @Nullable
   @JsonProperty("Ports")
   public abstract ImmutableList<PortMapping> ports();
 
@@ -144,8 +146,8 @@ public abstract class Container {
     final ImmutableList<PortMapping> portsT = ports == null
             ? null : ImmutableList.copyOf(ports);
 
-    return new AutoValue_Container(id, ImmutableList.copyOf(names), image, imageId, command,
-        created, state, status, ImmutableList.copyOf(ports), labelsT, sizeRw,
+    return new AutoValue_Container(id, namesT, image, imageId, command,
+        created, state, status, portsT, labelsT, sizeRw,
         sizeRootFs, networkSettings, mountsT);
   }
 
