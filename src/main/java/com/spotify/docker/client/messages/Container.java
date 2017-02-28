@@ -139,6 +139,11 @@ public abstract class Container {
                                                  ? null : ImmutableMap.copyOf(labels);
     final ImmutableList<ContainerMount> mountsT = mounts == null
                                                   ? null : ImmutableList.copyOf(mounts);
+    final ImmutableList<String> namesT = names == null
+            ? null : ImmutableList.copyOf(names);
+    final ImmutableList<PortMapping> portsT = ports == null
+            ? null : ImmutableList.copyOf(ports);
+
     return new AutoValue_Container(id, ImmutableList.copyOf(names), image, imageId, command,
         created, state, status, ImmutableList.copyOf(ports), labelsT, sizeRw,
         sizeRootFs, networkSettings, mountsT);
