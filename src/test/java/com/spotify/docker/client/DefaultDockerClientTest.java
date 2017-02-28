@@ -577,8 +577,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testMissingAuthParam() throws Exception {
-    requireDockerApiVersionNot("1.23", "https://github.com/docker/docker/issues/24093");
-    requireDockerApiVersionNot("1.24", "https://github.com/docker/docker/issues/24093");
+    requireDockerApiVersionLessThan("1.23", "https://github.com/docker/docker/issues/24093");
     final RegistryAuth badRegistryAuth = RegistryAuth.builder()
         .username(AUTH_USERNAME)
         .build();
@@ -4304,7 +4303,9 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(response.id());
 
     assertThat(service.spec().name(), is(serviceName));
-    assertThat(service.spec().taskTemplate().containerSpec().image(), is("alpine"));
+    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
+                                         ? is("alpine") : startsWith("alpine:latest@sha256:");
+    assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
     assertThat(service.spec().taskTemplate().containerSpec().command(),
                equalTo(Arrays.asList(commandLine)));
   }
