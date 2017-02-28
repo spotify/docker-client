@@ -4475,6 +4475,29 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testListTasksWithGlobalService() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final int startingNumTasks = sut.listTasks().size();
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+        .containerSpec(ContainerSpec.builder().image("alpine")
+            .command(new String[] { "ping", "-c1000", "localhost" }).build())
+        .build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+        .name(randomName())
+        .taskTemplate(taskSpec)
+        .mode(ServiceMode.withGlobal())
+        .build();
+
+    final ServiceCreateResponse response = sut.createService(spec);
+    assertThat(response.id(), is(notNullValue()));
+
+    await().until(numberOfTasks(sut), is(greaterThan(startingNumTasks)));
+    sut.listTasks();
+  }
+
+  @Test
   public void testListTaskWithCriteria() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
@@ -4598,6 +4621,14 @@ public class DefaultDockerClientTest {
       public Boolean call() throws Exception {
         final ContainerInfo containerInfo = client.inspectContainer(containerId);
         return containerInfo.state().running();
+      }
+    };
+  }
+
+  private Callable<Integer> numberOfTasks(final DockerClient client) {
+    return new Callable<Integer>() {
+      public Integer call() throws Exception {
+        return client.listTasks().size();
       }
     };
   }

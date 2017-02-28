@@ -24,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
@@ -39,6 +40,11 @@ public abstract class GlobalService {
 
     public abstract GlobalService build();
 
+  }
+
+  @JsonCreator
+  static GlobalService create() {
+    return builder().build();
   }
 
 }
