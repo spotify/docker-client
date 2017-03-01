@@ -59,8 +59,6 @@ import static com.spotify.docker.client.messages.swarm.RestartPolicy.RESTART_POL
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
@@ -84,7 +82,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
@@ -101,7 +98,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -142,6 +138,7 @@ import com.spotify.docker.client.messages.AttachedNetwork;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
 import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerConfig.Healthcheck;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
@@ -184,7 +181,6 @@ import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
 import com.spotify.docker.client.messages.swarm.Endpoint;
 import com.spotify.docker.client.messages.swarm.EndpointSpec;
-import com.spotify.docker.client.messages.swarm.NetworkAttachment;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.PortConfig;
@@ -2173,6 +2169,37 @@ public class DefaultDockerClientTest {
       return sut.events(eventsParamsWithTypes);
     }
     return sut.events(eventsParams);
+  }
+
+  @Test
+  public void testEventFiltersWithSpaces() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "Docker events and health check");
+
+    sut.pull(BUSYBOX_LATEST);
+    final String containerName = randomName();
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sleep", "5")
+        // Generate some healthy_status events
+        .healthcheck(Healthcheck.create(ImmutableList.of("CMD-SHELL", "true"),
+            1000000000L, 1000000000L, 3))
+        .build();
+
+    final long startTime = new Date().getTime() / 1000;
+    final ContainerCreation container = sut.createContainer(config, containerName);
+    final String containerId = container.id();
+    sut.startContainer(containerId);
+    sut.waitContainer(containerId);
+    sut.removeContainer(containerId);
+    final long endTime = new Date().getTime() / 1000;
+
+    try (final EventStream stream = sut.events(since(startTime), until(endTime),
+        EventsParam.event("health_status: healthy")
+    )) {
+      assertTrue("Docker did not return any container events.", stream.hasNext());
+      containerEventAssertions(stream.next(), containerId, containerName,
+          "health_status: healthy", BUSYBOX_LATEST);
+    }
   }
 
   @SuppressWarnings("deprecation")
