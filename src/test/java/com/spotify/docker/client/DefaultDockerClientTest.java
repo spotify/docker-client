@@ -1983,7 +1983,7 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, containerName);
     final String containerId = container.id();
     sut.startContainer(containerId);
-    Thread.sleep(1000); // Wait for container to start, then exit
+    await().until(containerIsRunning(sut, containerId), is(false));
     sut.removeContainer(containerId);
 
     // Wait again to ensure we get back events for everything we did
@@ -2043,7 +2043,7 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, containerName);
     final String containerId = container.id();
     sut.startContainer(containerId);
-    Thread.sleep(1000); // Wait for container to start, then exit
+    await().until(containerIsRunning(sut, containerId), is(false));
     sut.removeContainer(containerId);
 
     // Wait again to ensure we get back events for everything we did
@@ -2738,7 +2738,7 @@ public class DefaultDockerClientTest {
     exception.expect(IllegalStateException.class);
     exception.expectMessage(containsString("is not running"));
 
-    await().until(isContainerRunning(sut, container.id()), is(false));
+    await().until(containerIsRunning(sut, container.id()), is(false));
 
     sut.attachContainer(volumeContainer,
         AttachParameter.LOGS, AttachParameter.STDOUT,
@@ -3061,7 +3061,7 @@ public class DefaultDockerClientTest {
     sut.execCreate(container.id(), new String[] {"ls", "-la"});
 
     sut.startContainer(container.id());
-    await().until(isContainerRunning(sut, container.id()), is(false));
+    await().until(containerIsRunning(sut, container.id()), is(false));
 
     sut.execCreate(container.id(), new String[] {"ls", "-la"});
   }
@@ -4483,8 +4483,8 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec);
-    Thread.sleep(2000); // to give it a while to spin containers
+    sut.createService(spec);
+    await().until(numberOfTasks(sut), is(greaterThan(0)));
     final Task task = sut.listTasks().get(0);
     final Task inspectTask = sut.inspectTask(task.id());
     assertThat(task, equalTo(inspectTask));
@@ -4496,8 +4496,8 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec);
-    Thread.sleep(2000); // to give it a while to spin containers
+    sut.createService(spec);
+    await().until(numberOfTasks(sut), is(greaterThan(0)));
     assertThat(sut.listTasks().size(), is(4));
   }
 
@@ -4530,8 +4530,8 @@ public class DefaultDockerClientTest {
 
     final ServiceSpec spec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    final ServiceCreateResponse response = sut.createService(spec);
-    Thread.sleep(2000); // to give it a while to spin containers
+    sut.createService(spec);
+    await().until(numberOfTasks(sut), is(greaterThan(0)));
 
     final Task task = sut.listTasks().get(1);
 
@@ -4642,7 +4642,7 @@ public class DefaultDockerClientTest {
     return Lists.transform(images, imageToShortId);
   }
 
-  private Callable<Boolean> isContainerRunning(final DockerClient client,
+  private Callable<Boolean> containerIsRunning(final DockerClient client,
                                                final String containerId) {
     return new Callable<Boolean>() {
       public Boolean call() throws Exception {
