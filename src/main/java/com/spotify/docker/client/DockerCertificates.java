@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * DockerCertificates holds certificates for connecting to an HTTPS-secured Docker instance with
  * client/server authentication.
  */
-public class DockerCertificates {
+public class DockerCertificates implements DockerCertificatesStore {
 
   public static final String DEFAULT_CA_CERT_NAME = "ca.pem";
   public static final String DEFAULT_CLIENT_CERT_NAME = "cert.pem";
@@ -162,13 +162,13 @@ public class DockerCertificates {
       return this;
     }
 
-    public Optional<DockerCertificates> build() throws DockerCertificateException {
+    public Optional<DockerCertificatesStore> build() throws DockerCertificateException {
       if (this.caCertPath == null || this.clientKeyPath == null || this.clientCertPath == null) {
         log.debug("caCertPath, clientKeyPath or clientCertPath not specified, not using SSL");
         return Optional.absent();
       } else if (Files.exists(this.caCertPath) && Files.exists(this.clientKeyPath)
                  && Files.exists(this.clientCertPath)) {
-        return Optional.of(new DockerCertificates(this));
+        return Optional.of((DockerCertificatesStore) new DockerCertificates(this));
       } else {
         log.debug("{}, {} or {} does not exist, not using SSL", this.caCertPath, this.clientKeyPath,
                   this.clientCertPath);

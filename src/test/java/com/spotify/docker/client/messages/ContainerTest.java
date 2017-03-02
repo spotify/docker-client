@@ -54,4 +54,13 @@ public class ContainerTest {
         .readValue(fixture("fixtures/container-ports-as-string.json"), Container.class);
     assertThat(container.portsAsString(), is("0.0.0.0:80->88/tcp"));
   }
+
+
+  @Test
+  public void testLoadFromFixtureMissingPorts() throws Exception {
+    final Container container = objectMapper
+            .readValue(fixture("fixtures/container-no-ports-or-names.json"), Container.class);
+    assertThat(container.id(), is("1009"));
+  }
+
 }
