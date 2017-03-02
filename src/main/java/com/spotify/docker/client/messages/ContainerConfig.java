@@ -346,10 +346,16 @@ public abstract class ContainerConfig {
     @JsonProperty("Test")
     public abstract ImmutableList<String> test();
 
+    /**
+     * In nanoseconds.
+     */
     @Nullable
     @JsonProperty("Interval")
     public abstract Long interval();
 
+    /**
+     * In nanoseconds.
+     */
     @Nullable
     @JsonProperty("Timeout")
     public abstract Long timeout();

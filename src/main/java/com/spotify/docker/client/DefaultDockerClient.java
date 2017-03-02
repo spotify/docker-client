@@ -495,15 +495,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   /**
-   * URL-encodes a string.
+   * URL-encodes a string when used as a URL query parameter's value.
    *
-   * @param unencoded A string that may contain characters not allowed in URLs
+   * @param unencoded A string that may contain characters not allowed in URL query parameters.
    * @return URL-encoded String
    * @throws DockerException if there's an UnsupportedEncodingException
    */
   private String urlEncode(final String unencoded) throws DockerException {
     try {
-      return URLEncoder.encode(unencoded, UTF_8.name());
+      final String encode = URLEncoder.encode(unencoded, UTF_8.name());
+      return encode.replaceAll("\\+", "%20");
     } catch (UnsupportedEncodingException e) {
       throw new DockerException(e);
     }
