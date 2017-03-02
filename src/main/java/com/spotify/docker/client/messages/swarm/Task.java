@@ -65,6 +65,7 @@ public abstract class Task {
   @JsonProperty("ServiceID")
   public abstract String serviceId();
 
+  @Nullable
   @JsonProperty("Slot")
   public abstract Integer slot();
 
