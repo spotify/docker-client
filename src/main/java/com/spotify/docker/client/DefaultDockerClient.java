@@ -226,7 +226,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       LogsResponseReader.class,
       ProgressResponseReader.class);
 
-  private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile("/?[a-zA-Z0-9_-]+");
+  private static final Pattern CONTAINER_NAME_PATTERN =
+          Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_.-]+$");
 
   private static final GenericType<List<Container>> CONTAINER_LIST =
       new GenericType<List<Container>>() {
