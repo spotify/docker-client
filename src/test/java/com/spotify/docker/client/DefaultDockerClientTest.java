@@ -2964,6 +2964,42 @@ public class DefaultDockerClientTest {
     sut.createContainer(config, name);
   }
 
+  @Test
+  public void testCreateContainerNameMatcher() throws Exception {
+    final ContainerConfig config = ContainerConfig.builder()
+        .image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "echo hello world")
+        .build();
+
+    final String goodName = "aBc1.2-3_";
+    sut.createContainer(config, goodName);
+
+    // Bad names
+    final String oneCharacter = "a";
+    exception.expect(invalidContainerNameException(oneCharacter));
+    sut.createContainer(config, oneCharacter);
+
+    final String invalidCharacter = "abc~";
+    exception.expect(invalidContainerNameException(invalidCharacter));
+    sut.createContainer(config, invalidCharacter);
+
+    final String invalidFirstCharacter = ".a";
+    exception.expect(invalidContainerNameException(invalidFirstCharacter));
+    sut.createContainer(config, invalidFirstCharacter);
+  }
+
+  private static Matcher<IllegalArgumentException>
+        invalidContainerNameException(final String containerName) {
+    final String exceptionMessage = String.format("Invalid container name: \"%s\"", containerName);
+    final String description = "for container name " + containerName;
+    return new CustomTypeSafeMatcher<IllegalArgumentException>(description) {
+      @Override
+      protected boolean matchesSafely(final IllegalArgumentException ex) {
+        return ex.getMessage().equals(exceptionMessage);
+      }
+    };
+  }
+
   @Test(expected = ContainerNotFoundException.class)
   public void testKillBadContainer() throws Exception {
     sut.killContainer(randomName());
