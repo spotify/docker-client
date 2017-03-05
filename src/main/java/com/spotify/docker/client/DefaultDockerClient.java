@@ -99,6 +99,8 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.SecretCreateResponse;
+import com.spotify.docker.client.messages.SecretSpec;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
@@ -2069,6 +2071,28 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return request(GET, VolumeList.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
+  @Override
+  public SecretCreateResponse createSecret(final SecretSpec secret) 
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.25");
+    final WebTarget resource = resource().path("secrets").path("create");
+
+    try {
+      return request(POST, SecretCreateResponse.class, resource,
+                     resource.request(APPLICATION_JSON_TYPE),
+                     Entity.json(secret));
+    } catch (DockerRequestException dre) {
+      switch (dre.status()) {
+        case 406:
+          throw new DockerException("Server not part of swarm.", dre);
+        case 409:
+          throw new ConflictException("Name conflicts with an existing object.", dre);
+        default:
+          throw dre;
+      }
+    }
+  }
+  
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {

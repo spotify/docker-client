@@ -57,6 +57,8 @@ import com.spotify.docker.client.messages.NetworkConnection;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.SecretCreateResponse;
+import com.spotify.docker.client.messages.SecretSpec;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
@@ -2325,6 +2327,8 @@ public interface DockerClient extends Closeable {
 
   VolumeList listVolumes(ListVolumesParam... params) throws DockerException, InterruptedException;
 
+  SecretCreateResponse createSecret(SecretSpec secret) throws DockerException, InterruptedException;
+  
   /**
    * Parameters for {@link #listVolumes(ListVolumesParam...)}.
    * @since Docker 1.9, API version 1.21

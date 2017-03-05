@@ -28,6 +28,8 @@ This user manual is made to correspond to Docker's [API docs][1] (e.g. [API 1.18
   * [Wait a container](#wait-a-container)
   * [Remove a container](#remove-a-container)
   * [Copy files or folders from a container](#copy-files-or-folders-from-a-container)
+* [Secrets](#secrets)
+  * [Create Secret](#create-secret)
 * [Images](#images)
   * [List Images](#list-images)
   * [Build image from a Dockerfile](#build-image-from-a-dockerfile)
@@ -288,6 +290,14 @@ try (final TarArchiveInputStream tarStream = new TarArchiveInputStream(docker.ar
 
 ```java
 docker.copyToContainer("/local/path", "containerID", "/path/in/container");
+```
+## Secrets
+
+### Create secret
+
+```java
+final SecretSpec secret = SecretSpec.builder().name("asecret").data(base64encodeddata).build();
+docker.createSecret(secret);
 ```
 
 ## Images
