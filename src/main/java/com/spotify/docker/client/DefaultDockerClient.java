@@ -69,6 +69,7 @@ import com.spotify.docker.client.exceptions.ExecNotFoundException;
 import com.spotify.docker.client.exceptions.ExecStartConflictException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.exceptions.ServiceNotFoundException;
@@ -104,6 +105,9 @@ import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.swarm.Secret;
+import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
+import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
@@ -271,6 +275,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() {
   };
+
+  private static final GenericType<List<Secret>> SECRET_LIST = new GenericType<List<Secret>>() { };
 
   private final Client client;
   private final Client noTimeoutClient;
@@ -2067,6 +2073,71 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     return request(GET, VolumeList.class, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public List<Secret> listSecrets() throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.25");
+    final WebTarget resource = resource().path("secrets");
+    return request(GET, SECRET_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public SecretCreateResponse createSecret(final SecretSpec secret)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.25");
+    final WebTarget resource = resource().path("secrets").path("create");
+
+    try {
+      return request(POST, SecretCreateResponse.class, resource,
+                     resource.request(APPLICATION_JSON_TYPE),
+                     Entity.json(secret));
+    } catch (final DockerRequestException ex) {
+      switch (ex.status()) {
+        case 406:
+          throw new NonSwarmNodeException("Server not part of swarm.", ex);
+        case 409:
+          throw new ConflictException("Name conflicts with an existing object.", ex);
+        default:
+          throw ex;
+      }
+    }
+  }
+
+  @Override
+  public Secret inspectSecret(final String secretId) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.25");
+    final WebTarget resource = resource().path("secrets").path(secretId);
+
+    try {
+      return request(GET, Secret.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (final DockerRequestException ex) {
+      switch (ex.status()) {
+        case 404:
+          throw new NotFoundException("Secret " + secretId + " not found.", ex);
+        case 406:
+          throw new NonSwarmNodeException("Server not part of swarm.", ex);
+        default:
+          throw ex;
+      }
+    }
+  }
+
+  @Override
+  public void deleteSecret(final String secretId) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.25");
+    final WebTarget resource = resource().path("secrets").path(secretId);
+
+    try {
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (final DockerRequestException ex) {
+      switch (ex.status()) {
+        case 404:
+          throw new NotFoundException("Secret " + secretId + " not found.", ex);
+        default:
+          throw ex;
+      }
+    }
   }
 
   private WebTarget resource() {
