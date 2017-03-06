@@ -58,6 +58,10 @@ public abstract class Mount {
   @JsonProperty("VolumeOptions")
   public abstract VolumeOptions volumeOptions();
 
+  @Nullable
+  @JsonProperty("TmpfsOptions")
+  public abstract TmpfsOptions tmpfsOptions();
+
   @AutoValue.Builder
   public abstract static class Builder {
 
@@ -73,6 +77,8 @@ public abstract class Mount {
 
     public abstract Builder volumeOptions(VolumeOptions volumeOptions);
 
+    public abstract Builder tmpfsOptions(TmpfsOptions tmpfsOptions);
+
     public abstract Mount build();
   }
 
@@ -87,7 +93,8 @@ public abstract class Mount {
       @JsonProperty("Target") final String target,
       @JsonProperty("ReadOnly") final Boolean readOnly,
       @JsonProperty("BindOptions") final BindOptions bindOptions,
-      @JsonProperty("VolumeOptions") final VolumeOptions volumeOptions) {
+      @JsonProperty("VolumeOptions") final VolumeOptions volumeOptions,
+      @JsonProperty("TmpfsOptions") final TmpfsOptions tmpfsOptions) {
     return builder()
         .type(type)
         .source(source)
@@ -95,6 +102,7 @@ public abstract class Mount {
         .readOnly(readOnly)
         .bindOptions(bindOptions)
         .volumeOptions(volumeOptions)
+        .tmpfsOptions(tmpfsOptions)
         .build();
   }
 }
