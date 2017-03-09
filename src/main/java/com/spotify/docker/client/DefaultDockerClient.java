@@ -1056,16 +1056,29 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     create(image, imagePayload, handler);
   }
-
+  
   @Override
   public void load(final InputStream imagePayload)
       throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("images").path("load");
+    load(imagePayload, new LoggingSaveHandler());
+  }
 
+  @Override
+  public void load(final InputStream imagePayload, final ProgressHandler handler)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource()
+            .path("images")
+            .path("load")
+            .queryParam("quiet", "false");
+    
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-    try {
-      request(POST, ProgressStream.class, resource,
-              resource.request(APPLICATION_JSON_TYPE), entity);
+    
+    try (final ProgressStream load =
+            request(POST, ProgressStream.class, resource,
+                    resource.request(APPLICATION_JSON_TYPE), entity)) {
+      load.tail(handler, POST, resource.getUri());
+    } catch (IOException e) {
+      throw new DockerException(e);
     } finally {
       IOUtils.closeQuietly(imagePayload);
     }

@@ -329,6 +329,19 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   void load(InputStream imagePayload) throws DockerException, InterruptedException;
+  
+  /**
+   * Load a set of images and tags from a tarball, using a custom ProgressMessageHandler.
+   *
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @param handler      The handler to use for processing each progress message received from
+   *                     Docker.
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  void load(InputStream imagePayload, ProgressHandler handler)
+          throws DockerException, InterruptedException;
 
   /**
    * Creates a single image from a tarball. This method also tags the image
