@@ -184,6 +184,7 @@ import com.spotify.docker.client.messages.swarm.EndpointSpec;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.PortConfig;
+import com.spotify.docker.client.messages.swarm.PortConfig.PortConfigPublishMode;
 import com.spotify.docker.client.messages.swarm.ReplicatedService;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
@@ -4384,6 +4385,7 @@ public class DefaultDockerClientTest {
         .protocol("tcp")
         .publishedPort(8080)
         .targetPort(80)
+        .publishMode(PortConfigPublishMode.INGRESS)
         .build();
     final ServiceSpec spec = ServiceSpec.builder()
         .name(name)
@@ -4391,6 +4393,7 @@ public class DefaultDockerClientTest {
             .addPort(expectedPort1)
             .addPort(PortConfig.builder()
                 .targetPort(22)
+                .publishMode(PortConfigPublishMode.HOST)
                 .build())
             .build())
         .taskTemplate(TaskSpec.builder()
@@ -4407,13 +4410,14 @@ public class DefaultDockerClientTest {
     final PortConfig expectedPort2 = PortConfig.builder()
         .targetPort(22)
         .protocol("tcp")
+        .publishMode(PortConfigPublishMode.HOST)
         .build();
     assertThat(endpoint.spec().ports(), containsInAnyOrder(expectedPort1, expectedPort2));
     //noinspection unchecked
     assertThat(endpoint.ports(), containsInAnyOrder(
         equalTo(expectedPort1),
         portConfigWith(nullValue(String.class), equalTo("tcp"),
-            equalTo(22), any(Integer.class))));
+            equalTo(22), nullValue(Integer.class), equalTo(PortConfigPublishMode.HOST))));
     //noinspection ConstantConditions
     assertThat(endpoint.virtualIps().size(), equalTo(1));
   }
@@ -4698,7 +4702,8 @@ public class DefaultDockerClientTest {
 
   private static Matcher<PortConfig> portConfigWith(
       final Matcher<String> nameMatcher, final Matcher<String> protocolMatcher,
-      final Matcher<Integer> targetPortMatcher, final Matcher<Integer> publishedPortMatcher) {
+      final Matcher<Integer> targetPortMatcher, final Matcher<Integer> publishedPortMatcher,
+      final Matcher<PortConfigPublishMode> publishModeMatcher) {
     final String description = "for PortConfig";
     return new CustomTypeSafeMatcher<PortConfig>(description) {
       @Override
@@ -4706,7 +4711,8 @@ public class DefaultDockerClientTest {
         return nameMatcher.matches(portConfig.name())
                && protocolMatcher.matches(portConfig.protocol())
                && targetPortMatcher.matches(portConfig.targetPort())
-               && publishedPortMatcher.matches(portConfig.publishedPort());
+               && publishedPortMatcher.matches(portConfig.publishedPort())
+               && publishModeMatcher.matches(portConfig.publishMode());
       }
     };
   }
