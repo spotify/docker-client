@@ -4311,7 +4311,14 @@ public class DefaultDockerClientTest {
         equalTo(EndpointSpec.Mode.RESOLUTION_MODE_VIP));
     assertThat(actualServiceSpec.updateConfig().failureAction(), equalTo("pause"));
 
-    final PortConfig expectedPortConfig = PortConfig.builder().protocol(PROTOCOL_TCP).build();
+    final PortConfig.Builder portConfigBuilder = PortConfig.builder()
+        .protocol(PROTOCOL_TCP);
+    if (dockerApiVersionAtLeast("1.25")) {
+      // Ingress publish mode is the default for ports in API versions >= 1.25
+      portConfigBuilder.publishMode(PortConfigPublishMode.INGRESS);
+    }
+    final PortConfig expectedPortConfig = portConfigBuilder.build();
+
     assertThat(actualServiceSpec.endpointSpec().ports(), contains(expectedPortConfig));
     assertThat(service.endpoint().spec().ports(), contains(expectedPortConfig));
 
@@ -4380,13 +4387,16 @@ public class DefaultDockerClientTest {
     
     final String name = randomName();
     final String imageName = "demo/test";
-    final PortConfig expectedPort1 = PortConfig.builder()
+    final PortConfig.Builder portConfigBuilder = PortConfig.builder()
         .name("web")
         .protocol("tcp")
         .publishedPort(8080)
-        .targetPort(80)
-        .publishMode(PortConfigPublishMode.INGRESS)
-        .build();
+        .targetPort(80);
+    if (dockerApiVersionAtLeast("1.25")) {
+      portConfigBuilder.publishMode(PortConfigPublishMode.INGRESS);
+    }
+    final PortConfig expectedPort1 = portConfigBuilder.build();
+
     final ServiceSpec spec = ServiceSpec.builder()
         .name(name)
         .endpointSpec(EndpointSpec.builder()
@@ -4407,17 +4417,32 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(name);
     final Endpoint endpoint = service.endpoint();
 
-    final PortConfig expectedPort2 = PortConfig.builder()
+    final PortConfig.Builder portConfigBuilder2 = PortConfig.builder()
         .targetPort(22)
-        .protocol("tcp")
-        .publishMode(PortConfigPublishMode.HOST)
-        .build();
-    assertThat(endpoint.spec().ports(), containsInAnyOrder(expectedPort1, expectedPort2));
+        .protocol("tcp");
+    if (dockerApiVersionAtLeast("1.25")) {
+      portConfigBuilder2.publishMode(PortConfigPublishMode.HOST);
+    }
+    final PortConfig expectedPort2Spec = portConfigBuilder2.build();
+
+    assertThat(endpoint.spec().ports(), containsInAnyOrder(expectedPort1, expectedPort2Spec));
+
+    // API versions less than 1.25 get assigned a random published port and have null publish mode
+    final Matcher<Integer> publishedPortMatcher;
+    final Matcher<PortConfigPublishMode> publishModeMatcher;
+    if (dockerApiVersionLessThan("1.25")) {
+      publishedPortMatcher = any(Integer.class);
+      publishModeMatcher = nullValue(PortConfigPublishMode.class);
+    } else {
+      publishedPortMatcher = nullValue(Integer.class);
+      publishModeMatcher = equalTo(PortConfigPublishMode.HOST);
+    }
+
     //noinspection unchecked
     assertThat(endpoint.ports(), containsInAnyOrder(
         equalTo(expectedPort1),
         portConfigWith(nullValue(String.class), equalTo("tcp"),
-            equalTo(22), nullValue(Integer.class), equalTo(PortConfigPublishMode.HOST))));
+            equalTo(22), publishedPortMatcher, publishModeMatcher)));
     //noinspection ConstantConditions
     assertThat(endpoint.virtualIps().size(), equalTo(1));
   }
