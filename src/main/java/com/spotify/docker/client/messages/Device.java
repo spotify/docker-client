@@ -28,24 +28,49 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Device {
 
+  @Nullable
   @JsonProperty("PathOnHost")
   public abstract String pathOnHost();
 
+  @Nullable
   @JsonProperty("PathInContainer")
   public abstract String pathInContainer();
 
+  @Nullable
   @JsonProperty("CgroupPermissions")
   public abstract String cgroupPermissions();
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder pathOnHost(String pathOnHost);
+
+    public abstract Builder pathInContainer(String pathInContainer);
+
+    public abstract Builder cgroupPermissions(String cgroupPermissions);
+
+    public abstract Device build();
+  }
+
+  public static Device.Builder builder() {
+    return new AutoValue_Device.Builder();
+  }
 
   @JsonCreator
   static Device create(
       @JsonProperty("PathOnHost") final String pathOnHost,
       @JsonProperty("PathInContainer") final String pathInContainer,
       @JsonProperty("CgroupPermissions") final String cgroupPermissions) {
-    return new AutoValue_Device(pathOnHost, pathInContainer, cgroupPermissions);
+    return builder()
+        .pathOnHost(pathOnHost)
+        .pathInContainer(pathInContainer)
+        .cgroupPermissions(cgroupPermissions)
+        .build();
   }
 }
