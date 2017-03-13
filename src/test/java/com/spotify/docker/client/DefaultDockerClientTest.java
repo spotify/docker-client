@@ -145,6 +145,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerMount;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
+import com.spotify.docker.client.messages.Device;
 import com.spotify.docker.client.messages.EndpointConfig;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
@@ -1596,11 +1597,17 @@ public class DefaultDockerClientTest {
                 .hard(2048L)
                 .build()
         );
+    final Device expectedDevice = Device.builder()
+        .pathOnHost(".")
+        .pathInContainer("/foo")
+        .cgroupPermissions("mrw")
+        .build();
     final HostConfig.Builder hostConfigBuilder = HostConfig.builder()
         .privileged(privileged)
         .publishAllPorts(publishAllPorts)
         .dns(dns)
         .dnsSearch("domain1", "domain2")
+        .devices(expectedDevice)
         .ulimits(ulimits);
 
     if (dockerApiVersionAtLeast("1.21")) {
@@ -1629,6 +1636,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(actual.dnsSearch(), equalTo(expected.dnsSearch()));
     assertEquals(ulimits, actual.ulimits());
+    assertThat(actual.devices(), contains(expectedDevice));
   }
 
   @Test
