@@ -149,6 +149,7 @@ import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
 import com.spotify.docker.client.messages.Device;
 import com.spotify.docker.client.messages.EndpointConfig;
+import com.spotify.docker.client.messages.EndpointConfig.EndpointIpamConfig;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
@@ -3503,7 +3504,6 @@ public class DefaultDockerClientTest {
     final IpamConfig ipamConfig =
         IpamConfig.create("192.168.0.0/24", "192.168.0.0/24", "192.168.0.1");
     final Ipam ipam = Ipam.builder()
-        .driver("default")
         .config(singletonList(ipamConfig))
         .build();
     final NetworkConfig networkConfig =
@@ -3596,9 +3596,22 @@ public class DefaultDockerClientTest {
     assumeFalse(CIRCLECI);
     final String networkName = randomName();
     final String containerName = randomName();
-    final String dummyAlias = "badass-alias";
+
+    final String subnet = "172.20.0.0/16";
+    final String ipRange = "172.20.10.0/24";
+    final String gateway = "172.20.10.11";
+    final IpamConfig ipamConfigToCreate =
+            IpamConfig.create(subnet, ipRange, gateway);
+    final Ipam ipamToCreate = Ipam.builder()
+            .driver("default")
+            .config(Lists.newArrayList(ipamConfigToCreate))
+            .build();
+    final NetworkConfig networkingConfig = NetworkConfig.builder()
+            .name(networkName)
+            .ipam(ipamToCreate)
+            .build();
     final NetworkCreation networkCreation =
-            sut.createNetwork(NetworkConfig.builder().name(networkName).build());
+            sut.createNetwork(networkingConfig);
     assertThat(networkCreation.id(), is(notNullValue()));
     final ContainerConfig containerConfig =
             ContainerConfig.builder()
@@ -3610,11 +3623,14 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerCreation.id());
 
     // Those are some of the extra parameters that can be set along with the network connection
-    EndpointConfig endpointConfig = EndpointConfig.builder()
+    final String ip = "172.20.10.1";
+    final String dummyAlias = "value-does-not-matter";
+    final EndpointConfig endpointConfig = EndpointConfig.builder()
+            .ipamConfig(EndpointIpamConfig.builder().ipv4Address(ip).build())
             .aliases(ImmutableList.<String>of(dummyAlias))
             .build();
 
-    NetworkConnection networkConnection = NetworkConnection.builder()
+    final NetworkConnection networkConnection = NetworkConnection.builder()
             .containerId(containerCreation.id())
             .endpointConfig(endpointConfig)
             .build();
@@ -3626,20 +3642,24 @@ public class DefaultDockerClientTest {
     assertThat(network.containers().size(), equalTo(1));
     assertThat(networkContainer, notNullValue());
     final ContainerInfo containerInfo = sut.inspectContainer(containerCreation.id());
+    assertNotNull(containerInfo.networkSettings().networks());
     assertThat(containerInfo.networkSettings().networks().size(), is(2));
+    assertThat(containerInfo.networkSettings().networks(), hasKey(networkName));
     final AttachedNetwork attachedNetwork =
             containerInfo.networkSettings().networks().get(networkName);
-    assertThat(attachedNetwork, is(notNullValue()));
-    assertThat(attachedNetwork.networkId(), is(notNullValue()));
-    assertThat(attachedNetwork.endpointId(), is(notNullValue()));
-    assertThat(attachedNetwork.gateway(), is(notNullValue()));
-    assertThat(attachedNetwork.ipAddress(), is(notNullValue()));
-    assertThat(attachedNetwork.ipPrefixLen(), is(notNullValue()));
-    assertThat(attachedNetwork.macAddress(), is(notNullValue()));
-    assertThat(attachedNetwork.ipv6Gateway(), is(notNullValue()));
-    assertThat(attachedNetwork.globalIPv6Address(), is(notNullValue()));
+    assertNotNull(attachedNetwork);
+    assertEquals(networkCreation.id(), attachedNetwork.networkId());
+    assertNotNull(attachedNetwork.endpointId());
+    assertEquals(gateway, attachedNetwork.gateway());
+    assertEquals(ip, attachedNetwork.ipAddress());
+    assertNotNull(attachedNetwork.ipPrefixLen());
+    assertNotNull(attachedNetwork.macAddress());
+    assertNotNull(attachedNetwork.ipv6Gateway());
+    assertNotNull(attachedNetwork.globalIPv6Address());
     assertThat(attachedNetwork.globalIPv6PrefixLen(), greaterThanOrEqualTo(0));
-    assertTrue(attachedNetwork.aliases().contains(dummyAlias));
+    assertNotNull(attachedNetwork.aliases());
+    assertThat(dummyAlias, isIn(attachedNetwork.aliases()));
+
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
     network = sut.inspectNetwork(networkCreation.id());
     assertThat(network.containers().size(), equalTo(0));
