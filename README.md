@@ -6,8 +6,8 @@
 [![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
 
 This is a simple [Docker](https://github.com/docker/docker) client written in Java.
-We build and test docker-client on the six most recent minor releases of Docker.
-Right now these are 1.8 - 1.13 (specifically the ones [here][1]).
+We build and test docker-client on the most recent minor releases of Docker.
+Right now these are 1.8 - 17.03.0-ce (specifically the ones [here][1]).
 We upload the artifact tested on Docker 1.12.1.
 See [Docker docs on the mapping between Docker version and API version][3].
 We consider this library pretty stable and use it in many critical production systems.
@@ -126,7 +126,7 @@ As of version 4.0.8 of docker-client, `DefaultDockerClient.fromEnv()` uses
 
 ## Testing
 
-If you're running a recent version of docker (>= 1.12), which contains native swarm support, please 
+If you're running a recent version of docker (>= 1.12), which contains native swarm support, please
 ensure that you run `docker swarm init` to initialize the docker swarm.
 
 Make sure Docker daemon is running and that you can do `docker ps`.
