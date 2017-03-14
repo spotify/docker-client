@@ -29,6 +29,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -96,10 +98,14 @@ public abstract class NetworkSettings {
 
   @Nullable
   @JsonProperty("GlobalIPv6Address")
+  @SuppressFBWarnings(value = {"NM_CONFUSING"},
+          justification = "Conforming to docker API")
   public abstract String globalIpv6Address();
 
   @Nullable
   @JsonProperty("GlobalIPv6PrefixLen")
+  @SuppressFBWarnings(value = {"NM_CONFUSING"},
+          justification = "Conforming to docker API")
   public abstract Integer globalIpv6PrefixLen();
 
   @Nullable
