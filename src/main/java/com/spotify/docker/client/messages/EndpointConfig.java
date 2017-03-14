@@ -27,12 +27,21 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import javax.annotation.Nullable;
 
+import java.util.List;
+import javax.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class EndpointConfig {
+
+  @Nullable
+  @JsonProperty("IPAMConfig")
+  public abstract EndpointIpamConfig ipamConfig();
+
+  @Nullable
+  @JsonProperty("Links")
+  public abstract ImmutableList<String> links();
 
   @Nullable
   @JsonProperty("Aliases")
@@ -72,6 +81,11 @@ public abstract class EndpointConfig {
 
   @AutoValue.Builder
   public abstract static class Builder {
+
+    public abstract Builder ipamConfig(EndpointIpamConfig ipamConfig);
+
+    public abstract Builder links(List<String> links);
+
     public abstract Builder aliases(ImmutableList<String> aliases);
 
     public abstract Builder gateway(String gateway);
@@ -89,5 +103,37 @@ public abstract class EndpointConfig {
     public abstract Builder macAddress(String macAddress);
 
     public abstract EndpointConfig build();
+  }
+
+  @AutoValue
+  public abstract static class EndpointIpamConfig {
+
+    @Nullable
+    @JsonProperty("IPv4Address")
+    public abstract String ipv4Address();
+
+    @Nullable
+    @JsonProperty("IPv6Address")
+    public abstract String ipv6Address();
+
+    @Nullable
+    @JsonProperty("LinkLocalIPs")
+    public abstract ImmutableList<String> linkLocalIps();
+
+    public static Builder builder() {
+      return new AutoValue_EndpointConfig_EndpointIpamConfig.Builder();
+    }
+
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder ipv4Address(String ipv4Address);
+
+      public abstract Builder ipv6Address(String ipv6Address);
+
+      public abstract Builder linkLocalIps(List<String> linkLocalIps);
+
+      public abstract EndpointIpamConfig build();
+    }
   }
 }
