@@ -4239,8 +4239,6 @@ public class DefaultDockerClientTest {
 
     final NetworkCreation networkCreation = sut
             .createNetwork(NetworkConfig.builder().driver("overlay")
-                    // TODO: workaround for https://github.com/docker/docker/issues/25735
-                    .ipam(Ipam.create("default", Collections.<IpamConfig>emptyList()))
                     .name(networkName).build());
 
     final String networkId = networkCreation.id();
