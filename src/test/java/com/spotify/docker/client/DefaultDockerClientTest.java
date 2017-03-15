@@ -3149,7 +3149,11 @@ public class DefaultDockerClientTest {
     final ExecState notStarted = sut.execInspect(execId);
     assertThat(notStarted.id(), is(execId));
     assertThat(notStarted.running(), is(false));
-    assertThat(notStarted.exitCode(), nullValue());
+    if (dockerApiVersionLessThan("1.22")) {
+      assertThat(notStarted.exitCode(), is(0));
+    } else {
+      assertThat(notStarted.exitCode(), nullValue());
+    }
     assertThat(notStarted.openStdin(), is(true));
     assertThat(notStarted.openStderr(), is(true));
     assertThat(notStarted.openStdout(), is(true));
