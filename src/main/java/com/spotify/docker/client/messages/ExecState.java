@@ -43,6 +43,7 @@ public abstract class ExecState {
   @JsonProperty("Running")
   public abstract Boolean running();
 
+  @Nullable
   @JsonProperty("ExitCode")
   public abstract Integer exitCode();
 
