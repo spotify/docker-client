@@ -150,6 +150,7 @@ public abstract class MemoryStats {
     @JsonProperty("total_writeback")
     public abstract Long totalWriteback();
 
+    @Nullable
     @JsonProperty("writeback")
     public abstract Long writeback();
 
