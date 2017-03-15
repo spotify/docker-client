@@ -3144,21 +3144,29 @@ public class DefaultDockerClientTest {
         containerId, new String[] {"sh", "-c", "exit 2"},
         createParams.toArray(new ExecCreateParam[createParams.size()]));
     final String execId = execCreation.id();
-
     log.info("execId = {}", execId);
+
+    final ExecState notStarted = sut.execInspect(execId);
+    assertThat(notStarted.id(), is(execId));
+    assertThat(notStarted.running(), is(false));
+    assertThat(notStarted.exitCode(), nullValue());
+    assertThat(notStarted.openStdin(), is(true));
+    assertThat(notStarted.openStderr(), is(true));
+    assertThat(notStarted.openStdout(), is(true));
+
     try (final LogStream stream = sut.execStart(execId)) {
       stream.readFully();
     }
 
-    final ExecState state = sut.execInspect(execId);
-    assertThat(state.id(), is(execId));
-    assertThat(state.running(), is(false));
-    assertThat(state.exitCode(), is(2));
-    assertThat(state.openStdin(), is(true));
-    assertThat(state.openStderr(), is(true));
-    assertThat(state.openStdout(), is(true));
+    final ExecState started = sut.execInspect(execId);
+    assertThat(started.id(), is(execId));
+    assertThat(started.running(), is(false));
+    assertThat(started.exitCode(), is(2));
+    assertThat(started.openStdin(), is(true));
+    assertThat(started.openStderr(), is(true));
+    assertThat(started.openStdout(), is(true));
 
-    final ProcessConfig processConfig = state.processConfig();
+    final ProcessConfig processConfig = started.processConfig();
     assertThat(processConfig.privileged(), is(false));
     if (execUserSupported) {
       assertThat(processConfig.user(), is("1000"));
@@ -3169,13 +3177,13 @@ public class DefaultDockerClientTest {
                Matchers.<List<String>>is(ImmutableList.of("-c", "exit 2")));
 
     if (dockerApiVersionLessThan("1.22")) {
-      final ContainerInfo containerInfo = state.container();
+      final ContainerInfo containerInfo = started.container();
       assertThat(containerInfo.path(), is("sh"));
       assertThat(containerInfo.args(),
                  Matchers.<List<String>>is(ImmutableList.of("-c", "while :; do sleep 1; done")));
       assertThat(containerInfo.config().image(), is(BUSYBOX_LATEST));
     } else {
-      assertNotNull(state.containerId(), "containerId");
+      assertNotNull(started.containerId(), "containerId");
     }
   }
 
