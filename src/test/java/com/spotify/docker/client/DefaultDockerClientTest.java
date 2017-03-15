@@ -3504,6 +3504,7 @@ public class DefaultDockerClientTest {
     final IpamConfig ipamConfig =
         IpamConfig.create("192.168.0.0/24", "192.168.0.0/24", "192.168.0.1");
     final Ipam ipam = Ipam.builder()
+        .driver("default")
         .config(singletonList(ipamConfig))
         .build();
     final NetworkConfig networkConfig =
