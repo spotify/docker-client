@@ -3548,6 +3548,51 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testNetworkDrivers() throws Exception {
+    requireDockerApiVersionAtLeast("1.21", "networks");
+
+    NetworkConfig.Builder networkConfigBuilder = NetworkConfig.builder();
+
+    if (dockerApiVersionEquals("1.24")) {
+      // workaround for https://github.com/docker/docker/issues/25735
+      networkConfigBuilder = networkConfigBuilder.ipam(
+              Ipam.create("default", Collections.<IpamConfig>emptyList()));
+    }
+
+    // final NetworkConfig defaultDriverConfig = networkConfigBuilder.name(randomName())
+    //         .driver("default").build();
+    // final NetworkCreation defaultDriverCreation = sut.createNetwork(defaultDriverConfig);
+    // assertThat(defaultDriverCreation, notNullValue());
+    // assertThat(defaultDriverCreation.id(), notNullValue());
+    // assertTrue(defaultDriverCreation.warnings().isEmpty());
+    // sut.removeNetwork(defaultDriverCreation.id());
+
+    final NetworkConfig bridgeDriverConfig = networkConfigBuilder.name(randomName())
+            .driver("bridge").build();
+    final NetworkCreation bridgeDriverCreation = sut.createNetwork(bridgeDriverConfig);
+    assertThat(bridgeDriverCreation, notNullValue());
+    assertThat(bridgeDriverCreation.id(), notNullValue());
+    assertThat(bridgeDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+    sut.removeNetwork(bridgeDriverCreation.id());
+
+    final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
+            .driver("overlay").build();
+    final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
+    assertThat(overlayDriverCreation, notNullValue());
+    assertThat(overlayDriverCreation.id(), notNullValue());
+    assertThat(overlayDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+    sut.removeNetwork(overlayDriverCreation.id());
+
+    final NetworkConfig macvlanDriverConfig = networkConfigBuilder.name(randomName())
+            .driver("macvlan").build();
+    final NetworkCreation macvlanDriverCreation = sut.createNetwork(macvlanDriverConfig);
+    assertThat(macvlanDriverCreation, notNullValue());
+    assertThat(macvlanDriverCreation.id(), notNullValue());
+    assertThat(macvlanDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+    sut.removeNetwork(macvlanDriverCreation.id());
+  }
+
+  @Test
   public void testNetworksConnectContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
