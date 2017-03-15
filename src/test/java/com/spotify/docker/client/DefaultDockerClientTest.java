@@ -389,6 +389,10 @@ public class DefaultDockerClientTest {
     return compareVersion(dockerApiVersion, expected) != 0;
   }
 
+  private boolean dockerApiVersionEquals(final String expected) {
+    return compareVersion(dockerApiVersion, expected) == 0;
+  }
+
   private void requireDockerApiVersionNot(final String version, final String msg) {
     assumeTrue(msg, dockerApiVersionNot(version));
   }
@@ -4258,9 +4262,19 @@ public class DefaultDockerClientTest {
     final String networkName = randomName();
     final String serviceName = randomName();
 
-    final NetworkCreation networkCreation = sut
-            .createNetwork(NetworkConfig.builder().driver("overlay")
-                    .name(networkName).build());
+    NetworkConfig.Builder networkConfigBuilder =
+            NetworkConfig.builder()
+                    .driver("overlay")
+                    .name(networkName);
+    if (dockerApiVersionEquals("1.24")) {
+      // workaround for https://github.com/docker/docker/issues/25735
+      networkConfigBuilder = networkConfigBuilder
+              .ipam(Ipam.create("default", Collections.<IpamConfig>emptyList()));
+    }
+
+
+    final NetworkCreation networkCreation =
+            sut.createNetwork(networkConfigBuilder.build());
 
     final String networkId = networkCreation.id();
 
