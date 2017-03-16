@@ -26,6 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nullable;
@@ -52,6 +53,10 @@ public abstract class PortConfig {
   @Nullable
   @JsonProperty("PublishedPort")
   public abstract Integer publishedPort();
+
+  @Nullable
+  @JsonProperty("PublishMode")
+  public abstract PortConfigPublishMode publishMode();
 
   @AutoValue.Builder
   public abstract static class Builder {
@@ -100,6 +105,8 @@ public abstract class PortConfig {
       return this;
     }
 
+    public abstract Builder publishMode(PortConfigPublishMode publishMode);
+
     public abstract PortConfig build();
   }
 
@@ -112,12 +119,31 @@ public abstract class PortConfig {
       @JsonProperty("Name") final String name,
       @JsonProperty("Protocol") final String protocol,
       @JsonProperty("TargetPort") final Integer targetPort,
-      @JsonProperty("PublishedPort") final Integer publishedPort) {
+      @JsonProperty("PublishedPort") final Integer publishedPort,
+      @JsonProperty("PublishMode") final PortConfigPublishMode publishMode) {
     return builder()
         .name(name)
         .protocol(protocol)
         .targetPort(targetPort)
         .publishedPort(publishedPort)
+        .publishMode(publishMode)
         .build();
+  }
+
+  public enum PortConfigPublishMode {
+    INGRESS("ingress"),
+    HOST("host");
+
+    private final String name;
+
+    @JsonCreator
+    PortConfigPublishMode(final String name) {
+      this.name = name;
+    }
+
+    @JsonValue
+    public String getName() {
+      return name;
+    }
   }
 }
