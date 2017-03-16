@@ -3559,14 +3559,6 @@ public class DefaultDockerClientTest {
               Ipam.create("default", Collections.<IpamConfig>emptyList()));
     }
 
-    // final NetworkConfig defaultDriverConfig = networkConfigBuilder.name(randomName())
-    //         .driver("default").build();
-    // final NetworkCreation defaultDriverCreation = sut.createNetwork(defaultDriverConfig);
-    // assertThat(defaultDriverCreation, notNullValue());
-    // assertThat(defaultDriverCreation.id(), notNullValue());
-    // assertTrue(defaultDriverCreation.warnings().isEmpty());
-    // sut.removeNetwork(defaultDriverCreation.id());
-
     final NetworkConfig bridgeDriverConfig = networkConfigBuilder.name(randomName())
             .driver("bridge").build();
     final NetworkCreation bridgeDriverCreation = sut.createNetwork(bridgeDriverConfig);
@@ -3575,14 +3567,6 @@ public class DefaultDockerClientTest {
     assertThat(bridgeDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
     sut.removeNetwork(bridgeDriverCreation.id());
 
-    final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
-            .driver("overlay").build();
-    final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
-    assertThat(overlayDriverCreation, notNullValue());
-    assertThat(overlayDriverCreation.id(), notNullValue());
-    assertThat(overlayDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
-    sut.removeNetwork(overlayDriverCreation.id());
-
     final NetworkConfig macvlanDriverConfig = networkConfigBuilder.name(randomName())
             .driver("macvlan").build();
     final NetworkCreation macvlanDriverCreation = sut.createNetwork(macvlanDriverConfig);
@@ -3590,6 +3574,17 @@ public class DefaultDockerClientTest {
     assertThat(macvlanDriverCreation.id(), notNullValue());
     assertThat(macvlanDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
     sut.removeNetwork(macvlanDriverCreation.id());
+
+    if (dockerApiVersionAtLeast("1.24")) {
+        // We are operating a swarm, so we can create an overlay network
+        final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
+                .driver("overlay").build();
+        final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
+        assertThat(overlayDriverCreation, notNullValue());
+        assertThat(overlayDriverCreation.id(), notNullValue());
+        assertThat(overlayDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+        sut.removeNetwork(overlayDriverCreation.id());
+    }
   }
 
   @Test
