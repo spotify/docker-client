@@ -170,6 +170,8 @@ import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RemovedImage;
+import com.spotify.docker.client.messages.SecretCreateResponse;
+import com.spotify.docker.client.messages.SecretSpec;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
@@ -242,6 +244,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.internal.util.Base64;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -4276,6 +4279,39 @@ public class DefaultDockerClientTest {
 
     final ServiceCreateResponse response = sut.createService(spec);
     assertThat(response.id(), is(notNullValue()));
+  }
+  
+  @Test
+  public void testCreateSecret() throws Exception {
+    requireDockerApiVersionAtLeast("1.25", "swarm support");
+    
+    final String secretData = Base64.encodeAsString("testdata".getBytes());
+    
+    HashMap<String, String> labels = new HashMap<>();
+    labels.put("foo", "bar");
+    labels.put("1", "a");
+    
+    final SecretSpec secret1 = SecretSpec.builder().name("asecret").data(secretData)
+        .labels(labels).build();
+    
+    final SecretCreateResponse response1 = sut.createSecret(secret1);
+    assertThat(response1.id(), is(notNullValue()));
+    
+    final SecretSpec secret2Conflict = SecretSpec.builder().name("asecret").data(secretData)
+        .labels(labels).build();
+    
+    try {
+      sut.createSecret(secret2Conflict);
+      fail("Should fail due to secret name conflict");
+    } catch (ConflictException de) {}
+    
+    final SecretSpec secret3PlainData = SecretSpec.builder().name("asecret2").data("plainData")
+        .labels(labels).build();
+    
+    try {
+      sut.createSecret(secret3PlainData);
+      fail("Should fail due to plain data");
+    } catch (DockerException de) {}
   }
 
   @Test
