@@ -1719,8 +1719,7 @@ public class DefaultDockerClientTest {
       //     HostConfig.BlkioWeightDevice.builder().path("/dev/urandom").weight(200).build()
       // ));
       final List<HostConfig.BlkioDeviceRate> deviceRates = ImmutableList.of(
-          HostConfig.BlkioDeviceRate.builder().path("/dev/random").rate(1024).build(),
-          HostConfig.BlkioDeviceRate.builder().path("/dev/urandom").rate(2048).build()
+          HostConfig.BlkioDeviceRate.builder().path("/dev/loop0").rate(1024).build()
       );
       hostConfigBuilder.blkioDeviceReadBps(deviceRates);
       hostConfigBuilder.blkioDeviceWriteBps(deviceRates);
