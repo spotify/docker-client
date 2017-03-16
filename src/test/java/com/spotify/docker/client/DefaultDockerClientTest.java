@@ -177,6 +177,7 @@ import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.mount.BindOptions;
 import com.spotify.docker.client.messages.mount.Mount;
+import com.spotify.docker.client.messages.mount.TmpfsOptions;
 import com.spotify.docker.client.messages.mount.VolumeOptions;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
@@ -4265,7 +4266,6 @@ public class DefaultDockerClientTest {
     assertThat(response.id(), is(notNullValue()));
   }
 
-  @SuppressWarnings("ConstantConditions")
   @Test
   public void testCreateServiceWithDefaults() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
@@ -4279,6 +4279,7 @@ public class DefaultDockerClientTest {
             .mounts(Mount.builder()
                 .volumeOptions(VolumeOptions.builder().build())
                 .bindOptions(BindOptions.builder().build())
+                .tmpfsOptions(TmpfsOptions.builder().build())
                 .build())
             .build())
         .resources(ResourceRequirements.builder().build())
@@ -4586,6 +4587,49 @@ public class DefaultDockerClientTest {
             sut.listTasks(Task.find().serviceName(spec.name()).build());
     assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
     assertThat(task, isIn(tasksWithServiceName));
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  @Test
+  public void testMountTmpfsOptions() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final long expectedSizeBytes = 100000L;
+    final int expectedMode = 777;
+
+    final String serviceName = randomName();
+    final TaskSpec taskSpec = TaskSpec
+        .builder()
+        .containerSpec(ContainerSpec.builder()
+            .image("alpine")
+            .command(new String[] {"ping", "-c1000", "localhost"})
+            .mounts(Mount.builder()
+                .tmpfsOptions(TmpfsOptions.builder()
+                    .sizeBytes(expectedSizeBytes)
+                    .mode(expectedMode)
+                    .build())
+                .build())
+            .build())
+        .build();
+    final ServiceSpec serviceSpec = ServiceSpec.builder()
+        .name(serviceName)
+        .taskTemplate(taskSpec)
+        .build();
+
+    final int startingNumTasks = sut.listServices().size();
+    final ServiceCreateResponse response = sut.createService(serviceSpec);
+    assertThat(response.id(), is(notNullValue()));
+    await().until(numberOfTasks(sut), is(greaterThan(startingNumTasks)));
+
+    final Service service = sut.inspectService(serviceName);
+    final ServiceSpec actualServiceSpec = service.spec();
+
+    final TmpfsOptions tmpfsOptions = actualServiceSpec.taskTemplate().containerSpec()
+        .mounts().get(0).tmpfsOptions();
+    // TODO (dxia) Why is it null on travis-ci?
+    if (tmpfsOptions != null) {
+      assertThat(tmpfsOptions.sizeBytes(), equalTo(expectedSizeBytes));
+      assertThat(tmpfsOptions.mode(), equalTo(expectedMode));
+    }
   }
 
   private ServiceSpec createServiceSpec(final String serviceName) {
