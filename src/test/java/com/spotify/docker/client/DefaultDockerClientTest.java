@@ -4642,14 +4642,34 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectTask() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final Date start = new Date();
 
-    final ServiceSpec spec = createServiceSpec(randomName());
+    final ServiceSpec serviceSpec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    sut.createService(spec);
+    final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
     await().until(numberOfTasks(sut), is(greaterThan(0)));
-    final Task task = sut.listTasks().get(0);
-    final Task inspectTask = sut.inspectTask(task.id());
-    assertThat(task, equalTo(inspectTask));
+
+    final Task someTask = sut.listTasks().get(0);
+    final Task inspectedTask = sut.inspectTask(someTask.id());
+    assertThat(inspectedTask.id(), notNullValue());
+    assertThat(inspectedTask.version().index(), allOf(notNullValue(), greaterThan(0L)));
+    final Date now = new Date();
+    assertThat(inspectedTask.createdAt(), allOf(notNullValue(), greaterThan(start), lessThan(now)));
+    assertThat(inspectedTask.updatedAt(), allOf(notNullValue(), greaterThan(start), lessThan(now)));
+    assertThat(inspectedTask.slot(), allOf(notNullValue(), greaterThan(0)));
+    assertThat(inspectedTask.status(), notNullValue());
+    assertThat(inspectedTask.name(), nullValue());
+    assertEquals(serviceCreateResponse.id(), inspectedTask.serviceId());
+    assertEquals(serviceSpec.taskTemplate(), inspectedTask.spec());
+    if (serviceSpec.labels() == null || serviceSpec.labels().isEmpty()) {
+      // Hamcrest has generally bad support for "is null or empty",
+      // and no support at all for empty maps
+      assertTrue(inspectedTask.labels() == null || inspectedTask.labels().isEmpty());
+    } else {
+      assertEquals(serviceSpec.labels(), inspectedTask.labels());
+    }
+    // assertThat(inspectedTask.desiredState(), ???);
+    // assertThat(inspectedTask.networkAttachments(), ???);
   }
 
   @Test
