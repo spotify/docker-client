@@ -4774,8 +4774,13 @@ public class DefaultDockerClientTest {
                                                final String containerId) {
     return new Callable<Boolean>() {
       public Boolean call() throws Exception {
-        final ContainerInfo containerInfo = client.inspectContainer(containerId);
-        return containerInfo.state().running();
+        try {
+          final ContainerInfo containerInfo = client.inspectContainer(containerId);
+          return containerInfo.state().running();
+        } catch (ContainerNotFoundException ignored) {
+          // Ignore exception. If container is not found, it is not running.
+          return false;
+        }
       }
     };
   }
