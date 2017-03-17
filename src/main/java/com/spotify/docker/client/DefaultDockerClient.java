@@ -23,60 +23,27 @@
 
 package com.spotify.docker.client;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static com.spotify.docker.client.VersionCompare.compareVersion;
-import static java.lang.System.getProperty;
-import static java.lang.System.getenv;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singletonMap;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.SocketTimeoutException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.regex.Pattern;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.io.CharStreams;
+import com.google.common.net.HostAndPort;
+import com.spotify.docker.client.exceptions.*;
+import com.spotify.docker.client.messages.*;
+import com.spotify.docker.client.messages.swarm.Service;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.Task;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -92,129 +59,41 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.io.CharStreams;
-import com.google.common.net.HostAndPort;
-import com.spotify.docker.client.exceptions.BadParamException;
-import com.spotify.docker.client.exceptions.ConflictException;
-import com.spotify.docker.client.exceptions.ContainerNotFoundException;
-import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.exceptions.DockerRequestException;
-import com.spotify.docker.client.exceptions.DockerTimeoutException;
-import com.spotify.docker.client.exceptions.ExecCreateConflictException;
-import com.spotify.docker.client.exceptions.ExecNotFoundException;
-import com.spotify.docker.client.exceptions.ExecStartConflictException;
-import com.spotify.docker.client.exceptions.ImageNotFoundException;
-import com.spotify.docker.client.exceptions.NetworkNotFoundException;
-import com.spotify.docker.client.exceptions.NotFoundException;
-import com.spotify.docker.client.exceptions.PermissionException;
-import com.spotify.docker.client.exceptions.ServiceNotFoundException;
-import com.spotify.docker.client.exceptions.TaskNotFoundException;
-import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
-import com.spotify.docker.client.exceptions.VolumeNotFoundException;
-import com.spotify.docker.client.messages.Container;
-import com.spotify.docker.client.messages.ContainerChange;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.ContainerExit;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ContainerStats;
-import com.spotify.docker.client.messages.ContainerUpdate;
-import com.spotify.docker.client.messages.ExecCreation;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.ImageHistory;
-import com.spotify.docker.client.messages.ImageInfo;
-import com.spotify.docker.client.messages.ImageSearchResult;
-import com.spotify.docker.client.messages.Info;
-import com.spotify.docker.client.messages.Network;
-import com.spotify.docker.client.messages.NetworkConfig;
-import com.spotify.docker.client.messages.NetworkConnection;
-import com.spotify.docker.client.messages.NetworkCreation;
-import com.spotify.docker.client.messages.ProgressMessage;
-import com.spotify.docker.client.messages.RegistryAuth;
-import com.spotify.docker.client.messages.RegistryConfigs;
-import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.ServiceCreateResponse;
-import com.spotify.docker.client.messages.TopResults;
-import com.spotify.docker.client.messages.Version;
-import com.spotify.docker.client.messages.Volume;
-import com.spotify.docker.client.messages.VolumeList;
-import com.spotify.docker.client.messages.swarm.Service;
-import com.spotify.docker.client.messages.swarm.ServiceSpec;
-import com.spotify.docker.client.messages.swarm.Swarm;
-import com.spotify.docker.client.messages.swarm.Task;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.hk2.api.MultiException;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.internal.util.Base64;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonMap;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.*;
+import static javax.ws.rs.core.MediaType.*;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -376,11 +255,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param builder DefaultDockerClient builder
    */
   protected DefaultDockerClient(final Builder builder) {
-    this(builder, DEFAULT_BUILDER_SUPPLIER);
-  }
-
-  @VisibleForTesting
-  DefaultDockerClient(final Builder builder, Supplier<ClientBuilder> clientBuilderSupplier) {
     final URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
@@ -409,7 +283,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         clientFactory = new JerseyClientFactory();
     }
     
-    this.registryAuth = builder.registryAuth;  //MERGE-TODO: check!
+    this.registryAuth = builder.registryAuth;  //MERGE-TODO: check if auth is pertained!
     this.client = clientFactory.getClient(cm, requestConfig);
 
     // ApacheConnector doesn't respect per-request timeout settings.
@@ -2241,9 +2115,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return "null";
     }
     try {
-      return Base64.encodeAsString(ObjectMapperProvider
+      return Base64.encodeBase64String(ObjectMapperProvider
                                        .objectMapper()
-                                       .writeValueAsString(registryAuth));
+                                       .writeValueAsString(registryAuth).getBytes(Charsets.UTF_8));
     } catch (JsonProcessingException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
     }
@@ -2269,7 +2143,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
       }
 
-      return Base64.encodeAsString(authRegistryJson);
+      return Base64.encodeBase64String(authRegistryJson.getBytes(Charsets.UTF_8));
     } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
@@ -2472,6 +2346,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      */
     public Builder registryAuth(final RegistryAuth registryAuth) {
       this.registryAuth = registryAuth;
+      return this;
+    }
+
+    /**
+     * Set the factory used to create Client instances
+     *
+     * @param clientFactory ClientFactory object
+     * @return Builder
+     */
+    public Builder clientFactory(final ClientFactory clientFactory) {
+      this.clientFactory = clientFactory;
       return this;
     }
 

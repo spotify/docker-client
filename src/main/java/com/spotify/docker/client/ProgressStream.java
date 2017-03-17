@@ -78,8 +78,12 @@ class ProgressStream implements Closeable {
   @Override
   public void close() throws IOException {
     // Jersey will close the stream and release the connection after we read all the data.
-    // We cannot call the stream's close method because it an instance of UncloseableInputStream,
+    // We cannot call the stream's close method because it is an instance of UncloseableInputStream,
     // where close is a no-op.
-    copy(stream, nullOutputStream());
+    // Note: RESTeasy will close the stream if the buffer is empty, so we can ignore IOExceptions here
+    try {
+      copy(stream, nullOutputStream());
+    } catch (IOException ignore) {
+    }
   }
 }
