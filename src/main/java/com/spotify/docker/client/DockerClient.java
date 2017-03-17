@@ -62,6 +62,9 @@ import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.swarm.Secret;
+import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
+import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
@@ -2325,6 +2328,43 @@ public interface DockerClient extends Closeable {
 
   VolumeList listVolumes(ListVolumesParam... params) throws DockerException, InterruptedException;
 
+  /**
+   * List secrets.
+   * @return A list of {@link Secret}s
+   * @throws DockerException if a server error occurred (500)
+   * @since Docker 1.13, API version 1.25
+   */
+  List<Secret> listSecrets() throws DockerException, InterruptedException;
+
+  /**
+   * Create a secret.
+   * @param secret The spec for the secret.
+   * @return {@link SecretCreateResponse}
+   * @throws ConflictException conflict (409)
+   * @throws DockerException if node is not part of a swarm (406) or a server error occurred (500)
+   * @since Docker 1.13, API version 1.25
+   */
+  SecretCreateResponse createSecret(SecretSpec secret) throws DockerException, InterruptedException;
+
+  /**
+   * Inspect a secret.
+   * @param secretId The id of the secret.
+   * @return {@link Secret}
+   * @throws NotFoundException secret not found (404)
+   * @throws DockerException if node is not part of a swarm (406) or a server error occurred (500)
+   * @since Docker 1.13, API version 1.25
+   */
+  Secret inspectSecret(String secretId) throws DockerException, InterruptedException;
+
+  /**
+   * Delete a secret.
+   * @param secretId The id of the secret.
+   * @throws NotFoundException not found (404)
+   * @throws DockerException if a server error occurred (500)
+   * @since Docker 1.13, API version 1.25
+   */
+  void deleteSecret(String secretId) throws DockerException, InterruptedException;
+  
   /**
    * Parameters for {@link #listVolumes(ListVolumesParam...)}.
    * @since Docker 1.9, API version 1.21

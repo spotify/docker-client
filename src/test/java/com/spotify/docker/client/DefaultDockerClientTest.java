@@ -132,6 +132,7 @@ import com.spotify.docker.client.exceptions.DockerTimeoutException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.exceptions.VolumeNotFoundException;
 import com.spotify.docker.client.messages.AttachedNetwork;
@@ -190,6 +191,9 @@ import com.spotify.docker.client.messages.swarm.PortConfig.PortConfigPublishMode
 import com.spotify.docker.client.messages.swarm.ReplicatedService;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
+import com.spotify.docker.client.messages.swarm.Secret;
+import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
+import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
@@ -242,6 +246,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.internal.util.Base64;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -4276,6 +4281,79 @@ public class DefaultDockerClientTest {
 
     final ServiceCreateResponse response = sut.createService(spec);
     assertThat(response.id(), is(notNullValue()));
+  }
+
+  @Test
+  public void testSecretOperations() throws Exception {
+    requireDockerApiVersionAtLeast("1.25", "secret support");
+
+    for (final Secret secret : sut.listSecrets()) {
+      sut.deleteSecret(secret.id());
+    }
+    assertThat(sut.listSecrets().size(), equalTo(0));
+
+    final String secretData = Base64.encodeAsString("testdata".getBytes());
+    
+    final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
+
+    final SecretSpec secretSpec = SecretSpec.builder()
+        .name("asecret")
+        .data(secretData)
+        .labels(labels)
+        .build();
+    
+    final SecretCreateResponse response = sut.createSecret(secretSpec);
+    final String secretId = response.id();
+    assertThat(secretId, is(notNullValue()));
+    
+    final SecretSpec secretSpecConflict = SecretSpec.builder()
+        .name("asecret")
+        .data(secretData)
+        .labels(labels)
+        .build();
+
+    try {
+      sut.createSecret(secretSpecConflict);
+      fail("Should fail due to secret name conflict");
+    } catch (DockerRequestException ex) {
+      // Ignored; Docker should return status code 409, but it doesn't for some reason.
+    }
+
+    final SecretSpec secretSpecInvalidData = SecretSpec.builder()
+        .name("asecret2")
+        .data("plainData")
+        .labels(labels)
+        .build();
+
+    try {
+      sut.createSecret(secretSpecInvalidData);
+      fail("Should fail due to non base64 data");
+    } catch (DockerException ex) {
+      // Ignored
+    }
+
+    final Secret secret = sut.inspectSecret(secretId);
+
+    final List<Secret> secrets = sut.listSecrets();
+    assertThat(secrets.size(), equalTo(1));
+    assertThat(secrets, hasItem(secret));
+
+    sut.deleteSecret(secretId);
+    assertThat(sut.listSecrets().size(), equalTo(0));
+
+    try {
+      sut.inspectSecret(secretId);
+      fail("Should fail because of non-existant secret ID");
+    } catch (NotFoundException ex) {
+      // Ignored
+    }
+
+    try {
+      sut.deleteSecret(secretId);
+      fail("Should fail because of non-existant secret ID");
+    } catch (DockerRequestException ex) {
+      // Ignored; Docker should return status code 404, but it doesn't for some reason.
+    }
   }
 
   @Test
