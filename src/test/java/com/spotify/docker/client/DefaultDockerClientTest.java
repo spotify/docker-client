@@ -3576,14 +3576,14 @@ public class DefaultDockerClientTest {
     sut.removeNetwork(macvlanDriverCreation.id());
 
     if (dockerApiVersionAtLeast("1.24")) {
-        // We are operating a swarm, so we can create an overlay network
-        final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
-                .driver("overlay").build();
-        final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
-        assertThat(overlayDriverCreation, notNullValue());
-        assertThat(overlayDriverCreation.id(), notNullValue());
-        assertThat(overlayDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
-        sut.removeNetwork(overlayDriverCreation.id());
+      // We are operating a swarm, so we can create an overlay network
+      final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
+              .driver("overlay").build();
+      final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
+      assertThat(overlayDriverCreation, notNullValue());
+      assertThat(overlayDriverCreation.id(), notNullValue());
+      assertThat(overlayDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+      sut.removeNetwork(overlayDriverCreation.id());
     }
   }
 
