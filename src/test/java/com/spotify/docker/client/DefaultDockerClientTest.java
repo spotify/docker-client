@@ -4315,8 +4315,8 @@ public class DefaultDockerClientTest {
     try {
       sut.createSecret(secretSpecConflict);
       fail("Should fail due to secret name conflict");
-    } catch (ConflictException ex) {
-      // Ignored
+    } catch (DockerRequestException ex) {
+      // Ignored; Docker should return status code 409, but it doesn't for some reason.
     }
 
     final SecretSpec secretSpecInvalidData = SecretSpec.builder()
@@ -4351,8 +4351,8 @@ public class DefaultDockerClientTest {
     try {
       sut.deleteSecret(secretId);
       fail("Should fail because of non-existant secret ID");
-    } catch (NotFoundException ex) {
-      // Ignored
+    } catch (DockerRequestException ex) {
+      // Ignored; Docker should return status code 404, but it doesn't for some reason.
     }
   }
 
