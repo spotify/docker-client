@@ -287,7 +287,18 @@ public class DefaultDockerClientTest {
   private RegistryAuth registryAuth;
 
   private String dockerApiVersion;
+  private ClientFactory clientFactory;
 
+  @Parameters(name = "{1}")
+  public static Object[][] data() {
+    return new Object[][] { { new JerseyClientFactory(), "jersey" }, 
+                            { new ResteasyClientFactory(), "resteasy" } };
+  }
+  
+  public DefaultDockerClientTest(ClientFactory clientFactory, String clientFactoryName) {
+    this.clientFactory = clientFactory;
+  }
+  
   @Before
   public void setup() throws Exception {
     registryAuth = RegistryAuth.builder().username(AUTH_USERNAME).password(AUTH_PASSWORD).build();
@@ -299,7 +310,8 @@ public class DefaultDockerClientTest {
     } else {
       builder.readTimeoutMillis(120000);
     }
-
+    
+    builder.clientFactory(clientFactory);
     dockerEndpoint = builder.uri();
 
     sut = builder.build();
@@ -1920,74 +1932,6 @@ public class DefaultDockerClientTest {
 
     requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
                                        + "So we skip this test.");
-    try (final EventStream eventStream = getImageAndContainerEventStream()) {
-
-      final String containerName = randomName();
-      final ContainerConfig config = ContainerConfig.builder()
-              .image(BUSYBOX_LATEST)
-              .build();
-
-      // Image pull
-      sut.pull(BUSYBOX_LATEST);
-      assertTrue("Docker did not return any events. "
-                      + "Expected to see an event for pulling an image.",
-              eventStream.hasNext());
-      imageEventAssertions(eventStream.next(), BUSYBOX_LATEST, "pull");
-
-      // Container create
-      final ContainerCreation container = sut.createContainer(config, containerName);
-      final String containerId = container.id();
-      assertTrue("Docker did not return enough events. "
-                      + "Expected to see an event for creating a container.",
-              eventStream.hasNext());
-      containerEventAssertions(eventStream.next(), containerId, containerName,
-              "create", BUSYBOX_LATEST);
-
-      // Container start / container die
-      sut.startContainer(containerId);
-      assertTrue("Docker did not return enough events. "
-                      + "Expected to see an event for starting a container.",
-              eventStream.hasNext());
-      containerEventAssertions(eventStream.next(), containerId, containerName,
-              "start", BUSYBOX_LATEST);
-      assertTrue("Docker did not return enough events. "
-                      + "Expected to see an event for the container finishing.",
-              eventStream.hasNext());
-      containerEventAssertions(eventStream.next(), containerId, containerName,
-              "die", BUSYBOX_LATEST);
-
-      // Container destroy
-      sut.removeContainer(container.id());
-      assertTrue("Docker did not return enough events. "
-                      + "Expected to see an event for removing the container.",
-              eventStream.hasNext());
-      containerEventAssertions(eventStream.next(), containerId, containerName,
-              "destroy", BUSYBOX_LATEST);
-
-      // assertFalse("Expect no more image or container events", eventStream.hasNext());
-      // NOTE: we cannot make this assertion here. It is a valid assertion, because there
-      // are no more events in the stream. However, the connection is still open. Calling
-      // hasNext() on a stream with an open connection and no events will hang indefinitely.
-      // This will trigger the test's timeout, causing an ERROR and a test failure.
-    }
-  }
-
-  @Test
-  public void testEventStreamPolling() throws Exception {
-    // In this test we do stuff, then open an event stream for the
-    // time window where we did the stuff, and make sure all the events
-    // we did are in there
-
-    final String containerName = randomName();
-    final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .build();
-
-    // Wait once to clean our event "palette" of events from other tests
-    Thread.sleep(1000);
-    final Date start = new Date();
-    final long startTime = start.getTime() / 1000;
-
     sut.pull(BUSYBOX_LATEST);
     final ContainerCreation container = sut.createContainer(config, containerName);
     final String containerId = container.id();
@@ -2181,9 +2125,10 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testEventFiltersWithSpaces() throws Exception {
-    requireDockerApiVersionAtLeast("1.24", "Docker events and health check");
-
+  public void testEventStreamWithSinceTime() throws Exception {
+    Thread.sleep(1000); // ensure we push to the next second
+    // so we don't get events from the last test
+    final Date date = new Date();
     sut.pull(BUSYBOX_LATEST);
     final String containerName = randomName();
     final ContainerConfig config = ContainerConfig.builder()
@@ -2228,16 +2173,10 @@ public class DefaultDockerClientTest {
     }
   }
 
-  @SuppressWarnings("deprecation")
-  private void containerEventAssertions(final Event event,
-                                        final String containerId,
-                                        final String containerName,
-                                        final String action,
-                                        final String imageName) throws Exception {
-    assertThat(event.time(), notNullValue());
-    if (dockerApiVersionAtLeast("1.22")) {
-      assertEquals(CONTAINER, event.type());
-      assertEquals(action, event.action());
+  @Test(timeout = 5000)
+  public void testEventStreamWithUntilTime() throws Exception {
+    final EventStream eventStream =
+        sut.events(DockerClient.EventsParam.until((new Date().getTime() + 2000) / 1000));
 
       assertNotNull(event.actor());
       assertEquals(containerId, event.actor().id());

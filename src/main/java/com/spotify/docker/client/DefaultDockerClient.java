@@ -31,6 +31,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -43,11 +45,62 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.hk2.api.MultiException;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -351,14 +404,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setSocketTimeout((int) builder.readTimeoutMillis)
         .build();
 
-    final ClientConfig config = DEFAULT_CONFIG
-        .connectorProvider(new ApacheConnectorProvider())
-        .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
-        .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
-
-    this.registryAuth = builder.registryAuth;
-
-    this.client = clientBuilderSupplier.get().withConfig(config).build();
+    ClientFactory clientFactory = builder.clientFactory();
+    if (clientFactory == null) {
+        clientFactory = new JerseyClientFactory();
+    }
+    
+    this.registryAuth = builder.registryAuth;  //MERGE-TODO: check!
+    this.client = clientFactory.getClient(cm, requestConfig);
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
@@ -366,13 +418,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
-    this.noTimeoutClient = clientBuilderSupplier.get()
-        .withConfig(config)
-        .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
-        .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
-        .build();
 
     this.headers = new HashMap<>(builder.headers());
+    this.noTimeoutClient = clientFactory.getClient(noTimeoutCm, noReadTimeoutRequestConfig);
   }
 
   public String getHost() {
@@ -764,7 +812,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
 
   @Override
-  @Deprecated
   public InputStream copyContainer(String containerId, String path)
       throws DockerException, InterruptedException {
     final String apiVersion = version().apiVersion();
@@ -2297,6 +2344,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private boolean dockerAuth;
     private RegistryAuth registryAuth;
     private Map<String, Object> headers = new HashMap<>();
+    private ClientFactory clientFactory;
 
     public URI uri() {
       return uri;
@@ -2425,6 +2473,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     public Builder registryAuth(final RegistryAuth registryAuth) {
       this.registryAuth = registryAuth;
       return this;
+    }
+
+    public ClientFactory clientFactory() {
+        return clientFactory;
     }
 
     public DefaultDockerClient build() {

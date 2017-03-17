@@ -81,19 +81,18 @@ public class DefaultDockerClientUnitTest {
   @Mock
   private WebTarget webTargetMock;
 
-  private Supplier<ClientBuilder> clientBuilderSupplier;
+  @Mock
+  private ClientFactory clientFactoryMock;
   private DefaultDockerClient.Builder builder;
 
   @Before
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    when(clientBuilderMock.build()).thenReturn(clientMock);
-    when(clientBuilderMock.withConfig(any(Configuration.class))).thenReturn(clientBuilderMock);
-    when(clientBuilderMock.property(anyString(), any())).thenReturn(clientBuilderMock);
-
-    clientBuilderSupplier = Suppliers.ofInstance(clientBuilderMock);
-
+    when(clientFactoryMock.getClient(any(HttpClientConnectionManager.class), 
+                                     any(RequestConfig.class)))
+        .thenReturn(clientMock);
+    
     when(clientMock.target(any(URI.class))).thenReturn(webTargetMock);
     // return the same mock for any path.
     when(webTargetMock.path(anyString())).thenReturn(webTargetMock);
@@ -106,6 +105,7 @@ public class DefaultDockerClientUnitTest {
     when(asyncInvoker.method(anyString(), any(Class.class))).thenReturn(futureMock);
 
     builder = DefaultDockerClient.builder();
+    builder.clientFactory(clientFactoryMock);
     builder.uri("https://perdu.com:2375");
   }
 
@@ -139,8 +139,7 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testNoHeaders() throws Exception {
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
     verify(builderMock, never()).header(anyString(), anyString());
@@ -150,8 +149,7 @@ public class DefaultDockerClientUnitTest {
   public void testOneHeader() throws Exception {
     builder.header("foo", 1);
 
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
     final ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
@@ -173,8 +171,7 @@ public class DefaultDockerClientUnitTest {
       builder.header(entry.getKey(), entry.getValue());
     }
 
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
     final ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
@@ -191,8 +188,7 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   public void testCapAddAndDrop() throws Exception {
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
     final HostConfig hostConfig = HostConfig.builder()
         .capAdd(ImmutableList.of("foo", "bar"))
