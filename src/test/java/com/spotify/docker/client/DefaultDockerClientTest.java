@@ -3567,16 +3567,16 @@ public class DefaultDockerClientTest {
     assertThat(bridgeDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
     sut.removeNetwork(bridgeDriverCreation.id());
 
-    final NetworkConfig macvlanDriverConfig = networkConfigBuilder.name(randomName())
-            .driver("macvlan").build();
-    final NetworkCreation macvlanDriverCreation = sut.createNetwork(macvlanDriverConfig);
-    assertThat(macvlanDriverCreation, notNullValue());
-    assertThat(macvlanDriverCreation.id(), notNullValue());
-    assertThat(macvlanDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
-    sut.removeNetwork(macvlanDriverCreation.id());
-
     if (dockerApiVersionAtLeast("1.24")) {
-      // We are operating a swarm, so we can create an overlay network
+      // These network drivers only exist in later versions
+      final NetworkConfig macvlanDriverConfig = networkConfigBuilder.name(randomName())
+              .driver("macvlan").build();
+      final NetworkCreation macvlanDriverCreation = sut.createNetwork(macvlanDriverConfig);
+      assertThat(macvlanDriverCreation, notNullValue());
+      assertThat(macvlanDriverCreation.id(), notNullValue());
+      assertThat(macvlanDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+      sut.removeNetwork(macvlanDriverCreation.id());
+
       final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
               .driver("overlay").build();
       final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
