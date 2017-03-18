@@ -34,7 +34,7 @@ before_install:
   - docker version
   - docker info
 
-script: mvn clean test
+script: mvn clean -Dsurefire.rerunFailingTestsCount=1 test
 
 after_success:
   # test coverage reporting
