@@ -242,6 +242,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -4751,7 +4752,15 @@ public class DefaultDockerClientTest {
     final List<Task> tasksWithServiceName =
             sut.listTasks(Task.find().serviceName(spec.name()).build());
     assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
-    assertThat(task, isIn(tasksWithServiceName));
+    final Set<String> taskIds = Sets.newHashSet(
+            Lists.transform(tasksWithServiceName, new Function<Task, String>() {
+              @Nullable
+              @Override
+              public String apply(@Nullable final Task task) {
+                return task == null ? null : task.id();
+              }
+            }));
+    assertThat(task.id(), isIn(taskIds));
   }
 
   @SuppressWarnings("ConstantConditions")
