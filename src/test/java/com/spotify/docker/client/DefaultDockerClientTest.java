@@ -84,6 +84,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -241,6 +242,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -4642,14 +4644,60 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectTask() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final Date start = new Date();
 
-    final ServiceSpec spec = createServiceSpec(randomName());
+    final ServiceSpec serviceSpec = createServiceSpec(randomName());
     assertThat(sut.listTasks().size(), is(0));
-    sut.createService(spec);
+    final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
     await().until(numberOfTasks(sut), is(greaterThan(0)));
-    final Task task = sut.listTasks().get(0);
-    final Task inspectTask = sut.inspectTask(task.id());
-    assertThat(task, equalTo(inspectTask));
+
+    final Task someTask = sut.listTasks().get(0);
+    final Task inspectedTask = sut.inspectTask(someTask.id());
+    final Date now = new Date();
+    assertThat(inspectedTask.id(), notNullValue());
+    assertThat(inspectedTask.version().index(), allOf(notNullValue(), greaterThan(0L)));
+    assertThat(inspectedTask.createdAt(),
+            allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
+    assertThat(inspectedTask.updatedAt(),
+            allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
+    assertThat(inspectedTask.slot(), allOf(notNullValue(), greaterThan(0)));
+    assertThat(inspectedTask.status(), notNullValue());
+    assertThat(inspectedTask.name(), nullValue());
+    assertEquals(serviceCreateResponse.id(), inspectedTask.serviceId());
+    if (serviceSpec.labels() == null || serviceSpec.labels().isEmpty()) {
+      // Hamcrest has generally bad support for "is null or empty",
+      // and no support at all for empty maps
+      assertTrue(inspectedTask.labels() == null || inspectedTask.labels().isEmpty());
+    } else {
+      assertEquals(serviceSpec.labels(), inspectedTask.labels());
+    }
+    assertThat(inspectedTask.desiredState(), is(anything()));
+    assertThat(inspectedTask.networkAttachments(), is(anything()));
+
+    final TaskSpec taskSpecTemplate = serviceSpec.taskTemplate();
+    final TaskSpec taskSpecActual = inspectedTask.spec();
+    assertEquals(taskSpecTemplate.resources(), taskSpecActual.resources());
+    assertEquals(taskSpecTemplate.restartPolicy(), taskSpecActual.restartPolicy());
+    assertEquals(taskSpecTemplate.placement(), taskSpecActual.placement());
+    assertEquals(taskSpecTemplate.networks(), taskSpecActual.networks());
+    assertEquals(taskSpecTemplate.logDriver(), taskSpecActual.logDriver());
+
+    final ContainerSpec containerSpecTemplate = taskSpecTemplate.containerSpec();
+    final ContainerSpec containerSpecActual = taskSpecActual.containerSpec();
+    assertThat(containerSpecActual.image(),
+            dockerApiVersionLessThan("1.25")
+                    ? is(containerSpecTemplate.image())
+                    : startsWith(containerSpecTemplate.image() + ":latest@sha256:"));
+    assertEquals(containerSpecTemplate.labels(), containerSpecActual.labels());
+    assertEquals(containerSpecTemplate.command(), containerSpecActual.command());
+    assertEquals(containerSpecTemplate.args(), containerSpecActual.args());
+    assertEquals(containerSpecTemplate.env(), containerSpecActual.env());
+    assertEquals(containerSpecTemplate.dir(), containerSpecActual.dir());
+    assertEquals(containerSpecTemplate.user(), containerSpecActual.user());
+    assertEquals(containerSpecTemplate.groups(), containerSpecActual.groups());
+    assertEquals(containerSpecTemplate.tty(), containerSpecActual.tty());
+    assertEquals(containerSpecTemplate.mounts(), containerSpecActual.mounts());
+    assertEquals(containerSpecTemplate.stopGracePeriod(), containerSpecActual.stopGracePeriod());
   }
 
   @Test
@@ -4704,7 +4752,15 @@ public class DefaultDockerClientTest {
     final List<Task> tasksWithServiceName =
             sut.listTasks(Task.find().serviceName(spec.name()).build());
     assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
-    assertThat(task, isIn(tasksWithServiceName));
+    final Set<String> taskIds = Sets.newHashSet(
+            Lists.transform(tasksWithServiceName, new Function<Task, String>() {
+              @Nullable
+              @Override
+              public String apply(@Nullable final Task task) {
+                return task == null ? null : task.id();
+              }
+            }));
+    assertThat(task.id(), isIn(taskIds));
   }
 
   @SuppressWarnings("ConstantConditions")
