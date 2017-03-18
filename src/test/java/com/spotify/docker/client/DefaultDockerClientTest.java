@@ -84,6 +84,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -4651,16 +4652,17 @@ public class DefaultDockerClientTest {
 
     final Task someTask = sut.listTasks().get(0);
     final Task inspectedTask = sut.inspectTask(someTask.id());
+    final Date now = new Date();
     assertThat(inspectedTask.id(), notNullValue());
     assertThat(inspectedTask.version().index(), allOf(notNullValue(), greaterThan(0L)));
-    final Date now = new Date();
-    assertThat(inspectedTask.createdAt(), allOf(notNullValue(), greaterThan(start), lessThan(now)));
-    assertThat(inspectedTask.updatedAt(), allOf(notNullValue(), greaterThan(start), lessThan(now)));
+    assertThat(inspectedTask.createdAt(),
+            allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
+    assertThat(inspectedTask.updatedAt(),
+            allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
     assertThat(inspectedTask.slot(), allOf(notNullValue(), greaterThan(0)));
     assertThat(inspectedTask.status(), notNullValue());
     assertThat(inspectedTask.name(), nullValue());
     assertEquals(serviceCreateResponse.id(), inspectedTask.serviceId());
-    assertEquals(serviceSpec.taskTemplate(), inspectedTask.spec());
     if (serviceSpec.labels() == null || serviceSpec.labels().isEmpty()) {
       // Hamcrest has generally bad support for "is null or empty",
       // and no support at all for empty maps
@@ -4668,8 +4670,33 @@ public class DefaultDockerClientTest {
     } else {
       assertEquals(serviceSpec.labels(), inspectedTask.labels());
     }
-    // assertThat(inspectedTask.desiredState(), ???);
-    // assertThat(inspectedTask.networkAttachments(), ???);
+    assertThat(inspectedTask.desiredState(), is(anything()));
+    assertThat(inspectedTask.networkAttachments(), is(anything()));
+
+    final TaskSpec taskSpecTemplate = serviceSpec.taskTemplate();
+    final TaskSpec taskSpecActual = inspectedTask.spec();
+    assertEquals(taskSpecTemplate.resources(), taskSpecActual.resources());
+    assertEquals(taskSpecTemplate.restartPolicy(), taskSpecActual.restartPolicy());
+    assertEquals(taskSpecTemplate.placement(), taskSpecActual.placement());
+    assertEquals(taskSpecTemplate.networks(), taskSpecActual.networks());
+    assertEquals(taskSpecTemplate.logDriver(), taskSpecActual.logDriver());
+
+    final ContainerSpec containerSpecTemplate = taskSpecTemplate.containerSpec();
+    final ContainerSpec containerSpecActual = taskSpecActual.containerSpec();
+    assertThat(containerSpecActual.image(),
+            dockerApiVersionLessThan("1.25")
+                    ? is(containerSpecTemplate.image())
+                    : startsWith(containerSpecTemplate.image() + ":latest@sha256:"));
+    assertEquals(containerSpecTemplate.labels(), containerSpecActual.labels());
+    assertEquals(containerSpecTemplate.command(), containerSpecActual.command());
+    assertEquals(containerSpecTemplate.args(), containerSpecActual.args());
+    assertEquals(containerSpecTemplate.env(), containerSpecActual.env());
+    assertEquals(containerSpecTemplate.dir(), containerSpecActual.dir());
+    assertEquals(containerSpecTemplate.user(), containerSpecActual.user());
+    assertEquals(containerSpecTemplate.groups(), containerSpecActual.groups());
+    assertEquals(containerSpecTemplate.tty(), containerSpecActual.tty());
+    assertEquals(containerSpecTemplate.mounts(), containerSpecActual.mounts());
+    assertEquals(containerSpecTemplate.stopGracePeriod(), containerSpecActual.stopGracePeriod());
   }
 
   @Test
