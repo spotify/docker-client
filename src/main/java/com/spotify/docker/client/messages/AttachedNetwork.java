@@ -77,12 +77,12 @@ public abstract class AttachedNetwork {
       @JsonProperty("IPAddress") final String ipAddress,
       @JsonProperty("IPPrefixLen") final Integer ipPrefixLen,
       @JsonProperty("IPv6Gateway") final String ipv6Gateway,
-      @JsonProperty("GlobalIPv6Address") final String globalIpv6Address,
-      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIpv6PrefixLen,
+      @JsonProperty("GlobalIPv6Address") final String globalIPv6Address,
+      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIPv6PrefixLen,
       @JsonProperty("MacAddress") final String macAddress) {
     return new AutoValue_AttachedNetwork(
             aliases == null ? null : ImmutableList.copyOf(aliases),
             networkId, endpointId, gateway, ipAddress, ipPrefixLen,
-            ipv6Gateway, globalIpv6Address, globalIpv6PrefixLen, macAddress);
+            ipv6Gateway, globalIPv6Address, globalIPv6PrefixLen, macAddress);
   }
 }
