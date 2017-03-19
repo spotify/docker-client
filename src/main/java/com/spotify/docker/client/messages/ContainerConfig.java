@@ -418,7 +418,9 @@ public abstract class ContainerConfig {
     @JsonProperty("EndpointsConfig")
     public abstract ImmutableMap<String, EndpointConfig> endpointsConfig();
 
-    public static NetworkingConfig create(final Map<String, EndpointConfig> endpointsConfig) {
+    @JsonCreator
+    public static NetworkingConfig create(
+            @JsonProperty("EndpointsConfig") final Map<String, EndpointConfig> endpointsConfig) {
       final ImmutableMap<String, EndpointConfig> endpointsConfigCopy =
               endpointsConfig == null
                       ? ImmutableMap.<String, EndpointConfig>of()
