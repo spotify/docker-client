@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -62,13 +61,9 @@ public abstract class AttachedNetwork {
   public abstract String ipv6Gateway();
 
   @JsonProperty("GlobalIPv6Address")
-  @SuppressFBWarnings(value = {"NM_CONFUSING"},
-          justification = "Conforming to docker API")
   public abstract String globalIPv6Address();
 
   @JsonProperty("GlobalIPv6PrefixLen")
-  @SuppressFBWarnings(value = {"NM_CONFUSING"},
-          justification = "Conforming to docker API")
   public abstract Integer globalIPv6PrefixLen();
 
   @JsonProperty("MacAddress")

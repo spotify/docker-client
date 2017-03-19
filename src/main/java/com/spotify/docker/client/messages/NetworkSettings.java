@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import com.google.common.collect.ImmutableMap;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Collections;
 import java.util.List;
@@ -98,15 +97,11 @@ public abstract class NetworkSettings {
 
   @Nullable
   @JsonProperty("GlobalIPv6Address")
-  @SuppressFBWarnings(value = {"NM_CONFUSING"},
-          justification = "Conforming to docker API")
-  public abstract String globalIpv6Address();
+  public abstract String globalIPv6Address();
 
   @Nullable
   @JsonProperty("GlobalIPv6PrefixLen")
-  @SuppressFBWarnings(value = {"NM_CONFUSING"},
-          justification = "Conforming to docker API")
-  public abstract Integer globalIpv6PrefixLen();
+  public abstract Integer globalIPv6PrefixLen();
 
   @Nullable
   @JsonProperty("IPv6Gateway")
@@ -128,8 +123,8 @@ public abstract class NetworkSettings {
       @JsonProperty("HairpinMode") final Boolean hairpinMode,
       @JsonProperty("LinkLocalIPv6Address") final String linkLocalIpv6Address,
       @JsonProperty("LinkLocalIPv6PrefixLen") final Integer linkLocalIpv6PrefixLen,
-      @JsonProperty("GlobalIPv6Address") final String globalIpv6Address,
-      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIpv6PrefixLen,
+      @JsonProperty("GlobalIPv6Address") final String globalIPv6Address,
+      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIPv6PrefixLen,
       @JsonProperty("IPv6Gateway") final String ipv6Gateway) {
 
     final ImmutableMap.Builder<String, List<PortBinding>> portsCopy = ImmutableMap.builder();
@@ -155,8 +150,8 @@ public abstract class NetworkSettings {
         .hairpinMode(hairpinMode)
         .linkLocalIpv6Address(linkLocalIpv6Address)
         .linkLocalIpv6PrefixLen(linkLocalIpv6PrefixLen)
-        .globalIpv6Address(globalIpv6Address)
-        .globalIpv6PrefixLen(globalIpv6PrefixLen)
+        .globalIPv6Address(globalIPv6Address)
+        .globalIPv6PrefixLen(globalIPv6PrefixLen)
         .ipv6Gateway(ipv6Gateway)
         .build();
   }
@@ -196,9 +191,9 @@ public abstract class NetworkSettings {
 
     abstract Builder linkLocalIpv6PrefixLen(final Integer linkLocalIpv6PrefixLen);
 
-    abstract Builder globalIpv6Address(final String globalIpv6Address);
+    abstract Builder globalIPv6Address(final String globalIPv6Address);
 
-    abstract Builder globalIpv6PrefixLen(final Integer globalIpv6PrefixLen);
+    abstract Builder globalIPv6PrefixLen(final Integer globalIPv6PrefixLen);
 
     abstract Builder ipv6Gateway(final String ipv6Gateway);
 
