@@ -3687,22 +3687,22 @@ public class DefaultDockerClientTest {
     assertThat(network.containers().size(), equalTo(1));
     assertThat(networkContainer, notNullValue());
     final ContainerInfo containerInfo = sut.inspectContainer(containerCreation.id());
-    assertNotNull(containerInfo.networkSettings().networks());
+    assertThat(containerInfo.networkSettings().networks(), is(notNullValue()));
     assertThat(containerInfo.networkSettings().networks().size(), is(2));
     assertThat(containerInfo.networkSettings().networks(), hasKey(networkName));
     final AttachedNetwork attachedNetwork =
             containerInfo.networkSettings().networks().get(networkName);
-    assertNotNull(attachedNetwork);
-    assertEquals(networkCreation.id(), attachedNetwork.networkId());
-    assertNotNull(attachedNetwork.endpointId());
-    assertEquals(gateway, attachedNetwork.gateway());
-    assertEquals(ip, attachedNetwork.ipAddress());
-    assertNotNull(attachedNetwork.ipPrefixLen());
-    assertNotNull(attachedNetwork.macAddress());
-    assertNotNull(attachedNetwork.ipv6Gateway());
-    assertNotNull(attachedNetwork.globalIPv6Address());
+    assertThat(attachedNetwork, is(notNullValue()));
+    assertThat(attachedNetwork.networkId(), is(equalTo(networkCreation.id())));
+    assertThat(attachedNetwork.endpointId(), is(notNullValue()));
+    assertThat(attachedNetwork.gateway(), is(equalTo(gateway)));
+    assertThat(attachedNetwork.ipAddress(), is(equalTo(ip)));
+    assertThat(attachedNetwork.ipPrefixLen(), is(notNullValue()));
+    assertThat(attachedNetwork.macAddress(), is(notNullValue()));
+    assertThat(attachedNetwork.ipv6Gateway(), is(notNullValue()));
+    assertThat(attachedNetwork.globalIPv6Address(), is(notNullValue()));
     assertThat(attachedNetwork.globalIPv6PrefixLen(), greaterThanOrEqualTo(0));
-    assertNotNull(attachedNetwork.aliases());
+    assertThat(attachedNetwork.aliases(), is(notNullValue()));
     assertThat(dummyAlias, isIn(attachedNetwork.aliases()));
 
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
