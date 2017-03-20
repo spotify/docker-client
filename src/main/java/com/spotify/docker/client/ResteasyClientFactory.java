@@ -51,9 +51,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 public class ResteasyClientFactory implements ClientFactory {
+
+    private CloseableHttpClient httpClient;
+
     @Override
     public Client getClient(HttpClientConnectionManager cm, RequestConfig requestConfig) {
-        final CloseableHttpClient httpClient = HttpClients.custom()
+        // reused between factory methods, rebuilt here when a new client is generated
+        httpClient = HttpClients.custom()
                 .setDefaultRequestConfig(requestConfig)
                 .setConnectionManager(cm)
                 .build();
@@ -66,7 +70,12 @@ public class ResteasyClientFactory implements ClientFactory {
             .register(new CustomObjectMapperJacksonJaxbJsonProvider())
             .build();
     }
-    
+
+    @Override
+    public CloseableHttpClient getHttpClient(Client client) {
+        return httpClient;
+    }
+
     @Provider
     @Consumes({"application/*+json", "text/json"})
     @Produces({"application/*+json", "text/json"})

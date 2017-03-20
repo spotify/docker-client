@@ -68,6 +68,10 @@
         </developer>
     </developers>
 
+    <properties>
+        <jackson.version>2.8.6</jackson.version>
+    </properties>
+
     <repositories>
         <repository>
             <id>jcenter</id>
@@ -90,17 +94,17 @@
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.6.0</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-guava</artifactId>
-            <version>2.6.0</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.6.0</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
@@ -137,13 +141,11 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.2</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
             <version>4.4.5</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.github.jnr</groupId>
@@ -183,14 +185,13 @@
             <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.hk2</groupId>
             <artifactId>hk2-api</artifactId>
             <version>2.4.0</version>
         </dependency>
 
-        <!-- optional resteasy dependencies - TODO: make as profile to avoid class linkage errors in wildfly! -->
+        <!-- optional resteasy dependencies -->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-client</artifactId>

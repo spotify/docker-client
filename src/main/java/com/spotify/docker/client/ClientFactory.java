@@ -24,7 +24,11 @@ import javax.ws.rs.client.Client;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 public interface ClientFactory {
+
     Client getClient(HttpClientConnectionManager cm, RequestConfig requestConfig);
+
+    CloseableHttpClient getHttpClient(Client client);
 }

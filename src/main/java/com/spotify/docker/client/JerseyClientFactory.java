@@ -24,6 +24,7 @@ import javax.ws.rs.client.Client;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -31,12 +32,13 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 public class JerseyClientFactory implements ClientFactory {
+
     private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
             ObjectMapperProvider.class,
             JacksonFeature.class,
             LogsResponseReader.class,
             ProgressResponseReader.class);
-    
+
     @Override
     public Client getClient(HttpClientConnectionManager cm, RequestConfig requestConfig) {
         final ClientConfig config = DEFAULT_CONFIG
@@ -45,6 +47,11 @@ public class JerseyClientFactory implements ClientFactory {
                 .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
         return new JerseyClientBuilder().withConfig(config).build();
+    }
+
+    @Override
+    public CloseableHttpClient getHttpClient(Client client) {
+        return (CloseableHttpClient) ApacheConnectorProvider.getHttpClient(client);
     }
 
 }
