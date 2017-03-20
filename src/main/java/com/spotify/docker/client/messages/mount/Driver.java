@@ -68,8 +68,8 @@ public abstract class Driver {
   
   @JsonCreator
   static Driver create(
-    @JsonProperty("Name") final String name,
-    @JsonProperty("Options") final Map<String, String> options) {
+      @JsonProperty("Name") final String name,
+      @JsonProperty("Options") final Map<String, String> options) {
     return builder()
       .name(name)
       .options(options)
