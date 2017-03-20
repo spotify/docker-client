@@ -24,19 +24,24 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Driver {
 
+  @Nullable
   @JsonProperty("Name")
   public abstract String name();
 
+  @Nullable
   @JsonProperty("Options")
   public abstract ImmutableMap<String, String> options();
 
@@ -60,4 +65,15 @@ public abstract class Driver {
   public static Driver.Builder builder() {
     return new AutoValue_Driver.Builder();
   }
+  
+  @JsonCreator
+  static Driver create(
+    @JsonProperty("Name") final String name,
+    @JsonProperty("Options") final Map<String, String> options) {
+    return builder()
+      .name(name)
+      .options(options)
+      .build();
+  }
+  
 }
