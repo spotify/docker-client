@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import com.google.common.collect.ImmutableMap;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,42 @@ public abstract class NetworkSettings {
   @JsonProperty("Networks")
   public abstract ImmutableMap<String, AttachedNetwork> networks();
 
+  @Nullable
+  @JsonProperty("EndpointID")
+  public abstract String endpointId();
+
+  @Nullable
+  @JsonProperty("SandboxID")
+  public abstract String sandboxId();
+
+  @Nullable
+  @JsonProperty("SandboxKey")
+  public abstract String sandboxKey();
+
+  @Nullable
+  @JsonProperty("HairpinMode")
+  public abstract Boolean hairpinMode();
+
+  @Nullable
+  @JsonProperty("LinkLocalIPv6Address")
+  public abstract String linkLocalIPv6Address();
+
+  @Nullable
+  @JsonProperty("LinkLocalIPv6PrefixLen")
+  public abstract Integer linkLocalIPv6PrefixLen();
+
+  @Nullable
+  @JsonProperty("GlobalIPv6Address")
+  public abstract String globalIPv6Address();
+
+  @Nullable
+  @JsonProperty("GlobalIPv6PrefixLen")
+  public abstract Integer globalIPv6PrefixLen();
+
+  @Nullable
+  @JsonProperty("IPv6Gateway")
+  public abstract String ipv6Gateway();
+
   @JsonCreator
   static NetworkSettings create(
       @JsonProperty("IPAddress") final String ipAddress,
@@ -79,7 +116,16 @@ public abstract class NetworkSettings {
       @JsonProperty("PortMapping") final Map<String, Map<String, String>> portMapping,
       @JsonProperty("Ports") final Map<String, List<PortBinding>> ports,
       @JsonProperty("MacAddress") final String macAddress,
-      @JsonProperty("Networks") final Map<String, AttachedNetwork> networks) {
+      @JsonProperty("Networks") final Map<String, AttachedNetwork> networks,
+      @JsonProperty("EndpointID") final String endpointId,
+      @JsonProperty("SandboxID") final String sandboxId,
+      @JsonProperty("SandboxKey") final String sandboxKey,
+      @JsonProperty("HairpinMode") final Boolean hairpinMode,
+      @JsonProperty("LinkLocalIPv6Address") final String linkLocalIPv6Address,
+      @JsonProperty("LinkLocalIPv6PrefixLen") final Integer linkLocalIPv6PrefixLen,
+      @JsonProperty("GlobalIPv6Address") final String globalIPv6Address,
+      @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIPv6PrefixLen,
+      @JsonProperty("IPv6Gateway") final String ipv6Gateway) {
 
     final ImmutableMap.Builder<String, List<PortBinding>> portsCopy = ImmutableMap.builder();
     if (ports != null) {
@@ -98,32 +144,59 @@ public abstract class NetworkSettings {
         .ports(portsCopy.build())
         .macAddress(macAddress)
         .networks(networks)
+        .endpointId(endpointId)
+        .sandboxId(sandboxId)
+        .sandboxKey(sandboxKey)
+        .hairpinMode(hairpinMode)
+        .linkLocalIPv6Address(linkLocalIPv6Address)
+        .linkLocalIPv6PrefixLen(linkLocalIPv6PrefixLen)
+        .globalIPv6Address(globalIPv6Address)
+        .globalIPv6PrefixLen(globalIPv6PrefixLen)
+        .ipv6Gateway(ipv6Gateway)
         .build();
   }
 
-  public static Builder builder() {
+  private static Builder builder() {
     return new AutoValue_NetworkSettings.Builder();
   }
 
   @AutoValue.Builder
-  public abstract static class Builder {
+  abstract static class Builder {
 
-    public abstract Builder ipAddress(String ipAddress);
+    abstract Builder ipAddress(String ipAddress);
 
-    public abstract Builder ipPrefixLen(Integer ipPrefixLen);
+    abstract Builder ipPrefixLen(Integer ipPrefixLen);
 
-    public abstract Builder gateway(String gateway);
+    abstract Builder gateway(String gateway);
 
-    public abstract Builder bridge(String bridge);
+    abstract Builder bridge(String bridge);
 
-    public abstract Builder portMapping(Map<String, Map<String, String>> portMapping);
+    abstract Builder portMapping(Map<String, Map<String, String>> portMapping);
 
-    public abstract Builder ports(Map<String, List<PortBinding>> ports);
+    abstract Builder ports(Map<String, List<PortBinding>> ports);
 
-    public abstract Builder macAddress(String macAddress);
+    abstract Builder macAddress(String macAddress);
 
-    public abstract Builder networks(Map<String, AttachedNetwork> networks);
+    abstract Builder networks(Map<String, AttachedNetwork> networks);
 
-    public abstract NetworkSettings build();
+    abstract Builder endpointId(final String endpointId);
+
+    abstract Builder sandboxId(final String sandboxId);
+
+    abstract Builder sandboxKey(final String sandboxKey);
+
+    abstract Builder hairpinMode(final Boolean hairpinMode);
+
+    abstract Builder linkLocalIPv6Address(final String linkLocalIPv6Address);
+
+    abstract Builder linkLocalIPv6PrefixLen(final Integer linkLocalIPv6PrefixLen);
+
+    abstract Builder globalIPv6Address(final String globalIPv6Address);
+
+    abstract Builder globalIPv6PrefixLen(final Integer globalIPv6PrefixLen);
+
+    abstract Builder ipv6Gateway(final String ipv6Gateway);
+
+    abstract NetworkSettings build();
   }
 }

@@ -149,6 +149,7 @@ import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
 import com.spotify.docker.client.messages.Device;
 import com.spotify.docker.client.messages.EndpointConfig;
+import com.spotify.docker.client.messages.EndpointConfig.EndpointIpamConfig;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
@@ -386,6 +387,10 @@ public class DefaultDockerClientTest {
 
   private boolean dockerApiVersionNot(final String expected) {
     return compareVersion(dockerApiVersion, expected) != 0;
+  }
+
+  private boolean dockerApiVersionEquals(final String expected) {
+    return compareVersion(dockerApiVersion, expected) == 0;
   }
 
   private void requireDockerApiVersionNot(final String version, final String msg) {
@@ -3543,6 +3548,46 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testNetworkDrivers() throws Exception {
+    requireDockerApiVersionAtLeast("1.21", "networks");
+
+    NetworkConfig.Builder networkConfigBuilder = NetworkConfig.builder();
+
+    if (dockerApiVersionEquals("1.24")) {
+      // workaround for https://github.com/docker/docker/issues/25735
+      networkConfigBuilder = networkConfigBuilder.ipam(
+              Ipam.create("default", Collections.<IpamConfig>emptyList()));
+    }
+
+    final NetworkConfig bridgeDriverConfig = networkConfigBuilder.name(randomName())
+            .driver("bridge").build();
+    final NetworkCreation bridgeDriverCreation = sut.createNetwork(bridgeDriverConfig);
+    assertThat(bridgeDriverCreation, notNullValue());
+    assertThat(bridgeDriverCreation.id(), notNullValue());
+    assertThat(bridgeDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+    sut.removeNetwork(bridgeDriverCreation.id());
+
+    if (dockerApiVersionAtLeast("1.24")) {
+      // These network drivers only exist in later versions
+      final NetworkConfig macvlanDriverConfig = networkConfigBuilder.name(randomName())
+              .driver("macvlan").build();
+      final NetworkCreation macvlanDriverCreation = sut.createNetwork(macvlanDriverConfig);
+      assertThat(macvlanDriverCreation, notNullValue());
+      assertThat(macvlanDriverCreation.id(), notNullValue());
+      assertThat(macvlanDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+      sut.removeNetwork(macvlanDriverCreation.id());
+
+      final NetworkConfig overlayDriverConfig = networkConfigBuilder.name(randomName())
+              .driver("overlay").build();
+      final NetworkCreation overlayDriverCreation = sut.createNetwork(overlayDriverConfig);
+      assertThat(overlayDriverCreation, notNullValue());
+      assertThat(overlayDriverCreation.id(), notNullValue());
+      assertThat(overlayDriverCreation.warnings(), anyOf(nullValue(String.class), equalTo("")));
+      sut.removeNetwork(overlayDriverCreation.id());
+    }
+  }
+
+  @Test
   public void testNetworksConnectContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
 
@@ -3596,9 +3641,22 @@ public class DefaultDockerClientTest {
     assumeFalse(CIRCLECI);
     final String networkName = randomName();
     final String containerName = randomName();
-    final String dummyAlias = "badass-alias";
+
+    final String subnet = "172.20.0.0/16";
+    final String ipRange = "172.20.10.0/24";
+    final String gateway = "172.20.10.11";
+    final IpamConfig ipamConfigToCreate =
+            IpamConfig.create(subnet, ipRange, gateway);
+    final Ipam ipamToCreate = Ipam.builder()
+            .driver("default")
+            .config(Lists.newArrayList(ipamConfigToCreate))
+            .build();
+    final NetworkConfig networkingConfig = NetworkConfig.builder()
+            .name(networkName)
+            .ipam(ipamToCreate)
+            .build();
     final NetworkCreation networkCreation =
-            sut.createNetwork(NetworkConfig.builder().name(networkName).build());
+            sut.createNetwork(networkingConfig);
     assertThat(networkCreation.id(), is(notNullValue()));
     final ContainerConfig containerConfig =
             ContainerConfig.builder()
@@ -3610,11 +3668,14 @@ public class DefaultDockerClientTest {
     sut.startContainer(containerCreation.id());
 
     // Those are some of the extra parameters that can be set along with the network connection
-    EndpointConfig endpointConfig = EndpointConfig.builder()
+    final String ip = "172.20.10.1";
+    final String dummyAlias = "value-does-not-matter";
+    final EndpointConfig endpointConfig = EndpointConfig.builder()
+            .ipamConfig(EndpointIpamConfig.builder().ipv4Address(ip).build())
             .aliases(ImmutableList.<String>of(dummyAlias))
             .build();
 
-    NetworkConnection networkConnection = NetworkConnection.builder()
+    final NetworkConnection networkConnection = NetworkConnection.builder()
             .containerId(containerCreation.id())
             .endpointConfig(endpointConfig)
             .build();
@@ -3626,20 +3687,24 @@ public class DefaultDockerClientTest {
     assertThat(network.containers().size(), equalTo(1));
     assertThat(networkContainer, notNullValue());
     final ContainerInfo containerInfo = sut.inspectContainer(containerCreation.id());
+    assertThat(containerInfo.networkSettings().networks(), is(notNullValue()));
     assertThat(containerInfo.networkSettings().networks().size(), is(2));
+    assertThat(containerInfo.networkSettings().networks(), hasKey(networkName));
     final AttachedNetwork attachedNetwork =
             containerInfo.networkSettings().networks().get(networkName);
     assertThat(attachedNetwork, is(notNullValue()));
-    assertThat(attachedNetwork.networkId(), is(notNullValue()));
+    assertThat(attachedNetwork.networkId(), is(equalTo(networkCreation.id())));
     assertThat(attachedNetwork.endpointId(), is(notNullValue()));
-    assertThat(attachedNetwork.gateway(), is(notNullValue()));
-    assertThat(attachedNetwork.ipAddress(), is(notNullValue()));
+    assertThat(attachedNetwork.gateway(), is(equalTo(gateway)));
+    assertThat(attachedNetwork.ipAddress(), is(equalTo(ip)));
     assertThat(attachedNetwork.ipPrefixLen(), is(notNullValue()));
     assertThat(attachedNetwork.macAddress(), is(notNullValue()));
     assertThat(attachedNetwork.ipv6Gateway(), is(notNullValue()));
     assertThat(attachedNetwork.globalIPv6Address(), is(notNullValue()));
     assertThat(attachedNetwork.globalIPv6PrefixLen(), greaterThanOrEqualTo(0));
-    assertTrue(attachedNetwork.aliases().contains(dummyAlias));
+    assertThat(attachedNetwork.aliases(), is(notNullValue()));
+    assertThat(dummyAlias, isIn(attachedNetwork.aliases()));
+
     sut.disconnectFromNetwork(containerCreation.id(), networkCreation.id());
     network = sut.inspectNetwork(networkCreation.id());
     assertThat(network.containers().size(), equalTo(0));
@@ -4237,11 +4302,19 @@ public class DefaultDockerClientTest {
     final String networkName = randomName();
     final String serviceName = randomName();
 
-    final NetworkCreation networkCreation = sut
-            .createNetwork(NetworkConfig.builder().driver("overlay")
-                    // TODO: workaround for https://github.com/docker/docker/issues/25735
-                    .ipam(Ipam.create("default", Collections.<IpamConfig>emptyList()))
-                    .name(networkName).build());
+    NetworkConfig.Builder networkConfigBuilder =
+            NetworkConfig.builder()
+                    .driver("overlay")
+                    .name(networkName);
+    if (dockerApiVersionEquals("1.24")) {
+      // workaround for https://github.com/docker/docker/issues/25735
+      networkConfigBuilder = networkConfigBuilder
+              .ipam(Ipam.create("default", Collections.<IpamConfig>emptyList()));
+    }
+
+
+    final NetworkCreation networkCreation =
+            sut.createNetwork(networkConfigBuilder.build());
 
     final String networkId = networkCreation.id();
 

@@ -154,6 +154,10 @@ public abstract class ContainerConfig {
     return stopSignal();
   }
 
+  @Nullable
+  @JsonProperty("NetworkingConfig")
+  public abstract NetworkingConfig networkingConfig();
+
   @JsonCreator
   static ContainerConfig create(
       @JsonProperty("Hostname") final String hostname,
@@ -179,7 +183,8 @@ public abstract class ContainerConfig {
       @JsonProperty("MacAddress") final String macAddress,
       @JsonProperty("HostConfig") final HostConfig hostConfig,
       @JsonProperty("StopSignal") final String stopSignal,
-      @JsonProperty("Healthcheck") final Healthcheck healthcheck) {
+      @JsonProperty("Healthcheck") final Healthcheck healthcheck,
+      @JsonProperty("NetworkingConfig") final NetworkingConfig networkingConfig) {
     final Builder builder = builder()
         .hostname(hostname)
         .domainname(domainname)
@@ -195,7 +200,8 @@ public abstract class ContainerConfig {
         .networkDisabled(networkDisabled)
         .macAddress(macAddress)
         .hostConfig(hostConfig)
-        .stopSignal(stopSignal);
+        .stopSignal(stopSignal)
+        .networkingConfig(networkingConfig);
 
     if (portSpecs != null) {
       builder.portSpecs(portSpecs);
@@ -337,6 +343,8 @@ public abstract class ContainerConfig {
 
     public abstract Builder healthcheck(final Healthcheck healthcheck);
 
+    public abstract Builder networkingConfig(final NetworkingConfig networkingConfig);
+
     public abstract ContainerConfig build();
   }
 
@@ -402,6 +410,22 @@ public abstract class ContainerConfig {
       public abstract Builder retries(final Integer retries);
 
       public abstract Healthcheck build();
+    }
+  }
+
+  @AutoValue
+  public abstract static class NetworkingConfig {
+    @JsonProperty("EndpointsConfig")
+    public abstract ImmutableMap<String, EndpointConfig> endpointsConfig();
+
+    @JsonCreator
+    public static NetworkingConfig create(
+            @JsonProperty("EndpointsConfig") final Map<String, EndpointConfig> endpointsConfig) {
+      final ImmutableMap<String, EndpointConfig> endpointsConfigCopy =
+              endpointsConfig == null
+                      ? ImmutableMap.<String, EndpointConfig>of()
+                      : ImmutableMap.copyOf(endpointsConfig);
+      return new AutoValue_ContainerConfig_NetworkingConfig(endpointsConfigCopy);
     }
   }
 }
