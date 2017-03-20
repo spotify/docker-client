@@ -89,11 +89,11 @@ public abstract class NetworkSettings {
 
   @Nullable
   @JsonProperty("LinkLocalIPv6Address")
-  public abstract String linkLocalIpv6Address();
+  public abstract String linkLocalIPv6Address();
 
   @Nullable
   @JsonProperty("LinkLocalIPv6PrefixLen")
-  public abstract Integer linkLocalIpv6PrefixLen();
+  public abstract Integer linkLocalIPv6PrefixLen();
 
   @Nullable
   @JsonProperty("GlobalIPv6Address")
@@ -121,8 +121,8 @@ public abstract class NetworkSettings {
       @JsonProperty("SandboxID") final String sandboxId,
       @JsonProperty("SandboxKey") final String sandboxKey,
       @JsonProperty("HairpinMode") final Boolean hairpinMode,
-      @JsonProperty("LinkLocalIPv6Address") final String linkLocalIpv6Address,
-      @JsonProperty("LinkLocalIPv6PrefixLen") final Integer linkLocalIpv6PrefixLen,
+      @JsonProperty("LinkLocalIPv6Address") final String linkLocalIPv6Address,
+      @JsonProperty("LinkLocalIPv6PrefixLen") final Integer linkLocalIPv6PrefixLen,
       @JsonProperty("GlobalIPv6Address") final String globalIPv6Address,
       @JsonProperty("GlobalIPv6PrefixLen") final Integer globalIPv6PrefixLen,
       @JsonProperty("IPv6Gateway") final String ipv6Gateway) {
@@ -148,8 +148,8 @@ public abstract class NetworkSettings {
         .sandboxId(sandboxId)
         .sandboxKey(sandboxKey)
         .hairpinMode(hairpinMode)
-        .linkLocalIpv6Address(linkLocalIpv6Address)
-        .linkLocalIpv6PrefixLen(linkLocalIpv6PrefixLen)
+        .linkLocalIPv6Address(linkLocalIPv6Address)
+        .linkLocalIPv6PrefixLen(linkLocalIPv6PrefixLen)
         .globalIPv6Address(globalIPv6Address)
         .globalIPv6PrefixLen(globalIPv6PrefixLen)
         .ipv6Gateway(ipv6Gateway)
@@ -187,9 +187,9 @@ public abstract class NetworkSettings {
 
     abstract Builder hairpinMode(final Boolean hairpinMode);
 
-    abstract Builder linkLocalIpv6Address(final String linkLocalIpv6Address);
+    abstract Builder linkLocalIPv6Address(final String linkLocalIPv6Address);
 
-    abstract Builder linkLocalIpv6PrefixLen(final Integer linkLocalIpv6PrefixLen);
+    abstract Builder linkLocalIPv6PrefixLen(final Integer linkLocalIPv6PrefixLen);
 
     abstract Builder globalIPv6Address(final String globalIPv6Address);
 

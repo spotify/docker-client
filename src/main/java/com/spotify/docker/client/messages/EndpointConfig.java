@@ -118,7 +118,7 @@ public abstract class EndpointConfig {
 
     @Nullable
     @JsonProperty("LinkLocalIPs")
-    public abstract ImmutableList<String> linkLocalIps();
+    public abstract ImmutableList<String> linkLocalIPs();
 
     public static Builder builder() {
       return new AutoValue_EndpointConfig_EndpointIpamConfig.Builder();
@@ -131,7 +131,7 @@ public abstract class EndpointConfig {
 
       public abstract Builder ipv6Address(String ipv6Address);
 
-      public abstract Builder linkLocalIps(List<String> linkLocalIps);
+      public abstract Builder linkLocalIPs(List<String> linkLocalIPs);
 
       public abstract EndpointIpamConfig build();
     }
