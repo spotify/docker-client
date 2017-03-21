@@ -43,7 +43,7 @@ public abstract class ContainerSpec {
   public abstract String image();
 
   /**
-   * @since API 1.25
+   * @since API 1.26
    */
   @Nullable
   @JsonProperty("Hostname")
