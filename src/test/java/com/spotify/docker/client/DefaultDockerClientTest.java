@@ -4551,7 +4551,9 @@ public class DefaultDockerClientTest {
     final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
                                          ? is("alpine") : startsWith("alpine:latest@sha256:");
     assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
-    assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
+    if (dockerApiVersionAtLeast("1.25")) {
+      assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
+    }
     assertThat(service.spec().taskTemplate().containerSpec().command(),
                equalTo(Arrays.asList(commandLine)));
   }

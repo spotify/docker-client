@@ -42,6 +42,9 @@ public abstract class ContainerSpec {
   @JsonProperty("Image")
   public abstract String image();
 
+  /**
+   * @since API 1.25
+   */
   @Nullable
   @JsonProperty("Hostname")
   public abstract String hostname();
