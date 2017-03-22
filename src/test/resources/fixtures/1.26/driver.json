@@ -1,0 +1,7 @@
+{
+  "Name": "log driver name",
+  "Options": {
+    "foo": "bar",
+    "bar": "foo"
+  }
+}
