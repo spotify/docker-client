@@ -42,6 +42,13 @@ public abstract class ContainerSpec {
   @JsonProperty("Image")
   public abstract String image();
 
+  /**
+   * @since API 1.26
+   */
+  @Nullable
+  @JsonProperty("Hostname")
+  public abstract String hostname();
+
   @Nullable
   @JsonProperty("Labels")
   public abstract ImmutableMap<String, String> labels();
@@ -111,6 +118,8 @@ public abstract class ContainerSpec {
       addLabel(label, value);
       return this;
     }
+
+    public abstract Builder hostname(String hostname);
 
     public abstract Builder labels(Map<String, String> labels);
 
@@ -306,6 +315,7 @@ public abstract class ContainerSpec {
   static ContainerSpec create(
       @JsonProperty("Image") final String image,
       @JsonProperty("Labels") final Map<String, String> labels,
+      @JsonProperty("Hostname") final String hostname,
       @JsonProperty("Command") final List<String> command,
       @JsonProperty("Args") final List<String> args,
       @JsonProperty("Env") final List<String> env,
@@ -317,6 +327,7 @@ public abstract class ContainerSpec {
       @JsonProperty("StopGracePeriod") final Long stopGracePeriod) {
     final Builder builder = builder()
         .image(image)
+        .hostname(hostname)
         .args(args)
         .env(env)
         .dir(dir)

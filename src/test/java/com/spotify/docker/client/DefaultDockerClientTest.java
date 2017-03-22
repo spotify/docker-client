@@ -4509,9 +4509,11 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
+    final String hostname = "tshost-{{.Task.Slot}}";
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder().image("alpine")
+                               .hostname(hostname)
                                .command(commandLine).build())
         .logDriver(Driver.builder().name("json-file").addOption("max-file", "3")
                            .addOption("max-size", "10M").build())
@@ -4549,6 +4551,9 @@ public class DefaultDockerClientTest {
     final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
                                          ? is("alpine") : startsWith("alpine:latest@sha256:");
     assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
+    if (dockerApiVersionAtLeast("1.26")) {
+      assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
+    }
     assertThat(service.spec().taskTemplate().containerSpec().command(),
                equalTo(Arrays.asList(commandLine)));
   }
