@@ -38,7 +38,7 @@ public class ImageInfoTest {
 
   @Before
   public void setUp() throws Exception {
-    objectMapper = new ObjectMapperProvider().getContext(ContainerInfo.class);
+    objectMapper = new ObjectMapperProvider().getContext(ImageInfoTest.class);
   }
 
   @Test
