@@ -4442,7 +4442,9 @@ public class DefaultDockerClientTest {
             .image("alpine")
             .command(new String[] {"ping", "-c1000", "localhost"})
             .mounts(Mount.builder()
-                .volumeOptions(VolumeOptions.builder().build())
+                .volumeOptions(VolumeOptions.builder()
+                    .driverConfig(com.spotify.docker.client.messages.mount.Driver.builder().build())
+                    .build())
                 .bindOptions(BindOptions.builder().build())
                 .tmpfsOptions(TmpfsOptions.builder().build())
                 .build())
@@ -4496,8 +4498,18 @@ public class DefaultDockerClientTest {
 
     final ContainerSpec containerSpec = actualServiceSpec.taskTemplate().containerSpec();
     assertThat(containerSpec.labels(), equalTo(Collections.<String, String>emptyMap()));
+
     assertThat(containerSpec.mounts().size(), equalTo(1));
-    assertThat(containerSpec.mounts().get(0).type(), equalTo("bind"));
+    final Mount mount = containerSpec.mounts().get(0);
+    assertThat(mount.type(), equalTo("bind"));
+
+    final VolumeOptions volumeOptions = mount.volumeOptions();
+    assertThat(volumeOptions.noCopy(), nullValue());
+    assertThat(volumeOptions.labels(), nullValue());
+
+    final com.spotify.docker.client.messages.mount.Driver driver = volumeOptions.driverConfig();
+    assertThat(driver.name(), nullValue());
+    assertThat(driver.options(), nullValue());
 
     final RestartPolicy restartPolicy = actualServiceSpec.taskTemplate().restartPolicy();
     assertThat(restartPolicy.condition(), equalTo(RESTART_POLICY_ANY));
