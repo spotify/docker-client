@@ -4524,6 +4524,7 @@ public class DefaultDockerClientTest {
 
     final String hostname = "tshost-{{.Task.Slot}}";
     final String[] hosts = {"127.0.0.1 test.local", "127.0.0.1 test"};
+    final String[] healthcheckCmd = {"ping", "-c", "1", "127.0.0.1"};
 
     for (final Secret secret : sut.listSecrets()) {
       sut.deleteSecret(secret.id());
@@ -4560,6 +4561,7 @@ public class DefaultDockerClientTest {
                     .secrets(Arrays.asList(secretBind))
                     .hostname(hostname)
                     .hosts(Arrays.asList(hosts))
+                    .healthcheck(Healthcheck.create(Arrays.asList(healthcheckCmd), 30L, 3L, 3))
                     .command(commandLine).build())
             .build();
     final String serviceName = randomName();
@@ -4584,6 +4586,14 @@ public class DefaultDockerClientTest {
             equalTo(secretId));
     assertThat(service.spec().taskTemplate().containerSpec().secrets().get(0).file().name(),
             equalTo("bsecret"));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().test(),
+            equalTo(Arrays.asList(healthcheckCmd)));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().interval(),
+            equalTo(30L));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().timeout(),
+            equalTo(3L));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().retries(),
+            equalTo(3));
   }
 
   @Test
