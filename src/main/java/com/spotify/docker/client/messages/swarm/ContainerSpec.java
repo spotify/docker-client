@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.mount.Mount;
 
 import java.util.List;
@@ -89,13 +88,6 @@ public abstract class ContainerSpec {
   @Nullable
   @JsonProperty("StopGracePeriod")
   public abstract Long stopGracePeriod();
-
-  /**
-   * @since API 1.26
-   */
-  @Nullable
-  @JsonProperty("HealthCheck")
-  public abstract ContainerConfig.Healthcheck healthCheck();
 
   /**
    * @since API 1.26
@@ -326,8 +318,6 @@ public abstract class ContainerSpec {
       return this;
     }
 
-    public abstract Builder healthCheck(ContainerConfig.Healthcheck healthCheck);
-
     public abstract Builder hosts(List<String> hosts);
 
     public abstract Builder secrets(List<SecretBind> secrets);
@@ -353,7 +343,6 @@ public abstract class ContainerSpec {
       @JsonProperty("TTY") final Boolean tty,
       @JsonProperty("Mounts") final List<Mount> mounts,
       @JsonProperty("StopGracePeriod") final Long stopGracePeriod,
-      @JsonProperty("HealthCheck") final ContainerConfig.Healthcheck healthCheck,
       @JsonProperty("Hosts") final List<String> hosts,
       @JsonProperty("Secrets") final List<SecretBind> secrets) {
     final Builder builder = builder()
@@ -367,7 +356,6 @@ public abstract class ContainerSpec {
         .tty(tty)
         .mounts(mounts)
         .stopGracePeriod(stopGracePeriod)
-        .healthCheck(healthCheck)
         .hosts(hosts);
 
     if (labels != null) {
