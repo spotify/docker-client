@@ -40,48 +40,9 @@ case "$1" in
       sudo mount -t mqueue none /dev/mqueue
     fi
 
-    if [[ "$DOCKER_VERSION" =~ ^1\.6\..* ]]; then
-      # docker-engine 1.6.x packages don't seem to have the upstart job config,
-      # so write it ourselves
-      echo '
-description "Docker daemon"
-start on (local-filesystems and net-device-up IFACE!=lo)
-stop on runlevel [!2345]
-limit nofile 524288 1048576
-limit nproc 524288 1048576
-respawn
-kill timeout 20
-script
-  DOCKER=/usr/bin/$UPSTART_JOB
-  DOCKER_OPTS=
-  if [ -f /etc/default/$UPSTART_JOB ]; then
-    . /etc/default/$UPSTART_JOB
-  fi
-  exec "$DOCKER" -d $DOCKER_OPTS
-end script
-# Don'"'"'t emit "started" event until docker.sock is ready.
-# See https://github.com/docker/docker/issues/6647
-post-start script
-  DOCKER_OPTS=
-  if [ -f /etc/default/$UPSTART_JOB ]; then
-    . /etc/default/$UPSTART_JOB
-  fi
-  while ! [ -e /var/run/docker.sock ]; do
-    initctl status $UPSTART_JOB | grep -qE "(stop|respawn)/" && exit 1
-    echo "Waiting for /var/run/docker.sock"
-    sleep 0.1
-  done
-  echo "/var/run/docker.sock is up"
-end script
-      ' | sudo tee /etc/init/docker.conf
-      sudo cat /etc/init/docker.conf
-      # need to start the service since we just wrote the upstart config
-      sudo start docker
-    else
-      # restart the service for the /etc/default/docker change we made after
-      # installing the package
-      sudo restart docker
-    fi
+    # restart the service for the /etc/default/docker change we made after
+    # installing the package
+    sudo restart docker
 
     if [[ "$ENABLE_SWARM" = "1"  ]]; then
         # initialize docker swarm to be able to run docker tests
