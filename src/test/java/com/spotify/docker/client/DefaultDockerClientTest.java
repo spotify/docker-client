@@ -4519,7 +4519,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testCreateWithSecret() throws Exception {
+  public void testCreateServiceWithSecret() throws Exception {
     requireDockerApiVersionAtLeast("1.26", "swarm support");
 
     final String hostname = "tshost-{{.Task.Slot}}";
