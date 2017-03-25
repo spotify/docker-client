@@ -188,10 +188,10 @@ public abstract class ContainerInfo {
   @AutoValue
   public abstract static class Node {
 
-    @JsonProperty("Id")
+    @JsonProperty("ID")
     public abstract String id();
 
-    @JsonProperty("Ip")
+    @JsonProperty("IP")
     public abstract String ip();
 
     @JsonProperty("Addr")
@@ -202,8 +202,8 @@ public abstract class ContainerInfo {
 
     @JsonCreator
     static Node create(
-        @JsonProperty("Id") final String id,
-        @JsonProperty("Ip") final String ip,
+        @JsonProperty("ID") final String id,
+        @JsonProperty("IP") final String ip,
         @JsonProperty("Addr") final String addr,
         @JsonProperty("Name") final String name) {
       return new AutoValue_ContainerInfo_Node(id, ip, addr, name);
