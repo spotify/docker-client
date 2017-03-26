@@ -4519,7 +4519,7 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testCreateServiceWithSecret() throws Exception {
+  public void testCreateServiceWithSecretHostnameHostsAndHealthcheck() throws Exception {
     requireDockerApiVersionAtLeast("1.26", "swarm support");
 
     final String hostname = "tshost-{{.Task.Slot}}";
@@ -4547,6 +4547,9 @@ public class DefaultDockerClientTest {
 
     final SecretFile secretFile = SecretFile.builder()
             .name("bsecret")
+            .uid("1001")
+            .gid("1002")
+            .mode(0640L)
             .build();
     final SecretBind secretBind = SecretBind.builder()
             .file(secretFile)
@@ -4582,10 +4585,13 @@ public class DefaultDockerClientTest {
     assertThat(service.spec().taskTemplate().containerSpec().hosts(), containsInAnyOrder(hosts));
     assertThat(service.spec().taskTemplate().containerSpec().secrets().size(),
             equalTo(1));
-    assertThat(service.spec().taskTemplate().containerSpec().secrets().get(0).secretId(),
-            equalTo(secretId));
-    assertThat(service.spec().taskTemplate().containerSpec().secrets().get(0).file().name(),
-            equalTo("bsecret"));
+    SecretBind secret = service.spec().taskTemplate().containerSpec().secrets().get(0);
+    assertThat(secret.secretId(), equalTo(secretId));
+    assertThat(secret.secretName(), equalTo("asecret"));
+    assertThat(secret.file().name(), equalTo("bsecret"));
+    assertThat(secret.file().uid(), equalTo("1001"));
+    assertThat(secret.file().gid(), equalTo("1002"));
+    assertThat(secret.file().mode(), equalTo(0640L));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().test(),
             equalTo(Arrays.asList(healthcheckCmd)));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().interval(),
