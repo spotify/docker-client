@@ -3494,9 +3494,11 @@ public class DefaultDockerClientTest {
         .driver("default")
         .config(singletonList(ipamConfig))
         .build();
+    final Map<String, String> labels = ImmutableMap.of(
+        "name", "starship", "foo", "bar");
     final NetworkConfig networkConfig =
         NetworkConfig.builder().name(networkName).driver("bridge").checkDuplicate(true).ipam(ipam)
-            .internal(false).enableIPv6(false)
+            .internal(false).enableIPv6(false).labels(labels)
             .build();
 
     final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
@@ -3521,6 +3523,7 @@ public class DefaultDockerClientTest {
     if (dockerApiVersionAtLeast("1.23")) {
       assertThat(network.internal(), is(false));
       assertThat(network.enableIPv6(), is(false));
+      assertThat(network.labels(), is(labels));
     }
 
     sut.removeNetwork(network.id());
