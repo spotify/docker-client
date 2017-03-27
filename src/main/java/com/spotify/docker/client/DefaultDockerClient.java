@@ -171,7 +171,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image ID (or image digest in Docker
-   * 1.10+) of an image being loaded. Weirdly enough, Docker returns the ID or digest of a newly
+   * 1.10+) of an image being created. Weirdly enough, Docker returns the ID or digest of a newly
    * created image in the status of a progress message.
    *
    * <p>The image ID/digest is required to tag the just loaded image since,
@@ -179,7 +179,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * support the <code>tag</code> parameter. By retrieving the ID/digest, the image can be tagged
    * with its image name, given its ID/digest.
    */
-  private static class LoadProgressHandler implements ProgressHandler {
+  private static class CreateProgressHandler implements ProgressHandler {
 
     // The length of the image hash
     private static final int EXPECTED_CHARACTER_NUM1 = 64;
@@ -190,13 +190,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     private String imageId;
 
-    private LoadProgressHandler(ProgressHandler delegate) {
+    private CreateProgressHandler(ProgressHandler delegate) {
       this.delegate = delegate;
     }
 
     private String getImageId() {
       Preconditions.checkState(imageId != null,
-                               "Could not acquire image ID or digest following load");
+                               "Could not acquire image ID or digest following create");
       return imageId;
     }
 
@@ -1100,14 +1100,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("fromSrc", "-")
         .queryParam("tag", image);
 
-    final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
+    final CreateProgressHandler createProgressHandler = new CreateProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload,
                                                      APPLICATION_OCTET_STREAM);
     try (final ProgressStream load =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE), entity)) {
-      load.tail(loadProgressHandler, POST, resource.getUri());
-      tag(loadProgressHandler.getImageId(), image, true);
+      load.tail(createProgressHandler, POST, resource.getUri());
+      tag(createProgressHandler.getImageId(), image, true);
     } catch (IOException e) {
       throw new DockerException(e);
     } finally {
