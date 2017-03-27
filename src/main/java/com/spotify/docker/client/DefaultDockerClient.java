@@ -52,6 +52,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
@@ -129,12 +130,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
@@ -207,6 +210,48 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       if (status != null && (status.length() == EXPECTED_CHARACTER_NUM1
                              || status.length() == EXPECTED_CHARACTER_NUM2)) {
         imageId = message.status();
+      }
+    }
+
+  }
+  
+  /**
+   * Hack: this {@link ProgressHandler} is meant to capture the image names
+   * of an image being loaded. Weirdly enough, Docker returns the name of a newly
+   * created image in the stream of a progress message.
+   *
+   */
+  private static class LoadProgressHandler implements ProgressHandler {
+
+    // The length of the image hash
+    private static final Pattern IMAGE_STREAM_PATTERN =
+        Pattern.compile("Loaded image: (?<image>.+)\n");
+
+    private final ProgressHandler delegate;
+
+    private Set<String> imageNames;
+
+    private LoadProgressHandler(ProgressHandler delegate) {
+      this.delegate = delegate;
+      this.imageNames = new HashSet<>();
+    }
+
+    private Set<String> getImageNames() {
+      Preconditions.checkState(!imageNames.isEmpty(),
+                               "Could not acquire image names following load");
+      return ImmutableSet.copyOf(imageNames);
+    }
+
+    @Override
+    public void progress(ProgressMessage message) throws DockerException {
+      delegate.progress(message);
+      final String stream = message.stream();
+      if (stream != null) {
+        Matcher streamMatcher = IMAGE_STREAM_PATTERN.matcher(stream);
+        if (streamMatcher.matches()) {
+          imageNames.add(streamMatcher.group("image"));
+        }
+        
       }
     }
 
@@ -1058,25 +1103,27 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
   
   @Override
-  public void load(final InputStream imagePayload)
+  public Set<String> load(final InputStream imagePayload)
       throws DockerException, InterruptedException {
-    load(imagePayload, new LoggingLoadHandler());
+    return load(imagePayload, new LoggingLoadHandler());
   }
 
   @Override
-  public void load(final InputStream imagePayload, final ProgressHandler handler)
+  public Set<String> load(final InputStream imagePayload, final ProgressHandler handler)
       throws DockerException, InterruptedException {
     final WebTarget resource = resource()
             .path("images")
             .path("load")
             .queryParam("quiet", "false");
     
+    final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
     
     try (final ProgressStream load =
             request(POST, ProgressStream.class, resource,
                     resource.request(APPLICATION_JSON_TYPE), entity)) {
-      load.tail(handler, POST, resource.getUri());
+      load.tail(loadProgressHandler, POST, resource.getUri());
+      return loadProgressHandler.getImageNames();
     } catch (IOException e) {
       throw new DockerException(e);
     } finally {
