@@ -237,8 +237,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     private Set<String> getImageNames() {
-      Preconditions.checkState(!imageNames.isEmpty(),
-                               "Could not acquire image names following load");
       return ImmutableSet.copyOf(imageNames);
     }
 
