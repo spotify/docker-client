@@ -194,7 +194,9 @@ import com.spotify.docker.client.messages.swarm.ReplicatedService;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
 import com.spotify.docker.client.messages.swarm.Secret;
+import com.spotify.docker.client.messages.swarm.SecretBind;
 import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
+import com.spotify.docker.client.messages.swarm.SecretFile;
 import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
@@ -4517,15 +4519,97 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCreateServiceWithSecretHostnameHostsAndHealthcheck() throws Exception {
+    requireDockerApiVersionAtLeast("1.26", "swarm support");
+
+    final String hostname = "tshost-{{.Task.Slot}}";
+    final String[] hosts = {"127.0.0.1 test.local", "127.0.0.1 test"};
+    final String[] healthcheckCmd = {"ping", "-c", "1", "127.0.0.1"};
+
+    for (final Secret secret : sut.listSecrets()) {
+      sut.deleteSecret(secret.id());
+    }
+    assertThat(sut.listSecrets().size(), equalTo(0));
+
+    final String secretData = Base64.encodeAsString("testdata".getBytes());
+
+    final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
+
+    final SecretSpec secretSpec = SecretSpec.builder()
+            .name("asecret")
+            .data(secretData)
+            .labels(labels)
+            .build();
+
+    final SecretCreateResponse secretResponse = sut.createSecret(secretSpec);
+    final String secretId = secretResponse.id();
+    assertThat(secretId, is(notNullValue()));
+
+    final SecretFile secretFile = SecretFile.builder()
+            .name("bsecret")
+            .uid("1001")
+            .gid("1002")
+            .mode(0640L)
+            .build();
+    final SecretBind secretBind = SecretBind.builder()
+            .file(secretFile)
+            .secretId(secretId)
+            .secretName("asecret")
+            .build();
+
+    final String[] commandLine = {"ping", "-c4", "localhost"};
+    final TaskSpec taskSpec = TaskSpec
+            .builder()
+            .containerSpec(ContainerSpec.builder().image("alpine")
+                    .secrets(Arrays.asList(secretBind))
+                    .hostname(hostname)
+                    .hosts(Arrays.asList(hosts))
+                    .healthcheck(Healthcheck.create(Arrays.asList(healthcheckCmd), 30L, 3L, 3))
+                    .command(commandLine).build())
+            .build();
+    final String serviceName = randomName();
+    final ServiceSpec spec = ServiceSpec.builder()
+            .name(serviceName)
+            .taskTemplate(taskSpec)
+            .build();
+
+    final ServiceCreateResponse response = sut.createService(spec);
+
+    final Service service = sut.inspectService(response.id());
+
+    assertThat(service.spec().name(), is(serviceName));
+    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
+            ? is("alpine") : startsWith("alpine:latest@sha256:");
+    assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
+    assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
+    assertThat(service.spec().taskTemplate().containerSpec().hosts(), containsInAnyOrder(hosts));
+    assertThat(service.spec().taskTemplate().containerSpec().secrets().size(),
+            equalTo(1));
+    SecretBind secret = service.spec().taskTemplate().containerSpec().secrets().get(0);
+    assertThat(secret.secretId(), equalTo(secretId));
+    assertThat(secret.secretName(), equalTo("asecret"));
+    assertThat(secret.file().name(), equalTo("bsecret"));
+    assertThat(secret.file().uid(), equalTo("1001"));
+    assertThat(secret.file().gid(), equalTo("1002"));
+    assertThat(secret.file().mode(), equalTo(0640L));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().test(),
+            equalTo(Arrays.asList(healthcheckCmd)));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().interval(),
+            equalTo(30L));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().timeout(),
+            equalTo(3L));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().retries(),
+            equalTo(3));
+  }
+
+  @Test
   public void testInspectService() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
-    final String hostname = "tshost-{{.Task.Slot}}";
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder().image("alpine")
-                               .hostname(hostname)
                                .command(commandLine).build())
         .logDriver(Driver.builder().name("json-file").addOption("max-file", "3")
                            .addOption("max-size", "10M").build())
@@ -4563,9 +4647,6 @@ public class DefaultDockerClientTest {
     final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
                                          ? is("alpine") : startsWith("alpine:latest@sha256:");
     assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
-    if (dockerApiVersionAtLeast("1.26")) {
-      assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
-    }
     assertThat(service.spec().taskTemplate().containerSpec().command(),
                equalTo(Arrays.asList(commandLine)));
   }
