@@ -26,9 +26,9 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoggingSaveHandler implements ProgressHandler {
+public class LoggingLoadHandler implements ProgressHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(LoggingSaveHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(LoggingLoadHandler.class);
 
   @Override
   public void progress(ProgressMessage message) throws DockerException {
@@ -36,7 +36,7 @@ public class LoggingSaveHandler implements ProgressHandler {
       throw new DockerException(message.toString());
     }
 
-    log.info("save: {}", message);
+    log.info("load: {}", message);
   }
 
 }

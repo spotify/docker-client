@@ -1060,7 +1060,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void load(final InputStream imagePayload)
       throws DockerException, InterruptedException {
-    load(imagePayload, new LoggingSaveHandler());
+    load(imagePayload, new LoggingLoadHandler());
   }
 
   @Override
