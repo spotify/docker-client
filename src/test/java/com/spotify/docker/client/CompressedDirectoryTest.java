@@ -21,13 +21,16 @@
 package com.spotify.docker.client;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.io.Resources;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +58,8 @@ public class CompressedDirectoryTest {
         names.add(name);
       }
       assertThat(names,
-                 containsInAnyOrder("Dockerfile", "bin/date.sh", "innerDir/innerDockerfile"));
+                 containsInAnyOrder("Dockerfile", "bin/", "bin/date.sh",
+                                    "innerDir/", "innerDir/innerDockerfile"));
     }
   }
 
@@ -74,9 +78,31 @@ public class CompressedDirectoryTest {
         final String name = entry.getName();
         names.add(name);
       }
-      assertThat(names, containsInAnyOrder("Dockerfile", "bin/date.sh", "subdir2/keep.me",
-                                           "subdir2/do-not.ignore", "subdir3/do.keep",
-                                           ".dockerignore"));
+      assertThat(names, containsInAnyOrder("Dockerfile", "bin/", "bin/date.sh", "subdir2/",
+                                           "subdir2/keep.me", "subdir2/do-not.ignore",
+                                           "subdir3/do.keep", ".dockerignore"));
+    }
+  }
+
+  @Test
+  public void testFileWithEmptyDirectory() throws Exception {
+    Path tempDir = Files.createTempDirectory("dockerDirectoryEmptySubdirectory");
+    tempDir.toFile().deleteOnExit();
+    assertThat(new File(tempDir.toFile(), "emptySubDir").mkdir(), is(true));
+
+    try (CompressedDirectory dir = CompressedDirectory.create(tempDir);
+         BufferedInputStream fileIn = new BufferedInputStream(Files.newInputStream(dir.file()));
+         GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fileIn);
+         TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+
+      final List<String> names = new ArrayList<>();
+      TarArchiveEntry entry;
+      while ((entry = tarIn.getNextTarEntry()) != null) {
+        final String name = entry.getName();
+        names.add(name);
+      }
+      assertThat(names,
+          containsInAnyOrder("emptySubDir/"));
     }
   }
 
