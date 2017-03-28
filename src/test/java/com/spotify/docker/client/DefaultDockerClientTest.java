@@ -560,15 +560,17 @@ public class DefaultDockerClientTest {
       assertTrue(loadedImages.contains(image2));
     }
 
-    // Verify that we have multiple messages, and each one has a non-null field
-    assertThat(messages, not(empty()));
-    for (final ProgressMessage message : messages) {
-      assertTrue(message.error() != null
-                 || message.id() != null
-                 || message.progress() != null
-                 || message.progressDetail() != null
-                 || message.status() != null
-                 || message.stream() != null);
+    if (dockerApiVersionAtLeast("1.23")) {
+      // Verify that we have multiple messages, and each one has a non-null field
+      assertThat(messages, not(empty()));
+      for (final ProgressMessage message : messages) {
+        assertTrue(message.error() != null
+                   || message.id() != null
+                   || message.progress() != null
+                   || message.progressDetail() != null
+                   || message.status() != null
+                   || message.stream() != null);
+      }
     }
 
     // Try to inspect created images and make sure ImageNotFoundException is not thrown
