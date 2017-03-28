@@ -105,7 +105,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Collections2;
@@ -126,7 +125,6 @@ import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.ContainerRenameConflictException;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.DockerRequestException;
 import com.spotify.docker.client.exceptions.DockerTimeoutException;
@@ -222,7 +220,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2338,22 +2335,6 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
     final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
     assertThat(imageInfo.created(), equalTo(expected));
-  }
-
-  @Test(expected = DockerCertificateException.class)
-  public void testBadDockerCertificates() throws Exception {
-    // try building a DockerCertificates with specifying a cert path to something that
-    // isn't a cert
-    final Path certDir = Paths.get("src", "test", "resources", "dockerInvalidSslDirectory");
-    DockerCertificates.builder().dockerCertPath(certDir).build();
-  }
-
-  @Test
-  public void testNoDockerCertificatesInDir() throws Exception {
-    final Path certDir = Paths.get(System.getProperty("java.io.tmpdir"));
-    final Optional<DockerCertificatesStore> result = DockerCertificates.builder()
-        .dockerCertPath(certDir).build();
-    assertThat(result.isPresent(), is(false));
   }
 
   @SuppressWarnings("EmptyCatchBlock")

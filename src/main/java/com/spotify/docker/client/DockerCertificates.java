@@ -39,14 +39,18 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.ssl.SSLContexts;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.slf4j.Logger;
@@ -78,38 +82,29 @@ public class DockerCertificates implements DockerCertificatesStore {
           "caCertPath, clientCertPath, and clientKeyPath must all be specified");
     }
 
-    try (InputStream caCertStream =
-             Files.newInputStream(builder.caCertPath);
-         InputStream clientCertStream =
-             Files.newInputStream(builder.clientCertPath);
-         BufferedReader clientKeyStream =
-             Files.newBufferedReader(builder.clientKeyPath, Charset.defaultCharset());
-         PEMParser pemParser = new PEMParser(clientKeyStream)
-    ) {
-      final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-      final Certificate caCert = cf.generateCertificate(caCertStream);
-      final Certificate clientCert = cf.generateCertificate(clientCertStream);
+    try {
 
-      final PEMKeyPair clientKeyPair = (PEMKeyPair) pemParser.readObject();
+      final PrivateKey clientKey = readPrivateKey(builder.clientKeyPath);
+      final List<Certificate> clientCerts = readCertificates(builder.clientCertPath);
 
-      final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(
-          clientKeyPair.getPrivateKeyInfo().getEncoded());
-      final KeyFactory kf = KeyFactory.getInstance("RSA");
-      final PrivateKey clientKey = kf.generatePrivate(spec);
+      final KeyStore keyStore = newKeyStore();
+      keyStore.setKeyEntry("key", clientKey, KEY_STORE_PASSWORD,
+              clientCerts.toArray(new Certificate[clientCerts.size()]));
 
-      final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-      trustStore.load(null, null);
-      trustStore.setEntry("ca", new KeyStore.TrustedCertificateEntry(caCert), null);
+      final List<Certificate> caCerts = readCertificates(builder.caCertPath);
 
-      final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keyStore.load(null, null);
-      keyStore.setCertificateEntry("client", clientCert);
-      keyStore.setKeyEntry("key", clientKey, KEY_STORE_PASSWORD, new Certificate[] {clientCert});
+      final KeyStore trustStore = newKeyStore();
+      for (Certificate caCert : caCerts) {
+        X509Certificate crt = (X509Certificate) caCert;
+        String alias = crt.getSubjectX500Principal()
+                .getName();
+        trustStore.setCertificateEntry(alias, caCert);
+      }
 
-      this.sslContext = SSLContexts.custom()
-          .loadTrustMaterial(trustStore, null)
-          .loadKeyMaterial(keyStore, KEY_STORE_PASSWORD)
-          .build();
+      this.sslContext = builder.sslContextFactory
+          .newSslContext(keyStore, KEY_STORE_PASSWORD, trustStore);
+    } catch (DockerCertificateException e) {
+      throw e;
     } catch (CertificateException
         | IOException
         | NoSuchAlgorithmException
@@ -121,6 +116,46 @@ public class DockerCertificates implements DockerCertificatesStore {
     }
   }
 
+  private KeyStore newKeyStore() throws CertificateException, NoSuchAlgorithmException,
+      IOException, KeyStoreException {
+    final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    keyStore.load(null);
+    return keyStore;
+  }
+
+  private PrivateKey readPrivateKey(Path file) throws IOException, InvalidKeySpecException,
+      NoSuchAlgorithmException, DockerCertificateException {
+    try (BufferedReader reader = Files.newBufferedReader(file, Charset.defaultCharset());
+         PEMParser pemParser = new PEMParser(reader)) {
+
+      final Object readObject = pemParser.readObject();
+
+      if (readObject instanceof PEMKeyPair) {
+        PEMKeyPair clientKeyPair = (PEMKeyPair) readObject;
+        return generatePrivateKey(clientKeyPair.getPrivateKeyInfo());
+      } else if (readObject instanceof PrivateKeyInfo) {
+        return generatePrivateKey((PrivateKeyInfo) readObject);
+      }
+
+      throw new DockerCertificateException("Can not generate private key from file: "
+          + file.toString());
+    }
+  }
+
+  private static PrivateKey generatePrivateKey(PrivateKeyInfo privateKeyInfo) throws IOException,
+          InvalidKeySpecException, NoSuchAlgorithmException {
+    final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
+    final KeyFactory kf = KeyFactory.getInstance("RSA");
+    return kf.generatePrivate(spec);
+  }
+
+  private List<Certificate> readCertificates(Path file) throws CertificateException, IOException {
+    try (InputStream inputStream = Files.newInputStream(file)) {
+      final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+      return new ArrayList<>(cf.generateCertificates(inputStream));
+    }
+  }
+
   public SSLContext sslContext() {
     return this.sslContext;
   }
@@ -129,12 +164,31 @@ public class DockerCertificates implements DockerCertificatesStore {
     return NoopHostnameVerifier.INSTANCE;
   }
 
+  public interface SslContextFactory {
+    SSLContext newSslContext(KeyStore keyStore, char[] keyPassword, KeyStore trustStore)
+        throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
+        KeyManagementException;
+  }
+
+  private static class DefaultSslContextFactory implements SslContextFactory {
+    @Override
+    public SSLContext newSslContext(KeyStore keyStore, char[] keyPassword, KeyStore trustStore)
+        throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException,
+        KeyManagementException {
+      return SSLContexts.custom()
+              .loadTrustMaterial(trustStore, null)
+              .loadKeyMaterial(keyStore, keyPassword)
+              .build();
+    }
+  }
+
   public static Builder builder() {
     return new Builder();
   }
 
   public static class Builder {
 
+    private SslContextFactory sslContextFactory = new DefaultSslContextFactory();
     private Path caCertPath;
     private Path clientKeyPath;
     private Path clientCertPath;
@@ -143,7 +197,6 @@ public class DockerCertificates implements DockerCertificatesStore {
       this.caCertPath = dockerCertPath.resolve(DEFAULT_CA_CERT_NAME);
       this.clientKeyPath = dockerCertPath.resolve(DEFAULT_CLIENT_KEY_NAME);
       this.clientCertPath = dockerCertPath.resolve(DEFAULT_CLIENT_CERT_NAME);
-
       return this;
     }
 
@@ -159,6 +212,11 @@ public class DockerCertificates implements DockerCertificatesStore {
 
     public Builder clientCertPath(final Path clientCertPath) {
       this.clientCertPath = clientCertPath;
+      return this;
+    }
+
+    public Builder sslFactory(final SslContextFactory sslContextFactory) {
+      this.sslContextFactory = sslContextFactory;
       return this;
     }
 
