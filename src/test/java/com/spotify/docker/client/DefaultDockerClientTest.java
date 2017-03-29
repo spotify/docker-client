@@ -503,8 +503,90 @@ public class DefaultDockerClientTest {
     final File imageFile = save(BUSYBOX);
     assertTrue(imageFile.length() > 0);
   }
+  
+  @Test
+  public void testLoad() throws Exception {
+    // Ensure the local Docker instance has the busybox image so that save() will work
+    sut.pull(BUSYBOX_LATEST);
 
-  private File save(final String image) throws Exception {
+    // duplicate busybox with another name
+    final String image1 = BUSYBOX + "test1" + System.nanoTime() + ":latest";
+    final String image2 = BUSYBOX + "test2" + System.nanoTime() + ":latest";
+    try (InputStream imagePayload =
+            new BufferedInputStream(new FileInputStream(save(BUSYBOX_LATEST)))) {
+      sut.create(image1, imagePayload);
+    }
+    try (InputStream imagePayload =
+            new BufferedInputStream(new FileInputStream(save(BUSYBOX_LATEST)))) {
+      sut.create(image2, imagePayload);
+    }
+
+    final File imagesFile = save(image1, image2);
+
+    // Remove image from the local Docker instance to test the load
+    sut.removeImage(image1);
+    sut.removeImage(image2);
+
+    // Try to inspect deleted images and make sure ImageNotFoundException is thrown
+    try {
+      sut.inspectImage(image1);
+      fail("inspectImage should have thrown ImageNotFoundException");
+    } catch (ImageNotFoundException e) {
+      // we should get exception because we deleted image
+    }
+    try {
+      sut.inspectImage(image2);
+      fail("inspectImage should have thrown ImageNotFoundException");
+    } catch (ImageNotFoundException e) {
+      // we should get exception because we deleted image
+    }
+
+    final List<ProgressMessage> messages = new ArrayList<>();
+
+    final Set<String> loadedImages;
+    try (InputStream imageFileInputStream = new FileInputStream(imagesFile)) {
+      loadedImages = sut.load(imageFileInputStream, new ProgressHandler() {
+        @Override
+        public void progress(ProgressMessage message) throws DockerException {
+            messages.add(message);
+        }
+      });
+    }
+
+    if (dockerApiVersionAtLeast("1.24")) {
+      // Verify that both images are loaded
+      assertEquals(loadedImages.size(), 2);
+      assertTrue(loadedImages.contains(image1));
+      assertTrue(loadedImages.contains(image2));
+    }
+
+    if (dockerApiVersionAtLeast("1.23")) {
+      // Verify that we have multiple messages, and each one has a non-null field
+      assertThat(messages, not(empty()));
+      for (final ProgressMessage message : messages) {
+        assertTrue(message.error() != null
+                   || message.id() != null
+                   || message.progress() != null
+                   || message.progressDetail() != null
+                   || message.status() != null
+                   || message.stream() != null);
+      }
+    }
+
+    // Try to inspect created images and make sure ImageNotFoundException is not thrown
+    try {
+      sut.inspectImage(image1);
+      sut.inspectImage(image2);
+    } catch (ImageNotFoundException e) {
+      fail("image not properly loaded in the local Docker instance");
+    }
+
+    // Clean created image
+    sut.removeImage(image1);
+    sut.removeImage(image2);
+  }
+
+  private File save(final String ... images) throws Exception {
     final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
     assertTrue("Temp directory " + tmpDir.getAbsolutePath() + " does not exist", tmpDir.exists());
     final File imageFile = new File(tmpDir, "busybox-" + System.nanoTime() + ".tar");
@@ -514,7 +596,7 @@ public class DefaultDockerClientTest {
     final byte[] buffer = new byte[2048];
     int read;
     try (OutputStream imageOutput = new BufferedOutputStream(new FileOutputStream(imageFile))) {
-      try (InputStream imageInput = sut.save(image)) {
+      try (InputStream imageInput = sut.save(images)) {
         while ((read = imageInput.read(buffer)) > -1) {
           imageOutput.write(buffer, 0, read);
         }
@@ -522,6 +604,7 @@ public class DefaultDockerClientTest {
     }
     return imageFile;
   }
+
 
   @Test
   public void testCreate() throws Exception {

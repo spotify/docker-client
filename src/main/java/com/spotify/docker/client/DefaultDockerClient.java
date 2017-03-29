@@ -52,6 +52,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
@@ -129,12 +130,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
@@ -171,7 +174,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image ID (or image digest in Docker
-   * 1.10+) of an image being loaded. Weirdly enough, Docker returns the ID or digest of a newly
+   * 1.10+) of an image being created. Weirdly enough, Docker returns the ID or digest of a newly
    * created image in the status of a progress message.
    *
    * <p>The image ID/digest is required to tag the just loaded image since,
@@ -179,7 +182,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * support the <code>tag</code> parameter. By retrieving the ID/digest, the image can be tagged
    * with its image name, given its ID/digest.
    */
-  private static class LoadProgressHandler implements ProgressHandler {
+  private static class CreateProgressHandler implements ProgressHandler {
 
     // The length of the image hash
     private static final int EXPECTED_CHARACTER_NUM1 = 64;
@@ -190,13 +193,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     private String imageId;
 
-    private LoadProgressHandler(ProgressHandler delegate) {
+    private CreateProgressHandler(ProgressHandler delegate) {
       this.delegate = delegate;
     }
 
     private String getImageId() {
       Preconditions.checkState(imageId != null,
-                               "Could not acquire image ID or digest following load");
+                               "Could not acquire image ID or digest following create");
       return imageId;
     }
 
@@ -207,6 +210,46 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       if (status != null && (status.length() == EXPECTED_CHARACTER_NUM1
                              || status.length() == EXPECTED_CHARACTER_NUM2)) {
         imageId = message.status();
+      }
+    }
+
+  }
+  
+  /**
+   * Hack: this {@link ProgressHandler} is meant to capture the image names
+   * of an image being loaded. Weirdly enough, Docker returns the name of a newly
+   * created image in the stream of a progress message.
+   *
+   */
+  private static class LoadProgressHandler implements ProgressHandler {
+
+    // The length of the image hash
+    private static final Pattern IMAGE_STREAM_PATTERN =
+        Pattern.compile("Loaded image: (?<image>.+)\n");
+
+    private final ProgressHandler delegate;
+
+    private Set<String> imageNames;
+
+    private LoadProgressHandler(ProgressHandler delegate) {
+      this.delegate = delegate;
+      this.imageNames = new HashSet<>();
+    }
+
+    private Set<String> getImageNames() {
+      return ImmutableSet.copyOf(imageNames);
+    }
+
+    @Override
+    public void progress(ProgressMessage message) throws DockerException {
+      delegate.progress(message);
+      final String stream = message.stream();
+      if (stream != null) {
+        Matcher streamMatcher = IMAGE_STREAM_PATTERN.matcher(stream);
+        if (streamMatcher.matches()) {
+          imageNames.add(streamMatcher.group("image"));
+        }
+        
       }
     }
 
@@ -1056,16 +1099,31 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     create(image, imagePayload, handler);
   }
+  
+  @Override
+  public Set<String> load(final InputStream imagePayload)
+      throws DockerException, InterruptedException {
+    return load(imagePayload, new LoggingLoadHandler());
+  }
 
   @Override
-  public void load(final InputStream imagePayload)
+  public Set<String> load(final InputStream imagePayload, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("images").path("load");
-
+    final WebTarget resource = resource()
+            .path("images")
+            .path("load")
+            .queryParam("quiet", "false");
+    
+    final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-    try {
-      request(POST, ProgressStream.class, resource,
-              resource.request(APPLICATION_JSON_TYPE), entity);
+    
+    try (final ProgressStream load =
+            request(POST, ProgressStream.class, resource,
+                    resource.request(APPLICATION_JSON_TYPE), entity)) {
+      load.tail(loadProgressHandler, POST, resource.getUri());
+      return loadProgressHandler.getImageNames();
+    } catch (IOException e) {
+      throw new DockerException(e);
     } finally {
       IOUtils.closeQuietly(imagePayload);
     }
@@ -1087,14 +1145,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .queryParam("fromSrc", "-")
         .queryParam("tag", image);
 
-    final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
+    final CreateProgressHandler createProgressHandler = new CreateProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload,
                                                      APPLICATION_OCTET_STREAM);
     try (final ProgressStream load =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE), entity)) {
-      load.tail(loadProgressHandler, POST, resource.getUri());
-      tag(loadProgressHandler.getImageId(), image, true);
+      load.tail(createProgressHandler, POST, resource.getUri());
+      tag(createProgressHandler.getImageId(), image, true);
     } catch (IOException e) {
       throw new DockerException(e);
     } finally {

@@ -76,6 +76,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A client for interacting with dockerd.
@@ -325,10 +326,25 @@ public interface DockerClient extends Closeable {
    *
    * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
    *                     file).
+   * @return a set of all loaded images
    * @throws DockerException      if a server error occurred (500).
    * @throws InterruptedException if the thread is interrupted.
    */
-  void load(InputStream imagePayload) throws DockerException, InterruptedException;
+  Set<String> load(InputStream imagePayload) throws DockerException, InterruptedException;
+  
+  /**
+   * Load a set of images and tags from a tarball, using a custom ProgressMessageHandler.
+   *
+   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
+   *                     file).
+   * @param handler      The handler to use for processing each progress message received from
+   *                     Docker.
+   * @return a set of all loaded images
+   * @throws DockerException      if a server error occurred (500).
+   * @throws InterruptedException if the thread is interrupted.
+   */
+  Set<String> load(InputStream imagePayload, ProgressHandler handler)
+          throws DockerException, InterruptedException;
 
   /**
    * Creates a single image from a tarball. This method also tags the image
