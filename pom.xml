@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>docker-client</artifactId>
-  <version>8.3.1</version>
+  <version>8.3.2-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client</description>
@@ -26,7 +26,7 @@
     <connection>scm:git:https://github.com/spotify/docker-client</connection>
     <developerConnection>scm:git:git@github.com:spotify/docker-client</developerConnection>
     <url>https://github.com/spotify/docker-client</url>
-    <tag>v8.3.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>
