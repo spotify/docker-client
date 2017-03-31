@@ -1941,8 +1941,32 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public List<Network> listNetworks() throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("networks");
+  public List<Network> listNetworks(final ListNetworksParam... params)
+      throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("networks");
+
+    final Map<String, List<String>> filters = newHashMap();
+    for (final ListNetworksParam param : params) {
+      if (param instanceof ListNetworksFilterParam) {
+        List<String> filterValueList;
+        if (filters.containsKey(param.name())) {
+          filterValueList = filters.get(param.name());
+        } else {
+          filterValueList = Lists.newArrayList();
+        }
+        filterValueList.add(param.value());
+        filters.put(param.name(), filterValueList);
+      } else {
+        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
+      }
+    }
+
+    if (!filters.isEmpty()) {
+      // If filters were specified, we must put them in a JSON object and pass them using the
+      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
+      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
+      resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    }
     return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 

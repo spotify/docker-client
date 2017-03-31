@@ -22,6 +22,8 @@
 package com.spotify.docker.client;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.spotify.docker.client.messages.Network.Type.BUILTIN;
+import static com.spotify.docker.client.messages.Network.Type.CUSTOM;
 
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
@@ -1461,14 +1463,138 @@ public interface DockerClient extends Closeable {
 
 
   /**
-   * List all networks.
+   * List all or a subset of the networks.
+   * Filters were added in Docker 1.10, API version 1.22.
    *
    * @return networks
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  List<Network> listNetworks() throws DockerException, InterruptedException;
+  List<Network> listNetworks(ListNetworksParam... params)
+      throws DockerException, InterruptedException;
 
+  /**
+   * Parameters for {@link #listNetworks(ListNetworksParam...)}
+   * @since Docker 1.10, API version 1.22
+   */
+  class ListNetworksParam extends Param {
+
+    private ListNetworksParam(final String name, final String value) {
+      super(name, value);
+    }
+    
+    /**
+     * Create a custom filter.
+     * @param name of filter
+     * @param value of filter
+     * @return ListNetworksParam
+     * @since Docker 1.10, API version 1.22
+     */
+    public static ListNetworksParam filter(final String name, final String value) {
+      return new ListNetworksFilterParam(name, value);
+    }
+
+    /**
+     * Filter networks by ID.
+     * @param id Matches all or part of a network ID.
+     * @return The ListNetworksParam for the given ID.
+     * @since Docker 1.10, API version 1.22
+     */
+    public static ListNetworksParam byNetworkId(final String id) {
+      return filter("id", id);
+    }
+
+    /**
+     * Filter networks by name.
+     * @param name Matches all or part of a network name.
+     * @return The ListNetworksParam for the given name.
+     * @since Docker 1.10, API version 1.22
+     */
+    public static ListNetworksParam byNetworkName(final String name) {
+      return filter("name", name);
+    }
+
+    /**
+     * Filter networks by network driver.
+     * @param driver The network driver name.
+     * @return The ListNetworksParam for the given driver.
+     * @since Docker 1.12, API version 1.24
+     */
+    public static ListNetworksParam withNetworkDriver(final String driver) {
+      return filter("driver", driver);
+    }
+
+    /**
+     * Filter networks by network type.
+     * There are two types of networks: those built-in into Docker
+     * and custom networks created by users.
+     * @param type The network type.
+     * @return The ListNetworksParam for the given type.
+     * @see #builtInNetworks()
+     * @see #customNetworks()
+     * @since Docker 1.10, API version 1.22
+     */
+    public static ListNetworksParam withNetworkType(final Network.Type type) {
+      return filter("type", type.toString());
+    }
+
+    /**
+     * Return built-in networks only.
+     * @return The ListNetworksParam for built-in networks.
+     * @see #withNetworkType(com.spotify.docker.client.messages.Network.Type)
+     * @see #customNetworks()
+     * @since Docker 1.10, API version 1.22
+     */
+    public static ListNetworksParam builtInNetworks() {
+      return withNetworkType(BUILTIN);
+    }
+
+    /**
+     * Return user-defined (custom) networks only.
+     * @return The ListNetworksParam for user-defined networks.
+     * @see #withNetworkType(com.spotify.docker.client.messages.Network.Type)
+     * @see #builtInNetworks()
+     * @since Docker 1.10, API version 1.22
+     */
+    public static ListNetworksParam customNetworks() {
+      return withNetworkType(CUSTOM);
+    }
+
+    /**
+     * Return networks with a label value.
+     * @param label The label to filter on
+     * @param value The value of the label
+     * @return ListNetworksParam
+     * @since Docker 1.12, API version 1.24
+     */
+    public static ListNetworksParam withNetworkLabel(String label, String value) {
+      return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
+    }
+
+    /**
+     * Return networks with a label.
+     * @param label The label to filter on
+     * @return ListNetworksParam
+     * @since Docker 1.12, API version 1.24
+     */
+    public static ListNetworksParam withNetworkLabel(String label) {
+      return withNetworkLabel(label, null);
+    }
+  }
+  
+  /**
+   * Filter parameter for {@link #listNetworks(ListNetworksParam...)}.
+   * This should be used by ListNetworksParam only.
+   * @since Docker 1.10, API version 1.22
+   */
+  class ListNetworksFilterParam extends ListNetworksParam {
+    
+    private ListNetworksFilterParam(String name, String value) {
+      super(name, value);
+    }
+    
+  }
+  
   /**
    * Inspect a specific network.
    *

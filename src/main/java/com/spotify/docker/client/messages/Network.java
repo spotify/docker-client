@@ -29,6 +29,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import com.google.common.collect.ImmutableMap;
+
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -115,6 +117,21 @@ public abstract class Network {
         @JsonProperty("IPv4Address") final String ipv4Address,
         @JsonProperty("IPv6Address") final String ipv6Address) {
       return new AutoValue_Network_Container(endpointId, macAddress, ipv4Address, ipv6Address);
+    }
+  }
+  
+  /**
+   * Docker networks come in two kinds: built-in or custom. 
+   */
+  public enum Type {
+    /** Predefined networks that are built-in into Docker. */
+    BUILTIN,
+    /** Custom networks created by users. */
+    CUSTOM;
+    
+    @Override
+    public String toString() {
+      return name().toLowerCase(Locale.ENGLISH);
     }
   }
 }

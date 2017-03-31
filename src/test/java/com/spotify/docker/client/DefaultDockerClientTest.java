@@ -53,6 +53,7 @@ import static com.spotify.docker.client.messages.Event.Type.CONTAINER;
 import static com.spotify.docker.client.messages.Event.Type.IMAGE;
 import static com.spotify.docker.client.messages.Event.Type.NETWORK;
 import static com.spotify.docker.client.messages.Event.Type.VOLUME;
+import static com.spotify.docker.client.messages.Network.Type.BUILTIN;
 import static com.spotify.docker.client.messages.RemovedImage.Type.UNTAGGED;
 import static com.spotify.docker.client.messages.swarm.PortConfig.PROTOCOL_TCP;
 import static com.spotify.docker.client.messages.swarm.RestartPolicy.RESTART_POLICY_ANY;
@@ -121,6 +122,7 @@ import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.EventsParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
+import com.spotify.docker.client.DockerClient.ListNetworksParam;
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
@@ -3614,6 +3616,90 @@ public class DefaultDockerClientTest {
     exception.expect(NetworkNotFoundException.class);
     sut.inspectNetwork(network.id());
 
+  }
+  
+  @Test
+  public void testFilterNetworks() throws Exception {
+    requireDockerApiVersionAtLeast("1.22", "networks");
+
+    final NetworkConfig network1Config = NetworkConfig.builder().checkDuplicate(true)
+        .name(randomName()).labels(ImmutableMap.of("is-test", "true")).build();
+    final NetworkConfig network2Config = NetworkConfig.builder().checkDuplicate(true)
+        .name(randomName()).labels(ImmutableMap.of("is-test", "")).build();
+    final Network network1 = createNetwork(network1Config);
+    final Network network2 = createNetwork(network2Config);
+    final Network hostNetwork = getHostNetwork();
+    
+    List<Network> networks;
+    
+    // filter by id
+    networks = sut.listNetworks(ListNetworksParam.byNetworkId(network1.id()));
+    assertThat(networks, hasItem(network1));
+    assertThat(networks, not(hasItem(network2)));
+    
+    // filter by name
+    networks = sut.listNetworks(ListNetworksParam.byNetworkName(network1.name()));
+    assertThat(networks, hasItem(network1));
+    assertThat(networks, not(hasItem(network2)));
+    
+    // filter by type
+    networks = sut.listNetworks(ListNetworksParam.withNetworkType(BUILTIN));
+    assertThat(networks, hasItem(hostNetwork));
+    assertThat(networks, not(hasItems(network1, network2)));
+    
+    networks = sut.listNetworks(ListNetworksParam.builtInNetworks());
+    assertThat(networks, hasItem(hostNetwork));
+    assertThat(networks, not(hasItems(network1, network2)));
+    
+    networks = sut.listNetworks(ListNetworksParam.customNetworks());
+    assertThat(networks, not(hasItem(hostNetwork)));
+    assertThat(networks, hasItems(network1, network2));
+    
+    // filter by driver
+    if (dockerApiVersionAtLeast("1.24")) {
+      networks = sut.listNetworks(ListNetworksParam.withNetworkDriver("bridge"));
+      assertThat(networks, not(hasItem(hostNetwork)));
+      assertThat(networks, hasItems(network1, network2));
+      
+      networks = sut.listNetworks(ListNetworksParam.withNetworkDriver("host"));
+      assertThat(networks, hasItem(hostNetwork));
+      assertThat(networks, not(hasItems(network1, network2)));
+    }
+    
+    // filter by label
+    if (dockerApiVersionAtLeast("1.24")) {
+      networks = sut.listNetworks(ListNetworksParam.withNetworkLabel("is-test"));
+      assertThat(networks, not(hasItem(hostNetwork)));
+      assertThat(networks, hasItems(network1, network2));
+      
+      networks = sut.listNetworks(ListNetworksParam.withNetworkLabel("is-test", "true"));
+      assertThat(networks, hasItem(network1));
+      assertThat(networks, not(hasItem(network2)));
+      
+      networks = sut.listNetworks(ListNetworksParam.withNetworkLabel("is-test", "false"));
+      assertThat(networks, not(hasItems(network1, network2)));
+    }
+    
+    sut.removeNetwork(network1.id());
+    sut.removeNetwork(network2.id());
+  }
+
+  private Network createNetwork(final NetworkConfig networkConfig)
+      throws DockerException, InterruptedException {
+    final NetworkCreation networkCreation = sut.createNetwork(networkConfig);
+    assertThat(networkCreation.id(), is(notNullValue()));
+    assertThat(networkCreation.warnings(), is(nullValue()));
+    return sut.inspectNetwork(networkCreation.id());
+  }
+
+  private Network getHostNetwork() throws DockerException, InterruptedException {
+    final List<Network> networks = sut.listNetworks();
+    for (final Network network : networks) {
+      if (network.driver().equals("host")) {
+        return network;
+      }
+    }
+    throw new AssertionError("could not find host network");
   }
 
   @Test
