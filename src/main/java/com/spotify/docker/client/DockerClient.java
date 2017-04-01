@@ -689,6 +689,14 @@ public interface DockerClient extends Closeable {
       return Objects.hash(name, value);
     }
   }
+  
+  /**
+   * Marker interface to designate a parameter as a filter parameter.
+   * Filter parameters receive special treatment during serialization:
+   * They are all rendered into the special 'filter' query parameter.
+   */
+  interface FilterParam {
+  }
 
   /**
    * Flags which can be passed to the <code>build</code> method.
@@ -1587,7 +1595,7 @@ public interface DockerClient extends Closeable {
    * This should be used by ListNetworksParam only.
    * @since Docker 1.10, API version 1.22
    */
-  class ListNetworksFilterParam extends ListNetworksParam {
+  class ListNetworksFilterParam extends ListNetworksParam implements FilterParam {
     
     private ListNetworksFilterParam(String name, String value) {
       super(name, value);
@@ -2148,7 +2156,7 @@ public interface DockerClient extends Closeable {
     }
   }
 
-  class ListContainersFilterParam extends ListContainersParam {
+  class ListContainersFilterParam extends ListContainersParam implements FilterParam {
 
     public ListContainersFilterParam(String name, String value) {
       super(name, value);
@@ -2270,7 +2278,7 @@ public interface DockerClient extends Closeable {
    * Filter parameter for {@link #listImages(ListImagesParam...)}. This should be used by
    * ListImagesParam only.
    */
-  class ListImagesFilterParam extends ListImagesParam {
+  class ListImagesFilterParam extends ListImagesParam implements FilterParam {
 
     public ListImagesFilterParam(String name, String value) {
       super(name, value);
@@ -2579,7 +2587,7 @@ public interface DockerClient extends Closeable {
    * ListVolumesParam only.
    * @since Docker 1.9, API version 1.21
    */
-  class ListVolumesFilterParam extends ListVolumesParam {
+  class ListVolumesFilterParam extends ListVolumesParam implements FilterParam {
     public ListVolumesFilterParam(String name, String value) {
       super(name, value);
     }

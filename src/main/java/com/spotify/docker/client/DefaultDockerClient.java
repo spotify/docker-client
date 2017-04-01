@@ -498,10 +498,25 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     WebTarget resource = resource()
         .path("containers").path("json");
+    resource = addParameters(resource, params);
 
+    try {
+      return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource), e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  private WebTarget addParameters(WebTarget resource, final Param... params)
+      throws DockerException {
     final Map<String, List<String>> filters = newHashMap();
-    for (final ListContainersParam param : params) {
-      if (param instanceof ListContainersFilterParam) {
+    for (final Param param : params) {
+      if (param instanceof FilterParam) {
         List<String> filterValueList;
         if (filters.containsKey(param.name())) {
           filterValueList = filters.get(param.name());
@@ -521,17 +536,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       // urlEncodeFilters will return null and queryParam() will remove that query parameter.
       resource = resource.queryParam("filters", urlEncodeFilters(filters));
     }
-
-    try {
-      return request(GET, CONTAINER_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 400:
-          throw new BadParamException(getQueryParamMap(resource), e);
-        default:
-          throw e;
-      }
-    }
+    return resource;
   }
 
   private Map<String, String> getQueryParamMap(final WebTarget resource) {
@@ -585,30 +590,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     WebTarget resource = resource()
         .path("images").path("json");
-
-    final Map<String, List<String>> filters = newHashMap();
-    for (final ListImagesParam param : params) {
-      if (param instanceof ListImagesFilterParam) {
-        final List<String> filterValueList;
-        if (filters.containsKey(param.name())) {
-          filterValueList = filters.get(param.name());
-        } else {
-          filterValueList = Lists.newArrayList();
-        }
-        filterValueList.add(param.value());
-        filters.put(param.name(), filterValueList);
-      } else {
-        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
-      }
-    }
-
-    if (!filters.isEmpty()) {
-      // If filters were specified, we must put them in a JSON object and pass them using the
-      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
-      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
-      resource = resource.queryParam("filters", urlEncodeFilters(filters));
-    }
-
+    resource = addParameters(resource, params);
     return request(GET, IMAGE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
@@ -1944,32 +1926,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public List<Network> listNetworks(final ListNetworksParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = resource().path("networks");
-
-    final Map<String, List<String>> filters = newHashMap();
-    for (final ListNetworksParam param : params) {
-      if (param instanceof ListNetworksFilterParam) {
-        List<String> filterValueList;
-        if (filters.containsKey(param.name())) {
-          filterValueList = filters.get(param.name());
-        } else {
-          filterValueList = Lists.newArrayList();
-        }
-        filterValueList.add(param.value());
-        filters.put(param.name(), filterValueList);
-      } else {
-        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
-      }
-    }
-
-    if (!filters.isEmpty()) {
-      // If filters were specified, we must put them in a JSON object and pass them using the
-      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
-      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
-      resource = resource.queryParam("filters", urlEncodeFilters(filters));
-    }
+    resource = addParameters(resource, params);
     return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-
+  
   @Override
   public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path(networkId);
@@ -2130,30 +2090,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public VolumeList listVolumes(ListVolumesParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = resource().path("volumes");
-
-    final Map<String, List<String>> filters = newHashMap();
-    for (final ListVolumesParam param : params) {
-      if (param instanceof ListVolumesFilterParam) {
-        List<String> filterValueList;
-        if (filters.containsKey(param.name())) {
-          filterValueList = filters.get(param.name());
-        } else {
-          filterValueList = Lists.newArrayList();
-        }
-        filterValueList.add(param.value());
-        filters.put(param.name(), filterValueList);
-      } else {
-        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
-      }
-    }
-
-    if (!filters.isEmpty()) {
-      // If filters were specified, we must put them in a JSON object and pass them using the
-      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
-      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
-      resource = resource.queryParam("filters", urlEncodeFilters(filters));
-    }
-
+    resource = addParameters(resource, params);
     return request(GET, VolumeList.class, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
