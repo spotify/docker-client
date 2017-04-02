@@ -1486,29 +1486,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public EventStream events(EventsParam... params)
       throws DockerException, InterruptedException {
     WebTarget resource = noTimeoutResource().path("events");
-
-    final Map<String, List<String>> filters = newHashMap();
-    for (final EventsParam param : params) {
-      if (param instanceof EventsFilterParam) {
-        final List<String> filterValueList;
-        if (filters.containsKey(param.name())) {
-          filterValueList = filters.get(param.name());
-        } else {
-          filterValueList = Lists.newArrayList();
-        }
-        filterValueList.add(param.value());
-        filters.put(param.name(), filterValueList);
-      } else {
-        resource = resource.queryParam(urlEncode(param.name()), urlEncode(param.value()));
-      }
-    }
-
-    if (!filters.isEmpty()) {
-      // If filters were specified, we must put them in a JSON object and pass them using the
-      // 'filters' query param like this: filters={"dangling":["true"]}. If filters is an empty map,
-      // urlEncodeFilters will return null and queryParam() will remove that query parameter.
-      resource = resource.queryParam("filters", urlEncodeFilters(filters));
-    }
+    resource = addParameters(resource, params);
 
     try {
       final CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider

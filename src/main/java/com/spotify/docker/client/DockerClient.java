@@ -2288,32 +2288,10 @@ public interface DockerClient extends Closeable {
   /**
    * Parameters for {@link #events(EventsParam...)}
    */
-  class EventsParam {
-
-    private final String name;
-    private final String value;
+  class EventsParam extends Param {
 
     private EventsParam(final String name, final String value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    /**
-     * Parameter name.
-     *
-     * @return The name
-     */
-    public String name() {
-      return name;
-    }
-
-    /**
-     * Parameter value.
-     *
-     * @return The value
-     */
-    public String value() {
-      return value;
+      super(name, value);
     }
 
     /**
@@ -2459,7 +2437,7 @@ public interface DockerClient extends Closeable {
   /**
    * Filter parameter for {@link #events(EventsParam...)}. This should be used by EventsParam only.
    */
-  class EventsFilterParam extends EventsParam {
+  class EventsFilterParam extends EventsParam implements FilterParam {
 
     public EventsFilterParam(String name, String value) {
       super(name, value);
