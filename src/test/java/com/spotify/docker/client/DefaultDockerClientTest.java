@@ -2646,23 +2646,23 @@ public class DefaultDockerClientTest {
 
     sut.pull(BUSYBOX_LATEST);
 
-    sut.createVolume(Volume.builder().name("avolume").build());
-    sut.createVolume(Volume.builder().name("avolume2").build());
+    final String aVolumeName = "avolume";
+    final String aVolumeTo = "/some/path";
+    final String nocopyVolumeName = "avolume2";
+    final String nocopyVolumeTo = "/some/other/path";
 
-    final Bind bind1 =
-        Bind.from("avolume")
-            .to("/some/other/path")
-            .readOnly(true)
-            .build();
-
-    final Bind bind2 =
-        Bind.from("avolume2")
-            .to("/some/other/path2")
-            .noCopy(true)
-            .build();
+    sut.createVolume(Volume.builder().name(aVolumeName).build());
+    sut.createVolume(Volume.builder().name(nocopyVolumeName).build());
 
     final HostConfig hostConfig = HostConfig.builder()
-        .appendBinds(bind1, bind2)
+        .appendBinds(Bind.from(aVolumeName)
+                .to(aVolumeTo)
+                .readOnly(true)
+                .build())
+        .appendBinds(Bind.from(nocopyVolumeName)
+                .to(nocopyVolumeTo)
+                .noCopy(true)
+                .build())
         .build();
 
     final ContainerConfig config = ContainerConfig.builder()
@@ -2677,25 +2677,33 @@ public class DefaultDockerClientTest {
 
     assertThat(mounts.size(), equalTo(2));
 
-    assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
-      @Override
-      public boolean apply(ContainerMount mount) {
-        return mount.source().contains("/avolume/")
-               && "/some/other/path".equals(mount.destination())
-               && !mount.rw();
-      }
-    }, null), notNullValue());
+    {
+      final ContainerMount aMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
+        @Override
+        public boolean apply(ContainerMount mount) {
+          return !("nocopy".equals(mount.mode()));
+        }
+      }, null);
+      assertThat("Could not find a mount (without nocopy)", aMount, notNullValue());
+      assertThat(aMount.mode(), is(equalTo("ro")));
+      assertThat(aMount.rw(), is(false));
+      assertThat(aMount.source(), containsString("/" + aVolumeName + "/"));
+      assertThat(aMount.destination(), is(equalTo(aVolumeTo)));
+    }
 
-    assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
-      @Override
-      public boolean apply(ContainerMount mount) {
-        return mount.source().contains("/avolume2/")
-               && "/some/other/path2".equals(mount.destination())
-               && mount.rw()
-               && "nocopy".equals(mount.mode());
-      }
-    }, null), notNullValue());
-
+    {
+      final ContainerMount nocopyMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
+        @Override
+        public boolean apply(ContainerMount mount) {
+          return "nocopy".equals(mount.mode());
+        }
+      }, null);
+      assertThat("Could not find mount (with nocopy)", nocopyMount, notNullValue());
+      assertThat(nocopyMount.mode(), is(equalTo("nocopy")));
+      assertThat(nocopyMount.rw(), is(true));
+      assertThat(nocopyMount.source(), containsString("/" + nocopyVolumeName + "/"));
+      assertThat(nocopyMount.destination(), is(equalTo(nocopyVolumeTo)));
+    }
   }
 
   @Test
