@@ -2754,12 +2754,13 @@ public class DefaultDockerClientTest {
     assertThat(mounts.size(), equalTo(4));
 
     {
-      final ContainerMount bindObjectMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
-        @Override
-        public boolean apply(ContainerMount mount) {
-          return bindObjectFrom.equals(mount.source());
-        }
-      }, null);
+      final ContainerMount bindObjectMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return bindObjectFrom.equals(mount.source());
+                }
+              }, null);
       assertThat("Did not find mount from bind object", bindObjectMount, notNullValue());
       assertThat(bindObjectMount.source(), is(bindObjectFrom));
       assertThat(bindObjectMount.destination(), is(bindObjectTo));
@@ -2783,12 +2784,13 @@ public class DefaultDockerClientTest {
     }
 
     {
-      final ContainerMount bindStringMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
-        @Override
-        public boolean apply(ContainerMount mount) {
-          return bindStringFrom.equals(mount.source());
-        }
-      }, null);
+      final ContainerMount bindStringMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return bindStringFrom.equals(mount.source());
+                }
+              }, null);
       assertThat("Did not find mount from bind string", bindStringMount, notNullValue());
       assertThat(bindStringMount.source(), is(equalTo(bindStringFrom)));
       assertThat(bindStringMount.destination(), is(equalTo(bindStringTo)));
@@ -2812,12 +2814,13 @@ public class DefaultDockerClientTest {
     }
 
     {
-      final ContainerMount namedVolumeMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
-        @Override
-        public boolean apply(ContainerMount mount) {
-          return namedVolumeTo.equals(mount.destination());
-        }
-      }, null);
+      final ContainerMount namedVolumeMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return namedVolumeTo.equals(mount.destination());
+                }
+              }, null);
       assertThat("Did not find mount from named volume", namedVolumeMount, notNullValue());
       assertThat(namedVolumeMount.name(), is(equalTo(namedVolumeName)));
       assertThat(namedVolumeMount.source(), containsString("/" + namedVolumeName + "/"));
@@ -2842,12 +2845,13 @@ public class DefaultDockerClientTest {
     }
 
     {
-      final ContainerMount anonVolumeMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
-        @Override
-        public boolean apply(ContainerMount mount) {
-          return anonVolumeTo.equals(mount.destination());
-        }
-      }, null);
+      final ContainerMount anonVolumeMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return anonVolumeTo.equals(mount.destination());
+                }
+              }, null);
       assertThat("Did not find mount from anonymous volume", anonVolumeMount, notNullValue());
       assertThat(anonVolumeMount.source(), containsString("/" + anonVolumeMount.name() + "/"));
       assertThat(anonVolumeMount.destination(), is(equalTo(anonVolumeTo)));

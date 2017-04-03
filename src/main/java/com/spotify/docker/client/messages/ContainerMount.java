@@ -73,6 +73,7 @@ public abstract class ContainerMount {
       @JsonProperty("Mode") final String mode,
       @JsonProperty("RW") final Boolean rw,
       @JsonProperty("Propagation") final String propagation) {
-    return new AutoValue_ContainerMount(type, name, source, destination, driver, mode, rw, propagation);
+    return new AutoValue_ContainerMount(type, name, source, destination,
+            driver, mode, rw, propagation);
   }
 }
