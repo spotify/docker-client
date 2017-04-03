@@ -265,6 +265,27 @@ class CompressedDirectory implements Closeable {
     }
 
     @Override
+    public FileVisitResult preVisitDirectory(Path dir,
+                                             BasicFileAttributes attrs) throws IOException {
+      if (Files.isSameFile(dir, root)) {
+        return FileVisitResult.CONTINUE;
+      }
+
+      final Path relativePath = root.relativize(dir);
+
+      if (exclude(ignoreMatchers, relativePath)) {
+        return FileVisitResult.CONTINUE;
+      }
+
+      final TarArchiveEntry entry = new TarArchiveEntry(dir.toFile());
+      entry.setName(relativePath.toString());
+      entry.setMode(getFileMode(dir));
+      tarStream.putArchiveEntry(entry);
+      tarStream.closeArchiveEntry();
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
       final Path relativePath = root.relativize(file);
