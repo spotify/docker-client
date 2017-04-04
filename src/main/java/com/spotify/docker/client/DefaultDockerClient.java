@@ -275,6 +275,38 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   }
 
+  
+  /**
+   * Hack: this {@link ProgressHandler} is meant to capture the image ID
+   * of an image being built.
+   */
+  private static class BuildProgressHandler implements ProgressHandler {
+
+    private final ProgressHandler delegate;
+
+    private String imageId;
+
+    private BuildProgressHandler(ProgressHandler delegate) {
+      this.delegate = delegate;
+    }
+
+    private String getImageId() {
+      Preconditions.checkState(imageId != null,
+                               "Could not acquire image ID or digest following build");
+      return imageId;
+    }
+
+    @Override
+    public void progress(ProgressMessage message) throws DockerException {
+      delegate.progress(message);
+      
+      final String id = message.buildImageId();
+      if (id != null) {
+        imageId = id;
+      }
+    }
+
+  }
   // ==========================================================================
 
   private static final String UNIX_SCHEME = "unix";
@@ -1424,6 +1456,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     // Convert auth to X-Registry-Config format
     final RegistryConfigs registryConfigs = registryAuthSupplier.authForBuild();
 
+    final BuildProgressHandler buildHandler = new BuildProgressHandler(handler);
+
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
          final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
          final ProgressStream build =
@@ -1433,17 +1467,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                  authRegistryHeader(registryConfigs)),
                      Entity.entity(fileStream, "application/tar"))) {
 
-      String imageId = null;
-      while (build.hasNextMessage(POST, resource.getUri())) {
-        final ProgressMessage message = build.nextMessage(POST, resource.getUri());
-        final String id = message.buildImageId();
-        if (id != null) {
-          imageId = id;
-        }
-        handler.progress(message);
-      }
-      return imageId;
+      build.tail(buildHandler, POST, resource.getUri());
+    } catch (IOException e) {
+      throw new DockerException(e);
     }
+    return buildHandler.getImageId();
   }
 
   @Override
