@@ -446,6 +446,52 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
   }
 
+  @SuppressWarnings("emptyCatchBlock")
+  @Test
+  public void testPullInterruption() throws Exception {
+    // Wait for container on a thread
+    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    final SettableFuture<Boolean> started = SettableFuture.create();
+    final SettableFuture<Boolean> interrupted = SettableFuture.create();
+
+    final Future<?> exitFuture = executorService.submit(new Callable<ContainerExit>() {
+      @Override
+      public ContainerExit call() throws Exception {
+        try {
+          try {
+            sut.removeImage(BUSYBOX_BUILDROOT_2013_08_1);
+          } catch (DockerException ignored) {
+          }
+          sut.pull(BUSYBOX_BUILDROOT_2013_08_1, new ProgressHandler() {
+            @Override
+            public void progress(ProgressMessage message) throws DockerException {
+              if (!started.isDone()) {
+                started.set(true);
+              }
+            }
+          });
+          return null;
+        } catch (InterruptedException e) {
+          interrupted.set(true);
+          throw e;
+        }
+      }
+    });
+
+    // Interrupt waiting thread
+    started.get();
+    executorService.shutdownNow();
+    try {
+      exitFuture.get();
+      fail();
+    } catch (ExecutionException e) {
+      assertThat(e.getCause(), instanceOf(InterruptedException.class));
+    }
+
+    // Verify that the thread was interrupted
+    assertThat(interrupted.get(), is(true));
+  }
+
   @Test(expected = ImageNotFoundException.class)
   public void testPullBadImage() throws Exception {
     // The Docker daemon on CircleCI won't throw ImageNotFoundException for some reason...
@@ -996,6 +1042,62 @@ public class DefaultDockerClientTest {
     final ImageInfo info = sut.inspectImage(imageName);
     final String expectedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
     assertThat(info.id(), startsWith(expectedId));
+  }
+
+  @SuppressWarnings("emptyCatchBlock")
+  @Test
+  public void testBuildInterruption() throws Exception {
+    // Wait for container on a thread
+    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    final SettableFuture<Boolean> started = SettableFuture.create();
+    final SettableFuture<Boolean> interrupted = SettableFuture.create();
+
+    final String imageName = "test-build-name";
+    
+    final Future<?> buildFuture = executorService.submit(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        try {
+          try {
+            sut.removeImage(imageName);
+          } catch (DockerException ignored) {
+          }
+          final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+          
+          sut.build(Paths.get(dockerDirectory), imageName, new ProgressHandler() {
+            @Override
+            public void progress(ProgressMessage message) throws DockerException {
+              if (!started.isDone()) {
+                started.set(true);
+              }
+            }
+          });
+        } catch (InterruptedException e) {
+          interrupted.set(true);
+          throw e;
+        }
+        return null;
+      }
+    });
+
+    // Interrupt waiting thread
+    started.get();
+    executorService.shutdownNow();
+    try {
+      buildFuture.get();
+      fail();
+    } catch (ExecutionException e) {
+      assertThat(e.getCause(), instanceOf(InterruptedException.class));
+    }
+
+    try {
+      sut.inspectImage(imageName);
+      fail();
+    } catch (ImageNotFoundException e) {
+    }
+    
+    // Verify that the thread was interrupted
+    assertThat(interrupted.get(), is(true));
   }
 
   @Test
