@@ -26,11 +26,11 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.auto.value.AutoValue;
 
 import com.google.common.collect.ImmutableMap;
 
-import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -125,13 +125,20 @@ public abstract class Network {
    */
   public enum Type {
     /** Predefined networks that are built-in into Docker. */
-    BUILTIN,
-    /** Custom networks created by users. */
-    CUSTOM;
+    BUILTIN("builtin"),
+    /** Custom networks that were created by users. */
+    CUSTOM("custom");
     
-    @Override
-    public String toString() {
-      return name().toLowerCase(Locale.ENGLISH);
+    private final String name;
+
+    @JsonCreator
+    Type(final String name) {
+      this.name = name;
+    }
+
+    @JsonValue
+    public String getName() {
+      return name;
     }
   }
 }

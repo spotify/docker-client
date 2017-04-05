@@ -3643,7 +3643,7 @@ public class DefaultDockerClientTest {
     assertThat(networks, not(hasItem(network2)));
     
     // filter by type
-    networks = sut.listNetworks(ListNetworksParam.withNetworkType(BUILTIN));
+    networks = sut.listNetworks(ListNetworksParam.withType(BUILTIN));
     assertThat(networks, hasItem(hostNetwork));
     assertThat(networks, not(hasItems(network1, network2)));
     
@@ -3657,26 +3657,26 @@ public class DefaultDockerClientTest {
     
     // filter by driver
     if (dockerApiVersionAtLeast("1.24")) {
-      networks = sut.listNetworks(ListNetworksParam.withNetworkDriver("bridge"));
+      networks = sut.listNetworks(ListNetworksParam.withDriver("bridge"));
       assertThat(networks, not(hasItem(hostNetwork)));
       assertThat(networks, hasItems(network1, network2));
       
-      networks = sut.listNetworks(ListNetworksParam.withNetworkDriver("host"));
+      networks = sut.listNetworks(ListNetworksParam.withDriver("host"));
       assertThat(networks, hasItem(hostNetwork));
       assertThat(networks, not(hasItems(network1, network2)));
     }
     
     // filter by label
     if (dockerApiVersionAtLeast("1.24")) {
-      networks = sut.listNetworks(ListNetworksParam.withNetworkLabel("is-test"));
+      networks = sut.listNetworks(ListNetworksParam.withLabel("is-test"));
       assertThat(networks, not(hasItem(hostNetwork)));
       assertThat(networks, hasItems(network1, network2));
       
-      networks = sut.listNetworks(ListNetworksParam.withNetworkLabel("is-test", "true"));
+      networks = sut.listNetworks(ListNetworksParam.withLabel("is-test", "true"));
       assertThat(networks, hasItem(network1));
       assertThat(networks, not(hasItem(network2)));
       
-      networks = sut.listNetworks(ListNetworksParam.withNetworkLabel("is-test", "false"));
+      networks = sut.listNetworks(ListNetworksParam.withLabel("is-test", "false"));
       assertThat(networks, not(hasItems(network1, network2)));
     }
     

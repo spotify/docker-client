@@ -1528,7 +1528,7 @@ public interface DockerClient extends Closeable {
      * @return The ListNetworksParam for the given driver.
      * @since Docker 1.12, API version 1.24
      */
-    public static ListNetworksParam withNetworkDriver(final String driver) {
+    public static ListNetworksParam withDriver(final String driver) {
       return filter("driver", driver);
     }
 
@@ -1542,30 +1542,30 @@ public interface DockerClient extends Closeable {
      * @see #customNetworks()
      * @since Docker 1.10, API version 1.22
      */
-    public static ListNetworksParam withNetworkType(final Network.Type type) {
-      return filter("type", type.toString());
+    public static ListNetworksParam withType(final Network.Type type) {
+      return filter("type", type.getName());
     }
 
     /**
      * Return built-in networks only.
      * @return The ListNetworksParam for built-in networks.
-     * @see #withNetworkType(com.spotify.docker.client.messages.Network.Type)
+     * @see #withType(com.spotify.docker.client.messages.Network.Type)
      * @see #customNetworks()
      * @since Docker 1.10, API version 1.22
      */
     public static ListNetworksParam builtInNetworks() {
-      return withNetworkType(BUILTIN);
+      return withType(BUILTIN);
     }
 
     /**
      * Return user-defined (custom) networks only.
      * @return The ListNetworksParam for user-defined networks.
-     * @see #withNetworkType(com.spotify.docker.client.messages.Network.Type)
+     * @see #withType(com.spotify.docker.client.messages.Network.Type)
      * @see #builtInNetworks()
      * @since Docker 1.10, API version 1.22
      */
     public static ListNetworksParam customNetworks() {
-      return withNetworkType(CUSTOM);
+      return withType(CUSTOM);
     }
 
     /**
@@ -1575,7 +1575,7 @@ public interface DockerClient extends Closeable {
      * @return ListNetworksParam
      * @since Docker 1.12, API version 1.24
      */
-    public static ListNetworksParam withNetworkLabel(String label, String value) {
+    public static ListNetworksParam withLabel(String label, String value) {
       return isNullOrEmpty(value) ? filter("label", label) : filter("label", label + "=" + value);
     }
 
@@ -1585,8 +1585,8 @@ public interface DockerClient extends Closeable {
      * @return ListNetworksParam
      * @since Docker 1.12, API version 1.24
      */
-    public static ListNetworksParam withNetworkLabel(String label) {
-      return withNetworkLabel(label, null);
+    public static ListNetworksParam withLabel(String label) {
+      return withLabel(label, null);
     }
   }
   
