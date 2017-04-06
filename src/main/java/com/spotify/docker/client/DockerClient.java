@@ -62,6 +62,7 @@ import com.spotify.docker.client.messages.TopResults;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.Secret;
 import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
 import com.spotify.docker.client.messages.swarm.SecretSpec;
@@ -2458,4 +2459,14 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
+  
+  /**
+   * List swarm nodes.
+   *
+   * @return A list of nodes.
+   * 
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  List<Node> listNodes() throws DockerException, InterruptedException;
 }
