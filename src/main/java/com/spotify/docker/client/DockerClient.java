@@ -1009,13 +1009,13 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  void killContainer(final String containerId, final TerminationSignals signal)
+  void killContainer(final String containerId, final TerminationSignal signal)
       throws DockerException, InterruptedException;
 
   /**
-   * Supported parameters for {@link #killContainer(String, TerminationSignals)}).
+   * Supported parameters for {@link #killContainer(String, TerminationSignal)}).
    */
-  enum TerminationSignals {
+  enum TerminationSignal {
     SIGINT("SIGINT"),
     SIGQUIT("SIGQUIT"),
     SIGTERM("SIGTERM"),
@@ -1024,7 +1024,7 @@ public interface DockerClient extends Closeable {
 
     private final String name;
 
-    TerminationSignals(String name) {
+    TerminationSignal(String name) {
       this.name = name;
     }
 

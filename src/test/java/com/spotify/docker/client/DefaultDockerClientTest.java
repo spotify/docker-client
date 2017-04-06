@@ -1422,7 +1422,7 @@ public class DefaultDockerClientTest {
     final Integer originalPid = tempContainerInfo.state().pid();
 
     // kill with SIGKILL
-    sut.killContainer(containerId, DockerClient.TerminationSignals.SIGKILL);
+    sut.killContainer(containerId, DockerClient.TerminationSignal.SIGKILL);
 
     // Should not be running
     {
@@ -3160,7 +3160,7 @@ public class DefaultDockerClientTest {
 
   @Test(expected = ContainerNotFoundException.class)
   public void testKillBadContainerWithSignal() throws Exception {
-    sut.killContainer(randomName(), DockerClient.TerminationSignals.SIGKILL);
+    sut.killContainer(randomName(), DockerClient.TerminationSignal.SIGKILL);
   }
 
   @Test(expected = ContainerNotFoundException.class)
