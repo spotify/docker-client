@@ -990,9 +990,7 @@ public interface DockerClient extends Closeable {
 
   /**
    * Kill a docker container.
-   * Note: This implementation deviates from the Docker Remote API. The
-   * latter accepts the kill signal as an argument. This implementation does
-   * not accept the signal argument; instead, the default SIGKILL is sent.
+   * Note: by default SIGKILL is sent.
    *
    * @param containerId The id of the container to kill.
    * @throws ContainerNotFoundException
@@ -1001,6 +999,39 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void killContainer(String containerId) throws DockerException, InterruptedException;
+
+  /**
+   * Kill a docker container.
+   * @param containerId The id of the container to kill.
+   * @param signal Signal used to kill the process.
+   * @throws ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void killContainer(final String containerId, final TerminationSignals signal)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Supported parameters for {@link #killContainer(String, TerminationSignals)}).
+   */
+  enum TerminationSignals {
+    SIGINT("SIGINT"),
+    SIGQUIT("SIGQUIT"),
+    SIGTERM("SIGTERM"),
+    SIGKILL("SIGKILL"),
+    SIGSTOP("SIGSTOP");
+
+    private final String name;
+
+    TerminationSignals(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
+  }
 
   /**
    * Remove a docker container.

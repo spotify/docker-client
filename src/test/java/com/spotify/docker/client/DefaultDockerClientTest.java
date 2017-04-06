@@ -1366,6 +1366,72 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testKillContainer() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            // make sure the container's busy doing something upon startup
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Must be running
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+    }
+
+    sut.killContainer(containerId);
+
+    // Should not be running
+    {
+      final ContainerInfo containerInfoLatest = sut.inspectContainer(containerId);
+      assertFalse(containerInfoLatest.state().running());
+    }
+  }
+
+  @Test
+  public void testKillContainerWithSignals() throws Exception {
+    requireDockerApiVersionAtLeast("1.18", "killContainerWithSignals");
+
+    sut.pull(BUSYBOX_LATEST);
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+            .image(BUSYBOX_LATEST)
+            // make sure the container's busy doing something upon startup
+            .cmd("sh", "-c", "while :; do sleep 1; done")
+            .build();
+    final String containerName = randomName();
+    final ContainerCreation containerCreation = sut.createContainer(containerConfig, containerName);
+    final String containerId = containerCreation.id();
+
+    sut.startContainer(containerId);
+
+    // Must be running
+    {
+      final ContainerInfo containerInfo = sut.inspectContainer(containerId);
+      assertThat(containerInfo.state().running(), equalTo(true));
+    }
+
+    final ContainerInfo tempContainerInfo = sut.inspectContainer(containerId);
+    final Integer originalPid = tempContainerInfo.state().pid();
+
+    // kill with SIGKILL
+    sut.killContainer(containerId, DockerClient.TerminationSignals.SIGKILL);
+
+    // Should not be running
+    {
+      final ContainerInfo containerInfoLatest = sut.inspectContainer(containerId);
+      assertFalse(containerInfoLatest.state().running());
+    }
+  }
+
+  @Test
   @SuppressWarnings("deprecation")
   public void integrationTest() throws Exception {
     // Pull image
@@ -3090,6 +3156,11 @@ public class DefaultDockerClientTest {
   @Test(expected = ContainerNotFoundException.class)
   public void testKillBadContainer() throws Exception {
     sut.killContainer(randomName());
+  }
+
+  @Test(expected = ContainerNotFoundException.class)
+  public void testKillBadContainerWithSignal() throws Exception {
+    sut.killContainer(randomName(), DockerClient.TerminationSignals.SIGKILL);
   }
 
   @Test(expected = ContainerNotFoundException.class)
