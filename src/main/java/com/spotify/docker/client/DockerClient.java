@@ -2461,7 +2461,7 @@ public interface DockerClient extends Closeable {
   }
   
   /**
-   * List swarm nodes.
+   * List swarm nodes. Only available in Docker API &gt;= 1.24.
    *
    * @return A list of nodes.
    * 

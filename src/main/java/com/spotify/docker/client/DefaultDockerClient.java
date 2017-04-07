@@ -1847,6 +1847,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public List<Node> listNodes() throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    WebTarget resource = resource().path("nodes");
+    return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+  
+  @Override
   public void execResizeTty(final String execId,
                             final Integer height,
                             final Integer width)
@@ -2577,12 +2585,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     public Map<String, Object> headers() {
       return headers;
     }
-  }
-
-  @Override
-  public List<Node> listNodes() throws DockerException, InterruptedException {
-    WebTarget resource = resource().path("nodes");
-    return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
 }
