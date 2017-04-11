@@ -186,7 +186,12 @@ import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Driver;
 import com.spotify.docker.client.messages.swarm.Endpoint;
 import com.spotify.docker.client.messages.swarm.EndpointSpec;
+import com.spotify.docker.client.messages.swarm.EngineConfig;
+import com.spotify.docker.client.messages.swarm.EnginePlugin;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
+import com.spotify.docker.client.messages.swarm.Node;
+import com.spotify.docker.client.messages.swarm.NodeDescription;
+import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.PortConfig;
 import com.spotify.docker.client.messages.swarm.PortConfig.PortConfigPublishMode;
@@ -5087,6 +5092,47 @@ public class DefaultDockerClientTest {
     assertThat(task.id(), isIn(taskIds));
   }
 
+  @Test
+  public void testListNodes() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    List<Node> nodes = sut.listNodes();
+    assertThat(nodes.size(), greaterThanOrEqualTo(1));
+    
+    Node nut = nodes.get(0);
+    Date now = new Date();
+    assertThat(nut.id(), allOf(notNullValue(), not("")));
+    assertThat(nut.version().index(), allOf(notNullValue(), greaterThan(0L)));
+    assertThat(nut.createdAt(), allOf(notNullValue(), lessThanOrEqualTo(now)));
+    assertThat(nut.updatedAt(), allOf(notNullValue(), lessThanOrEqualTo(now)));
+    
+    NodeSpec specs = nut.spec();
+    assertThat(specs, notNullValue());
+    assertThat(specs.name(), is(anything())); // Can be null if not set
+    assertThat(specs.labels(), is(anything())); // Can be null if not set
+    assertThat(specs.role(), isIn(new String [] {"manager", "worker"}));
+    assertThat(specs.availability(), isIn(new String [] {"active", "pause", "drain"}));
+    
+    NodeDescription desc = nut.description();
+    assertThat(desc.hostname(), allOf(notNullValue(), not("")));
+    assertThat(desc.platform(), notNullValue());
+    assertThat(desc.platform().architecture(), allOf(notNullValue(), not("")));
+    assertThat(desc.platform().os(), allOf(notNullValue(), not("")));
+    assertThat(desc.resources(), notNullValue());
+    assertThat(desc.resources().memoryBytes(), greaterThan(0L));
+    assertThat(desc.resources().nanoCpus(), greaterThan(0L));
+    
+    EngineConfig engine = desc.engine();
+    assertThat(engine, notNullValue());
+    assertThat(engine.engineVersion(), allOf(notNullValue(), not("")));
+    assertThat(engine.labels(), is(anything()));
+    assertThat(engine.plugins().size(), greaterThanOrEqualTo(0));
+    
+    for (EnginePlugin plugin : engine.plugins()) {
+      assertThat(plugin.type(), allOf(notNullValue(), not("")));
+      assertThat(plugin.name(), allOf(notNullValue(), not("")));
+    }
+  }
+  
   @SuppressWarnings("ConstantConditions")
   @Test
   public void testMountTmpfsOptions() throws Exception {
