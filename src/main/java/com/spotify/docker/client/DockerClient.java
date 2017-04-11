@@ -2510,6 +2510,18 @@ public interface DockerClient extends Closeable {
      * Show events with a label value.
      *
      * @param label The label to filter on
+     * @return EventsParam
+     * @see #withLabel(String)
+     * @since API 1.21
+     */
+    public static EventsParam label(final String label) {
+      return label(label, null);
+    }
+    
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
      * @param value The value of the label
      * @return EventsParam
      * @see #label(String, String)
@@ -2517,18 +2529,6 @@ public interface DockerClient extends Closeable {
      */
     public static EventsParam withLabel(final String label, final String value) {
       return label(label, value);
-    }
-
-    /**
-     * Show events with a label value.
-     *
-     * @param label The label to filter on
-     * @return EventsParam
-     * @see #withLabel(String)
-     * @since API 1.21
-     */
-    public static EventsParam label(final String label) {
-      return label(label, null);
     }
 
     /**
