@@ -1509,7 +1509,7 @@ public interface DockerClient extends Closeable {
      * @return The ListNetworksParam for the given ID.
      * @since Docker 1.10, API version 1.22
      */
-    public static ListNetworksParam byNetworkId(final String id) {
+    public static ListNetworksParam withId(final String id) {
       return filter("id", id);
     }
 
@@ -1519,7 +1519,7 @@ public interface DockerClient extends Closeable {
      * @return The ListNetworksParam for the given name.
      * @since Docker 1.10, API version 1.22
      */
-    public static ListNetworksParam byNetworkName(final String name) {
+    public static ListNetworksParam withName(final String name) {
       return filter("name", name);
     }
 

@@ -3638,12 +3638,12 @@ public class DefaultDockerClientTest {
     List<Network> networks;
     
     // filter by id
-    networks = sut.listNetworks(ListNetworksParam.byNetworkId(network1.id()));
+    networks = sut.listNetworks(ListNetworksParam.withId(network1.id()));
     assertThat(networks, hasItem(network1));
     assertThat(networks, not(hasItem(network2)));
     
     // filter by name
-    networks = sut.listNetworks(ListNetworksParam.byNetworkName(network1.name()));
+    networks = sut.listNetworks(ListNetworksParam.withName(network1.name()));
     assertThat(networks, hasItem(network1));
     assertThat(networks, not(hasItem(network2)));
     
