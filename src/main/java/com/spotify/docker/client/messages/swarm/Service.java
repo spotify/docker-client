@@ -57,6 +57,7 @@ public abstract class Service {
   public abstract Endpoint endpoint();
 
   @JsonProperty("UpdateStatus")
+  @Nullable
   public abstract UpdateStatus updateStatus();
 
   @AutoValue
