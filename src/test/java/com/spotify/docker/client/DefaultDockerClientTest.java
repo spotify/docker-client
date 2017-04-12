@@ -2767,14 +2767,19 @@ public class DefaultDockerClientTest {
       assertThat(bindObjectMount.driver(), isEmptyOrNullString());
       assertThat(bindObjectMount.rw(), is(false));
       assertThat(bindObjectMount.mode(), is(equalTo("ro")));
-      if (dockerApiVersionAtLeast("1.22")) {
+
+      if (dockerApiVersionAtLeast("1.25")) {
         assertThat(bindObjectMount.name(), isEmptyOrNullString());
         assertThat(bindObjectMount.propagation(), isEmptyOrNullString());
+      } else if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(bindObjectMount.name(), isEmptyOrNullString());
+        assertThat(bindObjectMount.propagation(), is(equalTo("rprivate")));
       } else {
         assertThat(bindObjectMount.name(), is(nullValue()));
         assertThat(bindObjectMount.propagation(), is(nullValue()));
       }
-      if (dockerApiVersionAtLeast("1.28")) {
+
+      if (dockerApiVersionAtLeast("1.26")) {
         assertThat(bindObjectMount.type(), is(equalTo("bind")));
         assertThat(bindObjectMount.driver(), isEmptyOrNullString());
       } else {
@@ -2796,15 +2801,20 @@ public class DefaultDockerClientTest {
       assertThat(bindStringMount.destination(), is(equalTo(bindStringTo)));
       assertThat(bindStringMount.driver(), isEmptyOrNullString());
       assertThat(bindStringMount.rw(), is(true));
-      assertThat(bindStringMount.mode(), is(equalTo("rw")));
-      if (dockerApiVersionAtLeast("1.22")) {
+      assertThat(bindStringMount.mode(), is(equalTo("")));
+
+      if (dockerApiVersionAtLeast("1.25")) {
         assertThat(bindStringMount.name(), isEmptyOrNullString());
         assertThat(bindStringMount.propagation(), isEmptyOrNullString());
+      } else if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(bindStringMount.name(), isEmptyOrNullString());
+        assertThat(bindStringMount.propagation(), is(equalTo("rprivate")));
       } else {
         assertThat(bindStringMount.name(), is(nullValue()));
         assertThat(bindStringMount.propagation(), is(nullValue()));
       }
-      if (dockerApiVersionAtLeast("1.28")) {
+
+      if (dockerApiVersionAtLeast("1.26")) {
         assertThat(bindStringMount.type(), is(equalTo("bind")));
         assertThat(bindStringMount.driver(), isEmptyOrNullString());
       } else {
@@ -2825,22 +2835,24 @@ public class DefaultDockerClientTest {
       assertThat(namedVolumeMount.name(), is(equalTo(namedVolumeName)));
       assertThat(namedVolumeMount.source(), containsString("/" + namedVolumeName + "/"));
       assertThat(namedVolumeMount.destination(), is(equalTo(namedVolumeTo)));
-      assertThat(namedVolumeMount.propagation(), isEmptyOrNullString());
       assertThat(namedVolumeMount.rw(), is(true));
-      assertThat(namedVolumeMount.mode(), is(equalTo("rw")));
-      if (dockerApiVersionAtLeast("1.22")) {
-        assertThat(namedVolumeMount.name(), not(isEmptyOrNullString()));
+      assertThat(namedVolumeMount.mode(), is(equalTo("z")));
+
+      assertThat(namedVolumeMount.name(), is(namedVolumeName));
+      assertThat(namedVolumeMount.driver(), is(equalTo("local")));
+
+      if (dockerApiVersionAtLeast("1.25")) {
         assertThat(namedVolumeMount.propagation(), isEmptyOrNullString());
+      } else if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(namedVolumeMount.propagation(), is(equalTo("rprivate")));
       } else {
-        assertThat(namedVolumeMount.name(), is(nullValue()));
         assertThat(namedVolumeMount.propagation(), is(nullValue()));
       }
-      if (dockerApiVersionAtLeast("1.28")) {
+
+      if (dockerApiVersionAtLeast("1.26")) {
         assertThat(namedVolumeMount.type(), is(equalTo("volume")));
-        assertThat(namedVolumeMount.driver(), is(equalTo("local")));
       } else {
         assertThat(namedVolumeMount.type(), is(nullValue()));
-        assertThat(namedVolumeMount.driver(), is(nullValue()));
       }
     }
 
@@ -2857,20 +2869,21 @@ public class DefaultDockerClientTest {
       assertThat(anonVolumeMount.destination(), is(equalTo(anonVolumeTo)));
       assertThat(anonVolumeMount.mode(), isEmptyOrNullString());
       assertThat(anonVolumeMount.rw(), is(true));
-      assertThat(anonVolumeMount.mode(), is(equalTo("rw")));
+      assertThat(anonVolumeMount.mode(), is(equalTo("")));
+
+      assertThat(anonVolumeMount.name(), not(isEmptyOrNullString()));
+      assertThat(anonVolumeMount.driver(), is(equalTo("local")));
+
       if (dockerApiVersionAtLeast("1.22")) {
-        assertThat(anonVolumeMount.name(), not(isEmptyOrNullString()));
         assertThat(anonVolumeMount.propagation(), isEmptyOrNullString());
       } else {
-        assertThat(anonVolumeMount.name(), is(nullValue()));
         assertThat(anonVolumeMount.propagation(), is(nullValue()));
       }
-      if (dockerApiVersionAtLeast("1.28")) {
+
+      if (dockerApiVersionAtLeast("1.26")) {
         assertThat(anonVolumeMount.type(), is(equalTo("volume")));
-        assertThat(anonVolumeMount.driver(), is(equalTo("local")));
       } else {
         assertThat(anonVolumeMount.type(), is(nullValue()));
-        assertThat(anonVolumeMount.driver(), is(nullValue()));
       }
     }
 
