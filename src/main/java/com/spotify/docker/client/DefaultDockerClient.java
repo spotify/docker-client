@@ -1654,7 +1654,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   @Override
   public void leaveSwarm(final boolean force) throws DockerException, InterruptedException {
-    assertAPIVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.24");
 
     WebTarget resource = resource().path("swarm").path("leave");
 
