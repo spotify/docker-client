@@ -127,6 +127,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -659,17 +660,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private void containerAction(final String containerId, final String action)
       throws DockerException, InterruptedException {
-    containerAction(containerId, action, new QueryParameter[] {});
+    containerAction(containerId, action, new ArrayList<Map.Entry<String,String>>());
   }
 
   private void containerAction(final String containerId, final String action,
-                               final QueryParameter... queryParameters)
+                               final List<Map.Entry<String,String>> queryParameters)
           throws DockerException, InterruptedException {
     try {
       final WebTarget resource = resource()
               .path("containers").path(containerId).path(action);
-      for (QueryParameter queryParameter : queryParameters) {
-        resource.queryParam(queryParameter.getField(), queryParameter.getValue());
+      for (Map.Entry<String, String> queryParameter : queryParameters) {
+        resource.queryParam(queryParameter.getKey(), queryParameter.getValue());
       }
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
@@ -679,35 +680,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         default:
           throw e;
       }
-    }
-  }
-
-  /**
-   * Query parameters used for {@link containerAction}.
-   */
-  private class QueryParameter {
-    private String field;
-    private String value;
-
-    public QueryParameter(String field, String value) {
-      this.field = field;
-      this.value = value;
-    }
-
-    public void setField(String field) {
-      this.field = field;
-    }
-
-    public String getField() {
-      return field;
-    }
-
-    public void setValue(String value) {
-      this.value = value;
-    }
-
-    public String getValue() {
-      return value;
     }
   }
 
@@ -760,8 +732,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public void killContainer(final String containerId, final Signal signal)
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-    QueryParameter signalParam = new QueryParameter("signal", signal.getName());
-    containerAction(containerId, "kill", signalParam);
+    Map.Entry<String, String> signalParam =
+            new AbstractMap.SimpleEntry<String, String>("signal", signal.getName());
+    List<Map.Entry<String, String>> queryParameterList = new ArrayList<>();
+    queryParameterList.add(signalParam);
+
+    containerAction(containerId, "kill", queryParameterList);
   }
 
   @Override
