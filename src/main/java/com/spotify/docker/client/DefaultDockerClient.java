@@ -707,19 +707,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
     checkNotNull(secondsToWaitBeforeRestart, "secondsToWait");
-    try {
-      final WebTarget resource = resource().path("containers").path(containerId)
-          .path("restart")
-          .queryParam("t", String.valueOf(secondsToWaitBeforeRestart));
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    Map.Entry<String, String> restartParam =
+            new AbstractMap.SimpleEntry<String, String>("t",
+                    String.valueOf(secondsToWaitBeforeRestart));
+    List<Map.Entry<String, String>> queryParameterList = new ArrayList<>();
+    queryParameterList.add(restartParam);
+    containerAction(containerId, "restart", queryParameterList);
   }
 
   @Override
@@ -736,7 +729,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
             new AbstractMap.SimpleEntry<String, String>("signal", signal.getName());
     List<Map.Entry<String, String>> queryParameterList = new ArrayList<>();
     queryParameterList.add(signalParam);
-
     containerAction(containerId, "kill", queryParameterList);
   }
 
