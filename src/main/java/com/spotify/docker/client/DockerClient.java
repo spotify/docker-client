@@ -1009,22 +1009,196 @@ public interface DockerClient extends Closeable {
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
-  void killContainer(final String containerId, final TerminationSignal signal)
+  void killContainer(final String containerId, final Signal signal)
       throws DockerException, InterruptedException;
 
   /**
-   * Supported parameters for {@link #killContainer(String, TerminationSignal)}).
+   * Supported parameters for {@link #killContainer(String, Signal)}).
    */
-  enum TerminationSignal {
+  enum Signal {
+    /**
+     * Signal number: 1.
+     * Hangup (POSIX)
+     */
+    SIGHUP("SIGHUP"),
+
+    /**
+     * Signal number: 2.
+     * Terminal interrupt (ANSI)
+     */
     SIGINT("SIGINT"),
+
+    /**
+     * Signal number: 3.
+     * Terminal quit (POSIX)
+     */
     SIGQUIT("SIGQUIT"),
-    SIGTERM("SIGTERM"),
+
+    /**
+     * Signal number: 4.
+     * Illegal instruction (ANSI)
+     */
+    SIGILL("SIGILL"),
+
+    /**
+     * Signal number: 5.
+     * Trace trap (POSIX)
+     */
+    SIGTRAP("SIGTRAP"),
+
+    /**
+     * Signal number: 6.
+     * IOT trap (4.2 BSD)
+     */
+    SIGIOT("SIGIOT"),
+
+    /**
+     * Signal number: 7.
+     * BUS error (4.2 BSD)
+     */
+    SIGBUS("SIGBUS"),
+
+    /**
+     * Signal number: 8.
+     * Floating point exception (ANSI)
+     */
+    SIGFPE("SIGFPE"),
+
+    /**
+     * Signal number: 9.
+     * Kill (POSIX)
+     */
     SIGKILL("SIGKILL"),
-    SIGSTOP("SIGSTOP");
+
+    /**
+     * Signal number: 10.
+     * User defined signal 1 (POSIX)
+     */
+    SIGUSR1("SIGUSR1"),
+
+    /**
+     * Signal number: 11.
+     * Invalid memory segment address (ANSI)
+     */
+    SIGSEGV("SIGSEGV"),
+
+    /**
+     * Signal number: 12.
+     * User defined signal 2 (POSIX)
+     */
+    SIGUSR2("SIGUSR2"),
+
+    /**
+     * Signal number: 13.
+     * Write on a pipe with no reader, broken pipe (POSIX)
+     */
+    SIGPIPE("SIGPIPE"),
+
+    /**
+     * Signal number: 14.
+     * Alarm clock (POSIX)
+     */
+    SIGALRM("SIGALRM"),
+
+    /**
+     * Signal number: 15.
+     * Termination (ANSI)
+     */
+    SIGTERM("SIGTERM"),
+
+    /**
+     * Signal number: 16.
+     * Stack fault.
+     */
+    SIGSTKFLT("SIGSTKFLT"),
+
+    /**
+     * Signal number: 17.
+     * Child process has stopped or exited, changed (POSIX)
+     */
+    SIGCHLD("SIGCHLD"),
+
+    /**
+     * Signal number: 18.
+     * Continue executing if stopped (POSIX)
+     */
+    SIGCONT("SIGCONT"),
+
+    /**
+     * Signal number: 19.
+     * Stop executing (POSIX)
+     */
+    SIGSTOP("SIGSTOP"),
+
+    /**
+     * Signal number: 20.
+     * Terminal stop signal (POSIX)
+     */
+    SIGTSTP("SIGTSTP"),
+
+    /**
+     * Signal number: 21.
+     * Background process trying to read from TTY
+     */
+    SIGTTIN("SIGTTIN"),
+
+    /**
+     * Signal number: 22.
+     * Background process trying to write to TTY
+     */
+    SIGTTOU("SIGTTOU"),
+
+    /**
+     * Signal number: 23.
+     * Urgen condition on socket (4.2 BSD)
+     */
+    SIGURG("SIGURG"),
+
+    /**
+     * Signal number: 24.
+     * CPU limit exceeded (4.2 BSD)
+     */
+    SIGXCPU("SIGXCPU"),
+
+    /**
+     * Signal number: 25.
+     * File size limit exceeded (4.2 BSD)
+     */
+    SIGXFSZ("SIGXFSZ"),
+
+    /**
+     * Signal number: 26.
+     * Virtual alarm clock (4.2 BSD)
+     */
+    SIGVTALRM("SIGVTALRM"),
+
+    /**
+     * Signal number: 27.
+     * Profiling alarm clock (4.2 BSD)
+     */
+    SIGPROF("SIGPROF"),
+
+    /**
+     * Signal number: 28.
+     * Window size change (4.3 BSD, Sun)
+     */
+    SIGWINCH("SIGWINCH"),
+
+    /**
+     * Signal number: 29.
+     * I/O now possible (4.2 BSD)
+     */
+    SIGIO("SIGIO"),
+
+    /**
+     * Signal number: 30.
+     * Power failure restart (System V)
+     */
+    SIGPWR("SIGPWR");
 
     private final String name;
 
-    TerminationSignal(String name) {
+    Signal(String name) {
       this.name = name;
     }
 

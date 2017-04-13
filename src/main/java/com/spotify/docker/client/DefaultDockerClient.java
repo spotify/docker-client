@@ -659,9 +659,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private void containerAction(final String containerId, final String action)
       throws DockerException, InterruptedException {
+    containerAction(containerId, action, new QueryParameter[] {});
+  }
+
+  private void containerAction(final String containerId, final String action,
+                               final QueryParameter... queryParameters)
+          throws DockerException, InterruptedException {
     try {
       final WebTarget resource = resource()
-          .path("containers").path(containerId).path(action);
+              .path("containers").path(containerId).path(action);
+      for (QueryParameter queryParameter : queryParameters) {
+        resource.queryParam(queryParameter.getField(), queryParameter.getValue());
+      }
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -670,6 +679,35 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         default:
           throw e;
       }
+    }
+  }
+
+  /**
+   * Query parameters used for {@link containerAction}.
+   */
+  private class QueryParameter {
+    private String field;
+    private String value;
+
+    public QueryParameter(String field, String value) {
+      this.field = field;
+      this.value = value;
+    }
+
+    public void setField(String field) {
+      this.field = field;
+    }
+
+    public String getField() {
+      return field;
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    }
+
+    public String getValue() {
+      return value;
     }
   }
 
@@ -712,7 +750,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-
   @Override
   public void killContainer(final String containerId) throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
@@ -720,23 +757,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
-  public void killContainer(final String containerId, final TerminationSignal signal)
+  public void killContainer(final String containerId, final Signal signal)
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
-
-    try {
-      final WebTarget resource = noTimeoutResource()
-              .path("containers").path(containerId).path("kill")
-              .queryParam("signal", signal.toString());
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
+    QueryParameter signalParam = new QueryParameter("signal", signal.getName());
+    containerAction(containerId, "kill", signalParam);
   }
 
   @Override
