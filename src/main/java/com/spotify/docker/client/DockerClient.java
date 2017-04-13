@@ -8,9 +8,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -73,6 +73,8 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.SwarmJoinRequest;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -335,7 +337,7 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   Set<String> load(InputStream imagePayload) throws DockerException, InterruptedException;
-  
+
   /**
    * Load a set of images and tags from a tarball, using a custom ProgressMessageHandler.
    *
@@ -691,7 +693,7 @@ public interface DockerClient extends Closeable {
       return Objects.hash(name, value);
     }
   }
-  
+
   /**
    * Marker interface to designate a parameter as a filter parameter.
    * Filter parameters receive special treatment during serialization:
@@ -1299,8 +1301,8 @@ public interface DockerClient extends Closeable {
    * Leave a swarm.
    * @param force Force leave swarm, even if this is the last manager or that it will break the
    *              cluster.
-   * @throws DockerException
-   * @throws InterruptedException
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException if the thread is interrupted
    */
   void leaveSwarm(boolean force) throws DockerException, InterruptedException;
 
@@ -1519,7 +1521,7 @@ public interface DockerClient extends Closeable {
     private ListNetworksParam(final String name, final String value) {
       super(name, value);
     }
-    
+
     /**
      * Create a custom filter.
      * @param name of filter
@@ -1618,20 +1620,20 @@ public interface DockerClient extends Closeable {
       return withLabel(label, null);
     }
   }
-  
+
   /**
    * Filter parameter for {@link #listNetworks(ListNetworksParam...)}.
    * This should be used by ListNetworksParam only.
    * @since Docker 1.10, API version 1.22
    */
   class ListNetworksFilterParam extends ListNetworksParam implements FilterParam {
-    
+
     private ListNetworksFilterParam(String name, String value) {
       super(name, value);
     }
-    
+
   }
-  
+
   /**
    * Inspect a specific network.
    *
@@ -2521,7 +2523,7 @@ public interface DockerClient extends Closeable {
    * @since Docker 1.13, API version 1.25
    */
   void deleteSecret(String secretId) throws DockerException, InterruptedException;
-  
+
   /**
    * Parameters for {@link #listVolumes(ListVolumesParam...)}.
    * @since Docker 1.9, API version 1.21
@@ -2599,14 +2601,31 @@ public interface DockerClient extends Closeable {
       super(name, value);
     }
   }
-  
+
   /**
    * List swarm nodes. Only available in Docker API &gt;= 1.24.
    *
    * @return A list of nodes.
-   * 
+   *
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   List<Node> listNodes() throws DockerException, InterruptedException;
+
+  /**
+   * Join an existing swarm.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void joinSwarm() throws DockerException, InterruptedException;
+
+  /**
+   * Join an existing swarm.
+   * @param swarmJoinRequest {@link SwarmJoinRequest}
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void joinSwarm(SwarmJoinRequest swarmJoinRequest)
+          throws DockerException, InterruptedException;
+
 }

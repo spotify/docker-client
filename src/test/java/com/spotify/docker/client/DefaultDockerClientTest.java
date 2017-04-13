@@ -210,6 +210,23 @@ import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.SwarmInitRequest;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
+import com.spotify.docker.client.messages.swarm.SwarmJoinRequest;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.hamcrest.CustomTypeSafeMatcher;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.spotify.docker.client.messages.swarm.UpdateConfig;
 
 import java.io.BufferedInputStream;
@@ -228,6 +245,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -251,23 +269,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.internal.util.Base64;
-import org.hamcrest.CustomTypeSafeMatcher;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TestName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultDockerClientTest {
 
@@ -307,7 +309,10 @@ public class DefaultDockerClientTest {
   @Before
   public void setup() throws Exception {
     registryAuth = RegistryAuth.builder().username(AUTH_USERNAME).password(AUTH_PASSWORD).build();
-    final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
+    //    final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
+    final DefaultDockerClient.Builder builder = DefaultDockerClient.builder()
+            .uri("http://10.151.17.226:4550");
+
     // Make it easier to test no read timeout occurs by using a smaller value
     // Such test methods should end in 'NoTimeout'
     if (testName.getMethodName().endsWith("NoTimeout")) {
@@ -367,13 +372,20 @@ public class DefaultDockerClientTest {
   }
 
   private void requireDockerApiVersionAtLeast(final String required, final String functionality)
-      throws Exception {
+          throws Exception {
+    requireDockerApiVersionAtLeast(required, functionality, dockerApiVersion);
+  }
+
+  private static void requireDockerApiVersionAtLeast(final String required,
+                                                     final String functionality,
+                                                     String actualDockerApiVersion)
+          throws Exception {
 
     final String msg = String.format(
         "Docker API should be at least v%s to support %s but runtime version is %s",
-        required, functionality, dockerApiVersion);
+        required, functionality, actualDockerApiVersion);
 
-    assumeTrue(msg, dockerApiVersionAtLeast(required));
+    assumeTrue(msg, dockerApiVersionAtLeast(required, actualDockerApiVersion));
   }
 
   private void requireStorageDriverNotAufs() throws Exception {
@@ -383,6 +395,12 @@ public class DefaultDockerClientTest {
 
   private boolean dockerApiVersionAtLeast(final String expected) throws Exception {
     return compareVersion(dockerApiVersion, expected) >= 0;
+  }
+
+  private static boolean dockerApiVersionAtLeast(final String expected,
+                                                 final String actualDockerApiVersion)
+          throws Exception {
+    return compareVersion(actualDockerApiVersion, expected) >= 0;
   }
 
   private boolean dockerApiVersionLessThan(final String expected) throws Exception {
@@ -443,12 +461,13 @@ public class DefaultDockerClientTest {
   public void testBuildImageIdWithBuildargs() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "build args");
 
-    final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectoryWithBuildargs")
+            .toURI());
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
     final BuildParam buildParam =
         BuildParam.create("buildargs", URLEncoder.encode(buildargs, "UTF-8"));
     sut.build(
-        Paths.get(dockerDirectory),
+        dockerDirectory,
         "test-buildargs",
         buildParam
     );
@@ -880,11 +899,11 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageId() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final String returnedImageId = sut.build(
-        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+        dockerDirectory, "test", new ProgressHandler() {
           @Override
           public void progress(ProgressMessage message) throws DockerException {
             final String imageId = message.buildImageId();
@@ -899,26 +918,26 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdPathToDockerFile() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final String returnedImageId = sut.build(
-        Paths.get(dockerDirectory), "test", "innerDir/innerDockerfile", new ProgressHandler() {
-          @Override
-          public void progress(ProgressMessage message) throws DockerException {
-            final String imageId = message.buildImageId();
-            if (imageId != null) {
-              imageIdFromMessage.set(imageId);
-            }
-          }
-        });
+            dockerDirectory, "test", "innerDir/innerDockerfile", new ProgressHandler() {
+                @Override
+                public void progress(ProgressMessage message) throws DockerException {
+                  final String imageId = message.buildImageId();
+                  if (imageId != null) {
+                    imageIdFromMessage.set(imageId);
+                  }
+                }
+            });
 
     assertThat(returnedImageId, is(imageIdFromMessage.get()));
   }
 
   @Test
   public void testBuildImageIdWithAuth() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
@@ -926,7 +945,7 @@ public class DefaultDockerClientTest {
         .build();
 
     final String returnedImageId = sut2.build(
-        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+        dockerDirectory, "test", new ProgressHandler() {
           @Override
           public void progress(ProgressMessage message) throws DockerException {
             final String imageId = message.buildImageId();
@@ -942,8 +961,8 @@ public class DefaultDockerClientTest {
   @SuppressWarnings("EmptyCatchBlock")
   @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
-    final String dockerDirectory =
-        Resources.getResource("dockerDirectoryNonExistentImage").getPath();
+    final Path dockerDirectory =
+            Paths.get(Resources.getResource("dockerDirectoryNonExistentImage").toURI());
 
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
 
@@ -952,7 +971,7 @@ public class DefaultDockerClientTest {
     // I.e. check that we are not leaking connections.
     for (int i = 0; i < 10; i++) {
       try {
-        sut.build(Paths.get(dockerDirectory), "test");
+        sut.build(dockerDirectory, "test");
       } catch (DockerException ignored) {
       }
 
@@ -965,8 +984,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testBuildName() throws Exception {
     final String imageName = "test-build-name";
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
-    final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
+    final String imageId = sut.build(dockerDirectory, imageName);
     final ImageInfo info = sut.inspectImage(imageName);
     final String expectedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
     assertThat(info.id(), startsWith(expectedId));
@@ -976,15 +995,15 @@ public class DefaultDockerClientTest {
   public void testBuildWithPull() throws Exception {
     requireDockerApiVersionAtLeast("1.19", "build with pull");
 
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
     final String pullMsg = "Pulling from";
 
     // Build once to make sure we have cached images.
-    sut.build(Paths.get(dockerDirectory));
+    sut.build(dockerDirectory);
 
     // Build again with PULL set, and verify we pulled the base image
     final AtomicBoolean pulled = new AtomicBoolean(false);
-    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+    sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
         if (!isNullOrEmpty(message.status()) && message.status().contains(pullMsg)) {
@@ -997,15 +1016,15 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildNoCache() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
     final String usingCache = "Using cache";
 
     // Build once to make sure we have cached images.
-    sut.build(Paths.get(dockerDirectory));
+    sut.build(dockerDirectory);
 
     // Build again and make sure we used cached image by parsing output.
     final AtomicBoolean usedCache = new AtomicBoolean(false);
-    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+    sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
         if (message.stream().contains(usingCache)) {
@@ -1016,7 +1035,7 @@ public class DefaultDockerClientTest {
     assertTrue(usedCache.get());
 
     // Build again with NO_CACHE set, and verify we don't use cache.
-    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+    sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
         assertThat(message.stream(), not(containsString(usingCache)));
@@ -1026,13 +1045,13 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildNoRm() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectory").toURI());
     final String removingContainers = "Removing intermediate container";
 
     // Test that intermediate containers are removed with FORCE_RM by parsing output. We must
     // set NO_CACHE so that docker will generate some containers to remove.
     final AtomicBoolean removedContainer = new AtomicBoolean(false);
-    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+    sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
         if (containsIgnoreCase(message.stream(), removingContainers)) {
@@ -1043,7 +1062,7 @@ public class DefaultDockerClientTest {
     assertTrue(removedContainer.get());
 
     // Set NO_RM and verify we don't get message that containers were removed.
-    sut.build(Paths.get(dockerDirectory), "test", new ProgressHandler() {
+    sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
       public void progress(ProgressMessage message) throws DockerException {
         assertThat(message.stream(), not(containsString(removingContainers)));
@@ -1055,9 +1074,10 @@ public class DefaultDockerClientTest {
   public void testBuildNoTimeout() throws Exception {
     // The Dockerfile specifies a sleep of 10s during the build
     // Returned image id is last piece of output, so this confirms stream did not timeout
-    final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerDirectorySleeping")
+            .toURI());
     final String returnedImageId = sut.build(
-        Paths.get(dockerDirectory), "test", new ProgressHandler() {
+        dockerDirectory, "test", new ProgressHandler() {
           @Override
           public void progress(ProgressMessage message) throws DockerException {
             log.info(message.stream());
@@ -1230,9 +1250,9 @@ public class DefaultDockerClientTest {
     final ContainerCreation creation = sut.createContainer(config, name);
     final String containerId = creation.id();
 
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerSslDirectory").toURI());
     try {
-      sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/tmp");
+      sut.copyToContainer(dockerDirectory, containerId, "/tmp");
     } catch (Exception e) {
       fail("error to copy files to container");
     }
@@ -1416,14 +1436,14 @@ public class DefaultDockerClientTest {
     // Start container
     sut.startContainer(id);
 
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerSslDirectory").toURI());
 
     // Copy files to container
     // Docker API should be at least v1.20 to support extracting an archive of files or folders
     // to a directory in a container
     if (dockerApiVersionAtLeast("1.20")) {
       try {
-        sut.copyToContainer(Paths.get(dockerDirectory), id, "/tmp");
+        sut.copyToContainer(dockerDirectory, id, "/tmp");
       } catch (Exception e) {
         fail("error copying files to container");
       }
@@ -1440,7 +1460,7 @@ public class DefaultDockerClientTest {
       }
 
       // Check that we got back what we put in
-      final File folder = new File(dockerDirectory);
+      final File folder = new File(dockerDirectory.toString());
       final File[] files = folder.listFiles();
       if (files != null) {
         for (final File file : files) {
@@ -2445,8 +2465,8 @@ public class DefaultDockerClientTest {
     final String imageName = "test-docker-ssl";
     final String expose = "2376/tcp";
 
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
-    sut.build(Paths.get(dockerDirectory), imageName);
+    final Path dockerDirectory = Paths.get(Resources.getResource("dockerSslDirectory").toURI());
+    sut.build(dockerDirectory, imageName);
 
     final HostConfig hostConfig = HostConfig.builder()
         .privileged(true)
@@ -2477,7 +2497,7 @@ public class DefaultDockerClientTest {
     final String port = containerInfo.networkSettings().ports().get(expose).get(0).hostPort();
 
     // Try to connect using SSL and our known cert/key
-    final DockerCertificates certs = new DockerCertificates(Paths.get(dockerDirectory));
+    final DockerCertificates certs = new DockerCertificates(dockerDirectory);
     final DockerClient c = new DefaultDockerClient(URI.create(format("https://%s:%s", host, port)),
                                                    certs);
 
@@ -3483,7 +3503,7 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.17", "image labels");
 
     final String dockerDirectory =
-        Resources.getResource("dockerDirectoryWithImageLabels").getPath();
+            Paths.get(Resources.getResource("dockerDirectoryWithImageLabels").toURI()).toString();
 
     // Create test images
     final String barDir = (new File(dockerDirectory, "barDir")).toString();
@@ -4335,6 +4355,7 @@ public class DefaultDockerClientTest {
 
     assertThat(info.hostConfig().oomScoreAdj(), is(500));
   }
+
   @Test
   public void testInitInspectAndLeaveSwarm() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
@@ -4511,11 +4532,11 @@ public class DefaultDockerClientTest {
     assertThat(Iterables.find(inspectService.spec().networks(),
             new Predicate<NetworkAttachmentConfig>() {
 
-              @Override
-              public boolean apply(NetworkAttachmentConfig config) {
-                return networkId.equals(config.target());
-              }
-            }, null), is(notNullValue()));
+        @Override
+        public boolean apply(NetworkAttachmentConfig config) {
+          return networkId.equals(config.target());
+        }
+        }, null), is(notNullValue()));
 
     sut.removeService(serviceName);
     sut.removeNetwork(networkName);
@@ -5199,6 +5220,45 @@ public class DefaultDockerClientTest {
     }
   }
 
+  @Test
+  public void testSwarmJoin() {
+    DefaultDockerClient managerDockerClient = null;
+    DefaultDockerClient workerDockerClient = null;
+    try {
+      managerDockerClient = createDockerClient("http://10.151.17.226:4550");
+      workerDockerClient = createDockerClient("http://10.151.16.131:4550");
+      requireDockerApiVersionAtLeast("1.24", "swarm support",
+              managerDockerClient.version().apiVersion());
+      requireDockerApiVersionAtLeast("1.24", "swarm support",
+              workerDockerClient.version().apiVersion());
+
+      final SwarmInitRequest swarmInitRequest = SwarmInitRequest.builder()
+              .advertiseAddr("10.151.17.226:2377").build();
+      managerDockerClient.initializeSwarm(swarmInitRequest);
+      final Swarm swarm = managerDockerClient.inspectSwarm();
+      assertThat(swarm.joinTokens().worker(), is(not(isEmptyOrNullString())));
+      assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
+
+      joinSwarm(workerDockerClient, "10.151.17.226:2377", swarm.joinTokens().worker(),
+              ImmutableList.<String>of("10.151.17.226:2377"));
+
+    } catch (Exception e) {
+      //do nothing
+    } finally {
+      try {
+        if (workerDockerClient != null) {
+          leaveSwarm(workerDockerClient, false);
+        }
+        if (managerDockerClient != null) {
+          leaveSwarm(managerDockerClient, true);
+        }
+      } catch (InterruptedException e) {
+        //do nothing
+      }
+
+    }
+  }
+
   private ServiceSpec createServiceSpec(final String serviceName) {
     return this.createServiceSpec(serviceName, new HashMap<String, String>());
   }
@@ -5351,5 +5411,24 @@ public class DefaultDockerClientTest {
     } catch (DockerException e) {
       // ignore
     }
+  }
+
+  private static void joinSwarm(final DefaultDockerClient client,
+                                final String advertiseAddr, final String joinToken,
+                                ImmutableList<String> remoteAddrs)
+          throws DockerException, InterruptedException {
+    final SwarmJoinRequest swarmJoinRequest = SwarmJoinRequest.builder()
+            .advertiseAddr(advertiseAddr).joinToken(joinToken).remoteAddrs(remoteAddrs).build();
+    client.joinSwarm(swarmJoinRequest);
+  }
+
+  private DefaultDockerClient createDockerClient(String uri) {
+    final DefaultDockerClient.Builder builder = DefaultDockerClient.builder().uri(uri);
+    if (testName.getMethodName().endsWith("NoTimeout")) {
+      builder.readTimeoutMillis(5000);
+    } else {
+      builder.readTimeoutMillis(120000);
+    }
+    return builder.build();
   }
 }

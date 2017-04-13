@@ -17,18 +17,19 @@
 
 package com.spotify.docker.client.messages.swarm;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+
+import java.util.Objects;
+
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
-
-import java.util.Objects;
-
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public class SwarmInitRequest {
+public class SwarmJoinRequest {
 
   private static final String DEFAULT_LISTEN_ADDR = "0.0.0.0:2377";
 
@@ -38,18 +39,18 @@ public class SwarmInitRequest {
   @JsonProperty("AdvertiseAddr")
   private String advertiseAddr;
 
-  @JsonProperty("ForceNewCluster")
-  private Boolean forceNewCluster;
+  @JsonProperty("RemoteAddrs")
+  private ImmutableList<String> remoteAddrs;
 
-  @JsonProperty("Spec")
-  private SwarmSpec spec;
+  @JsonProperty("JoinToken")
+  private String joinToken;
 
-  private SwarmInitRequest(final Builder builder) {
+  private SwarmJoinRequest(final SwarmJoinRequest.Builder builder) {
     this.listenAddr = isNullOrEmpty(builder.listenAddr)
             ? DEFAULT_LISTEN_ADDR : builder.listenAddr;
     this.advertiseAddr = builder.advertiseAddr;
-    this.forceNewCluster = builder.forceNewCluster;
-    this.spec = builder.spec;
+    this.remoteAddrs = builder.remoteAddrs;
+    this.joinToken = builder.joinToken;
   }
 
   public String listenAddr() {
@@ -60,12 +61,12 @@ public class SwarmInitRequest {
     return advertiseAddr;
   }
 
-  public Boolean forceNewCluster() {
-    return forceNewCluster;
+  public ImmutableList<String> remoteAddrs() {
+    return remoteAddrs;
   }
 
-  public SwarmSpec spec() {
-    return spec;
+  public String joinToken() {
+    return joinToken;
   }
 
   @Override
@@ -77,16 +78,17 @@ public class SwarmInitRequest {
       return false;
     }
 
-    final SwarmInitRequest that = (SwarmInitRequest) obj;
+    final SwarmJoinRequest that = (SwarmJoinRequest) obj;
 
     return Objects.equals(this.listenAddr, that.listenAddr)
             && Objects.equals(this.advertiseAddr, that.advertiseAddr)
-            && Objects.equals(this.spec, that.spec);
+            && Objects.equals(this.remoteAddrs, that.remoteAddrs)
+            && Objects.equals(this.joinToken, that.joinToken);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(listenAddr, advertiseAddr, spec);
+    return Objects.hash(listenAddr, advertiseAddr, remoteAddrs, joinToken);
   }
 
   @Override
@@ -94,43 +96,44 @@ public class SwarmInitRequest {
     return MoreObjects.toStringHelper(this)
             .add("listenAddr", listenAddr)
             .add("advertiseAddr", advertiseAddr)
-            .add("forceNewCluster", forceNewCluster)
-            .add("spec", spec)
+            .add("remoteAddrs", remoteAddrs)
+            .add("joinToken", joinToken)
             .toString();
   }
 
-  public static Builder builder() {
-    return new Builder();
+  public static SwarmJoinRequest.Builder builder() {
+    return new SwarmJoinRequest.Builder();
   }
 
   public static class Builder {
     private String listenAddr;
     private String advertiseAddr;
-    private boolean forceNewCluster;
-    private SwarmSpec spec;
+    private ImmutableList<String> remoteAddrs;
+    private String joinToken;
 
-    public Builder listenAddr(final String listenAddr) {
+    public SwarmJoinRequest.Builder listenAddr(final String listenAddr) {
       this.listenAddr = listenAddr;
       return this;
     }
 
-    public Builder advertiseAddr(final String advertiseAddr) {
+    public SwarmJoinRequest.Builder advertiseAddr(final String advertiseAddr) {
       this.advertiseAddr = advertiseAddr;
       return this;
     }
 
-    public Builder forceNewCluster(final boolean forceNewCluster) {
-      this.forceNewCluster = forceNewCluster;
+    public SwarmJoinRequest.Builder remoteAddrs(final ImmutableList<String> remoteAddrs) {
+      this.remoteAddrs = remoteAddrs;
       return this;
     }
 
-    public Builder spec(final SwarmSpec spec) {
-      this.spec = spec;
+    public SwarmJoinRequest.Builder joinToken(final String joinToken) {
+      this.joinToken = joinToken;
       return this;
     }
 
-    public SwarmInitRequest build() {
-      return new SwarmInitRequest(this);
+    public SwarmJoinRequest build() {
+      return new SwarmJoinRequest(this);
     }
   }
+
 }
