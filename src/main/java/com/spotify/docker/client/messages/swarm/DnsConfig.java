@@ -55,76 +55,17 @@ public abstract class DnsConfig {
     public abstract Builder nameServers(String... nameServers);
 
     public abstract Builder nameServers(List<String> nameServers);
-
-    /**
-    * @deprecated  As of release 7.0.0, replaced by {@link #nameServers(String...)}.
-    */
-    @Deprecated
-    public Builder withNameServers(final String... nameServers) {
-      if (nameServers != null && nameServers.length > 0) {
-        nameServers(nameServers);
-      }
-      return this;
-    }
-
-    /**
-    * @deprecated  As of release 7.0.0, replaced by {@link #nameServers(List)}.
-    */
-    @Deprecated
-    public Builder withNameServers(final List<String> nameServers) {
-      nameServers(nameServers);
-      return this;
-    }
     
     public abstract Builder search(String... search);
 
     public abstract Builder search(List<String> search);
-
-    /**
-    * @deprecated  As of release 7.0.0, replaced by {@link #search(String...)}.
-    */
-    @Deprecated
-    public Builder withsearch(final String... search) {
-      if (search != null && search.length > 0) {
-        search(search);
-      }
-      return this;
-    }
-
-    /**
-    * @deprecated  As of release 7.0.0, replaced by {@link #search(List)}.
-    */
-    @Deprecated
-    public Builder withsearch(final List<String> search) {
-      search(search);
-      return this;
-    }
     
     public abstract Builder options(String... options);
 
     public abstract Builder options(List<String> options);
 
-    /**
-    * @deprecated  As of release 7.0.0, replaced by {@link #options(String...)}.
-    */
-    @Deprecated
-    public Builder withoptions(final String... options) {
-      if (options != null && options.length > 0) {
-        options(options);
-      }
-      return this;
-    }
 
-    /**
-    * @deprecated  As of release 7.0.0, replaced by {@link #options(List)}.
-    */
-    @Deprecated
-    public Builder withoptions(final List<String> options) {
-      options(options);
-      return this;
-    }
-
-    public abstract com.spotify.docker.client.messages.swarm.DnsConfig build();
+    public abstract DnsConfig build();
   }
 
   public static Builder builder() {
@@ -132,7 +73,7 @@ public abstract class DnsConfig {
   }
 
   @JsonCreator
-  static com.spotify.docker.client.messages.swarm.DnsConfig create(
+  static DnsConfig create(
       @JsonProperty("Nameservers") final List<String> nameServers,
       @JsonProperty("Search") final List<String> search,
       @JsonProperty("Options") final List<String> options) {
