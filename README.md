@@ -5,13 +5,10 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.spotify/docker-client.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.spotify%22%20docker-client)
 [![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
 
-This is a simple [Docker](https://github.com/docker/docker) client written in Java.
-We build and test docker-client on the six most recent minor releases of Docker.
-Right now these are 1.9.1 - 17.03.0-ce (specifically the ones [here][1]).
-We upload the artifact tested on Docker 1.12.1.
-See [Docker docs on the mapping between Docker version and API version][3].
-We consider this library pretty stable and use it in many critical production systems.
+This is a [Docker](https://github.com/docker/docker) client written in Java.
+It is used it in many critical production systems at Spotify.
 
+* [Version compatibility](#version-compatibility)
 * [Download](#download)
 * [Usage Example](#usage-example)
 * [Getting Started](#getting-started)
@@ -22,6 +19,11 @@ We consider this library pretty stable and use it in many critical production sy
 * [Code of Conduct](#code-of-conduct)
 * [User Manual](https://github.com/spotify/docker-client/blob/master/docs/user_manual.md)
 
+## Version compatibility
+docker-client is built and tested against the six most recent minor releases of Docker.
+Right now these are 1.9.1 - 17.03.0-ce (specifically the ones [here][1]).
+We upload the artifact tested on Docker 1.12.1.
+See [Docker docs on the mapping between Docker version and API version][3].
 
 ## Download
 
@@ -178,7 +180,7 @@ docker-client and Jersey 2.x, you will need to explicitly specify the shaded ver
 
   [1]: https://travis-ci.org/spotify/docker-client
   [2]: docs/user_manual.md
-  [3]: https://docs.docker.com/engine/reference/api/docker_remote_api/
+  [3]: https://docs.docker.com/engine/api/v1.27/#section/Versioning
 
 
 ## Code of conduct
