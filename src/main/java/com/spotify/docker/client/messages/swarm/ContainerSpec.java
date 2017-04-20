@@ -111,6 +111,11 @@ public abstract class ContainerSpec {
   @JsonProperty("Secrets")
   public abstract ImmutableList<SecretBind> secrets();
 
+  @Nullable
+  @JsonProperty("DNSConfig")
+  public abstract DnsConfig dnsConfig();
+
+
   @AutoValue.Builder
   public abstract static class Builder {
 
@@ -326,6 +331,8 @@ public abstract class ContainerSpec {
       return this;
     }
 
+    public abstract Builder dnsConfig(DnsConfig dnsConfig);
+
     public abstract Builder healthcheck(ContainerConfig.Healthcheck healthcheck);
 
     public abstract Builder hosts(List<String> hosts);
@@ -355,7 +362,8 @@ public abstract class ContainerSpec {
       @JsonProperty("StopGracePeriod") final Long stopGracePeriod,
       @JsonProperty("Healthcheck") final ContainerConfig.Healthcheck healthcheck,
       @JsonProperty("Hosts") final List<String> hosts,
-      @JsonProperty("Secrets") final List<SecretBind> secrets) {
+      @JsonProperty("Secrets") final List<SecretBind> secrets,
+      @JsonProperty("DNSConfig") final DnsConfig dnsConfig) {
     final Builder builder = builder()
         .image(image)
         .hostname(hostname)
@@ -368,7 +376,8 @@ public abstract class ContainerSpec {
         .mounts(mounts)
         .stopGracePeriod(stopGracePeriod)
         .healthcheck(healthcheck)
-        .hosts(hosts);
+        .hosts(hosts)
+        .dnsConfig(dnsConfig);
 
     if (labels != null) {
       builder.labels(labels);
