@@ -333,15 +333,6 @@ public abstract class ContainerSpec {
 
     public abstract Builder dnsConfig(DnsConfig dnsConfig);
 
-    /**
-     * @deprecated  As of release 7.0.0, replaced by {@link #dnsConfig(DnsConfig)}.
-     */
-    @Deprecated
-    public Builder withDnsConfig(final DnsConfig dnsConfig) {
-      dnsConfig(dnsConfig);
-      return this;
-    }
-
     public abstract Builder healthcheck(ContainerConfig.Healthcheck healthcheck);
 
     public abstract Builder hosts(List<String> hosts);
