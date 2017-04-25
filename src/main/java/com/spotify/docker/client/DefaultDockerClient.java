@@ -128,6 +128,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -149,6 +150,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -643,9 +646,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private void containerAction(final String containerId, final String action)
       throws DockerException, InterruptedException {
+    containerAction(containerId, action, new MultivaluedHashMap<String, String>());
+  }
+
+  private void containerAction(final String containerId, final String action,
+                               final MultivaluedMap<String, String> queryParameters)
+          throws DockerException, InterruptedException {
     try {
       final WebTarget resource = resource()
-          .path("containers").path(containerId).path(action);
+              .path("containers").path(containerId).path(action);
+
+      for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+        for (String parameterValue : queryParameter.getValue()) {
+          resource.queryParam(queryParameter.getKey(), parameterValue);
+        }
+      }
       request(POST, resource, resource.request());
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -681,25 +696,28 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     checkNotNull(containerId, "containerId");
     checkNotNull(secondsToWaitBeforeRestart, "secondsToWait");
-    try {
-      final WebTarget resource = resource().path("containers").path(containerId)
-          .path("restart")
-          .queryParam("t", String.valueOf(secondsToWaitBeforeRestart));
-      request(POST, resource, resource.request());
-    } catch (DockerRequestException e) {
-      switch (e.status()) {
-        case 404:
-          throw new ContainerNotFoundException(containerId, e);
-        default:
-          throw e;
-      }
-    }
-  }
 
+    MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
+    queryParameters.add("t", String.valueOf(secondsToWaitBeforeRestart));
+
+    containerAction(containerId, "restart", queryParameters);
+  }
 
   @Override
   public void killContainer(final String containerId) throws DockerException, InterruptedException {
+    checkNotNull(containerId, "containerId");
     containerAction(containerId, "kill");
+  }
+
+  @Override
+  public void killContainer(final String containerId, final Signal signal)
+      throws DockerException, InterruptedException {
+    checkNotNull(containerId, "containerId");
+
+    MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
+    queryParameters.add("signal", signal.getName());
+
+    containerAction(containerId, "kill", queryParameters);
   }
 
   @Override
