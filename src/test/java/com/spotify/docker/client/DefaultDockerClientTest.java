@@ -4649,8 +4649,10 @@ public class DefaultDockerClientTest {
     try {
       sut.deleteSecret(secretId);
       fail("Should fail because of non-existant secret ID");
-    } catch (DockerRequestException ex) {
-      // Ignored; Docker should return status code 404, but it doesn't for some reason.
+    } catch (DockerRequestException | NotFoundException ex) {
+      // Ignored; Docker should return status code 404,
+      // but it doesn't for some reason in versions < 17.04.
+      // So we catch 2 different exceptions here.
     }
   }
 
