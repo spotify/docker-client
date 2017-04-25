@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class CaConfig {
 
+  @Nullable
   @JsonProperty("NodeCertExpiry")
   public abstract Long nodeCertExpiry();
 
@@ -47,8 +48,23 @@ public abstract class CaConfig {
   static CaConfig create(
       @JsonProperty("NodeCertExpiry") final Long nodeCertExpiry,
       @JsonProperty("ExternalCAs") final List<ExternalCa> externalCas) {
-    final ImmutableList<ExternalCa> externalCasCopy = externalCas == null
-                                                      ? null : ImmutableList.copyOf(externalCas);
-    return new AutoValue_CaConfig(nodeCertExpiry, externalCasCopy);
+    return builder()
+        .nodeCertExpiry(nodeCertExpiry)
+        .externalCas(externalCas)
+        .build();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder nodeCertExpiry(Long nodeCertExpiry);
+
+    public abstract Builder externalCas(List<ExternalCa> externalCas);
+
+    public abstract CaConfig build();
+  }
+
+  public static CaConfig.Builder builder() {
+    return new AutoValue_CaConfig.Builder();
   }
 }

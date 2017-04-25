@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class SwarmSpec {
 
+  @Nullable
   @JsonProperty("Name")
   public abstract String name();
 
@@ -43,18 +44,27 @@ public abstract class SwarmSpec {
   @JsonProperty("Labels")
   public abstract ImmutableMap<String, String> labels();
 
+  @Nullable
   @JsonProperty("Orchestration")
   public abstract OrchestrationConfig orchestration();
 
+  @Nullable
   @JsonProperty("Raft")
   public abstract RaftConfig raft();
 
+  @Nullable
   @JsonProperty("Dispatcher")
   public abstract DispatcherConfig dispatcher();
 
+  @Nullable
   @JsonProperty("CAConfig")
   public abstract CaConfig caConfig();
 
+  @Nullable
+  @JsonProperty("EncryptionConfig")
+  public abstract EncryptionConfig encryptionConfig();
+
+  @Nullable
   @JsonProperty("TaskDefaults")
   public abstract TaskDefaults taskDefaults();
 
@@ -66,10 +76,42 @@ public abstract class SwarmSpec {
       @JsonProperty("Raft") final RaftConfig raft,
       @JsonProperty("Dispatcher") final DispatcherConfig dispatcher,
       @JsonProperty("CAConfig") final CaConfig caConfig,
+      @JsonProperty("EncryptionConfig") final EncryptionConfig encryptionConfig,
       @JsonProperty("TaskDefaults") final TaskDefaults taskDefaults) {
-    final ImmutableMap<String, String> labelsT = labels == null
-                                                 ? null : ImmutableMap.copyOf(labels);
-    return new AutoValue_SwarmSpec(name, labelsT, orchestration, raft, dispatcher, caConfig,
-        taskDefaults);
+    return builder()
+        .name(name)
+        .labels(labels)
+        .orchestration(orchestration)
+        .raft(raft)
+        .dispatcher(dispatcher)
+        .caConfig(caConfig)
+        .encryptionConfig(encryptionConfig)
+        .taskDefaults(taskDefaults)
+        .build();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+    public abstract Builder name(String name);
+
+    public abstract Builder labels(Map<String, String> labels);
+
+    public abstract Builder orchestration(OrchestrationConfig orchestration);
+
+    public abstract Builder raft(RaftConfig raft);
+
+    public abstract Builder dispatcher(DispatcherConfig dispatcher);
+
+    public abstract Builder caConfig(CaConfig caConfig);
+
+    public abstract Builder encryptionConfig(EncryptionConfig encryptionConfig);
+
+    public abstract Builder taskDefaults(TaskDefaults taskDefaults);
+
+    public abstract SwarmSpec build();
+  }
+
+  public static SwarmSpec.Builder builder() {
+    return new AutoValue_SwarmSpec.Builder();
   }
 }
