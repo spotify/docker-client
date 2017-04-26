@@ -83,6 +83,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -2703,23 +2704,23 @@ public class DefaultDockerClientTest {
 
     sut.pull(BUSYBOX_LATEST);
 
-    sut.createVolume(Volume.builder().name("avolume").build());
-    sut.createVolume(Volume.builder().name("avolume2").build());
+    final String aVolumeName = "avolume";
+    final String aVolumeTo = "/some/path";
+    final String nocopyVolumeName = "avolume2";
+    final String nocopyVolumeTo = "/some/other/path";
 
-    final Bind bind1 =
-        Bind.from("avolume")
-            .to("/some/other/path")
-            .readOnly(true)
-            .build();
-
-    final Bind bind2 =
-        Bind.from("avolume2")
-            .to("/some/other/path2")
-            .noCopy(true)
-            .build();
+    sut.createVolume(Volume.builder().name(aVolumeName).build());
+    sut.createVolume(Volume.builder().name(nocopyVolumeName).build());
 
     final HostConfig hostConfig = HostConfig.builder()
-        .appendBinds(bind1, bind2)
+        .appendBinds(Bind.from(aVolumeName)
+                .to(aVolumeTo)
+                .readOnly(true)
+                .build())
+        .appendBinds(Bind.from(nocopyVolumeName)
+                .to(nocopyVolumeTo)
+                .noCopy(true)
+                .build())
         .build();
 
     final ContainerConfig config = ContainerConfig.builder()
@@ -2734,74 +2735,217 @@ public class DefaultDockerClientTest {
 
     assertThat(mounts.size(), equalTo(2));
 
-    assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
-      @Override
-      public boolean apply(ContainerMount mount) {
-        return mount.source().contains("/avolume/")
-               && "/some/other/path".equals(mount.destination())
-               && !mount.rw();
-      }
-    }, null), notNullValue());
+    {
+      final ContainerMount aMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
+        @Override
+        public boolean apply(ContainerMount mount) {
+          return !("nocopy".equals(mount.mode()));
+        }
+      }, null);
+      assertThat("Could not find a mount (without nocopy)", aMount, notNullValue());
+      assertThat(aMount.mode(), is(equalTo("ro")));
+      assertThat(aMount.rw(), is(false));
+      assertThat(aMount.source(), containsString("/" + aVolumeName + "/"));
+      assertThat(aMount.destination(), is(equalTo(aVolumeTo)));
+    }
 
-    assertThat(Iterables.find(mounts, new Predicate<ContainerMount>() {
-      @Override
-      public boolean apply(ContainerMount mount) {
-        return mount.source().contains("/avolume2/")
-               && "/some/other/path2".equals(mount.destination())
-               && mount.rw()
-               && "nocopy".equals(mount.mode());
-      }
-    }, null), notNullValue());
-
+    {
+      final ContainerMount nocopyMount = Iterables.find(mounts, new Predicate<ContainerMount>() {
+        @Override
+        public boolean apply(ContainerMount mount) {
+          return "nocopy".equals(mount.mode());
+        }
+      }, null);
+      assertThat("Could not find mount (with nocopy)", nocopyMount, notNullValue());
+      assertThat(nocopyMount.mode(), is(equalTo("nocopy")));
+      assertThat(nocopyMount.rw(), is(true));
+      assertThat(nocopyMount.source(), containsString("/" + nocopyVolumeName + "/"));
+      assertThat(nocopyMount.destination(), is(equalTo(nocopyVolumeTo)));
+    }
   }
 
   @Test
   public void testContainerVolumes() throws Exception {
     requireDockerApiVersionAtLeast(
-        "1.20", "Creating a container with volumes and inspecting volumes in new style");
+            "1.20", "Creating a container with volumes and inspecting volumes");
 
     sut.pull(BUSYBOX_LATEST);
 
+    final String namedVolumeName = "aVolume";
+    final String namedVolumeFrom = "/a/host/path";
+    final String namedVolumeTo = "/a/destination/path";
+    final String bindObjectFrom = "/some/path";
+    final String bindObjectTo = "/some/other/path";
+    final String bindStringFrom = "/local/path";
+    final String bindStringTo = "/remote/path";
+    final String anonVolumeTo = "/foo";
+
+    final Volume volume = Volume.builder()
+            .name(namedVolumeName)
+            .mountpoint(namedVolumeFrom)
+            .build();
+    sut.createVolume(volume);
+    final Bind bindUsingVolume =
+        Bind.from(volume)
+            .to(namedVolumeTo)
+            .build();
+
     final Bind bind =
-        Bind.from("/some/path")
-            .to("/some/other/path")
+        Bind.from(bindObjectFrom)
+            .to(bindObjectTo)
             .readOnly(true)
             .build();
     final HostConfig hostConfig = HostConfig.builder()
-        .appendBinds("/local/path:/remote/path")
         .appendBinds(bind)
+        .appendBinds(bindStringFrom + ":" + bindStringTo)
+        .appendBinds(bindUsingVolume)
         .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .addVolume("/foo")
+        .addVolume(anonVolumeTo)
         .hostConfig(hostConfig)
         .build();
     final String id = sut.createContainer(volumeConfig, randomName()).id();
-    final ContainerInfo volumeContainer = sut.inspectContainer(id);
-    final List<ContainerMount> containerMounts = volumeContainer.mounts();
+    final ContainerInfo containerInfo = sut.inspectContainer(id);
+    final List<ContainerMount> mounts = containerInfo.mounts();
 
-    final List<String> expectedDesintations = newArrayList(
-        "/foo", "/remote/path", "/some/other/path");
-    final List<String> actualDesintations =
-        Lists.transform(newArrayList(containerMounts), new Function<ContainerMount, String>() {
-          @Override
-          public String apply(ContainerMount containerMount) {
-            return containerMount.destination();
-          }
-        });
-    assertThat(expectedDesintations, everyItem(isIn(actualDesintations)));
+    assertThat(mounts.size(), equalTo(4));
 
-    final List<String> expectedSources = newArrayList("/local/path", "/some/path");
-    final List<String> actualSources = Lists.transform(
-        newArrayList(containerMounts), new Function<ContainerMount, String>() {
-          @Override
-          public String apply(ContainerMount containerMount) {
-            return containerMount.source();
-          }
-        });
-    assertThat(expectedSources, everyItem(isIn(actualSources)));
+    {
+      final ContainerMount bindObjectMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return bindObjectFrom.equals(mount.source());
+                }
+              }, null);
+      assertThat("Did not find mount from bind object", bindObjectMount, notNullValue());
+      assertThat(bindObjectMount.source(), is(bindObjectFrom));
+      assertThat(bindObjectMount.destination(), is(bindObjectTo));
+      assertThat(bindObjectMount.driver(), isEmptyOrNullString());
+      assertThat(bindObjectMount.rw(), is(false));
+      assertThat(bindObjectMount.mode(), is(equalTo("ro")));
 
-    assertThat(volumeContainer.config().volumeNames(), hasItem("/foo"));
+      if (dockerApiVersionAtLeast("1.25")) {
+        assertThat(bindObjectMount.name(), isEmptyOrNullString());
+        assertThat(bindObjectMount.propagation(), isEmptyOrNullString());
+      } else if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(bindObjectMount.name(), isEmptyOrNullString());
+        assertThat(bindObjectMount.propagation(), is(equalTo("rprivate")));
+      } else {
+        assertThat(bindObjectMount.name(), is(nullValue()));
+        assertThat(bindObjectMount.propagation(), is(nullValue()));
+      }
+
+      if (dockerApiVersionAtLeast("1.26")) {
+        assertThat(bindObjectMount.type(), is(equalTo("bind")));
+        assertThat(bindObjectMount.driver(), isEmptyOrNullString());
+      } else {
+        assertThat(bindObjectMount.type(), is(nullValue()));
+        assertThat(bindObjectMount.driver(), is(nullValue()));
+      }
+    }
+
+    {
+      final ContainerMount bindStringMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return bindStringFrom.equals(mount.source());
+                }
+              }, null);
+      assertThat("Did not find mount from bind string", bindStringMount, notNullValue());
+      assertThat(bindStringMount.source(), is(equalTo(bindStringFrom)));
+      assertThat(bindStringMount.destination(), is(equalTo(bindStringTo)));
+      assertThat(bindStringMount.driver(), isEmptyOrNullString());
+      assertThat(bindStringMount.rw(), is(true));
+      assertThat(bindStringMount.mode(), is(equalTo("")));
+
+      if (dockerApiVersionAtLeast("1.25")) {
+        assertThat(bindStringMount.name(), isEmptyOrNullString());
+        assertThat(bindStringMount.propagation(), isEmptyOrNullString());
+      } else if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(bindStringMount.name(), isEmptyOrNullString());
+        assertThat(bindStringMount.propagation(), is(equalTo("rprivate")));
+      } else {
+        assertThat(bindStringMount.name(), is(nullValue()));
+        assertThat(bindStringMount.propagation(), is(nullValue()));
+      }
+
+      if (dockerApiVersionAtLeast("1.26")) {
+        assertThat(bindStringMount.type(), is(equalTo("bind")));
+        assertThat(bindStringMount.driver(), isEmptyOrNullString());
+      } else {
+        assertThat(bindStringMount.type(), is(nullValue()));
+        assertThat(bindStringMount.driver(), is(nullValue()));
+      }
+    }
+
+    {
+      final ContainerMount namedVolumeMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return namedVolumeTo.equals(mount.destination());
+                }
+              }, null);
+      assertThat("Did not find mount from named volume", namedVolumeMount, notNullValue());
+      assertThat(namedVolumeMount.name(), is(equalTo(namedVolumeName)));
+      assertThat(namedVolumeMount.source(), containsString("/" + namedVolumeName + "/"));
+      assertThat(namedVolumeMount.destination(), is(equalTo(namedVolumeTo)));
+      assertThat(namedVolumeMount.rw(), is(true));
+      assertThat(namedVolumeMount.mode(), is(equalTo("z")));
+
+      assertThat(namedVolumeMount.name(), is(namedVolumeName));
+      assertThat(namedVolumeMount.driver(), is(equalTo("local")));
+
+      if (dockerApiVersionAtLeast("1.25")) {
+        assertThat(namedVolumeMount.propagation(), isEmptyOrNullString());
+      } else if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(namedVolumeMount.propagation(), is(equalTo("rprivate")));
+      } else {
+        assertThat(namedVolumeMount.propagation(), is(nullValue()));
+      }
+
+      if (dockerApiVersionAtLeast("1.26")) {
+        assertThat(namedVolumeMount.type(), is(equalTo("volume")));
+      } else {
+        assertThat(namedVolumeMount.type(), is(nullValue()));
+      }
+    }
+
+    {
+      final ContainerMount anonVolumeMount =
+              Iterables.find(mounts, new Predicate<ContainerMount>() {
+                @Override
+                public boolean apply(ContainerMount mount) {
+                  return anonVolumeTo.equals(mount.destination());
+                }
+              }, null);
+      assertThat("Did not find mount from anonymous volume", anonVolumeMount, notNullValue());
+      assertThat(anonVolumeMount.source(), containsString("/" + anonVolumeMount.name() + "/"));
+      assertThat(anonVolumeMount.destination(), is(equalTo(anonVolumeTo)));
+      assertThat(anonVolumeMount.mode(), isEmptyOrNullString());
+      assertThat(anonVolumeMount.rw(), is(true));
+      assertThat(anonVolumeMount.mode(), is(equalTo("")));
+
+      assertThat(anonVolumeMount.name(), not(isEmptyOrNullString()));
+      assertThat(anonVolumeMount.driver(), is(equalTo("local")));
+
+      if (dockerApiVersionAtLeast("1.22")) {
+        assertThat(anonVolumeMount.propagation(), isEmptyOrNullString());
+      } else {
+        assertThat(anonVolumeMount.propagation(), is(nullValue()));
+      }
+
+      if (dockerApiVersionAtLeast("1.26")) {
+        assertThat(anonVolumeMount.type(), is(equalTo("volume")));
+      } else {
+        assertThat(anonVolumeMount.type(), is(nullValue()));
+      }
+    }
+
+    assertThat(containerInfo.config().volumeNames(), hasItem(anonVolumeTo));
   }
 
   @Test
