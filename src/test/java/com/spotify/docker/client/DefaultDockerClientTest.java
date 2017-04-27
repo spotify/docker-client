@@ -3957,8 +3957,9 @@ public class DefaultDockerClientTest {
   @Test
   public void testNetworksConnectContainer() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "createNetwork and listNetworks");
-
     assumeFalse(CIRCLECI);
+
+    sut.pull(BUSYBOX_LATEST);
     final String networkName = randomName();
     final String containerName = randomName();
     final NetworkCreation networkCreation =
@@ -3971,9 +3972,17 @@ public class DefaultDockerClientTest {
     assertThat(containerCreation.id(), is(notNullValue()));
     sut.startContainer(containerCreation.id());
     sut.connectToNetwork(containerCreation.id(), networkCreation.id());
+
     Network network = sut.inspectNetwork(networkCreation.id());
     assertThat(network.containers().size(), equalTo(1));
-    assertThat(network.containers().get(containerCreation.id()), notNullValue());
+    final Network.Container container = network.containers().get(containerCreation.id());
+    assertThat(container, notNullValue());
+    if (dockerApiVersionAtLeast("1.22")) {
+      assertThat(container.name(), notNullValue());
+    }
+    assertThat(container.macAddress(), notNullValue());
+    assertThat(container.ipv4Address(), notNullValue());
+    assertThat(container.ipv6Address(), notNullValue());
 
     final ContainerInfo containerInfo = sut.inspectContainer(containerCreation.id());
     assertThat(containerInfo.networkSettings().networks().size(), is(2));
