@@ -2618,7 +2618,13 @@ public class DefaultDockerClientTest {
       logs = stream.readFully();
     }
     assertThat(logs, containsString("1.2.3.4"));
+  }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidExtraHosts() throws Exception {
+    final HostConfig expected = HostConfig.builder()
+        .extraHosts("extrahost")
+        .build();
   }
 
   @Test
