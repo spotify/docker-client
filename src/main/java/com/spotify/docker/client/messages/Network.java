@@ -98,6 +98,10 @@ public abstract class Network {
   @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
   public abstract static class Container {
 
+    @Nullable
+    @JsonProperty("Name")
+    public abstract String name();
+
     @JsonProperty("EndpointID")
     public abstract String endpointId();
 
@@ -112,11 +116,13 @@ public abstract class Network {
 
     @JsonCreator
     static Container create(
+        @JsonProperty("Name") final String name,
         @JsonProperty("EndpointID") final String endpointId,
         @JsonProperty("MacAddress") final String macAddress,
         @JsonProperty("IPv4Address") final String ipv4Address,
         @JsonProperty("IPv6Address") final String ipv6Address) {
-      return new AutoValue_Network_Container(endpointId, macAddress, ipv4Address, ipv6Address);
+      return new AutoValue_Network_Container(
+          name, endpointId, macAddress, ipv4Address, ipv6Address);
     }
   }
   
