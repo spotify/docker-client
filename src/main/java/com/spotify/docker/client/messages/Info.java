@@ -190,7 +190,7 @@ public abstract class Info {
   
   @Nullable
   @JsonProperty("Swarm")
-  public abstract SwarmInfo swarn();
+  public abstract SwarmInfo swarm();
 
   @Nullable
   @JsonProperty("SystemStatus")
