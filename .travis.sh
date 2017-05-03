@@ -44,6 +44,26 @@ case "$1" in
     # installing the package
     sudo restart docker
 
+    # Check if docker is ready up to a certain number of times
+    retries=0
+    max_retries=10
+    while true ; do
+      let "retries++"
+      if [ "$retries" -gt "$max_retries" ]; then
+        echo 'Exceeded number of retries.'
+        exit 1
+      fi
+
+      echo 'Checking docker is ready.'
+      if docker ps; then
+          echo 'Docker is ready.'
+          break
+      else
+        echo 'Docker is not ready yet. Sleeping and checking again.'
+        sleep 2
+      fi
+    done
+
     if [[ "$ENABLE_SWARM" = "1"  ]]; then
         # initialize docker swarm to be able to run docker tests
         sudo docker swarm init --advertise-addr 127.0.0.1
