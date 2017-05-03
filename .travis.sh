@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 if [[ -z $1 ]]; then
   "I need a command!"
@@ -48,7 +48,7 @@ case "$1" in
     retries=0
     max_retries=10
     while true ; do
-      let "retries++"
+      retries=$((retries+1))
       if [ "$retries" -gt "$max_retries" ]; then
         echo 'Exceeded number of retries.'
         exit 1
