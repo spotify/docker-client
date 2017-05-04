@@ -43,6 +43,8 @@ case "$1" in
     # restart the service for the /etc/default/docker change we made after
     # installing the package
     sudo restart docker
+    # Give it time to be ready
+    sleep 10
 
     if [[ "$ENABLE_SWARM" = "1"  ]]; then
         # initialize docker swarm to be able to run docker tests
