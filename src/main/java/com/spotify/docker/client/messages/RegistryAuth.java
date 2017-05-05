@@ -191,8 +191,8 @@ public abstract class RegistryAuth {
       if (authParams.length == 2) {
         authBuilder.username(authParams[0].trim());
         authBuilder.password(authParams[1].trim());
-      } else if (serverAuth.has("identityToken")) {
-        authBuilder.identityToken(serverAuth.get("identityToken").asText());
+      } else if (serverAuth.has("identitytoken")) {
+        authBuilder.identityToken(serverAuth.get("identitytoken").asText());
         return authBuilder;
       } else {
         LOG.warn("Failed to parse auth string for {}", serverAddress);
