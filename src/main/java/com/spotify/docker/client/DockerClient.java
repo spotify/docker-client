@@ -71,7 +71,11 @@ import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInit;
+import com.spotify.docker.client.messages.swarm.SwarmJoin;
+import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.UnlockKey;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,7 +90,6 @@ import java.util.Set;
  *
  * <p>Note: All methods throw DockerException on unexpected docker response status codes.
  */
-@SuppressWarnings("JavadocMethod")
 public interface DockerClient extends Closeable {
 
   /**
@@ -1489,6 +1492,47 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   Swarm inspectSwarm() throws DockerException, InterruptedException;
+  
+  /**
+   * Init a Swarm cluster. Only available in Docker API &gt;= 1.24.
+   *
+   * @return Node ID
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  String initSwarm(SwarmInit swarmInit) throws DockerException, InterruptedException;
+  
+  /**
+   * Join to a Swarm cluster. Only available in Docker API &gt;= 1.24.
+   *
+   * 
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void joinSwarm(SwarmJoin swarmJoin) throws DockerException, InterruptedException;
+  
+  void leaveSwarm() throws DockerException, InterruptedException;
+  
+  void leaveSwarm(boolean force) throws DockerException, InterruptedException;
+
+  void updateSwarm(final Long version, 
+      boolean rotateWorkerToken, boolean rotateManagerToken, boolean rotateManagerUnlockKey, 
+      SwarmSpec spec) throws DockerException, InterruptedException;
+  
+  void updateSwarm(final Long version, 
+      boolean rotateWorkerToken, boolean rotateManagerToken,  
+      SwarmSpec spec) throws DockerException, InterruptedException;
+  
+  void updateSwarm(final Long version, 
+      boolean rotateWorkerToken, 
+      SwarmSpec spec) throws DockerException, InterruptedException;
+  
+  void updateSwarm(final Long version, SwarmSpec spec) 
+      throws DockerException, InterruptedException;
+  
+  UnlockKey unlockkey() throws DockerException, InterruptedException;
+  
+  void unlock(UnlockKey unlockKey) throws DockerException, InterruptedException;
 
   /**
    * Create a new service. Only available in Docker API &gt;= 1.24.
