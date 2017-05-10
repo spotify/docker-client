@@ -635,10 +635,15 @@ As such, the `ContainerInfo.volumes()` method is deprecated. Instead, use
   [2]: https://docs.docker.com/engine/reference/api/docker_remote_api_v1.18/
   
 # Troubleshooting
+
 ## HTTP 500 errors returned from the Docker Remote API
-When interacting with docker via the docker-client, an exception is thrown like:
+
+docker-client communicates with your local Docker daemon using the HTTP Remote 
+API and any unexpected errors that the daemon encounters will be reported as a
+500 Internal Server Error, which bubbles up from docker-client as an exception 
+like:
+
 > Caused by: com.spotify.docker.client.shaded.javax.ws.rs.InternalServerErrorException: HTTP 500 Internal Server Error
 
-docker-client communicates with your local Docker daemon using the HTTP Remote API and any unexpected errors that the daemon encounters will be reported as 500 Internal Server Error.
-
-Check the Docker daemon log (typically at /var/log/docker.log or /var/log/upstart/docker.log) for more details.
+Check the Docker daemon log (typically at `/var/log/docker.log` or 
+`/var/log/upstart/docker.log`) for more details as to the root cause.
