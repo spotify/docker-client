@@ -28,16 +28,34 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+import javax.annotation.Nullable;
+
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class DispatcherConfig {
 
+  @Nullable
   @JsonProperty("HeartbeatPeriod")
   public abstract Long heartbeatPeriod();
 
   @JsonCreator
-  static DispatcherConfig create(@JsonProperty("HeartbeatPeriod") final Long heartbeatPeriod) {
-    return new AutoValue_DispatcherConfig(heartbeatPeriod);
+  public static DispatcherConfig create(
+      @JsonProperty("HeartbeatPeriod") final Long heartbeatPeriod) {
+    return builder()
+        .heartbeatPeriod(heartbeatPeriod)
+        .build();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder heartbeatPeriod(Long heartbeatPeriod);
+
+    public abstract DispatcherConfig build();
+  }
+
+  public static DispatcherConfig.Builder builder() {
+    return new AutoValue_DispatcherConfig.Builder();
   }
 }

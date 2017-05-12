@@ -60,6 +60,7 @@ import static com.spotify.docker.client.messages.swarm.RestartPolicy.RESTART_POL
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
@@ -83,7 +84,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -183,8 +183,11 @@ import com.spotify.docker.client.messages.mount.BindOptions;
 import com.spotify.docker.client.messages.mount.Mount;
 import com.spotify.docker.client.messages.mount.TmpfsOptions;
 import com.spotify.docker.client.messages.mount.VolumeOptions;
+import com.spotify.docker.client.messages.swarm.CaConfig;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
+import com.spotify.docker.client.messages.swarm.DispatcherConfig;
 import com.spotify.docker.client.messages.swarm.Driver;
+import com.spotify.docker.client.messages.swarm.EncryptionConfig;
 import com.spotify.docker.client.messages.swarm.Endpoint;
 import com.spotify.docker.client.messages.swarm.EndpointSpec;
 import com.spotify.docker.client.messages.swarm.EngineConfig;
@@ -193,9 +196,11 @@ import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
+import com.spotify.docker.client.messages.swarm.OrchestrationConfig;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.PortConfig;
 import com.spotify.docker.client.messages.swarm.PortConfig.PortConfigPublishMode;
+import com.spotify.docker.client.messages.swarm.RaftConfig;
 import com.spotify.docker.client.messages.swarm.ReplicatedService;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.RestartPolicy;
@@ -208,8 +213,13 @@ import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInit;
+import com.spotify.docker.client.messages.swarm.SwarmJoin;
+import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.TaskDefaults;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
+import com.spotify.docker.client.messages.swarm.UnlockKey;
 import com.spotify.docker.client.messages.swarm.UpdateConfig;
 
 import java.io.BufferedInputStream;
@@ -4669,6 +4679,115 @@ public class DefaultDockerClientTest {
     assertThat(swarm.id(), is(not(isEmptyOrNullString())));
     assertThat(swarm.joinTokens().worker(), is(not(isEmptyOrNullString())));
     assertThat(swarm.joinTokens().manager(), is(not(isEmptyOrNullString())));
+  }
+
+  @Test
+  public void testInitAndLeaveSwarm() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    try {
+      sut.leaveSwarm(true);
+    } catch (final Exception ex) {
+      // ignored
+    }
+
+    // Test initializing swarm without SwarmSpec
+    final String nodeId = sut.initSwarm(SwarmInit.builder()
+        .advertiseAddr("127.0.0.1")
+        .listenAddr("0.0.0.0:2377")
+        .build()
+    );
+    assertThat(nodeId, is(notNullValue()));
+
+    sut.leaveSwarm(true);
+
+    // Test initializing swarm with SwarmSpec
+    final String nodeId2 = sut.initSwarm(SwarmInit.builder()
+        .advertiseAddr("127.0.0.1")
+        .listenAddr("0.0.0.0:2377")
+        .swarmSpec(SwarmSpec.builder()
+            .caConfig(CaConfig.builder().build())
+            .dispatcher(DispatcherConfig.builder().build())
+            .labels(Collections.<String, String>emptyMap())
+            .raft(RaftConfig.builder().build())
+            .encryptionConfig(EncryptionConfig.builder().autoLockManagers(true).build())
+            .taskDefaults(TaskDefaults.builder().build())
+            .build()
+        )
+        .build()
+    );
+    assertThat(nodeId2, is(notNullValue()));
+  }
+
+  @Test
+  public void testUpdateSwarm() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+
+    final Swarm swarm = sut.inspectSwarm();
+    final ThreadLocalRandom random = ThreadLocalRandom.current();
+
+    final Map<String, String> newLabels = ImmutableMap.of("foo", "bar");
+    final OrchestrationConfig newOrchestration = OrchestrationConfig.builder()
+        .taskHistoryRetentionLimit(random.nextInt(1, 10))
+        .build();
+    final RaftConfig newRaft = RaftConfig.builder()
+        .snapshotInterval(random.nextInt(1, 10000))
+        .keepOldSnapshots(random.nextInt(1, 10))
+        .logEntriesForSlowFollowers(random.nextInt(1, 1000))
+        .electionTick(random.nextInt(1, 10))
+        .heartbeatTick(random.nextInt(1, 10))
+        .build();
+    final DispatcherConfig newDispatcher = DispatcherConfig.builder()
+        .heartbeatPeriod(random.nextLong(1, 5000000000L))
+        .build();
+    final CaConfig newCa = CaConfig.builder()
+        .nodeCertExpiry(random.nextLong(1, 7776000000000000L))
+        .build();
+    final EncryptionConfig newEncryption = EncryptionConfig.builder()
+        .autoLockManagers(true)
+        .build();
+    final TaskDefaults newTaskDefaults = TaskDefaults.builder()
+        .build();
+
+    final SwarmSpec updatedSpec = SwarmSpec.builder()
+        .name(swarm.swarmSpec().name() + "2")
+        .labels(newLabels)
+        .orchestration(newOrchestration)
+        .raft(newRaft)
+        .dispatcher(newDispatcher)
+        .caConfig(newCa)
+        .encryptionConfig(newEncryption)
+        .taskDefaults(newTaskDefaults)
+        .build();
+
+    sut.updateSwarm(swarm.version().index(), updatedSpec);
+    final Swarm updatedSwarm = sut.inspectSwarm();
+
+    assertThat(updatedSwarm.id(), equalTo(swarm.id()));
+    final SwarmSpec newSpec = updatedSwarm.swarmSpec();
+    if (dockerApiVersionLessThan("1.25")) {
+      assertThat(newSpec.name(), equalTo(updatedSpec.name()));
+      assertThat(newSpec.labels(), equalTo(updatedSpec.labels()));
+      assertThat(newSpec.orchestration(), equalTo(updatedSpec.orchestration()));
+      assertThat(newSpec.raft(), equalTo(updatedSpec.raft()));
+      assertThat(newSpec.dispatcher(), equalTo(updatedSpec.dispatcher()));
+      assertThat(newSpec.caConfig(), equalTo(updatedSpec.caConfig()));
+      assertThat(newSpec.encryptionConfig(), is(nullValue()));
+      assertThat(newSpec.taskDefaults(), equalTo(updatedSpec.taskDefaults()));
+    } else {
+      assertThat(newSpec, equalTo(updatedSpec));
+    }
+
+    // Return swarm back to old settings
+    sut.updateSwarm(updatedSwarm.version().index(), swarm.swarmSpec());
+  }
+
+  @Test
+  public void testUnlockKey() throws Exception {
+    requireDockerApiVersionAtLeast("1.25", "swarm locking support");
+
+    final UnlockKey unlockKey = sut.unlockKey();
+    assertThat(unlockKey, is(notNullValue()));
   }
 
   @Test

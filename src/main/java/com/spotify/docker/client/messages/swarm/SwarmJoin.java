@@ -2,7 +2,7 @@
  * -\-\-
  * docker-client
  * --
- * Copyright (C) 2016 Spotify AB
+ * Copyright (C) 2016 - 2017 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,35 +27,56 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class OrchestrationConfig {
+public abstract class SwarmJoin {
+  @JsonProperty("ListenAddr")
+  public abstract String listenAddr();
+
+  @JsonProperty("AdvertiseAddr")
+  public abstract String advertiseAddr();
 
   @Nullable
-  @JsonProperty("TaskHistoryRetentionLimit")
-  public abstract Integer taskHistoryRetentionLimit();
+  @JsonProperty("RemoteAddrs")
+  public abstract List<String> remoteAddrs();
 
-  @JsonCreator
-  static OrchestrationConfig create(
-      @JsonProperty("TaskHistoryRetentionLimit") final Integer taskHistoryRetentionLimit) {
-    return builder()
-        .taskHistoryRetentionLimit(taskHistoryRetentionLimit)
-        .build();
-  }
+  @Nullable
+  @JsonProperty("JoinToken")
+  public abstract String joinToken();
 
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder listenAddr(String listenAddr);
 
-    public abstract Builder taskHistoryRetentionLimit(Integer taskHistoryRetentionLimit);
+    public abstract Builder advertiseAddr(String advertiseAddr);
 
-    public abstract OrchestrationConfig build();
+    public abstract Builder remoteAddrs(List<String> remoteAddrs);
+
+    public abstract Builder joinToken(String swarmSpec);
+
+    public abstract SwarmJoin build();
   }
 
-  public static OrchestrationConfig.Builder builder() {
-    return new AutoValue_OrchestrationConfig.Builder();
+  public static SwarmJoin.Builder builder() {
+    return new AutoValue_SwarmJoin.Builder();
+  }
+
+  @JsonCreator
+  static SwarmJoin create(
+      @JsonProperty("ListenAddr") final String listenAddr,
+      @JsonProperty("AdvertiseAddr") final String advertiseAddr,
+      @JsonProperty("RemoteAddrs") final List<String> remoteAddrs,
+      @JsonProperty("JoinToken") final String joinToken) {
+    return builder()
+        .listenAddr(listenAddr)
+        .advertiseAddr(advertiseAddr)
+        .remoteAddrs(remoteAddrs)
+        .joinToken(joinToken)
+        .build();
   }
 }

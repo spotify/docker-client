@@ -71,7 +71,12 @@ import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInit;
+import com.spotify.docker.client.messages.swarm.SwarmJoin;
+import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.UnlockKey;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1482,13 +1487,128 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
-   * Inspect the Swarm cluster. Only available in Docker API &gt;= 1.24.
+   * Inspect the swarm. Only available in Docker API &gt;= 1.24.
    *
    * @return Info about a swarm
-   * @throws DockerException      if a server error occurred (500)
+   * @throws DockerException      If a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
    */
   Swarm inspectSwarm() throws DockerException, InterruptedException;
+
+  /**
+   * Initialize a new swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @return Node ID
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  String initSwarm(SwarmInit swarmInit) throws DockerException, InterruptedException;
+
+  /**
+   * Join an existing swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void joinSwarm(SwarmJoin swarmJoin) throws DockerException, InterruptedException;
+
+  /**
+   * Leave a swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void leaveSwarm() throws DockerException, InterruptedException;
+
+  /**
+   * Leave a swarm forcefully. Only available in Docker API &gt;= 1.24.
+   * Force leave swarm, even if this is the last manager or if leaving will break the cluster.
+   *
+   * @param force                 Whether to leave forcefully
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void leaveSwarm(boolean force) throws DockerException, InterruptedException;
+
+  /**
+   * Update a swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @param version                The version number of the swarm object being updated.
+   *                               This is required to avoid conflicting writes.
+   * @param rotateWorkerToken      Set to true to rotate the worker join token.
+   * @param rotateManagerToken     Set to true to rotate the worker join token.
+   * @param rotateManagerUnlockKey Set to true to rotate the manager unlock key.
+   * @param spec                   {@link SwarmSpec}
+   * @throws DockerException       If a server error occurred (500)
+   * @throws InterruptedException  If the thread is interrupted
+   */
+  void updateSwarm(Long version,
+                   boolean rotateWorkerToken,
+                   boolean rotateManagerToken,
+                   boolean rotateManagerUnlockKey,
+                   SwarmSpec spec)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Update a swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @param version                The version number of the swarm object being updated.
+   *                               This is required to avoid conflicting writes.
+   * @param rotateWorkerToken      Set to true to rotate the worker join token.
+   * @param rotateManagerToken     Set to true to rotate the worker join token.
+   * @param spec                   {@link SwarmSpec}
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void updateSwarm(Long version,
+                   boolean rotateWorkerToken,
+                   boolean rotateManagerToken,
+                   SwarmSpec spec)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Update a swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @param version                The version number of the swarm object being updated.
+   *                               This is required to avoid conflicting writes.
+   * @param rotateWorkerToken      Set to true to rotate the worker join token.
+   * @param spec                   {@link SwarmSpec}
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void updateSwarm(Long version,
+                   boolean rotateWorkerToken,
+                   SwarmSpec spec)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Update a swarm. Only available in Docker API &gt;= 1.24.
+   *
+   * @param version                The version number of the swarm object being updated.
+   *                               This is required to avoid conflicting writes.
+   * @param spec                   {@link SwarmSpec}
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void updateSwarm(Long version, SwarmSpec spec) throws DockerException, InterruptedException;
+
+  /**
+   * Get an unlock key for unlocking a swarm. Only available in Docker API &gt;= 1.25.
+   *
+   * @return {@link UnlockKey}
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  UnlockKey unlockKey() throws DockerException, InterruptedException;
+
+  /**
+   * Unlock a swarm. Only available in Docker API &gt;= 1.25.
+   *
+   * @param unlockKey             {@link UnlockKey}
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void unlock(UnlockKey unlockKey) throws DockerException, InterruptedException;
 
   /**
    * Create a new service. Only available in Docker API &gt;= 1.24.

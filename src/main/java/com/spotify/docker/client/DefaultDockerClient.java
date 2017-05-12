@@ -113,7 +113,12 @@ import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInit;
+import com.spotify.docker.client.messages.swarm.SwarmJoin;
+import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.UnlockKey;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -1649,6 +1654,169 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final WebTarget resource = resource().path("swarm");
     return request(GET, Swarm.class, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public String initSwarm(final SwarmInit swarmInit) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("init");
+      return request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(swarmInit));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("bad parameter", e);
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is already part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void joinSwarm(final SwarmJoin swarmJoin) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("join");
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(swarmJoin));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("bad parameter", e);
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is already part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void leaveSwarm() throws DockerException, InterruptedException {
+    leaveSwarm(false);
+  }
+
+  @Override
+  public void leaveSwarm(final boolean force) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("leave").queryParam("force", force);
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final boolean rotateWorkerToken,
+                          final boolean rotateManagerToken,
+                          final boolean rotateManagerUnlockKey,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("update")
+          .queryParam("version", version)
+          .queryParam("rotateWorkerToken", rotateWorkerToken)
+          .queryParam("rotateManagerToken", rotateManagerToken)
+          .queryParam("rotateManagerUnlockKey", rotateManagerUnlockKey);
+
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(spec));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("bad parameter", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final boolean rotateWorkerToken,
+                          final boolean rotateManagerToken,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    updateSwarm(version, rotateWorkerToken, rotateWorkerToken, false, spec);
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final boolean rotateWorkerToken,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    updateSwarm(version, rotateWorkerToken, false, false, spec);
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    updateSwarm(version, false, false, false, spec);
+  }
+
+  @Override
+  public UnlockKey unlockKey() throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("swarm").path("unlockkey");
+
+      return request(GET, UnlockKey.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void unlock(final UnlockKey unlockKey) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("swarm").path("unlock");
+
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(unlockKey));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override
