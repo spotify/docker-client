@@ -288,47 +288,6 @@ public interface DockerClient extends Closeable {
   void load(String image, InputStream imagePayload, ProgressHandler handler)
       throws DockerException, InterruptedException;
 
-
-  /**
-   * Creates a single image from a tarball. This method also tags the image
-   * with the given image name upon loading completion.
-   *
-   * @param image        the name to assign to the image.
-   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
-   *                     file).
-   * @param registryAuth the {@link RegistryAuth} needed to pull the image.
-   * @throws DockerException      if a server error occurred (500).
-   * @throws InterruptedException if the thread is interrupted.
-   *
-   * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
-   * {@link #create(String, InputStream)} to create a single image from the contents of a tarball.
-   */
-  @Deprecated
-  void load(String image, InputStream imagePayload, RegistryAuth registryAuth)
-      throws DockerException, InterruptedException;
-
-
-  /**
-   * Creates a single image from a tarball. This method also tags the image
-   * with the given image name upon loading completion.
-   *
-   * @param image        the name to assign to the image.
-   * @param imagePayload the image's payload (i.e.: the stream corresponding to the image's .tar
-   *                     file).
-   * @param registryAuth the {@link RegistryAuth} needed to pull the image.
-   * @param handler      The handler to use for processing each progress message received from
-   *                     Docker.
-   * @throws DockerException      if a server error occurred (500).
-   * @throws InterruptedException if the thread is interrupted.
-   *
-   * @deprecated Use {@link #load(InputStream)} to load a set of image layers from a tarball. Use
-   *             {@link #create(String, InputStream, ProgressHandler)} to create a single image from
-   *             the contents of a tarball.
-   */
-  @Deprecated
-  void load(String image, InputStream imagePayload, RegistryAuth registryAuth,
-            ProgressHandler handler) throws DockerException, InterruptedException;
-
   /**
    * Load a set of images and tags from a tarball.
    *
@@ -396,26 +355,6 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException if the thread is interrupted.
    */
   InputStream save(String... images) throws DockerException, IOException, InterruptedException;
-
-  /**
-   * Get a tarball containing all images and metadata for the repository specified.
-   * @param image the name or id of the image to save. If a specific name and tag
-   *              (e.g. ubuntu:latest), then only that image (and its parents) are returned.
-   *              If an image ID, similarly only that image (and its parents) are returned,
-   *              but with the exclusion of the 'repositories' file in the tarball,
-   *              as there were no image names referenced.
-   * @param registryAuth the {@link RegistryAuth} needed to pull the image.
-   * @return the image's .tar stream.
-   * @throws DockerException      if a server error occurred (500).
-   * @throws IOException          if the server started returning, but an I/O error occurred in the
-   *                              context of processing it on the client-side.
-   * @throws InterruptedException if the thread is interrupted.
-   *
-   * @deprecated RegistryAuth is not required. Use {@link #save(String...)}.
-   */
-  @Deprecated
-  InputStream save(String image, RegistryAuth registryAuth)
-      throws DockerException, IOException, InterruptedException;
 
   /**
    * Get a tarball containing all images and metadata for one or more repositories.

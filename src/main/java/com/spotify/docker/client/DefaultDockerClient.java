@@ -133,7 +133,6 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1086,27 +1085,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   @Deprecated
   public void load(final String image, final InputStream imagePayload,
-                   final RegistryAuth registryAuth)
-      throws DockerException, InterruptedException {
-    create(image, imagePayload);
-  }
-
-  @Override
-  @Deprecated
-  public void load(final String image, final InputStream imagePayload,
                    final ProgressHandler handler)
       throws DockerException, InterruptedException {
     create(image, imagePayload, handler);
   }
 
-  @Override
-  @Deprecated
-  public void load(final String image, final InputStream imagePayload,
-                   final RegistryAuth registryAuth, final ProgressHandler handler)
-      throws DockerException, InterruptedException {
-    create(image, imagePayload, handler);
-  }
-  
   @Override
   public Set<String> load(final InputStream imagePayload)
       throws DockerException, InterruptedException {
@@ -1189,13 +1172,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         InputStream.class,
         resource,
         resource.request(APPLICATION_JSON_TYPE));
-  }
-
-  @Override
-  @Deprecated
-  public InputStream save(final String image, final RegistryAuth registryAuth)
-      throws DockerException, IOException, InterruptedException {
-    return save(image);
   }
 
   @Override
