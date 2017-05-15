@@ -5415,7 +5415,9 @@ public class DefaultDockerClientTest {
     sut.createService(spec);
     await().until(numberOfTasks(sut), is(greaterThan(0)));
 
-    final Task task = sut.listTasks().get(1);
+    final Task transientTask = sut.listTasks().get(1);
+    await().until(taskState(transientTask.id(), sut), is(transientTask.desiredState()));
+    final Task task = sut.inspectTask(transientTask.id());
 
     final List<Task> tasksWithId = sut.listTasks(Task.find().taskId(task.id()).build());
     assertThat(tasksWithId.size(), is(1));
@@ -5635,6 +5637,15 @@ public class DefaultDockerClientTest {
     return new Callable<Integer>() {
       public Integer call() throws Exception {
         return client.listTasks().size();
+      }
+    };
+  }
+
+  private Callable<String> taskState(final String taskId,
+                                     final DockerClient client) {
+    return new Callable<String>() {
+      public String call() throws Exception {
+        return client.inspectTask(taskId).status().state();
       }
     };
   }
