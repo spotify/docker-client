@@ -56,7 +56,7 @@ This user manual is made to correspond to Docker's [API docs][1] (e.g. [API 1.18
   * [Exec Resize](#exec-resize)
   * [Exec Inspect](#exec-inspect)
   * [Mounting volumes in a container](#mounting-volumes-in-a-container)
-
+* [Troubleshooting](#troubleshooting)
 
 ## Creating a docker-client
 
@@ -633,3 +633,17 @@ As such, the `ContainerInfo.volumes()` method is deprecated. Instead, use
 
   [1]: https://docs.docker.com/engine/reference/api/docker_remote_api/
   [2]: https://docs.docker.com/engine/reference/api/docker_remote_api_v1.18/
+  
+# Troubleshooting
+
+## HTTP 500 errors returned from the Docker Remote API
+
+docker-client communicates with your local Docker daemon using the HTTP Remote 
+API and any unexpected errors that the daemon encounters will be reported as a
+500 Internal Server Error, which bubbles up from docker-client as an exception 
+like:
+
+> Caused by: com.spotify.docker.client.shaded.javax.ws.rs.InternalServerErrorException: HTTP 500 Internal Server Error
+
+Check the Docker daemon log (typically at `/var/log/docker.log` or 
+`/var/log/upstart/docker.log`) for more details as to the root cause.

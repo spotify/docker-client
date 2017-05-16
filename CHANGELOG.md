@@ -1,5 +1,15 @@
 # Changelog
 
+## 8.5.0
+
+### Removal of deprecated methods
+Previously deprecated DockerClient methods that have a RegistryAuth parameter
+but never used the value were removed. These methods are:
+
+- `load(String, InputStream, RegistryAuth)`
+- `load(String, InputStream, RegistryAuth, ProgressHandler)`
+- `save(String, RegistryAuth)`
+
 ## 7.0.0
 
 ### Breaking changes

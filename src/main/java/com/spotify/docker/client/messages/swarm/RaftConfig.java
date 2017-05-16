@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class RaftConfig {
 
+  @Nullable
   @JsonProperty("SnapshotInterval")
   public abstract Integer snapshotInterval();
 
@@ -41,15 +42,17 @@ public abstract class RaftConfig {
   @JsonProperty("KeepOldSnapshots")
   public abstract Integer keepOldSnapshots();
 
+  @Nullable
   @JsonProperty("LogEntriesForSlowFollowers")
   public abstract Integer logEntriesForSlowFollowers();
 
+  @Nullable
   @JsonProperty("ElectionTick")
   public abstract Integer electionTick();
 
+  @Nullable
   @JsonProperty("HeartbeatTick")
   public abstract Integer heartbeatTick();
-
 
   @JsonCreator
   static RaftConfig create(
@@ -58,7 +61,32 @@ public abstract class RaftConfig {
       @JsonProperty("LogEntriesForSlowFollowers") final Integer logEntriesForSlowFollowers,
       @JsonProperty("ElectionTick") final Integer electionTick,
       @JsonProperty("HeartbeatTick") final Integer heartbeatTick) {
-    return new AutoValue_RaftConfig(snapshotInterval, keepOldSnapshots, logEntriesForSlowFollowers,
-        electionTick, heartbeatTick);
+    return builder()
+        .snapshotInterval(snapshotInterval)
+        .keepOldSnapshots(keepOldSnapshots)
+        .logEntriesForSlowFollowers(logEntriesForSlowFollowers)
+        .electionTick(electionTick)
+        .heartbeatTick(heartbeatTick)
+        .build();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder snapshotInterval(Integer snapshotInterval);
+
+    public abstract Builder keepOldSnapshots(Integer keepOldSnapshots);
+
+    public abstract Builder logEntriesForSlowFollowers(Integer logEntriesForSlowFollowers);
+
+    public abstract Builder electionTick(Integer electionTick);
+
+    public abstract Builder heartbeatTick(Integer heartbeatTick);
+
+    public abstract RaftConfig build();
+  }
+
+  public static RaftConfig.Builder builder() {
+    return new AutoValue_RaftConfig.Builder();
   }
 }

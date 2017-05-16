@@ -30,32 +30,30 @@ import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nullable;
 
-
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class OrchestrationConfig {
+public abstract class EncryptionConfig {
 
   @Nullable
-  @JsonProperty("TaskHistoryRetentionLimit")
-  public abstract Integer taskHistoryRetentionLimit();
+  @JsonProperty("AutoLockManagers")
+  public abstract Boolean autoLockManagers();
 
   @JsonCreator
-  static OrchestrationConfig create(
-      @JsonProperty("TaskHistoryRetentionLimit") final Integer taskHistoryRetentionLimit) {
+  static EncryptionConfig create(
+      @JsonProperty("AutoLockManagers") final Boolean autoLockManagers) {
     return builder()
-        .taskHistoryRetentionLimit(taskHistoryRetentionLimit)
+        .autoLockManagers(autoLockManagers)
         .build();
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder autoLockManagers(Boolean autoLockManagers);
 
-    public abstract Builder taskHistoryRetentionLimit(Integer taskHistoryRetentionLimit);
-
-    public abstract OrchestrationConfig build();
+    public abstract EncryptionConfig build();
   }
 
-  public static OrchestrationConfig.Builder builder() {
-    return new AutoValue_OrchestrationConfig.Builder();
+  public static EncryptionConfig.Builder builder() {
+    return new AutoValue_EncryptionConfig.Builder();
   }
 }

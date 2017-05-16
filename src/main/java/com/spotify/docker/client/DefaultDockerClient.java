@@ -10,9 +10,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,28 +23,40 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
+import static com.spotify.docker.client.VersionCompare.compareVersion;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonMap;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.annotations.VisibleForTesting;
-import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.base.Optional;
-import static com.google.common.base.Optional.fromNullable;
 import com.google.common.base.Preconditions;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Strings;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import static com.google.common.collect.Maps.newHashMap;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
-import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
-import static com.spotify.docker.client.VersionCompare.compareVersion;
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
@@ -101,7 +113,12 @@ import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
+import com.spotify.docker.client.messages.swarm.SwarmInit;
+import com.spotify.docker.client.messages.swarm.SwarmJoin;
+import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
+import com.spotify.docker.client.messages.swarm.UnlockKey;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -113,13 +130,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import static java.util.Collections.singletonMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -128,13 +143,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
@@ -144,10 +154,6 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.ResponseProcessingException;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -216,7 +222,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
   }
-
+  
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image names
    * of an image being loaded. Weirdly enough, Docker returns the name of a newly
@@ -251,7 +257,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         if (streamMatcher.matches()) {
           imageNames.add(streamMatcher.group("image"));
         }
-
+        
       }
     }
 
@@ -269,12 +275,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
   private static final int DEFAULT_CONNECTION_POOL_SIZE = 100;
 
-  private final ClientConfig defaultConfig = new ClientConfig(
+  private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
       ObjectMapperProvider.class,
       JacksonFeature.class,
       LogsResponseReader.class,
-      ProgressResponseReader.class
-  );
+      ProgressResponseReader.class);
 
   private static final Pattern CONTAINER_NAME_PATTERN =
           Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_.-]+$");
@@ -322,7 +327,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() { };
 
   private static final GenericType<List<Node>> NODE_LIST = new GenericType<List<Node>>() { };
-
+  
   private static final GenericType<List<Secret>> SECRET_LIST = new GenericType<List<Secret>>() { };
 
   private final Client client;
@@ -404,7 +409,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setSocketTimeout((int) builder.readTimeoutMillis)
         .build();
 
-    final ClientConfig config = defaultConfig
+    final ClientConfig config = DEFAULT_CONFIG
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
@@ -1080,23 +1085,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   @Deprecated
   public void load(final String image, final InputStream imagePayload,
-                   final RegistryAuth registryAuth)
-      throws DockerException, InterruptedException {
-    create(image, imagePayload);
-  }
-
-  @Override
-  @Deprecated
-  public void load(final String image, final InputStream imagePayload,
                    final ProgressHandler handler)
-      throws DockerException, InterruptedException {
-    create(image, imagePayload, handler);
-  }
-
-  @Override
-  @Deprecated
-  public void load(final String image, final InputStream imagePayload,
-                   final RegistryAuth registryAuth, final ProgressHandler handler)
       throws DockerException, InterruptedException {
     create(image, imagePayload, handler);
   }
@@ -1114,10 +1103,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
             .path("images")
             .path("load")
             .queryParam("quiet", "false");
-
+    
     final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-
+    
     try (final ProgressStream load =
             request(POST, ProgressStream.class, resource,
                     resource.request(APPLICATION_JSON_TYPE), entity)) {
@@ -1183,13 +1172,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         InputStream.class,
         resource,
         resource.request(APPLICATION_JSON_TYPE));
-  }
-
-  @Override
-  @Deprecated
-  public InputStream save(final String image, final RegistryAuth registryAuth)
-      throws DockerException, IOException, InterruptedException {
-    return save(image);
   }
 
   @Override
@@ -1651,6 +1633,169 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public String initSwarm(final SwarmInit swarmInit) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("init");
+      return request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(swarmInit));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("bad parameter", e);
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is already part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void joinSwarm(final SwarmJoin swarmJoin) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("join");
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(swarmJoin));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("bad parameter", e);
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is already part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void leaveSwarm() throws DockerException, InterruptedException {
+    leaveSwarm(false);
+  }
+
+  @Override
+  public void leaveSwarm(final boolean force) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("leave").queryParam("force", force);
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final boolean rotateWorkerToken,
+                          final boolean rotateManagerToken,
+                          final boolean rotateManagerUnlockKey,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    try {
+      final WebTarget resource = resource().path("swarm").path("update")
+          .queryParam("version", version)
+          .queryParam("rotateWorkerToken", rotateWorkerToken)
+          .queryParam("rotateManagerToken", rotateManagerToken)
+          .queryParam("rotateManagerUnlockKey", rotateManagerUnlockKey);
+
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(spec));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new DockerException("bad parameter", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final boolean rotateWorkerToken,
+                          final boolean rotateManagerToken,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    updateSwarm(version, rotateWorkerToken, rotateWorkerToken, false, spec);
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final boolean rotateWorkerToken,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    updateSwarm(version, rotateWorkerToken, false, false, spec);
+  }
+
+  @Override
+  public void updateSwarm(final Long version,
+                          final SwarmSpec spec)
+      throws DockerException, InterruptedException {
+    updateSwarm(version, false, false, false, spec);
+  }
+
+  @Override
+  public UnlockKey unlockKey() throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("swarm").path("unlockkey");
+
+      return request(GET, UnlockKey.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void unlock(final UnlockKey unlockKey) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+    try {
+      final WebTarget resource = resource().path("swarm").path("unlock");
+
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(unlockKey));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 500:
+          throw new DockerException("server error", e);
+        case 503:
+          throw new DockerException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public ServiceCreateResponse createService(ServiceSpec spec)
       throws DockerException, InterruptedException {
 
@@ -1830,7 +1975,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("nodes");
     return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-
+  
   @Override
   public void execResizeTty(final String execId,
                             final Integer height,
@@ -1934,7 +2079,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = addParameters(resource, params);
     return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-
+  
   @Override
   public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path(networkId);

@@ -40,6 +40,20 @@ public abstract class TaskDefaults {
 
   @JsonCreator
   static TaskDefaults create(@JsonProperty("LogDriver") final Driver logDriver) {
-    return new AutoValue_TaskDefaults(logDriver);
+    return builder()
+        .logDriver(logDriver)
+        .build();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder logDriver(Driver logDriver);
+
+    public abstract TaskDefaults build();
+  }
+
+  public static TaskDefaults.Builder builder() {
+    return new AutoValue_TaskDefaults.Builder();
   }
 }
