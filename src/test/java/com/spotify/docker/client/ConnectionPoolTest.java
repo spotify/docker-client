@@ -21,14 +21,12 @@
 
 package com.spotify.docker.client;
 
+import static java.lang.Long.toHexString;
+
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import static java.lang.Long.toHexString;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import org.hamcrest.MatcherAssert;
@@ -42,63 +40,64 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Checks thread safety of DefaultDockerClient implementation.
+ *
  * @author Umberto Nicoletti (umberto.nicoletti@gmail.com)
  */
 public class ConnectionPoolTest {
 
-    private static final String BUSYBOX = "busybox";
-    private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
-    private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
-    private static final String MEMCACHED = "rohan/memcached-mini";
-    private static final String CIRROS_PRIVATE = "dxia/cirros-private";
+  private static final String BUSYBOX = "busybox";
+  private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
+  private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
+  private static final String MEMCACHED = "rohan/memcached-mini";
+  private static final String CIRROS_PRIVATE = "dxia/cirros-private";
 
-    private static final Logger log = LoggerFactory.getLogger(ConnectionPoolTest.class);
+  private static final Logger log = LoggerFactory.getLogger(ConnectionPoolTest.class);
 
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
-    @Rule
-    public final TestName testName = new TestName();
+  @Rule
+  public final TestName testName = new TestName();
 
-    private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
+  private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
 
-    /**
-     * Checks that running a parallel operation does not break DefaultDockerClient.
-     * Fixes issue #446.
-     *
-     * @throws Exception on error.
-     */
-    @Test
-    public void testParallelOperation() throws Exception {
-        final ExecutorService executor = Executors.newFixedThreadPool(5);
-        List<Future<Exception>> tasks = new ArrayList<>(20);
-        for(int i=0; i<20; i++) {
-            tasks.add(executor.submit(
-                    new Callable<Exception>() {
-                        @Override
-                        public Exception call() throws Exception {
-                            try (DockerClient docker = DefaultDockerClient.fromEnv().build()) {
-                                docker.pull(ConnectionPoolTest.BUSYBOX_LATEST);
-                                docker.pull(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1);
-                                final String name = "test-repo/tag-force:sometag";
-                                docker.tag(ConnectionPoolTest.BUSYBOX_LATEST, name);
-                                docker.tag(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1, name, true);
-                            } catch (InterruptedException | DockerException | DockerCertificateException e) {
-                                ConnectionPoolTest.log.error(
-                                    "Error running task: {}", e.getMessage(), e
-                                );
-                                return e;
-                            }
-                            return null;
-                        }
-                    }
-                )
-            );
-        }
-        executor.shutdown();
-        while(!executor.isTerminated());
-        for (final Future<Exception> task: tasks) {
-            MatcherAssert.assertThat(task.get(), Matchers.nullValue());
-        }
+  /**
+   * Checks that running a parallel operation does not break DefaultDockerClient.
+   * Fixes issue #446.
+   *
+   * @throws Exception on error.
+   */
+  @Test
+  public void testParallelOperation() throws Exception {
+    final ExecutorService executor = Executors.newFixedThreadPool(5);
+    List<Future<Exception>> tasks = new ArrayList<>(20);
+    for (int i = 0; i < 20; i++) {
+      tasks.add(executor.submit(
+              new Callable<Exception>() {
+                @Override
+                public Exception call() throws Exception {
+                  try (DockerClient docker = DefaultDockerClient.fromEnv().build()) {
+                    docker.pull(ConnectionPoolTest.BUSYBOX_LATEST);
+                    docker.pull(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1);
+                    final String name = "test-repo/tag-force:sometag";
+                    docker.tag(ConnectionPoolTest.BUSYBOX_LATEST, name);
+                    docker.tag(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1, name, true);
+                  } catch (InterruptedException | DockerException | DockerCertificateException e) {
+                    ConnectionPoolTest.log.error(
+                            "Error running task: {}", e.getMessage(), e
+                    );
+                    return e;
+                  }
+                  return null;
+                }
+              }
+              )
+      );
     }
+    executor.shutdown();
+    while (!executor.isTerminated()) {};
+    for (final Future<Exception> task : tasks) {
+      MatcherAssert.assertThat(task.get(), Matchers.nullValue());
+    }
+  }
 }
