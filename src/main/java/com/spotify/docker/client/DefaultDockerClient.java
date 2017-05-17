@@ -99,6 +99,7 @@ import com.spotify.docker.client.messages.NetworkConnection;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
@@ -335,7 +336,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private final URI uri;
   private final String apiVersion;
-  private final RegistryAuth registryAuth;
+  private RegistryAuthSupplier registryAuthSupplier;
 
   private final Map<String, Object> headers;
 
@@ -414,7 +415,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
-    this.registryAuth = builder.registryAuth;
+    this.registryAuthSupplier = builder.registryAuthSupplier;
+
+    if (this.registryAuthSupplier == null) {
+      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(null);
+    }
 
     this.client = clientBuilderSupplier.get().withConfig(config).build();
 
@@ -1179,17 +1184,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, IOException, InterruptedException {
 
     final WebTarget resource = resource().path("images").path("get");
-    if (images != null) {
-      for (final String image : images) {
-        resource.queryParam("names", urlEncode(image));
-      }
+    for (final String image : images) {
+      resource.queryParam("names", urlEncode(image));
     }
 
     return request(
         GET,
         InputStream.class,
         resource,
-        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(registryAuth))
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(
+            registryAuthSupplier.authFor(images[0])))
     );
   }
 
@@ -1201,7 +1205,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void pull(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    pull(image, registryAuth, handler);
+    pull(image, registryAuthSupplier.authFor(image), handler);
   }
 
   @Override
@@ -1255,7 +1259,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void push(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    push(image, handler, registryAuth);
+    push(image, handler, registryAuthSupplier.authFor(image));
   }
 
   @Override
@@ -1363,6 +1367,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     WebTarget resource = noTimeoutResource().path("build");
 
+    final RegistryAuth registryAuth = registryAuthSupplier.authFor(name);
     for (final BuildParam param : params) {
       resource = resource.queryParam(param.name(), param.value());
     }
@@ -1798,8 +1803,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public ServiceCreateResponse createService(ServiceSpec spec)
       throws DockerException, InterruptedException {
-
-    return createService(spec, registryAuth);
+    return createService(spec, registryAuthSupplier.authFor(""));
   }
 
   @Override
@@ -2536,7 +2540,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private DockerCertificatesStore dockerCertificatesStore;
     private boolean dockerAuth;
     private RegistryAuth registryAuth;
+    private RegistryAuthSupplier registryAuthSupplier;
     private Map<String, Object> headers = new HashMap<>();
+    private boolean registryAuthCalled;
+    private boolean registryAuthCSupplierCalled;
 
     public URI uri() {
       return uri;
@@ -2663,11 +2670,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      * @return Builder
      */
     public Builder registryAuth(final RegistryAuth registryAuth) {
-      this.registryAuth = registryAuth;
+      this.registryAuthCalled = true;
+      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth);
+      return this;
+    }
+
+    public Builder registryAuthSupplier(final RegistryAuthSupplier registryAuthSupplier) {
+      this.registryAuthCSupplierCalled = true;
+      this.registryAuthSupplier = registryAuthSupplier;
       return this;
     }
 
     public DefaultDockerClient build() {
+      if (registryAuthCalled && registryAuthCSupplierCalled) {
+        throw new RuntimeException("LOGIC ERROR: DefaultDockerClient does not support being built "
+                                   + "with both `registryAuth` and `registryAuthSupplier`. "
+                                   + "Please build with at most one of these options.");
+      }
       if (dockerAuth) {
         try {
           this.registryAuth = RegistryAuth.fromDockerConfig().build();
