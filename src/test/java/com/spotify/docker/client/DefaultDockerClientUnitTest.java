@@ -31,8 +31,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.gcr.GoogleContainerRegistryAuthSupplier;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.RegistryAuth;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,7 +46,9 @@ import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Tests DefaultDockerClient against a {@link okhttp3.mockwebserver.MockWebServer} instance, so
@@ -70,6 +75,9 @@ public class DefaultDockerClientUnitTest {
 
   private final MockWebServer server = new MockWebServer();
   private DefaultDockerClient.Builder builder;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setup() throws Exception {
@@ -188,4 +196,15 @@ public class DefaultDockerClientUnitTest {
     return texts;
   }
 
+  @Test
+  public void buildThrowsIfRegistryAuthandRegistryAuthSupplierAreBothSpecified()
+      throws DockerCertificateException {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("LOGIC ERROR");
+
+    DefaultDockerClient.builder()
+        .registryAuth(RegistryAuth.builder().identityToken("hello").build())
+        .registryAuthSupplier(new GoogleContainerRegistryAuthSupplier())
+        .build();
+  }
 }
