@@ -1,6 +1,6 @@
 # Changelog
 
-## 8.5.0
+## 8.5.0 (not yet released)
 
 ### Removal of deprecated methods
 Previously deprecated DockerClient methods that have a RegistryAuth parameter
@@ -9,6 +9,11 @@ but never used the value were removed. These methods are:
 - `load(String, InputStream, RegistryAuth)`
 - `load(String, InputStream, RegistryAuth, ProgressHandler)`
 - `save(String, RegistryAuth)`
+
+### Fix thread-safety issues with DefaultDockerClient's connection pool
+
+See [#446](https://github.com/spotify/docker-client/issues/446) 
+and [#744](https://github.com/spotify/docker-client/pulls/744).
 
 ## 7.0.0
 
