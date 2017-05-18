@@ -222,7 +222,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
   }
-  
+
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image names
    * of an image being loaded. Weirdly enough, Docker returns the name of a newly
@@ -257,7 +257,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         if (streamMatcher.matches()) {
           imageNames.add(streamMatcher.group("image"));
         }
-        
+
       }
     }
 
@@ -275,7 +275,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
   private static final int DEFAULT_CONNECTION_POOL_SIZE = 100;
 
-  private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
+  private final ClientConfig defaultConfig = new ClientConfig(
       ObjectMapperProvider.class,
       JacksonFeature.class,
       LogsResponseReader.class,
@@ -327,7 +327,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() { };
 
   private static final GenericType<List<Node>> NODE_LIST = new GenericType<List<Node>>() { };
-  
+
   private static final GenericType<List<Secret>> SECRET_LIST = new GenericType<List<Secret>>() { };
 
   private final Client client;
@@ -409,7 +409,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setSocketTimeout((int) builder.readTimeoutMillis)
         .build();
 
-    final ClientConfig config = DEFAULT_CONFIG
+    final ClientConfig config = defaultConfig
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
@@ -1103,10 +1103,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
             .path("images")
             .path("load")
             .queryParam("quiet", "false");
-    
+
     final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-    
+
     try (final ProgressStream load =
             request(POST, ProgressStream.class, resource,
                     resource.request(APPLICATION_JSON_TYPE), entity)) {
@@ -1975,7 +1975,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("nodes");
     return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public void execResizeTty(final String execId,
                             final Integer height,
@@ -2079,7 +2079,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = addParameters(resource, params);
     return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path(networkId);
