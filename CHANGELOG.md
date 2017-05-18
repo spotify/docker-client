@@ -1,6 +1,6 @@
 # Changelog
 
-## 8.5.0 (not yet released)
+## 8.5.0 (released May 18 2017)
 
 ### Removal of deprecated methods
 Previously deprecated DockerClient methods that have a RegistryAuth parameter
