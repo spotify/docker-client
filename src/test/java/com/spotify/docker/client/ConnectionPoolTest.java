@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
@@ -50,8 +51,6 @@ public class ConnectionPoolTest {
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
   private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
-  private static final String MEMCACHED = "rohan/memcached-mini";
-  private static final String CIRROS_PRIVATE = "dxia/cirros-private";
 
   private static final Logger log = LoggerFactory.getLogger(ConnectionPoolTest.class);
 
@@ -81,9 +80,6 @@ public class ConnectionPoolTest {
                   try (DockerClient docker = DefaultDockerClient.fromEnv().build()) {
                     docker.pull(ConnectionPoolTest.BUSYBOX_LATEST);
                     docker.pull(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1);
-                    final String name = "test-repo/tag-force:sometag";
-                    docker.tag(ConnectionPoolTest.BUSYBOX_LATEST, name);
-                    docker.tag(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1, name, true);
                   } catch (InterruptedException | DockerException | DockerCertificateException e) {
                     ConnectionPoolTest.log.error(
                             "Error running task: {}", e.getMessage(), e
@@ -97,7 +93,7 @@ public class ConnectionPoolTest {
       );
     }
     executor.shutdown();
-    while (!executor.isTerminated()) {};
+    executor.awaitTermination(30, TimeUnit.SECONDS);
     for (final Future<Exception> task : tasks) {
       MatcherAssert.assertThat(task.get(), Matchers.nullValue());
     }
