@@ -2678,6 +2678,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
 
+    /**
+     * Adds additional headers to be sent in all requests to the Docker Remote API.
+     */
     public Builder header(String name, Object value) {
       headers.put(name, value);
       return this;
