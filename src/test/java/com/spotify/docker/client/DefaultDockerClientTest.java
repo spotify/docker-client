@@ -60,7 +60,6 @@ import static com.spotify.docker.client.messages.swarm.RestartPolicy.RESTART_POL
 import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
@@ -214,14 +213,12 @@ import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.SwarmInit;
-import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskDefaults;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
 import com.spotify.docker.client.messages.swarm.UpdateConfig;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -733,6 +730,7 @@ public class DefaultDockerClientTest {
     assertThat(info.registryConfig(), notNullValue());
     assertThat(info.registryConfig().indexConfigs(), hasKey("docker.io"));
     assertThat(info.swapLimit(), not(nullValue()));
+    assertThat(info.swarm(), is(anything()));
 
     if (dockerApiVersionAtLeast("1.18")) {
       assertThat(info.httpProxy(), is(anything()));
