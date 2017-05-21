@@ -21,8 +21,11 @@
 package com.spotify.docker.it;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.System.getenv;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.isA;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.notNull;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
@@ -37,22 +40,27 @@ import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.GoogleContainerRegistryAuthSupplier;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryAuthSupplier;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import javax.ws.rs.NotAuthorizedException;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TestName;
+import org.mockito.internal.matchers.NotNull;
 
 /**
  * These integration tests check we can push images to and pull from a private registry running as a
@@ -221,6 +229,27 @@ public class PushPullIT {
 
     client.build(Paths.get(dockerDirectory), HUB_PUBLIC_IMAGE);
     client.push(HUB_PUBLIC_IMAGE);
+  }
+
+
+  @Test
+  public void testPushGCRPrivateImageWithAuth() throws Exception {
+    String gcrPrivateImage = getenv("GCR_PRIVATE_IMAGE");
+    Assume.assumeTrue("WARNING: Integration test for GCR has not run. "
+                      + "Set env variable GCR_PRIVATE_IMAGE "
+                      + "(e.g. GCR_PRIVATE_IMAGE=us.gcr.io/my-project/busybox) to run.",
+        gcrPrivateImage != null);
+
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    RegistryAuthSupplier registryAuthSupplier = new GoogleContainerRegistryAuthSupplier();
+    final DockerClient client = DefaultDockerClient
+        .fromEnv()
+        .registryAuthSupplier(registryAuthSupplier)
+        .build();
+
+    client.build(Paths.get(dockerDirectory), gcrPrivateImage);
+    client.push(gcrPrivateImage);
+    client.pull(gcrPrivateImage);
   }
 
   @Test
