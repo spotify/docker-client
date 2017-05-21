@@ -38,15 +38,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.gcr.GoogleContainerRegistryAuthSupplier;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Info;
-
+import com.spotify.docker.client.messages.RegistryAuth;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.Future;
-
 import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -56,10 +57,11 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Variant;
-
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -83,6 +85,9 @@ public class DefaultDockerClientUnitTest {
 
   private Supplier<ClientBuilder> clientBuilderSupplier;
   private DefaultDockerClient.Builder builder;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setup() throws Exception {
@@ -225,5 +230,17 @@ public class DefaultDockerClientUnitTest {
     assertThat(methodArg.getValue(), equalTo("POST"));
     assertThat(entityArg.getValue(), equalTo(expectedEntity));
     assertThat(classArg.getValue(), instanceOf(Class.class));
+  }
+
+  @Test
+  public void buildThrowsIfRegistryAuthandRegistryAuthSupplierAreBothSpecified()
+      throws DockerCertificateException {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("LOGIC ERROR");
+
+    DefaultDockerClient.builder()
+        .registryAuth(RegistryAuth.builder().identityToken("hello").build())
+        .registryAuthSupplier(new GoogleContainerRegistryAuthSupplier())
+        .build();
   }
 }
