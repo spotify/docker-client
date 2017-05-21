@@ -28,19 +28,38 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+import com.google.common.collect.ImmutableMap;
+import java.util.Date;
+import java.util.Map;
 import javax.annotation.Nullable;
-
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class Version {
+public abstract class SwarmCluster {
 
-  @Nullable
-  @JsonProperty("Index")
-  public abstract Long index();
+  @JsonProperty("ID")
+  public abstract String id();
+
+  @JsonProperty("Version")
+  public abstract Version version();
+
+  @JsonProperty("CreatedAt")
+  public abstract Date createdAt();
+
+  @JsonProperty("UpdatedAt")
+  public abstract Date updatedAt();
+
+  @JsonProperty("Spec")
+  public abstract SwarmSpec swarmSpec();
 
   @JsonCreator
-  static Version create(@JsonProperty("Index") final Long index) {
-    return new AutoValue_Version(index);
+  static SwarmCluster create(
+      @JsonProperty("ID") final String id,
+      @JsonProperty("Version") final Version version,
+      @JsonProperty("CreatedAt") final Date createdAt,
+      @JsonProperty("UpdatedAt") final Date updatedAt,
+      @JsonProperty("Spec") final SwarmSpec swarmSpec) {
+    
+    return new AutoValue_SwarmCluster(id, version, createdAt, updatedAt, swarmSpec);
   }
 }

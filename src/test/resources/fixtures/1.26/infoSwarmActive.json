@@ -1,0 +1,160 @@
+{
+  "SecurityOptions": [
+    "name=apparmor"
+  ],
+  "InitCommit": {
+    "Expected": "949e6fa",
+    "ID": "949e6fa"
+  },
+  "RuncCommit": {
+    "Expected": "a01dafd48bc1c7cc12bdb01206f9fea7dd6feb70",
+    "ID": "a01dafd48bc1c7cc12bdb01206f9fea7dd6feb70"
+  },
+  "ContainerdCommit": {
+    "Expected": "977c511eda0925a723debdc94d09459af49d082a",
+    "ID": "977c511eda0925a723debdc94d09459af49d082a"
+  },
+  "InitBinary": "docker-init",
+  "Isolation": "",
+  "LiveRestoreEnabled": false,
+  "Swarm": {
+    "Cluster": {
+      "Spec": {
+        "EncryptionConfig": {
+          "AutoLockManagers": false
+        },
+        "TaskDefaults": {},
+        "CAConfig": {
+          "NodeCertExpiry": 7.776e+15
+        },
+        "Dispatcher": {
+          "HeartbeatPeriod": 5e+09
+        },
+        "Raft": {
+          "HeartbeatTick": 1,
+          "ElectionTick": 3,
+          "LogEntriesForSlowFollowers": 500,
+          "KeepOldSnapshots": 0,
+          "SnapshotInterval": 10000
+        },
+        "Orchestration": {
+          "TaskHistoryRetentionLimit": 5
+        },
+        "Name": "default"
+      },
+      "UpdatedAt": "2017-06-29T16:36:47.845550461Z",
+      "CreatedAt": "2017-06-29T16:36:47.240756392Z",
+      "Version": {
+        "Index": 10
+      },
+      "ID": "798u2uv83kfibsbtmhpsr0eza"
+    },
+    "NodeID": "5su9mvod7susx73oy6hyepd1i",
+    "NodeAddr": "23.92.107.137",
+    "LocalNodeState": "active",
+    "ControlAvailable": true,
+    "Error": "",
+    "RemoteManagers": [
+      {
+        "Addr": "23.92.107.137:2377",
+        "NodeID": "5su9mvod7susx73oy6hyepd1i"
+      }
+    ],
+    "Nodes": 1,
+    "Managers": 1
+  },
+  "DefaultRuntime": "runc",
+  "Runtimes": {
+    "runc": {
+      "path": "docker-runc"
+    }
+  },
+  "ClusterAdvertise": "",
+  "ClusterStore": "",
+  "ServerVersion": "17.03.0-ce",
+  "ExperimentalBuild": false,
+  "Labels": null,
+  "Name": "ash2-heliosagent-a1304.ash2.spotify.net",
+  "NoProxy": "",
+  "HttpsProxy": "",
+  "HttpProxy": "",
+  "DockerRootDir": "/var/lib/docker",
+  "MemTotal": 134887759872,
+  "NCPU": 24,
+  "RegistryConfig": {
+    "Mirrors": [],
+    "IndexConfigs": {
+      "docker.io": {
+        "Official": true,
+        "Secure": true,
+        "Mirrors": null,
+        "Name": "docker.io"
+      }
+    },
+    "InsecureRegistryCIDRs": [
+      "127.0.0.0/8"
+    ]
+  },
+  "IndexServerAddress": "https://index.docker.io/v1/",
+  "CPUShares": true,
+  "CpuCfsQuota": true,
+  "CpuCfsPeriod": true,
+  "KernelMemory": true,
+  "SwapLimit": false,
+  "MemoryLimit": true,
+  "Plugins": {
+    "Authorization": null,
+    "Network": [
+      "bridge",
+      "host",
+      "macvlan",
+      "null",
+      "overlay"
+    ],
+    "Volume": [
+      "local"
+    ]
+  },
+  "SystemStatus": null,
+  "ID": "XEXC:3APE:GMUY:XU7F:LY2H:SFMO:4MMM:5GAX:7JNU:NBPS:KMHI:WGGG",
+  "Containers": 6,
+  "ContainersRunning": 6,
+  "ContainersPaused": 0,
+  "ContainersStopped": 0,
+  "Images": 70,
+  "Driver": "aufs",
+  "DriverStatus": [
+    [
+      "Root Dir",
+      "/var/lib/docker/aufs"
+    ],
+    [
+      "Backing Filesystem",
+      "extfs"
+    ],
+    [
+      "Dirs",
+      "148"
+    ],
+    [
+      "Dirperm1 Supported",
+      "true"
+    ]
+  ],
+  "CPUSet": true,
+  "IPv4Forwarding": true,
+  "BridgeNfIptables": true,
+  "BridgeNfIp6tables": true,
+  "Debug": false,
+  "NFd": 68,
+  "OomKillDisable": true,
+  "NGoroutines": 151,
+  "SystemTime": "2017-06-29T16:36:56.176066291Z",
+  "LoggingDriver": "json-file",
+  "CgroupDriver": "cgroupfs",
+  "NEventsListener": 0,
+  "KernelVersion": "3.16.0-45-generic",
+  "OperatingSystem": "Ubuntu 14.04 LTS",
+  "OSType": "linux",
+  "Architecture": "x86_64"
+}

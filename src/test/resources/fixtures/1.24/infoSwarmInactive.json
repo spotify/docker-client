@@ -1,0 +1,142 @@
+{
+  "SecurityOptions": [
+    "apparmor"
+  ],
+  "InitCommit": {
+    "Expected": "",
+    "ID": ""
+  },
+  "RuncCommit": {
+    "Expected": "",
+    "ID": ""
+  },
+  "ContainerdCommit": {
+    "Expected": "",
+    "ID": ""
+  },
+  "InitBinary": "",
+  "Isolation": "",
+  "LiveRestoreEnabled": false,
+  "Swarm": {
+    "Cluster": {
+      "Spec": {
+        "EncryptionConfig": {
+          "AutoLockManagers": false
+        },
+        "TaskDefaults": {},
+        "CAConfig": {},
+        "Dispatcher": {},
+        "Raft": {
+          "HeartbeatTick": 0,
+          "ElectionTick": 0
+        },
+        "Orchestration": {}
+      },
+      "UpdatedAt": "0001-01-01T00:00:00Z",
+      "CreatedAt": "0001-01-01T00:00:00Z",
+      "Version": {},
+      "ID": ""
+    },
+    "NodeID": "",
+    "NodeAddr": "",
+    "LocalNodeState": "inactive",
+    "ControlAvailable": false,
+    "Error": "",
+    "RemoteManagers": null,
+    "Nodes": 0,
+    "Managers": 0
+  },
+  "DefaultRuntime": "runc",
+  "Runtimes": {
+    "runc": {
+      "path": "docker-runc"
+    }
+  },
+  "ClusterAdvertise": "",
+  "ClusterStore": "",
+  "ServerVersion": "1.12.3",
+  "ExperimentalBuild": false,
+  "Labels": null,
+  "Name": "ash2-bbqjenkins-a2728.ash2.spotify.net",
+  "NoProxy": "",
+  "HttpsProxy": "",
+  "HttpProxy": "",
+  "DockerRootDir": "/var/lib/docker",
+  "MemTotal": 33419182080,
+  "NCPU": 24,
+  "RegistryConfig": {
+    "Mirrors": null,
+    "IndexConfigs": {
+      "docker.io": {
+        "Official": true,
+        "Secure": true,
+        "Mirrors": null,
+        "Name": "docker.io"
+      }
+    },
+    "InsecureRegistryCIDRs": [
+      "127.0.0.0/8"
+    ]
+  },
+  "IndexServerAddress": "https://index.docker.io/v1/",
+  "CPUShares": true,
+  "CpuCfsQuota": true,
+  "CpuCfsPeriod": true,
+  "KernelMemory": true,
+  "SwapLimit": false,
+  "MemoryLimit": true,
+  "Plugins": {
+    "Authorization": null,
+    "Network": [
+      "overlay",
+      "host",
+      "null",
+      "bridge"
+    ],
+    "Volume": [
+      "local"
+    ]
+  },
+  "SystemStatus": null,
+  "ID": "HYU5:47IT:R4LZ:I264:MCWE:6V2U:Q5ZV:574D:ORAQ:DNNS:YC5C:LW5L",
+  "Containers": 0,
+  "ContainersRunning": 0,
+  "ContainersPaused": 0,
+  "ContainersStopped": 0,
+  "Images": 1,
+  "Driver": "aufs",
+  "DriverStatus": [
+    [
+      "Root Dir",
+      "/var/lib/docker/aufs"
+    ],
+    [
+      "Backing Filesystem",
+      "extfs"
+    ],
+    [
+      "Dirs",
+      "16"
+    ],
+    [
+      "Dirperm1 Supported",
+      "true"
+    ]
+  ],
+  "CPUSet": true,
+  "IPv4Forwarding": true,
+  "BridgeNfIptables": true,
+  "BridgeNfIp6tables": true,
+  "Debug": false,
+  "NFd": 16,
+  "OomKillDisable": true,
+  "NGoroutines": 24,
+  "SystemTime": "2017-06-29T16:46:28.268677195Z",
+  "LoggingDriver": "json-file",
+  "CgroupDriver": "cgroupfs",
+  "NEventsListener": 0,
+  "KernelVersion": "3.16.0-77-generic",
+  "OperatingSystem": "Ubuntu 14.04 LTS",
+  "OSType": "linux",
+  "Architecture": "x86_64"
+}

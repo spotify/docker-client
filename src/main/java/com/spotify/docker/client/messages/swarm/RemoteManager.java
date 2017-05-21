@@ -28,19 +28,20 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
-import javax.annotation.Nullable;
-
-
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class Version {
+public abstract class RemoteManager {
 
-  @Nullable
-  @JsonProperty("Index")
-  public abstract Long index();
+  @JsonProperty("Addr")
+  public abstract String addr();
+
+  @JsonProperty("NodeID")
+  public abstract String nodeId();
 
   @JsonCreator
-  static Version create(@JsonProperty("Index") final Long index) {
-    return new AutoValue_Version(index);
+  static RemoteManager create(
+      @JsonProperty("Addr") final String addr,
+      @JsonProperty("NodeID") final String nodeId) {
+    return new AutoValue_RemoteManager(addr, nodeId);
   }
 }
