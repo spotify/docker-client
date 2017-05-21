@@ -186,6 +186,10 @@ public abstract class Info {
 
   @JsonProperty("SwapLimit")
   public abstract Boolean swapLimit();
+  
+  @Nullable
+  @JsonProperty("Swarm")
+  public abstract SwarmInfo swarm();
 
   @Nullable
   @JsonProperty("SystemStatus")
@@ -259,7 +263,7 @@ public abstract class Info {
         httpProxy, httpsProxy, id, ipv4Forwarding, images, indexServerAddress, initPath, initSha1,
         kernelMemory, kernelVersion, labelsT, memTotal, memoryLimit, cpus, eventsListener,
         fileDescriptors, goroutines, name, noProxy, oomKillDisable, operatingSystem, osType,
-        plugins, registryConfig, serverVersion, swapLimit, systemStatusB.build(), systemTime);
+        plugins, registryConfig, serverVersion, swapLimit, swarm, systemStatusB.build(), systemTime);
   }
 
   @AutoValue
