@@ -23,6 +23,7 @@ package com.spotify.docker.client;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryAuthSupplier;
+import com.spotify.docker.client.messages.RegistryConfigs;
 
 /**
  * Wraps a RegistryAuth with the RegistryAuthSupplier interface.
@@ -30,14 +31,17 @@ import com.spotify.docker.client.messages.RegistryAuthSupplier;
 public class NoOpRegistryAuthSupplier implements RegistryAuthSupplier {
 
   private final RegistryAuth registryAuth;
+  private final RegistryConfigs configsForBuild;
 
-  public NoOpRegistryAuthSupplier(RegistryAuth registryAuth) {
+  public NoOpRegistryAuthSupplier(final RegistryAuth registryAuth,
+                                  final RegistryConfigs configsForBuild) {
     this.registryAuth = registryAuth;
+    this.configsForBuild = configsForBuild;
   }
 
   public NoOpRegistryAuthSupplier() {
     registryAuth = null;
-
+    configsForBuild = null;
   }
 
   @Override
@@ -50,4 +54,8 @@ public class NoOpRegistryAuthSupplier implements RegistryAuthSupplier {
     return registryAuth;
   }
 
+  @Override
+  public RegistryConfigs authForBuild() {
+    return configsForBuild;
+  }
 }

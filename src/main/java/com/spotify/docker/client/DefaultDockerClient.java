@@ -47,6 +47,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -401,7 +402,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
 
     if (builder.registryAuthSupplier == null) {
-      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(null);
+      this.registryAuthSupplier = new NoOpRegistryAuthSupplier();
     } else {
       this.registryAuthSupplier = builder.registryAuthSupplier;
     }
@@ -1354,7 +1355,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     WebTarget resource = noTimeoutResource().path("build");
 
-    final RegistryAuth registryAuth = registryAuthSupplier.authFor(name);
     for (final BuildParam param : params) {
       resource = resource.queryParam(param.name(), param.value());
     }
@@ -1366,18 +1366,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     // Convert auth to X-Registry-Config format
-    final RegistryConfigs registryConfigs;
-    if (registryAuth == null) {
-      registryConfigs = RegistryConfigs.empty();
-    } else {
-      registryConfigs = RegistryConfigs.create(singletonMap(
-          registryAuth.serverAddress(),
-          RegistryConfigs.RegistryConfig.create(
-              registryAuth.serverAddress(),
-              registryAuth.username(),
-              registryAuth.password(),
-              registryAuth.email())));
-    }
+    final RegistryConfigs registryConfigs = registryAuthSupplier.authForBuild();
 
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
          final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
@@ -2666,7 +2655,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         throw new IllegalStateException(ERROR_MESSAGE);
       }
       this.registryAuth = registryAuth;
-      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth);
+
+      // stuff the static RegistryAuth into a RegistryConfigs instance to maintain what
+      // DefaultDockerClient used to do with the RegistryAuth before we introduced the
+      // RegistryAuthSupplier
+      final RegistryConfigs configs = RegistryConfigs.create(singletonMap(
+          MoreObjects.firstNonNull(registryAuth.serverAddress(), ""),
+          registryAuth
+      ));
+
+      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth, configs);
       return this;
     }
 

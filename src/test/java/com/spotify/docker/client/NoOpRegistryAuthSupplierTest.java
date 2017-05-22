@@ -33,7 +33,8 @@ public class NoOpRegistryAuthSupplierTest {
   @Test
   public void authForReturnsWrappedAuthRegistry() throws DockerException {
     RegistryAuth registryAuth = mock(RegistryAuth.class);
-    NoOpRegistryAuthSupplier noOpRegistryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth);
+    NoOpRegistryAuthSupplier noOpRegistryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth,
+        null);
     assertEquals(registryAuth, noOpRegistryAuthSupplier.authFor("doesn't matter"));
   }
 
@@ -41,6 +42,6 @@ public class NoOpRegistryAuthSupplierTest {
   public void authForReturnsNullForEmptyConstructor() throws DockerException {
     NoOpRegistryAuthSupplier noOpRegistryAuthSupplier = new NoOpRegistryAuthSupplier();
     assertNull(noOpRegistryAuthSupplier.authFor("any"));
+    assertNull(noOpRegistryAuthSupplier.authForBuild());
   }
-
 }

@@ -22,9 +22,9 @@ package com.spotify.docker.client.messages;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.value.AutoValue;
@@ -32,20 +32,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.spotify.docker.client.DockerConfigReader;
 import com.spotify.docker.client.ObjectMapperProvider;
-
 import java.io.IOException;
 import java.nio.file.Path;
-
 import javax.annotation.Nullable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.glassfish.jersey.internal.util.Base64;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class RegistryAuth {
-
-  private static final Logger LOG = LoggerFactory.getLogger(RegistryAuth.class);
 
   private static final String DEFAULT_REGISTRY = "https://index.docker.io/v1/";
   private static final String DUMMY_EMAIL = "1234@5678.com";
@@ -69,6 +63,7 @@ public abstract class RegistryAuth {
   @JsonProperty("Email")
   public abstract String email();
 
+  @Nullable
   @JsonProperty("ServerAddress")
   public abstract String serverAddress();
 
@@ -97,10 +92,10 @@ public abstract class RegistryAuth {
    * @deprecated in favor of registryAuthSupplier
    */
   @Deprecated
-  @SuppressWarnings("unused")
+  @SuppressWarnings({"deprecated", "unused"})
   public static Builder fromDockerConfig() throws IOException {
     DockerConfigReader dockerCfgReader = new DockerConfigReader();
-    return dockerCfgReader.fromComfig(dockerCfgReader.defaultConfigPath(), null).toBuilder();
+    return dockerCfgReader.fromFirstConfig(dockerCfgReader.defaultConfigPath()).toBuilder();
   }
 
   /**
@@ -116,7 +111,7 @@ public abstract class RegistryAuth {
   public static Builder fromDockerConfig(final String serverAddress) throws IOException {
     DockerConfigReader dockerCfgReader = new DockerConfigReader();
     return dockerCfgReader
-        .fromComfig(dockerCfgReader.defaultConfigPath(), serverAddress).toBuilder();
+        .fromConfig(dockerCfgReader.defaultConfigPath(), serverAddress).toBuilder();
   }
 
   /**
@@ -130,7 +125,7 @@ public abstract class RegistryAuth {
   @VisibleForTesting
   static Builder fromDockerConfig(final Path configPath) throws IOException {
     DockerConfigReader dockerCfgReader = new DockerConfigReader();
-    return dockerCfgReader.fromComfig(configPath, null).toBuilder();
+    return dockerCfgReader.fromConfig(configPath, null).toBuilder();
   }
 
   /**
@@ -146,9 +141,33 @@ public abstract class RegistryAuth {
   static Builder fromDockerConfig(final Path configPath, final String serverAddress)
       throws IOException {
     DockerConfigReader dockerConfigReader = new DockerConfigReader();
-    return dockerConfigReader.fromComfig(configPath, serverAddress).toBuilder();
+    return dockerConfigReader.fromConfig(configPath, serverAddress).toBuilder();
   }
 
+  @JsonCreator
+  public static RegistryAuth create(@JsonProperty("username") String username,
+                                    @JsonProperty("password") String password,
+                                    @JsonProperty("email") final String email,
+                                    @JsonProperty("serverAddress") final String serverAddress,
+                                    @JsonProperty("identityToken") final String identityToken,
+                                    @JsonProperty("auth") final String auth) {
+
+    if (auth != null && username == null && password == null) {
+      final String[] authParams = Base64.decodeAsString(auth).split(":");
+
+      if (authParams.length == 2) {
+        username = authParams[0].trim();
+        password = authParams[1].trim();
+      }
+    }
+    return builder()
+        .username(username)
+        .password(password)
+        .email(email)
+        .serverAddress(serverAddress)
+        .identityToken(identityToken)
+        .build();
+  }
 
   public static Builder builder() {
     return new AutoValue_RegistryAuth.Builder()
@@ -159,6 +178,7 @@ public abstract class RegistryAuth {
 
   @AutoValue.Builder
   public abstract static class Builder {
+
     public abstract Builder username(final String username);
 
     public abstract Builder password(final String password);

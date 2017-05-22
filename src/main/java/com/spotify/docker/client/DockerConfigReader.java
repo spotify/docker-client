@@ -25,7 +25,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Preconditions;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,12 +43,25 @@ public class DockerConfigReader {
 
   private static final ObjectMapper MAPPER = ObjectMapperProvider.objectMapper();
 
+  /** Returns all RegistryConfig instances from the configuration file. */
+  public RegistryConfigs fromConfig(Path configPath) throws IOException {
+    return parseDockerConfig(configPath);
+  }
 
-  public RegistryAuth fromComfig(Path configPath, String serverAddress) throws IOException {
+  public RegistryAuth fromConfig(Path configPath, String serverAddress) throws IOException {
     return parseDockerConfig(configPath, serverAddress).build();
   }
 
-  public RegistryAuth.Builder parseDockerConfig(final Path configPath, String serverAddress)
+  /**
+   * @deprecated do not use - only exists for backwards compatibility. Use {@link #fromConfig(Path)}
+   *     instead.
+   */
+  @Deprecated
+  public RegistryAuth fromFirstConfig(Path configPath) throws IOException {
+    return parseDockerConfig(configPath, null).build();
+  }
+
+  private RegistryAuth.Builder parseDockerConfig(final Path configPath, String serverAddress)
       throws IOException {
     checkNotNull(configPath);
     final RegistryAuth.Builder authBuilder = RegistryAuth.builder();
@@ -91,6 +107,11 @@ public class DockerConfigReader {
     return authBuilder;
   }
 
+  private RegistryConfigs parseDockerConfig(final Path configPath) throws IOException {
+    checkNotNull(configPath);
+    return MAPPER.treeToValue(extractAuthJson(configPath), RegistryConfigs.class);
+  }
+
   public Path defaultConfigPath() {
     final String home = System.getProperty("user.home");
     final Path dockerConfig = Paths.get(home, ".docker", "config.json");
@@ -105,13 +126,19 @@ public class DockerConfigReader {
     }
   }
 
-  public JsonNode extractAuthJson(final Path configPath) throws IOException {
+  private ObjectNode extractAuthJson(final Path configPath) throws IOException {
     final JsonNode config = MAPPER.readTree(configPath.toFile());
 
+    Preconditions.checkState(config.isObject(),
+        "config file contents are not a JSON Object, instead it is a %s", config.getNodeType());
+
     if (config.has("auths")) {
-      return config.get("auths");
+      final JsonNode auths = config.get("auths");
+      Preconditions.checkState(auths.isObject(),
+          "config file contents are not a JSON Object, instead it is a %s", auths.getNodeType());
+      return (ObjectNode) auths;
     }
 
-    return config;
+    return (ObjectNode) config;
   }
 }

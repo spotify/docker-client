@@ -24,8 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.spotify.docker.client.gcr.GCloudProcess;
-import com.spotify.docker.client.gcr.GoogleContainerRegistryCredRefresher;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -74,7 +72,7 @@ public class GoogleContainerRegistryCredRefresherTest {
     GoogleContainerRegistryCredRefresher googleContainerRegistryCredRefresher =
         new GoogleContainerRegistryCredRefresher(gcloudProcess);
 
-    googleContainerRegistryCredRefresher.refresh();;
+    googleContainerRegistryCredRefresher.refresh();
   }
 
 }
