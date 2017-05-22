@@ -20,9 +20,6 @@
 
 package com.spotify.docker.client;
 
-import static com.spotify.hamcrest.jackson.IsJsonArray.jsonArray;
-import static com.spotify.hamcrest.jackson.IsJsonObject.jsonObject;
-import static com.spotify.hamcrest.jackson.IsJsonText.jsonText;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -30,11 +27,15 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -57,7 +58,7 @@ import org.junit.Test;
  * HTTP requests it sends, rather than what HTTP client library it uses.</p>
  *
  * @see <a href="https://github.com/square/okhttp/tree/master/mockwebserver">
- *   https://github.com/square/okhttp/tree/master/mockwebserver</a>
+ * https://github.com/square/okhttp/tree/master/mockwebserver</a>
  */
 public class DefaultDockerClientUnitTest {
 
@@ -160,13 +161,25 @@ public class DefaultDockerClientUnitTest {
 
     assertThat(recordedRequest.getHeader("Content-Type"), is("application/json"));
 
-    assertThat(toJson(recordedRequest.getBody()), jsonObject()
-        .where("HostConfig", jsonObject()
-            .where("CapAdd", jsonArray(containsInAnyOrder(
-                jsonText("baz"),
-                jsonText("qux")
-            )))
-        )
-    );
+    // TODO (mbrown): use hamcrest-jackson for this, once we upgrade to Java 8
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+
+    final JsonNode capAddNode = requestJson.get("HostConfig").get("CapAdd");
+    assertThat(capAddNode.isArray(), is(true));
+
+    assertThat(childrenTextNodes((ArrayNode) capAddNode), containsInAnyOrder("baz", "qux"));
   }
+
+  private static Set<String> childrenTextNodes(ArrayNode arrayNode) {
+    final Set<String> texts = new HashSet<>();
+    for (JsonNode child : arrayNode) {
+      Preconditions.checkState(child.isTextual(),
+          "ArrayNode must only contain text nodes, but found %s in %s",
+          child.getNodeType(),
+          arrayNode);
+      texts.add(child.textValue());
+    }
+    return texts;
+  }
+
 }
