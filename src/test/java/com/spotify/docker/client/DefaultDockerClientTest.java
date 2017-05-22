@@ -2090,6 +2090,7 @@ public class DefaultDockerClientTest {
 
     requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
                                        + "So we skip this test.");
+    Thread.sleep(1000); // Waiting to ensure event stream has no events from prior tests
     try (final EventStream eventStream = getImageAndContainerEventStream()) {
 
       final String containerName = randomName();
