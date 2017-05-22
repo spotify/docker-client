@@ -2631,7 +2631,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      *
      * @param dockerAuth tells if Docker auth info should be used
      * @return Builder
+     * @deprecated in favor of {@link #registryAuthSupplier(RegistryAuthSupplier)}
      */
+    @Deprecated
     public Builder dockerAuth(final boolean dockerAuth) {
       this.dockerAuth = dockerAuth;
       return this;
@@ -2647,7 +2649,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      * @param registryAuth RegistryAuth object
      * @return Builder
      *
-     * @deprecated in favor of registryAuthSupplier
+     * @deprecated in favor of {@link #registryAuthSupplier(RegistryAuthSupplier)}
      */
     @Deprecated
     public Builder registryAuth(final RegistryAuth registryAuth) {
@@ -2677,9 +2679,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     public DefaultDockerClient build() {
-      if (dockerAuth) {
+      if (dockerAuth && registryAuthSupplier == null && registryAuth == null) {
         try {
-          this.registryAuth = RegistryAuth.fromDockerConfig().build();
+          registryAuth(RegistryAuth.fromDockerConfig().build());
         } catch (IOException e) {
           log.warn("Unable to use Docker auth info", e);
         }
