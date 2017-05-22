@@ -70,6 +70,7 @@ public abstract class SwarmInfo {
       @JsonProperty("NodeID") final String nodeId,
       @JsonProperty("Nodes") final int nodes,
       @JsonProperty("RemoteManagers") final ImmutableList<RemoteManager> remoteManagers) {
-    return new AutoValue_SwarmInfo(cluster, controlAvailable, error, localNodeState, nodeAddr, nodeId, nodes, remoteManagers);
+    return new AutoValue_SwarmInfo(cluster, controlAvailable, error, localNodeState, nodeAddr, 
+        nodeId, nodes, remoteManagers);
   }
 }
