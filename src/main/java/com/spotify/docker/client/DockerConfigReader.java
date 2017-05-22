@@ -33,8 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import org.glassfish.jersey.internal.util.Base64;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public class DockerConfigReader {
   }
 
   public RegistryAuth fromConfig(Path configPath, String serverAddress) throws IOException {
-    return parseDockerConfig(configPath, serverAddress).build();
+    return parseDockerConfig(configPath, serverAddress);
   }
 
   /**
@@ -58,53 +57,29 @@ public class DockerConfigReader {
    */
   @Deprecated
   public RegistryAuth fromFirstConfig(Path configPath) throws IOException {
-    return parseDockerConfig(configPath, null).build();
+    return parseDockerConfig(configPath, null);
   }
 
-  private RegistryAuth.Builder parseDockerConfig(final Path configPath, String serverAddress)
+  private RegistryAuth parseDockerConfig(final Path configPath, String serverAddress)
       throws IOException {
     checkNotNull(configPath);
-    final RegistryAuth.Builder authBuilder = RegistryAuth.builder();
-    final JsonNode authJson = this.extractAuthJson(configPath);
+
+    final Map<String, RegistryAuth> configs = parseDockerConfig(configPath).configs();
+    if (serverAddress != null && configs.containsKey(serverAddress) ) {
+      return configs.get(serverAddress);
+    }
 
     if (isNullOrEmpty(serverAddress)) {
-      final Iterator<String> servers = authJson.fieldNames();
-      if (servers.hasNext()) {
-        serverAddress = servers.next();
+      if (configs.isEmpty()) {
+        return RegistryAuth.builder().build();
       }
-    } else {
-      if (!authJson.has(serverAddress)) {
-        LOG.error("Could not find auth config for {}. Returning empty builder", serverAddress);
-        return RegistryAuth.builder().serverAddress(serverAddress);
-      }
+      LOG.warn("Returning first entry from docker config file - use fromConfig(Path) instead, "
+               + "this behavior is deprecated and will soon be removed");
+      return configs.values().iterator().next();
     }
 
-    final JsonNode serverAuth = authJson.get(serverAddress);
-    if (serverAuth != null && serverAuth.has("auth")) {
-      authBuilder.serverAddress(serverAddress);
-      final String authString = serverAuth.get("auth").asText();
-      final String[] authParams = Base64.decodeAsString(authString).split(":");
-
-      if (authParams.length == 2) {
-        authBuilder.username(authParams[0].trim());
-        authBuilder.password(authParams[1].trim());
-      } else if (serverAuth.has("identityToken")) {
-        authBuilder.identityToken(serverAuth.get("identityToken").asText());
-        return authBuilder;
-      } else {
-        LOG.warn("Failed to parse auth string for {}", serverAddress);
-        return authBuilder;
-      }
-    } else {
-      LOG.warn("Could not find auth field for {}", serverAddress);
-      return authBuilder;
-    }
-
-    if (serverAuth.has("email")) {
-      authBuilder.email(serverAuth.get("email").asText());
-    }
-
-    return authBuilder;
+    throw new IllegalArgumentException(
+        "serverAddress=" + serverAddress + " does not appear in config file at " + configPath);
   }
 
   private RegistryConfigs parseDockerConfig(final Path configPath) throws IOException {

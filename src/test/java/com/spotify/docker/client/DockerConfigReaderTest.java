@@ -41,6 +41,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
 
 import com.google.common.io.Resources;
 import com.spotify.docker.client.messages.RegistryAuth;
@@ -50,6 +51,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.lang.RandomStringUtils;
+import org.hamcrest.CustomTypeSafeMatcher;
+import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -72,11 +75,10 @@ public class DockerConfigReaderTest {
       .build();
 
   private static final RegistryAuth IDENTITY_TOKEN_AUTH_CONFIG = RegistryAuth.builder()
+      .email("dockerman@hub.com")
       .serverAddress("docker.customdomain.com")
       .identityToken("52ce5fd5-eb60-42bf-931f-5eeec128211a")
       .build();
-
-  private static final RegistryAuth EMPTY_AUTH_CONFIG = RegistryAuth.builder().build();
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -92,34 +94,52 @@ public class DockerConfigReaderTest {
 
   @Test
   public void testFromDockerConfig_FullDockerCfg() throws Exception {
-    final RegistryAuth registryAuth = reader.fromFirstConfig(getTestFilePath(
-        "dockerConfig/fullDockerCfg"));
+    final RegistryAuth registryAuth =
+        reader.fromFirstConfig(getTestFilePath("dockerConfig/fullDockerCfg"));
     assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_IdentityToken() throws Exception {
-    final RegistryAuth authConfig = reader.fromFirstConfig(getTestFilePath(
-            "dockerConfig/identityTokenConfig.json"));
+    final RegistryAuth authConfig =
+        reader.fromFirstConfig(getTestFilePath("dockerConfig/identityTokenConfig.json"));
     assertThat(authConfig, equalTo(IDENTITY_TOKEN_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_IncompleteConfig() throws Exception {
-    final RegistryAuth registryAuth = reader.fromFirstConfig(getTestFilePath(
-        "dockerConfig/incompleteConfig.json"));
-    assertThat(registryAuth, equalTo(EMPTY_AUTH_CONFIG));
+    final RegistryAuth registryAuth =
+        reader.fromFirstConfig(getTestFilePath("dockerConfig/incompleteConfig.json"));
+
+    final RegistryAuth expected = RegistryAuth.builder()
+        .email("dockerman@hub.com")
+        .serverAddress("https://different.docker.io/v1/")
+        .build();
+
+    assertThat(registryAuth, is(expected));
   }
 
   @Test
   public void testFromDockerConfig_WrongConfigs() throws Exception {
-    final RegistryAuth registryAuth1 = reader.fromFirstConfig(getTestFilePath(
-        "dockerConfig/wrongConfig1.json"));
-    assertThat(registryAuth1, equalTo(EMPTY_AUTH_CONFIG));
+    final RegistryAuth registryAuth1 =
+        reader.fromFirstConfig(getTestFilePath("dockerConfig/wrongConfig1.json"));
+    assertThat(registryAuth1, is(emptyRegistryAuth()));
 
-    final RegistryAuth registryAuth2 = reader.fromFirstConfig(getTestFilePath(
-        "dockerConfig/wrongConfig2.json"));
-    assertThat(registryAuth2, equalTo(EMPTY_AUTH_CONFIG));
+    final RegistryAuth registryAuth2 =
+        reader.fromFirstConfig(getTestFilePath("dockerConfig/wrongConfig2.json"));
+    assertThat(registryAuth2, is(emptyRegistryAuth()));
+  }
+
+  private static Matcher<RegistryAuth> emptyRegistryAuth() {
+    return new CustomTypeSafeMatcher<RegistryAuth>("an empty RegistryAuth") {
+      @Override
+      protected boolean matchesSafely(final RegistryAuth item) {
+        return item.email() == null
+               && item.identityToken() == null
+               && item.password() == null
+               && item.email() == null;
+      }
+    };
   }
 
   @Test
@@ -131,11 +151,12 @@ public class DockerConfigReaderTest {
 
   @Test
   public void testFromDockerConfig_MultiConfig() throws Exception {
-    final RegistryAuth myDockParsed = reader.fromConfig(getTestFilePath(
-        "dockerConfig/multiConfig.json"), "https://narnia.mydock.io/v1/");
+    final Path path = getTestFilePath("dockerConfig/multiConfig.json");
+
+    final RegistryAuth myDockParsed = reader.fromConfig(path, "https://narnia.mydock.io/v1/");
     assertThat(myDockParsed, equalTo(MY_AUTH_CONFIG));
-    final RegistryAuth dockerIoParsed = reader.fromConfig(getTestFilePath(
-        "dockerConfig/multiConfig.json"), "https://index.docker.io/v1/");
+
+    final RegistryAuth dockerIoParsed = reader.fromConfig(path, "https://index.docker.io/v1/");
     assertThat(dockerIoParsed, equalTo(DOCKER_AUTH_CONFIG));
   }
 
