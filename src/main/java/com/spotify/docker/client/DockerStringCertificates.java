@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -151,7 +152,8 @@ public class DockerStringCertificates implements DockerCertificatesStore {
   
   private List<Certificate> readCertificates(String content) 
       throws CertificateException, IOException {
-    try (InputStream inputStream = new ByteArrayInputStream(content.getBytes())) {
+    try (InputStream inputStream = new ByteArrayInputStream(
+        content.getBytes(Charset.defaultCharset()))) {
       return readCertificates(inputStream);
     }
   }

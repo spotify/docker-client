@@ -25,6 +25,7 @@ import com.spotify.docker.client.exceptions.DockerCertificateException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -120,7 +121,8 @@ public class DockerStreamCertificates implements DockerCertificatesStore {
   private PrivateKey readPrivateKey(InputStream inputStream) 
       throws IOException, InvalidKeySpecException,
       NoSuchAlgorithmException, DockerCertificateException {
-    try (PEMParser pemParser = new PEMParser(new InputStreamReader(inputStream))) {
+    try (PEMParser pemParser = new PEMParser(
+        new InputStreamReader(inputStream, Charset.defaultCharset()))) {
 
       final Object readObject = pemParser.readObject();
 
