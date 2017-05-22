@@ -1,5 +1,43 @@
 # Changelog
 
+## 8.6.0 (not yet released)
+
+### Revamped support for authentication
+This version introduces a new way to configure DefaultDockerClient to use
+authentication - the RegistryAuthSupplier interface.
+
+Historically, a single RegistryAuth instance was configured in
+DefaultDockerClient at construction-time and the instance would be used
+throughout the lifetime of the DefaultDockerClient instance. Many of the static
+factory methods in the RegistryAuth class would use the first auth element
+found in the docker client config file, and a DefaultDockerClient configured
+with `dockerAuth(true)` would have this behavior enabled by default.
+
+Inspired by a desire to be able to integrate with pushing and pulling images to
+Google Container Registry (where the docker client config file contains
+short-lived access tokens), the previous behavior has been removed and is
+replaced by RegistryAuthSupplier. DefaultDockerClient will now invoke the
+appropriate method on the configured RegistryAuthSupplier instance before each
+API operation that requires authentication. This allows for use of
+authentication info that is dynamic and changes during the lifetime of the
+DefaultDockerClient instance.
+
+The docker-client library contains an implementation of this interface that
+returns static RegistryAuth instances (NoOpRegistryAuthSupplier, which is
+configured for you if you use the old method `registryAuth(RegistryAuth)` in
+DefaultDockerClient.Builder) and an implementation for refreshing GCR access
+tokens with `gcloud docker -a`. We suggest that users implement this interface
+themselves if there is a need to customize the behavior.
+
+The new class DockerConfigReader replaces the static factory methods from
+RegistryAuth.
+
+The following methods are deprecated and will be removed in a future release:
+- DefaultDockerClient.Builder.registryAuth(RegistryAuth)
+- all overloads of RegistryAuth.fromDockerConfig(...)
+
+[740](https://github.com/spotify/docker-client/issues/740), [759](https://github.com/spotify/docker-client/pull/759)
+
 ## 8.5.0 (released May 18 2017)
 
 ### Removal of deprecated methods
