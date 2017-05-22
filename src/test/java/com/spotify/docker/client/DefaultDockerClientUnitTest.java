@@ -20,93 +20,62 @@
 
 package com.spotify.docker.client;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
 import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.Info;
-
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.Future;
-
-import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Variant;
-
-import org.junit.Assert;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import okio.Buffer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
+/**
+ * Tests DefaultDockerClient against a {@link okhttp3.mockwebserver.MockWebServer} instance, so
+ * we can assert what the HTTP requests look like that DefaultDockerClient sends and test how
+ * DefaltDockerClient behaves given certain responses from the Docker Remote API.
+ * <p>
+ * This test may not be a true "unit test", but using a MockWebServer where we can control the HTTP
+ * responses sent by the server and capture the HTTP requests sent by the class-under-test is far
+ * simpler that attempting to mock the {@link javax.ws.rs.client.Client} instance used by
+ * DefaultDockerClient, since the Client has such a rich/fluent interface and many methods/classes
+ * that would need to be mocked. Ultimately for testing DefaultDockerClient all we care about is the
+ * HTTP requests it sends, rather than what HTTP client library it uses.</p>
+ *
+ * @see <a href="https://github.com/square/okhttp/tree/master/mockwebserver">
+ * https://github.com/square/okhttp/tree/master/mockwebserver</a>
+ */
 public class DefaultDockerClientUnitTest {
 
-  @Mock
-  private Client clientMock;
-
-  @Mock
-  private ClientBuilder clientBuilderMock;
-
-  @Mock
-  private Invocation.Builder builderMock;
-
-  @Mock
-  private AsyncInvoker asyncInvoker;
-
-  @Mock
-  private WebTarget webTargetMock;
-
-  private Supplier<ClientBuilder> clientBuilderSupplier;
+  private final MockWebServer server = new MockWebServer();
   private DefaultDockerClient.Builder builder;
 
   @Before
   public void setup() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
-    when(clientBuilderMock.build()).thenReturn(clientMock);
-    when(clientBuilderMock.withConfig(any(Configuration.class))).thenReturn(clientBuilderMock);
-    when(clientBuilderMock.property(anyString(), any())).thenReturn(clientBuilderMock);
-
-    clientBuilderSupplier = Suppliers.ofInstance(clientBuilderMock);
-
-    when(clientMock.target(any(URI.class))).thenReturn(webTargetMock);
-    // return the same mock for any path.
-    when(webTargetMock.path(anyString())).thenReturn(webTargetMock);
-
-    when(webTargetMock.request(MediaType.APPLICATION_JSON_TYPE)).thenReturn(builderMock);
-
-    when(builderMock.async()).thenReturn(asyncInvoker);
-
-    final Future<Info> futureMock = Futures.immediateFuture(mock(Info.class));
-    when(asyncInvoker.method(anyString(), any(Class.class))).thenReturn(futureMock);
+    server.start();
 
     builder = DefaultDockerClient.builder();
-    builder.uri("https://perdu.com:2375");
+    builder.uri(server.url("/").uri());
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    server.shutdown();
   }
 
   @Test
@@ -137,62 +106,40 @@ public class DefaultDockerClientUnitTest {
     assertThat(client.getHost(), equalTo("192.168.53.103"));
   }
 
-  @Test
-  public void testNoHeaders() throws Exception {
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
-    dockerClient.info();
-
-    verify(builderMock, never()).header(anyString(), anyString());
+  private RecordedRequest takeRequestImmediately() throws InterruptedException {
+    return server.takeRequest(1, TimeUnit.MILLISECONDS);
   }
 
   @Test
-  public void testOneHeader() throws Exception {
-    builder.header("foo", 1);
+  public void testCustomHeaders() throws Exception {
+    builder.header("int", 1);
+    builder.header("string", "2");
+    builder.header("list", Lists.newArrayList("a", "b", "c"));
 
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    server.enqueue(new MockResponse());
+
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
     dockerClient.info();
 
-    final ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
-    final ArgumentCaptor<Object> valueArgument = ArgumentCaptor.forClass(Object.class);
-    verify(builderMock, times(1)).header(keyArgument.capture(), valueArgument.capture());
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+    assertThat(recordedRequest.getMethod(), is("GET"));
+    assertThat(recordedRequest.getPath(), is("/info"));
 
-    Assert.assertEquals("foo", keyArgument.getValue());
-    Assert.assertEquals(1, valueArgument.getValue());
+    assertThat(recordedRequest.getHeader("int"), is("1"));
+    assertThat(recordedRequest.getHeader("string"), is("2"));
+    // TODO (mbrown): this seems like incorrect behavior - the client should send 3 headers with
+    // name "list", not one header with a value of "[a, b, c]"
+    assertThat(recordedRequest.getHeaders().values("list"), contains("[a, b, c]"));
+  }
+
+  private static JsonNode toJson(Buffer buffer) throws IOException {
+    return ObjectMapperProvider.objectMapper().readTree(buffer.inputStream());
   }
 
   @Test
-  public void testMultipleHeaders() throws Exception {
-    final Map<String, Object> headers = Maps.newHashMap();
-    headers.put("int", 1);
-    headers.put("string", "2");
-    headers.put("list", Lists.newArrayList("a", "b", "c"));
-
-    for (final Map.Entry<String, Object> entry : headers.entrySet()) {
-      builder.header(entry.getKey(), entry.getValue());
-    }
-
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
-    dockerClient.info();
-
-    final ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
-    final ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
-    verify(builderMock, times(headers.size())).header(nameCaptor.capture(), valueCaptor.capture());
-
-    int idx = 0;
-    for (final Map.Entry<String, Object> entry : headers.entrySet()) {
-      Assert.assertEquals(entry.getKey(), nameCaptor.getAllValues().get(idx));
-      Assert.assertEquals(entry.getValue(), valueCaptor.getAllValues().get(idx));
-      ++idx;
-    }
-  }
-
-  @Test
+  @SuppressWarnings("unchecked")
   public void testCapAddAndDrop() throws Exception {
-    final DefaultDockerClient dockerClient = new DefaultDockerClient(
-        builder, clientBuilderSupplier);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
     final HostConfig hostConfig = HostConfig.builder()
         .capAdd(ImmutableList.of("foo", "bar"))
@@ -203,27 +150,36 @@ public class DefaultDockerClientUnitTest {
         .hostConfig(hostConfig)
         .build();
 
-    //noinspection unchecked
-    when(asyncInvoker.method(
-        anyString(), any(Entity.class), any(Class.class)))
-        .thenReturn(Futures.immediateFuture(ContainerCreation.builder().build()));
+    server.enqueue(new MockResponse());
 
     dockerClient.createContainer(containerConfig);
 
-    final ArgumentCaptor<String> methodArg = ArgumentCaptor.forClass(String.class);
-    final ArgumentCaptor<Entity> entityArg = ArgumentCaptor.forClass(Entity.class);
-    final ArgumentCaptor<Class> classArg = ArgumentCaptor.forClass(Class.class);
+    final RecordedRequest recordedRequest = takeRequestImmediately();
 
-    //noinspection unchecked
-    verify(asyncInvoker, times(1)).method(
-        methodArg.capture(), entityArg.capture(), classArg.capture());
+    assertThat(recordedRequest.getMethod(), is("POST"));
+    assertThat(recordedRequest.getPath(), is("/containers/create"));
 
-    final Entity expectedEntity = Entity.entity(
-        containerConfig, new Variant(MediaType.valueOf(APPLICATION_JSON), (String) null, null));
+    assertThat(recordedRequest.getHeader("Content-Type"), is("application/json"));
 
-    // Check that we've called the right method on the underlying AsyncInvoker with the right params
-    assertThat(methodArg.getValue(), equalTo("POST"));
-    assertThat(entityArg.getValue(), equalTo(expectedEntity));
-    assertThat(classArg.getValue(), instanceOf(Class.class));
+    // TODO (mbrown): use hamcrest-jackson for this, once we upgrade to Java 8
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+
+    final JsonNode capAddNode = requestJson.get("HostConfig").get("CapAdd");
+    assertThat(capAddNode.isArray(), is(true));
+
+    assertThat(childrenTextNodes((ArrayNode) capAddNode), containsInAnyOrder("baz", "qux"));
   }
+
+  private static Set<String> childrenTextNodes(ArrayNode arrayNode) {
+    final Set<String> texts = new HashSet<>();
+    for (JsonNode child : arrayNode) {
+      Preconditions.checkState(child.isTextual(),
+          "ArrayNode must only contain text nodes, but found %s in %s",
+          child.getNodeType(),
+          arrayNode);
+      texts.add(child.textValue());
+    }
+    return texts;
+  }
+
 }

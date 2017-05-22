@@ -47,11 +47,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -118,7 +116,6 @@ import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -312,14 +309,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       new GenericType<List<ImageHistory>>() {
       };
 
-  private static final Supplier<ClientBuilder> DEFAULT_BUILDER_SUPPLIER =
-      new Supplier<ClientBuilder>() {
-        @Override
-        public ClientBuilder get() {
-          return ClientBuilder.newBuilder();
-        }
-      };
-
   private static final GenericType<List<Service>> SERVICE_LIST =
       new GenericType<List<Service>>() {
       };
@@ -381,11 +370,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param builder DefaultDockerClient builder
    */
   protected DefaultDockerClient(final Builder builder) {
-    this(builder, DEFAULT_BUILDER_SUPPLIER);
-  }
-
-  @VisibleForTesting
-  DefaultDockerClient(final Builder builder, Supplier<ClientBuilder> clientBuilderSupplier) {
     final URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
@@ -416,7 +400,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     this.registryAuth = builder.registryAuth;
 
-    this.client = clientBuilderSupplier.get().withConfig(config).build();
+    this.client = ClientBuilder.newBuilder()
+        .withConfig(config)
+        .build();
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
@@ -424,7 +410,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
-    this.noTimeoutClient = clientBuilderSupplier.get()
+    this.noTimeoutClient = ClientBuilder.newBuilder()
         .withConfig(config)
         .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
         .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
@@ -2678,6 +2664,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
 
+    /**
+     * Adds additional headers to be sent in all requests to the Docker Remote API.
+     */
     public Builder header(String name, Object value) {
       headers.put(name, value);
       return this;
