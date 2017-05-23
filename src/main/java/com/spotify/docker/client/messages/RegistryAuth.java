@@ -144,21 +144,31 @@ public abstract class RegistryAuth {
                                     @JsonProperty("identityToken") final String identityToken,
                                     @JsonProperty("auth") final String auth) {
 
+    final Builder builder;
     if (auth != null) {
-      final String[] authParams = Base64.decodeAsString(auth).split(":");
-
-      if (authParams.length == 2) {
-        username = authParams[0].trim();
-        password = authParams[1].trim();
-      }
+      builder = forAuthToken(auth);
+    } else {
+      builder = builder()
+          .username(username)
+          .password(password);
     }
-    return builder()
-        .username(username)
-        .password(password)
+    return builder
         .email(email)
         .serverAddress(serverAddress)
         .identityToken(identityToken)
         .build();
+  }
+
+  /** Construct a Builder based upon the "auth" field of the docker client config file. */
+  public static Builder forAuthToken(String auth) {
+    final String[] authParams = Base64.decodeAsString(auth).split(":");
+
+    if (authParams.length != 2) {
+      return builder();
+    }
+    return builder()
+        .username(authParams[0].trim())
+        .password(authParams[1].trim());
   }
 
   public static Builder builder() {
