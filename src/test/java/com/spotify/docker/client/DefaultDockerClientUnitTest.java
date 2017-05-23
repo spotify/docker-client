@@ -24,16 +24,31 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.Resources;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.gcr.GoogleContainerRegistryAuthSupplier;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryAuthSupplier;
+import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +58,9 @@ import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Tests DefaultDockerClient against a {@link okhttp3.mockwebserver.MockWebServer} instance, so
@@ -69,7 +86,11 @@ import org.junit.Test;
 public class DefaultDockerClientUnitTest {
 
   private final MockWebServer server = new MockWebServer();
+
   private DefaultDockerClient.Builder builder;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setup() throws Exception {
@@ -142,6 +163,18 @@ public class DefaultDockerClientUnitTest {
     return ObjectMapperProvider.objectMapper().readTree(buffer.inputStream());
   }
 
+  private static JsonNode toJson(byte[] bytes) throws IOException {
+    return ObjectMapperProvider.objectMapper().readTree(bytes);
+  }
+
+  private static JsonNode toJson(Object object) throws IOException {
+    return ObjectMapperProvider.objectMapper().valueToTree(object);
+  }
+
+  private static ObjectNode createObjectNode() {
+    return ObjectMapperProvider.objectMapper().createObjectNode();
+  }
+
   @Test
   @SuppressWarnings("unchecked")
   public void testCapAddAndDrop() throws Exception {
@@ -188,4 +221,83 @@ public class DefaultDockerClientUnitTest {
     return texts;
   }
 
+  @Test
+  @SuppressWarnings("deprecated")
+  public void buildThrowsIfRegistryAuthandRegistryAuthSupplierAreBothSpecified()
+      throws DockerCertificateException {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("LOGIC ERROR");
+
+    DefaultDockerClient.builder()
+        .registryAuth(RegistryAuth.builder().identityToken("hello").build())
+        .registryAuthSupplier(new GoogleContainerRegistryAuthSupplier())
+        .build();
+  }
+
+  @Test
+  public void testBuildPassesMultipleRegistryConfigs() throws Exception {
+    final RegistryConfigs registryConfigs = RegistryConfigs.create(ImmutableMap.of(
+        "server1", RegistryAuth.builder()
+            .serverAddress("server1")
+            .username("u1")
+            .password("p1")
+            .email("e1")
+            .build(),
+
+        "server2", RegistryAuth.builder()
+            .serverAddress("server2")
+            .username("u2")
+            .password("p2")
+            .email("e2")
+            .build()
+    ));
+
+    final RegistryAuthSupplier authSupplier = mock(RegistryAuthSupplier.class);
+    when(authSupplier.authForBuild()).thenReturn(registryConfigs);
+
+    final DefaultDockerClient client = builder.registryAuthSupplier(authSupplier)
+        .build();
+
+    // build() calls /version to check what format of header to send
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            createObjectNode()
+                .put("ApiVersion", "1.20")
+                .put("Arch", "foobar")
+                .put("GitCommit", "foobar")
+                .put("GoVersion", "foobar")
+                .put("KernelVersion", "foobar")
+                .put("Os", "foobar")
+                .put("Version", "1.20")
+                .toString()
+        )
+    );
+
+    // TODO (mbrown): what to return for build response?
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+    );
+
+    final Path path = Paths.get(Resources.getResource("dockerDirectory").toURI());
+
+    client.build(path);
+
+    final RecordedRequest versionRequest = takeRequestImmediately();
+    assertThat(versionRequest.getMethod(), is("GET"));
+    assertThat(versionRequest.getPath(), is("/version"));
+
+    final RecordedRequest buildRequest = takeRequestImmediately();
+    assertThat(buildRequest.getMethod(), is("POST"));
+    assertThat(buildRequest.getPath(), is("/build"));
+
+    final String registryConfigHeader = buildRequest.getHeader("X-Registry-Config");
+    assertThat(registryConfigHeader, is(not(nullValue())));
+
+    // check that the JSON in the header is equivalent to what we mocked out above from
+    // the registryAuthSupplier
+    final JsonNode headerJsonNode = toJson(BaseEncoding.base64().decode(registryConfigHeader));
+    assertThat(headerJsonNode, is(toJson(registryConfigs.configs())));
+  }
 }

@@ -47,6 +47,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -97,6 +98,7 @@ import com.spotify.docker.client.messages.NetworkConnection;
 import com.spotify.docker.client.messages.NetworkCreation;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
@@ -324,7 +326,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private final URI uri;
   private final String apiVersion;
-  private final RegistryAuth registryAuth;
+  private final RegistryAuthSupplier registryAuthSupplier;
 
   private final Map<String, Object> headers;
 
@@ -398,7 +400,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
-    this.registryAuth = builder.registryAuth;
+
+    if (builder.registryAuthSupplier == null) {
+      this.registryAuthSupplier = new NoOpRegistryAuthSupplier();
+    } else {
+      this.registryAuthSupplier = builder.registryAuthSupplier;
+    }
 
     this.client = ClientBuilder.newBuilder()
         .withConfig(config)
@@ -1165,17 +1172,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, IOException, InterruptedException {
 
     final WebTarget resource = resource().path("images").path("get");
-    if (images != null) {
-      for (final String image : images) {
-        resource.queryParam("names", urlEncode(image));
-      }
+    for (final String image : images) {
+      resource.queryParam("names", urlEncode(image));
     }
 
     return request(
         GET,
         InputStream.class,
         resource,
-        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(registryAuth))
+        resource.request(APPLICATION_JSON_TYPE).header("X-Registry-Auth", authHeader(
+            registryAuthSupplier.authFor(images[0])))
     );
   }
 
@@ -1187,7 +1193,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void pull(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    pull(image, registryAuth, handler);
+    pull(image, registryAuthSupplier.authFor(image), handler);
   }
 
   @Override
@@ -1241,7 +1247,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void push(final String image, final ProgressHandler handler)
       throws DockerException, InterruptedException {
-    push(image, handler, registryAuth);
+    push(image, handler, registryAuthSupplier.authFor(image));
   }
 
   @Override
@@ -1360,18 +1366,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     // Convert auth to X-Registry-Config format
-    final RegistryConfigs registryConfigs;
-    if (registryAuth == null) {
-      registryConfigs = RegistryConfigs.empty();
-    } else {
-      registryConfigs = RegistryConfigs.create(singletonMap(
-          registryAuth.serverAddress(),
-          RegistryConfigs.RegistryConfig.create(
-              registryAuth.serverAddress(),
-              registryAuth.username(),
-              registryAuth.password(),
-              registryAuth.email())));
-    }
+    final RegistryConfigs registryConfigs = registryAuthSupplier.authForBuild();
 
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
          final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
@@ -1784,8 +1779,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public ServiceCreateResponse createService(ServiceSpec spec)
       throws DockerException, InterruptedException {
-
-    return createService(spec, registryAuth);
+    return createService(spec, registryAuthSupplier.authForSwarm());
   }
 
   @Override
@@ -2514,6 +2508,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   public static class Builder {
 
+    public static final String ERROR_MESSAGE =
+        "LOGIC ERROR: DefaultDockerClient does not support being built "
+        + "with both `registryAuth` and `registryAuthSupplier`. "
+        + "Please build with at most one of these options.";
     private URI uri;
     private String apiVersion;
     private long connectTimeoutMillis = DEFAULT_CONNECT_TIMEOUT_MILLIS;
@@ -2522,6 +2520,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private DockerCertificatesStore dockerCertificatesStore;
     private boolean dockerAuth;
     private RegistryAuth registryAuth;
+    private RegistryAuthSupplier registryAuthSupplier;
     private Map<String, Object> headers = new HashMap<>();
 
     public URI uri() {
@@ -2632,7 +2631,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      *
      * @param dockerAuth tells if Docker auth info should be used
      * @return Builder
+     * @deprecated in favor of {@link #registryAuthSupplier(RegistryAuthSupplier)}
      */
+    @Deprecated
     public Builder dockerAuth(final boolean dockerAuth) {
       this.dockerAuth = dockerAuth;
       return this;
@@ -2647,16 +2648,40 @@ public class DefaultDockerClient implements DockerClient, Closeable {
      *
      * @param registryAuth RegistryAuth object
      * @return Builder
+     *
+     * @deprecated in favor of {@link #registryAuthSupplier(RegistryAuthSupplier)}
      */
+    @Deprecated
     public Builder registryAuth(final RegistryAuth registryAuth) {
+      if (this.registryAuthSupplier != null) {
+        throw new IllegalStateException(ERROR_MESSAGE);
+      }
       this.registryAuth = registryAuth;
+
+      // stuff the static RegistryAuth into a RegistryConfigs instance to maintain what
+      // DefaultDockerClient used to do with the RegistryAuth before we introduced the
+      // RegistryAuthSupplier
+      final RegistryConfigs configs = RegistryConfigs.create(singletonMap(
+          MoreObjects.firstNonNull(registryAuth.serverAddress(), ""),
+          registryAuth
+      ));
+
+      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth, configs);
+      return this;
+    }
+
+    public Builder registryAuthSupplier(final RegistryAuthSupplier registryAuthSupplier) {
+      if (this.registryAuthSupplier != null) {
+        throw new IllegalStateException(ERROR_MESSAGE);
+      }
+      this.registryAuthSupplier = registryAuthSupplier;
       return this;
     }
 
     public DefaultDockerClient build() {
-      if (dockerAuth) {
+      if (dockerAuth && registryAuthSupplier == null && registryAuth == null) {
         try {
-          this.registryAuth = RegistryAuth.fromDockerConfig().build();
+          registryAuth(RegistryAuth.fromDockerConfig().build());
         } catch (IOException e) {
           log.warn("Unable to use Docker auth info", e);
         }
