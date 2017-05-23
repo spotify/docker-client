@@ -34,9 +34,28 @@ before writing code to check we're on the same page.
 
 You can build and test by following [instructions here][1].
 
+### Unit tests and integration tests
+When adding new functionality to DefaultDockerClient, please consider and
+prioritize adding unit tests to cover the new functionality in
+[DefaultDockerClientUnitTest][] rather than integration tests that require a
+real docker daemon in [DefaultDockerClientTest][].
+
+DefaultDockerClientUnitTest uses a [MockWebServer][] where we can control the
+HTTP responses sent by the server and capture the HTTP requests sent by the
+DefaultDockerClient, to ensure that it is communicating with the Docker Remote
+API as expected.
+
+While integration tests are valuable, they are more brittle and harder to run
+than a simple unit test that captures/asserts HTTP requests and responses, and
+they end up testing both how docker-client behaves and how the docker daemon
+itself behaves.
+
   [1]: https://github.com/spotify/docker-client#testing
   [2]: https://github.com/spotify/docker-maven-plugin
   [3]: https://github.com/spotify/helios
   [4]: https://github.com/spotify/docker-gc
   [5]: https://github.com/spotify/helios-skydns
   [6]: https://github.com/spotify/helios-consul
+  [DefaultDockerClientTest]: src/test/java/com/spotify/docker/client/DefaultDockerClientTest.java
+  [DefaultDockerClientUnitTest]: src/test/java/com/spotify/docker/client/DefaultDockerClientUnitTest.java
+  [MockWebServer]: https://github.com/square/okhttp/tree/master/mockwebserver

@@ -279,6 +279,15 @@ import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Integration tests for DefaultDockerClient that assume a docker daemon is available to connect to
+ * at the DOCKER_HOST environment variable.
+ * <p>
+ * When adding new functionality to DefaultDockerClient, <b>please consider adding new unit tests
+ * to {@link DefaultDockerClientUnitTest} rather than integration tests to this file</b>, for all of
+ * the reasons outlined in that class.
+ * </p>
+ */
 public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";

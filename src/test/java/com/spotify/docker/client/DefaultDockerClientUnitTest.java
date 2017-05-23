@@ -54,8 +54,14 @@ import org.junit.Test;
  * responses sent by the server and capture the HTTP requests sent by the class-under-test is far
  * simpler that attempting to mock the {@link javax.ws.rs.client.Client} instance used by
  * DefaultDockerClient, since the Client has such a rich/fluent interface and many methods/classes
- * that would need to be mocked. Ultimately for testing DefaultDockerClient all we care about is the
- * HTTP requests it sends, rather than what HTTP client library it uses.</p>
+ * that would need to be mocked. Ultimately for testing DefaultDockerClient all we care about is
+ * the HTTP requests it sends, rather than what HTTP client library it uses.</p>
+ * <p>
+ * When adding new functionality to DefaultDockerClient, please consider and prioritize adding unit
+ * tests to cover the new functionality in this file rather than integration tests that require a
+ * real docker daemon in {@link DefaultDockerClientTest}. While integration tests are valuable,
+ * they are more brittle and harder to run than a simple unit test that captures/asserts HTTP
+ * requests and responses.</p>
  *
  * @see <a href="https://github.com/square/okhttp/tree/master/mockwebserver">
  * https://github.com/square/okhttp/tree/master/mockwebserver</a>
