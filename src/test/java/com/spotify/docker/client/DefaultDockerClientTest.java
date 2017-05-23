@@ -310,19 +310,22 @@ public class DefaultDockerClientTest {
   @Rule
   public final TestName testName = new TestName();
 
+  private final RegistryAuth registryAuth = RegistryAuth.builder()
+      .username(AUTH_USERNAME)
+      .password(AUTH_PASSWORD)
+      .email("1234@example.com")
+      .build();
+
   private final String nameTag = toHexString(ThreadLocalRandom.current().nextLong());
 
   private URI dockerEndpoint;
 
   private DefaultDockerClient sut;
 
-  private RegistryAuth registryAuth;
-
   private String dockerApiVersion;
 
   @Before
   public void setup() throws Exception {
-    registryAuth = RegistryAuth.builder().username(AUTH_USERNAME).password(AUTH_PASSWORD).build();
     final DefaultDockerClient.Builder builder = DefaultDockerClient.fromEnv();
     // Make it easier to test no read timeout occurs by using a smaller value
     // Such test methods should end in 'NoTimeout'
@@ -687,6 +690,7 @@ public class DefaultDockerClientTest {
   public void testBadAuth() throws Exception {
     final RegistryAuth badRegistryAuth = RegistryAuth.builder()
         .username(AUTH_USERNAME)
+        .email("user@example.com") // docker < 1.11 requires email to be set in RegistryAuth
         .password("foobar")
         .build();
     final int statusCode = sut.auth(badRegistryAuth);
