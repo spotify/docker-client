@@ -178,17 +178,17 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
    * minimumExpiryMillis.
    */
   private AccessToken getAccessToken() throws DockerException {
-    // there is a small chance of multiple threads calling refresh() many times, but the
-    // GoogleCredentials implementation has thread-safe behavior internally
-    if (needsRefresh(credentials.getAccessToken())) {
-      try {
-        credentialRefresher.refresh(credentials);
-      } catch (IOException e) {
-        // rethrow as DockerException to match the signature of the RegistryAuthSupplier methods
-        throw new DockerException("Could not refresh access token", e);
+    // synchronize attempts to refresh the accessToken
+    synchronized (credentials) {
+      if (needsRefresh(credentials.getAccessToken())) {
+        try {
+          credentialRefresher.refresh(credentials);
+        } catch (IOException e) {
+          // rethrow as DockerException to match the signature of the RegistryAuthSupplier methods
+          throw new DockerException("Could not refresh access token", e);
+        }
       }
     }
-
     return credentials.getAccessToken();
   }
 
