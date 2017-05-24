@@ -49,9 +49,15 @@ import org.slf4j.LoggerFactory;
  * configurable amount of time.
  * <p>
  * To construct a new instance, use
- * {@link ContainerRegistryAuthSupplier#fromStream(InputStream)} to get a {@link Builder}.
- * The scopes used to fetch an access token and the minimum expiry time can be configured before
- * calling <code>builder.build()</code>.</p>
+ * {@link ContainerRegistryAuthSupplier#fromStream(InputStream)} to get a {@link Builder} if you
+ * have credentials for the account to use, or you can use
+ * {@link ContainerRegistryAuthSupplier#forApplicationDefaultCredentials()}
+ * if you would like to use
+ * <a href="https://developers.google.com/identity/protocols/application-default-credentials">the
+ * Application Default Credentials</a>.</p>
+ * <p>
+ * The scopes used to fetch an access token and the minimum expiry time can be configured via the
+ * Builder before calling {@link Builder#build()}.</p>
  */
 public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
 
@@ -79,14 +85,19 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
    * Constructs a ContainerRegistryAuthSupplier for the account with the given credentials.
    * The access tokens are scoped to devstorage.read_only only.
    */
-  public static Builder fromStream(final InputStream credentialsStream)
-      throws IOException {
-    return new Builder(credentialsStream);
+  public static Builder fromStream(final InputStream credentialsStream) throws IOException {
+    final GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
+    return new Builder(credentials);
+  }
+
+  public static Builder forApplicationDefaultCredentials() throws IOException {
+    final GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+    return new Builder(credentials);
   }
 
   public static class Builder {
 
-    private final InputStream credentialsStream;
+    private final GoogleCredentials credentials;
 
     private Collection<String> scopes =
         ImmutableList.of("https://www.googleapis.com/auth/devstorage.read_only");
@@ -97,8 +108,8 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
 
     private final CredentialRefresher refresher = new DefaultCredentialRefresher();
 
-    public Builder(final InputStream credentialsStream) {
-      this.credentialsStream = credentialsStream;
+    public Builder(final GoogleCredentials credentials) {
+      this.credentials = credentials;
     }
 
     public Builder withScopes(Collection<String> scopes) {
@@ -118,9 +129,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
     }
 
     public ContainerRegistryAuthSupplier build() throws IOException {
-      final GoogleCredentials credentials = GoogleCredentials
-          .fromStream(credentialsStream)
-          .createScoped(scopes);
+      final GoogleCredentials credentials = this.credentials.createScoped(scopes);
 
       // log some sort of identifier for the credentials, which requires looking at the
       // instance type
