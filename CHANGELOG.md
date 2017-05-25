@@ -40,7 +40,7 @@ The following methods are deprecated and will be removed in a future release:
 
 ### Upgraded dependencies
 
-Jackson has been upgraded from 2.6.0 to 2.8.6.
+Jackson has been upgraded from 2.6.0 to 2.8.8.
 
 ## 8.5.0 (released May 18 2017)
 
