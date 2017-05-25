@@ -146,7 +146,7 @@ public abstract class RegistryAuth {
 
     final Builder builder;
     if (auth != null) {
-      builder = forAuthToken(auth);
+      builder = forAuth(auth);
     } else {
       builder = builder()
           .username(username)
@@ -160,7 +160,7 @@ public abstract class RegistryAuth {
   }
 
   /** Construct a Builder based upon the "auth" field of the docker client config file. */
-  public static Builder forAuthToken(String auth) {
+  public static Builder forAuth(String auth) {
     final String[] authParams = Base64.decodeAsString(auth).split(":");
 
     if (authParams.length != 2) {

@@ -26,6 +26,9 @@ public interface RegistryAuthSupplier {
 
   /**
    * Returns a RegistryAuth object that works with a given registry's API [e.g. GCR].
+   *
+   * @return the RegistryAuth to use when working with the image, or else {@code null} if no
+   *         authentication info applies for this image
    */
   RegistryAuth authFor(String imageName) throws DockerException;
 

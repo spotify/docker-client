@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.gcr.GoogleContainerRegistryAuthSupplier;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.RegistryAuth;
@@ -228,9 +227,11 @@ public class DefaultDockerClientUnitTest {
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("LOGIC ERROR");
 
+    final RegistryAuthSupplier authSupplier = mock(RegistryAuthSupplier.class);
+
     DefaultDockerClient.builder()
         .registryAuth(RegistryAuth.builder().identityToken("hello").build())
-        .registryAuthSupplier(new GoogleContainerRegistryAuthSupplier())
+        .registryAuthSupplier(authSupplier)
         .build();
   }
 

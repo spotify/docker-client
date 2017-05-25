@@ -169,6 +169,19 @@
       <version>3.0.1</version>
       <scope>provided</scope>
     </dependency>
+    <!-- TODO we should pull out the Google Cloud support to a new library -->
+    <dependency>
+      <groupId>com.google.auth</groupId>
+      <artifactId>google-auth-library-oauth2-http</artifactId>
+      <version>0.6.0</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <!--test deps-->
     <dependency>

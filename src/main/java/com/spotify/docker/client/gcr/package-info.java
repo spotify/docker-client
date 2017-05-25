@@ -2,7 +2,7 @@
  * -\-\-
  * docker-client
  * --
- * Copyright (C) 2016 Spotify AB
+ * Copyright (C) 2016 - 2017 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,7 @@
  * -/-/-
  */
 
+/**
+ * Support for authenticating with Google Container Registry.
+ */
 package com.spotify.docker.client.gcr;
-
-import java.io.IOException;
-
-public class GCloudProcess {
-
-  public Process runGcloudDocker() throws IOException {
-    return Runtime.getRuntime().exec("gcloud docker -a");
-  }
-
-}
