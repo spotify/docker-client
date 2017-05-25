@@ -38,6 +38,10 @@ The following methods are deprecated and will be removed in a future release:
 
 [740](https://github.com/spotify/docker-client/issues/740), [759](https://github.com/spotify/docker-client/pull/759)
 
+### Upgraded dependencies
+
+Jackson has been upgraded from 2.6.0 to 2.8.6.
+
 ## 8.5.0 (released May 18 2017)
 
 ### Removal of deprecated methods
