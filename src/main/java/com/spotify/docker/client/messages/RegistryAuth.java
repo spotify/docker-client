@@ -161,11 +161,13 @@ public abstract class RegistryAuth {
 
   /** Construct a Builder based upon the "auth" field of the docker client config file. */
   public static Builder forAuth(String auth) {
-    final String[] authParams = Base64.decodeAsString(auth).split(":");
+    // split with limit=2 to catch case where password contains a colon
+    final String[] authParams = Base64.decodeAsString(auth).split(":", 2);
 
     if (authParams.length != 2) {
       return builder();
     }
+
     return builder()
         .username(authParams[0].trim())
         .password(authParams[1].trim());
