@@ -113,8 +113,8 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
    * A Builder of ContainerRegistryAuthSupplier.
    * <p>
    * The access tokens returned by the ContainerRegistryAuthSupplier are scoped to
-   * devstorage.read_only only by default, these can be customized with {@link
-   * #withScopes(Collection)}. </p>
+   * devstorage.read_write by default, these can be customized with {@link #withScopes(Collection)}.
+   * </p>
    * <p>
    * The default value for the minimum expiry time of an access token is one minute. When the
    * ContainerRegistryAuthSupplier is asked for a RegistryAuth, it will check if the existing
@@ -126,7 +126,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
     private final GoogleCredentials credentials;
 
     private Collection<String> scopes =
-        ImmutableList.of("https://www.googleapis.com/auth/devstorage.read_only");
+        ImmutableList.of("https://www.googleapis.com/auth/devstorage.read_write");
 
     private long minimumExpiryMillis = TimeUnit.MINUTES.toMillis(1);
 
@@ -135,7 +135,13 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
     }
 
     /**
-     * Customize the scopes used in fetching AccessTokens. The default is devstorage.read_only.
+     * Changes the <a href="https://cloud.google.com/storage/docs/authentication#oauth">scopes</a>
+     * used in fetching AccessTokens.
+     * <p>
+     * The default is devstorage.read_write, which allows pulling and pushing of images.
+     * To allow the application using ContainerRegistryAuthSupplier to pull but not push images,
+     * change the scope to contain only devstorage.read_only.
+     * only</p>
      */
     public Builder withScopes(Collection<String> scopes) {
       this.scopes = scopes;
@@ -143,7 +149,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
     }
 
     /**
-     * Customize the minimum expiry time used to refresh AccessTokens before they expire. The
+     * Changes the minimum expiry time used to refresh AccessTokens before they expire. The
      * default value is one minute.
      */
     public Builder withMinimumExpiry(long duration, TimeUnit timeUnit) {
