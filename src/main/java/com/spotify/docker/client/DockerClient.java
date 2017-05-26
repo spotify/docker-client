@@ -1773,7 +1773,7 @@ public interface DockerClient extends Closeable {
      * @return The ListNetworksParam for the given ID.
      * @since Docker 1.10, API version 1.22
      */
-    public static ListNetworksParam byNetworkId(final String id) {
+    public static ListNetworksParam withId(final String id) {
       return filter("id", id);
     }
 
@@ -1783,7 +1783,7 @@ public interface DockerClient extends Closeable {
      * @return The ListNetworksParam for the given name.
      * @since Docker 1.10, API version 1.22
      */
-    public static ListNetworksParam byNetworkName(final String name) {
+    public static ListNetworksParam withName(final String name) {
       return filter("name", name);
     }
 
@@ -2597,6 +2597,7 @@ public interface DockerClient extends Closeable {
      * Show only certain events. For example, "event=pull" for image pull events.
      * @param event Type of event to show
      * @return EventsParam
+     * @see #forEvent(String)
      * @since API 1.18
      */
     public static EventsParam event(final String event) {
@@ -2604,13 +2605,47 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Show only certain events. For example, "event=pull" for image pull events.
+     * @param event Type of event to show
+     * @return EventsParam
+     * @see #event(String)
+     * @since API 1.18
+     */
+    public static EventsParam forEvent(final String event) {
+      return event(event);
+    }
+
+    /**
      * Show events for an image.
      * @param image An image tag or id
      * @return EventsParam
+     * @see #forImage(String)
      * @since API 1.18
      */
     public static EventsParam image(final String image) {
       return filter("image", image);
+    }
+
+    /**
+     * Show events for an image.
+     * @param image An image tag or id
+     * @return EventsParam
+     * @see #image(String)
+     * @since API 1.18
+     */
+    public static EventsParam forImage(final String image) {
+      return image(image);
+    }
+
+    /**
+     * Show events for a container.
+     * @param container A container name or id
+     * @return EventsParam
+     * @see #forContainer(String)
+     * @since API 1.18
+     */
+    public static EventsParam container(final String container) {
+      return filter("container", container);
     }
 
     /**
@@ -2619,14 +2654,15 @@ public interface DockerClient extends Closeable {
      * @return EventsParam
      * @since API 1.18
      */
-    public static EventsParam container(final String container) {
-      return filter("container", container);
+    public static EventsParam forContainer(final String container) {
+      return container(container);
     }
 
     /**
      * Show events for a volume.
      * @param volume A volume name or id
      * @return EventsParam
+     * @see #forVolume(String)
      * @since API 1.22
      */
     public static EventsParam volume(final String volume) {
@@ -2634,9 +2670,21 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Show events for a volume.
+     * @param volume A volume name or id
+     * @return EventsParam
+     * @see #volume(String)
+     * @since API 1.22
+     */
+    public static EventsParam forVolume(final String volume) {
+      return volume(volume);
+    }
+
+    /**
      * Show events for a network.
      * @param network A network name or id
      * @return EventsParam
+     * @see #forNetwork(String)
      * @since API 1.22
      */
     public static EventsParam network(final String network) {
@@ -2644,13 +2692,36 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Show events for a network.
+     * @param network A network name or id
+     * @return EventsParam
+     * @see #network(String)
+     * @since API 1.22
+     */
+    public static EventsParam forNetwork(final String network) {
+      return network(network);
+    }
+
+    /**
      * Show events for a daemon.
      * @param daemon A daemon name or id
      * @return EventsParam
+     * @see #forDaemon(String)
      * @since API 1.24
      */
     public static EventsParam daemon(final String daemon) {
       return filter("daemon", daemon);
+    }
+
+    /**
+     * Show events for a daemon.
+     * @param daemon A daemon name or id
+     * @return EventsParam
+     * @see #daemon(String)
+     * @since API 1.24
+     */
+    public static EventsParam forDaemon(final String daemon) {
+      return daemon(daemon);
     }
 
     /**
@@ -2676,11 +2747,23 @@ public interface DockerClient extends Closeable {
     }
 
     /**
+     * Show events of a given type. For instance, "type=image" for all image events.
+     * @param type A type of event. Possible values: container, image, volume, network, or daemon
+     * @return EventsParam
+     * @see #type(Event.Type)
+     * @since API 1.22
+     */
+    public static EventsParam withType(final Event.Type type) {
+      return type(type);
+    }
+
+    /**
      * Show events with a label value.
      *
      * @param label The label to filter on
      * @param value The value of the label
      * @return EventsParam
+     * @see #withLabel(String, String)
      * @since API 1.21
      */
     public static EventsParam label(final String label, final String value) {
@@ -2692,10 +2775,36 @@ public interface DockerClient extends Closeable {
      *
      * @param label The label to filter on
      * @return EventsParam
+     * @see #withLabel(String)
      * @since API 1.21
      */
     public static EventsParam label(final String label) {
       return label(label, null);
+    }
+    
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
+     * @param value The value of the label
+     * @return EventsParam
+     * @see #label(String, String)
+     * @since API 1.21
+     */
+    public static EventsParam withLabel(final String label, final String value) {
+      return label(label, value);
+    }
+
+    /**
+     * Show events with a label value.
+     *
+     * @param label The label to filter on
+     * @return EventsParam
+     * @see #label(String)
+     * @since API 1.21
+     */
+    public static EventsParam withLabel(final String label) {
+      return label(label);
     }
   }
 
@@ -2772,10 +2881,22 @@ public interface DockerClient extends Closeable {
      * Filter volumes by name.
      * @param name Matches all or part of a volume name.
      * @return ListVolumesParam
+     * @see #withName(String)
      * @since Docker 1.12, API version 1.24
      */
     public static ListVolumesParam name(final String name) {
       return filter("name", name);
+    }
+
+    /**
+     * Filter volumes by name.
+     * @param name Matches all or part of a volume name.
+     * @return ListVolumesParam
+     * @see #name(String)
+     * @since Docker 1.12, API version 1.24
+     */
+    public static ListVolumesParam withName(final String name) {
+      return name(name);
     }
 
     /**
@@ -2817,10 +2938,22 @@ public interface DockerClient extends Closeable {
      * Filter volumes by volume driver.
      * @param driver Matches all or part of a volume driver name.
      * @return ListVolumesParam
+     * @see #withDriver(String)
      * @since Docker 1.12, API version 1.24
      */
     public static ListVolumesParam driver(final String driver) {
       return filter("driver", driver);
+    }
+
+    /**
+     * Filter volumes by volume driver.
+     * @param driver Matches all or part of a volume driver name.
+     * @return ListVolumesParam
+     * @see #driver(String)
+     * @since Docker 1.12, API version 1.24
+     */
+    public static ListVolumesParam withDriver(final String driver) {
+      return driver(driver);
     }
 
   }
