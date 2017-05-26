@@ -83,18 +83,44 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
 
   /**
    * Constructs a ContainerRegistryAuthSupplier for the account with the given credentials.
-   * The access tokens are scoped to devstorage.read_only only.
+   *
+   * @see Builder
    */
   public static Builder fromStream(final InputStream credentialsStream) throws IOException {
     final GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
     return new Builder(credentials);
   }
 
+  /**
+   * Constructs a ContainerRegistryAuthSupplier using the Application Default Credentials.
+   *
+   * @see Builder
+   */
   public static Builder forApplicationDefaultCredentials() throws IOException {
-    final GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+    return new Builder(GoogleCredentials.getApplicationDefault());
+  }
+
+  /**
+   * Constructs a ContainerRegistryAuthSupplier using the specified credentials.
+   *
+   * @see Builder
+   */
+  public static Builder forCredentials(final GoogleCredentials credentials) {
     return new Builder(credentials);
   }
 
+  /**
+   * A Builder of ContainerRegistryAuthSupplier.
+   * <p>
+   * The access tokens returned by the ContainerRegistryAuthSupplier are scoped to
+   * devstorage.read_only only by default, these can be customized with {@link
+   * #withScopes(Collection)}. </p>
+   * <p>
+   * The default value for the minimum expiry time of an access token is one minute. When the
+   * ContainerRegistryAuthSupplier is asked for a RegistryAuth, it will check if the existing
+   * AccessToken for the GoogleCredentials expires within this amount of time. If it does, then the
+   * AccessToken is refreshed before being returned. </p>
+   */
   public static class Builder {
 
     private final GoogleCredentials credentials;
@@ -104,27 +130,24 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
 
     private long minimumExpiryMillis = TimeUnit.MINUTES.toMillis(1);
 
-    private Clock clock = Clock.SYSTEM;
-
-    private final CredentialRefresher refresher = new DefaultCredentialRefresher();
-
     public Builder(final GoogleCredentials credentials) {
       this.credentials = credentials;
     }
 
+    /**
+     * Customize the scopes used in fetching AccessTokens. The default is devstorage.read_only.
+     */
     public Builder withScopes(Collection<String> scopes) {
       this.scopes = scopes;
       return this;
     }
 
+    /**
+     * Customize the minimum expiry time used to refresh AccessTokens before they expire. The
+     * default value is one minute.
+     */
     public Builder withMinimumExpiry(long duration, TimeUnit timeUnit) {
       this.minimumExpiryMillis = TimeUnit.MILLISECONDS.convert(duration, timeUnit);
-      return this;
-    }
-
-    @VisibleForTesting
-    public Builder withClock(Clock clock) {
-      this.clock = clock;
       return this;
     }
 
@@ -140,6 +163,9 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
         final String clientId = ((UserCredentials) credentials).getClientId();
         log.info("loaded credentials for user account with clientId={}", clientId);
       }
+
+      final Clock clock = Clock.SYSTEM;
+      final DefaultCredentialRefresher refresher = new DefaultCredentialRefresher();
 
       return new ContainerRegistryAuthSupplier(credentials, clock, minimumExpiryMillis, refresher);
     }
