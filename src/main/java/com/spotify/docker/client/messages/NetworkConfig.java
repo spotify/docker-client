@@ -63,6 +63,10 @@ public abstract class NetworkConfig {
   public abstract Boolean enableIPv6();
 
   @Nullable
+  @JsonProperty("Attachable")
+  public abstract Boolean attachable();
+
+  @Nullable
   @JsonProperty("Labels")
   public abstract ImmutableMap<String, String> labels();
 
@@ -94,6 +98,8 @@ public abstract class NetworkConfig {
     public abstract Builder internal(Boolean internal);
     
     public abstract Builder enableIPv6(Boolean ipv6);
+
+    public abstract Builder attachable(Boolean attachable);
 
     public abstract Builder labels(Map<String, String> labels);
     
