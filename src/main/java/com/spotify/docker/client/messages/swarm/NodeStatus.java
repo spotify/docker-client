@@ -28,41 +28,20 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
-import java.util.Date;
-
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class Node {
+public abstract class NodeStatus {
 
-  @JsonProperty("ID")
-  public abstract String id();
+  @JsonProperty("State")
+  public abstract String state();
 
-  @JsonProperty("Version")
-  public abstract Version version();
-
-  @JsonProperty("CreatedAt")
-  public abstract Date createdAt();
-
-  @JsonProperty("UpdatedAt")
-  public abstract Date updatedAt();
-
-  @JsonProperty("Spec")
-  public abstract NodeSpec spec();
-
-  @JsonProperty("Description")
-  public abstract NodeDescription description();
-  
-  @JsonProperty("Status")
-  public abstract NodeStatus status();
+  @JsonProperty("Addr")
+  public abstract String addr();
 
   @JsonCreator
-  static Node create(@JsonProperty("ID") final String id,
-      @JsonProperty("Version") final Version version,
-      @JsonProperty("CreatedAt") final Date createdAt,
-      @JsonProperty("UpdatedAt") final Date updatedAt,
-      @JsonProperty("Spec") final NodeSpec nodeSpec,
-      @JsonProperty("Description") final NodeDescription description,
-      @JsonProperty("Status") final NodeStatus status) {
-    return new AutoValue_Node(id, version, createdAt, updatedAt, nodeSpec, description,status);
+  static NodeStatus create(@JsonProperty("State") final String hostname, 
+      @JsonProperty("Addr") final String addr) {
+    return new AutoValue_NodeStatus(hostname, addr);
   }
+
 }
