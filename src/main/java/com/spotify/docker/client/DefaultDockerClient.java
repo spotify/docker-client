@@ -172,6 +172,8 @@ import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -395,11 +397,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setSocketTimeout((int) builder.readTimeoutMillis)
         .build();
 
-    final ClientConfig config = defaultConfig
+    final ClientConfig config = updateProxy(defaultConfig)
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
-
 
     if (builder.registryAuthSupplier == null) {
       this.registryAuthSupplier = new NoOpRegistryAuthSupplier();
@@ -424,6 +425,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .build();
 
     this.headers = new HashMap<>(builder.headers());
+  }
+
+  private ClientConfig updateProxy(ClientConfig config) {
+    final String proxyHost = System.getProperty("http.proxyHost");
+    if (proxyHost != null) {
+      config.property(ClientProperties.PROXY_URI, proxyHost + ":"
+              + System.getProperty("http.proxyPort", "8080"));
+
+      //ensure Content-Length is populated before sending request via proxy.
+      config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+    }
+    return config;
   }
 
   public String getHost() {
