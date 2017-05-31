@@ -1,6 +1,12 @@
 # Changelog
 
-## 8.6.0 (not yet released)
+## 8.6.1
+
+Added NetworkConfig.Attachable.
+
+[768](https://github.com/spotify/docker-client/issues/768) [770](https://github.com/spotify/docker-client/issues/770)
+
+## 8.6.0
 
 ### Revamped support for authentication
 This version introduces a new way to configure DefaultDockerClient to use
