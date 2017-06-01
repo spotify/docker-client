@@ -21,10 +21,13 @@
 package com.spotify.docker.client.gcr;
 
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -33,15 +36,22 @@ import static org.mockito.Mockito.when;
 import com.google.api.client.util.Clock;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class ContainerRegistryAuthSupplierTest {
+
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
   private final DateTime expiration = new DateTime(2017, 5, 23, 16, 25);
   private final String tokenValue = "abc123.foobar";
@@ -131,6 +141,21 @@ public class ContainerRegistryAuthSupplierTest {
   }
 
   @Test
+  public void testAuthForImage_ExceptionOnRefresh() throws Exception {
+    when(clock.currentTimeMillis())
+        .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
+
+    final IOException ex = new IOException("failure!!");
+    doThrow(ex).when(refresher).refresh(credentials);
+
+    // the exception should propagate up
+    exception.expect(DockerException.class);
+    exception.expectCause(is(ex));
+
+    supplier.authFor("gcr.io/example/foobar:1.2.3");
+  }
+
+  @Test
   public void testAuthForSwarm_NoRefresh() throws Exception {
     when(clock.currentTimeMillis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
@@ -151,11 +176,22 @@ public class ContainerRegistryAuthSupplierTest {
   }
 
   @Test
+  public void testAuthForSwarm_ExceptionOnRefresh() throws Exception {
+    when(clock.currentTimeMillis())
+        .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
+
+    doThrow(new IOException("failure!!")).when(refresher).refresh(credentials);
+
+    assertThat(supplier.authForSwarm(), is(nullValue()));
+  }
+
+  @Test
   public void testAuthForBuild_NoRefresh() throws Exception {
     when(clock.currentTimeMillis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
 
     final RegistryConfigs configs = supplier.authForBuild();
+    assertThat(configs.configs().values(), is(not(empty())));
     assertThat(configs.configs().values(), everyItem(matchesAccessToken(accessToken)));
 
     verify(refresher, never()).refresh(credentials);
@@ -167,8 +203,20 @@ public class ContainerRegistryAuthSupplierTest {
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     final RegistryConfigs configs = supplier.authForBuild();
+    assertThat(configs.configs().values(), is(not(empty())));
     assertThat(configs.configs().values(), everyItem(matchesAccessToken(accessToken)));
 
     verify(refresher).refresh(credentials);
+  }
+
+  @Test
+  public void testAuthForBuild_ExceptionOnRefresh() throws Exception {
+    when(clock.currentTimeMillis())
+        .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
+
+    doThrow(new IOException("failure!!")).when(refresher).refresh(credentials);
+
+    final RegistryConfigs configs = supplier.authForBuild();
+    assertThat(configs.configs().values(), is(empty()));
   }
 }

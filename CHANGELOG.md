@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.6.2 (not yet released)
+
+### Bugfixes
+- ContainerRegistryAuthSupplier should ignore exceptions in refreshing the
+  Access Token unless RegistryAuth info is needed for a GCR image ([773][])
+
+[773]: https://github.com/spotify/docker-client/pull/773
+
 ## 8.6.1
 
 Added NetworkConfig.Attachable.
