@@ -33,6 +33,7 @@ import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.exceptions.ImagePullFailedException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -245,7 +246,7 @@ public class PushPullIT {
         .username(HUB_AUTH_USERNAME2)
         .password("foobar")
         .build();
-    exception.expect(DockerException.class);
+    exception.expect(ImagePullFailedException.class);
     exception.expectCause(isA(NotAuthorizedException.class));
     client.pull(CIRROS_PRIVATE_LATEST, badRegistryAuth);
   }
