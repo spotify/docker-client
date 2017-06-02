@@ -1,6 +1,6 @@
 # Changelog
 
-## 8.6.2 (not yet released)
+## 8.6.2 (released May 31, 2017)
 
 ### Bugfixes
 - ContainerRegistryAuthSupplier should ignore exceptions in refreshing the
@@ -8,13 +8,13 @@
 
 [773]: https://github.com/spotify/docker-client/pull/773
 
-## 8.6.1
+## 8.6.1 (released May 31, 2017)
 
 Added NetworkConfig.Attachable.
 
 [768](https://github.com/spotify/docker-client/issues/768) [770](https://github.com/spotify/docker-client/issues/770)
 
-## 8.6.0
+## 8.6.0 (released May 26, 2017)
 
 ### Revamped support for authentication
 This version introduces a new way to configure DefaultDockerClient to use
