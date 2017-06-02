@@ -2703,7 +2703,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
       // read the docker config file for auth info if nothing else was specified
       if (registryAuthSupplier == null) {
-        registryAuthSupplier(new ConfigFileRegistryAuthSupplier(new DockerConfigReader()));
+        registryAuthSupplier(new ConfigFileRegistryAuthSupplier());
       }
 
       return new DefaultDockerClient(this);

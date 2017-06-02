@@ -42,6 +42,10 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
   private final DockerConfigReader reader;
   private final Path path;
 
+  public ConfigFileRegistryAuthSupplier() {
+    this(new DockerConfigReader());
+  }
+
   public ConfigFileRegistryAuthSupplier(final DockerConfigReader reader) {
     this(reader, reader.defaultConfigPath());
   }
