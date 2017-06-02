@@ -157,7 +157,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       return this;
     }
 
-    public ContainerRegistryAuthSupplier build() throws IOException {
+    public ContainerRegistryAuthSupplier build() {
       final GoogleCredentials credentials = this.credentials.createScoped(scopes);
 
       // log some sort of identifier for the credentials, which requires looking at the
