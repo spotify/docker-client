@@ -219,7 +219,6 @@ import com.spotify.docker.client.messages.swarm.TaskDefaults;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
 import com.spotify.docker.client.messages.swarm.UpdateConfig;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;

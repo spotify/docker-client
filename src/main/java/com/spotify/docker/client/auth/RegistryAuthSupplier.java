@@ -18,9 +18,11 @@
  * -/-/-
  */
 
-package com.spotify.docker.client.messages;
+package com.spotify.docker.client.auth;
 
 import com.spotify.docker.client.exceptions.DockerException;
+import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
 
 public interface RegistryAuthSupplier {
 

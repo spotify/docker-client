@@ -18,7 +18,7 @@
  * -/-/-
  */
 
-package com.spotify.docker.client.gcr;
+package com.spotify.docker.client.auth.gcr;
 
 import com.google.api.client.util.Clock;
 import com.google.auth.oauth2.AccessToken;
@@ -28,9 +28,9 @@ import com.google.auth.oauth2.UserCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
-import com.spotify.docker.client.messages.RegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
 import java.io.InputStream;
