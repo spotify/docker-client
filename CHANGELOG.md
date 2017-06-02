@@ -1,5 +1,17 @@
 # Changelog
 
+## 8.6.3 (not yet released)
+
+### Expanded RegistryAuthSupplier support
+Add RegistryAuthSuppliers for:
+- reading from docker config file (ConfigFileRegistryAuthSupplier)
+- combining multiple suppliers (MultiRegistryAuthSupplier)
+
+Also change the default behavior of DefaultDockerClient.Builder to use the
+ConfigFileRegistryAuthSupplier if no other authentication options are passed to
+the Builder, so that out-of-the-box, any authentication info from the docker
+config file (at `~/.dockercfg` or `~/.docker/config.json`) is used.
+
 ## 8.6.2 (released May 31, 2017)
 
 ### Bugfixes

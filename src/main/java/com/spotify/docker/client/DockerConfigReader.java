@@ -47,6 +47,12 @@ public class DockerConfigReader {
     return parseDockerConfig(configPath);
   }
 
+  /**
+   * Returns the RegistryAuth for the config file for the given registry server name.
+   *
+   * @throws IllegalArgumentException if the config file does not contain registry auth info for the
+   *                                  registry
+   */
   public RegistryAuth fromConfig(Path configPath, String serverAddress) throws IOException {
     return parseDockerConfig(configPath, serverAddress);
   }

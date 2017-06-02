@@ -56,6 +56,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
+import com.spotify.docker.client.auth.ConfigFileRegistryAuthSupplier;
 import com.spotify.docker.client.auth.NoOpRegistryAuthSupplier;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.BadParamException;
@@ -2679,17 +2680,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return this;
     }
 
-    public DefaultDockerClient build() {
-      if (dockerAuth && registryAuthSupplier == null && registryAuth == null) {
-        try {
-          registryAuth(RegistryAuth.fromDockerConfig().build());
-        } catch (IOException e) {
-          log.warn("Unable to use Docker auth info", e);
-        }
-      }
-      return new DefaultDockerClient(this);
-    }
-
     /**
      * Adds additional headers to be sent in all requests to the Docker Remote API.
      */
@@ -2700,6 +2690,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     public Map<String, Object> headers() {
       return headers;
+    }
+
+    public DefaultDockerClient build() {
+      if (dockerAuth && registryAuthSupplier == null && registryAuth == null) {
+        try {
+          registryAuth(RegistryAuth.fromDockerConfig().build());
+        } catch (IOException e) {
+          log.warn("Unable to use Docker auth info", e);
+        }
+      }
+
+      // read the docker config file for auth info if nothing else was specified
+      if (registryAuthSupplier == null) {
+        registryAuthSupplier(new ConfigFileRegistryAuthSupplier(new DockerConfigReader()));
+      }
+
+      return new DefaultDockerClient(this);
     }
   }
 
