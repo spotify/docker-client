@@ -36,6 +36,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
@@ -424,7 +425,13 @@ class CompressedDirectory implements Closeable {
      */
     @Override
     public boolean matches(Path path) {
-      return path.startsWith(this.pattern) || this.matcher.matches(path);
+      boolean startsWith = false;
+      try {
+        startsWith = path.startsWith(this.pattern);
+      } catch (InvalidPathException e) {
+        // thrown "If the path string cannot be converted to a Path"
+      }
+      return startsWith || this.matcher.matches(path);
     }
 
     @Override

@@ -455,7 +455,8 @@ public class DefaultDockerClientTest {
   public void testBuildImageIdWithBuildargs() throws Exception {
     requireDockerApiVersionAtLeast("1.21", "build args");
 
-    final String dockerDirectory = Resources.getResource("dockerDirectoryWithBuildargs").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectoryWithBuildargs").toURI()).toString();
     final String buildargs = "{\"testargument\":\"22-12-2015\"}";
     final BuildParam buildParam =
         BuildParam.create("buildargs", URLEncoder.encode(buildargs, "UTF-8"));
@@ -471,8 +472,8 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "health check");
 
     // Create image
-    final String dockerDirectory = Resources.getResource("dockerDirectoryWithHealthCheck")
-            .getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectoryWithHealthCheck").toURI()).toString();
     final String imageId = sut.build(
             Paths.get(dockerDirectory),
             "test-healthcheck"
@@ -893,7 +894,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageId() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final String returnedImageId = sut.build(
@@ -912,7 +914,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdPathToDockerFile() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final String returnedImageId = sut.build(
@@ -931,7 +934,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdWithAuth() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
@@ -956,7 +960,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testFailedBuildDoesNotLeakConn() throws Exception {
     final String dockerDirectory =
-        Resources.getResource("dockerDirectoryNonExistentImage").getPath();
+        Paths.get(Resources.getResource("dockerDirectoryNonExistentImage").toURI()).toString();
 
     log.info("Connection pool stats: " + getClientConnectionPoolStats(sut).toString());
 
@@ -978,7 +982,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testBuildName() throws Exception {
     final String imageName = "test-build-name";
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final String imageId = sut.build(Paths.get(dockerDirectory), imageName);
     final ImageInfo info = sut.inspectImage(imageName);
     final String expectedId = dockerApiVersionLessThan("1.22") ? imageId : "sha256:" + imageId;
@@ -989,7 +994,8 @@ public class DefaultDockerClientTest {
   public void testBuildWithPull() throws Exception {
     requireDockerApiVersionAtLeast("1.19", "build with pull");
 
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final String pullMsg = "Pulling from";
 
     // Build once to make sure we have cached images.
@@ -1010,7 +1016,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildNoCache() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final String usingCache = "Using cache";
 
     // Build once to make sure we have cached images.
@@ -1039,7 +1046,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildNoRm() throws Exception {
-    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectory").toURI()).toString();
     final String removingContainers = "Removing intermediate container";
 
     // Test that intermediate containers are removed with FORCE_RM by parsing output. We must
@@ -1068,7 +1076,8 @@ public class DefaultDockerClientTest {
   public void testBuildNoTimeout() throws Exception {
     // The Dockerfile specifies a sleep of 10s during the build
     // Returned image id is last piece of output, so this confirms stream did not timeout
-    final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerDirectorySleeping").toURI()).toString();
     final String returnedImageId = sut.build(
         Paths.get(dockerDirectory), "test", new ProgressHandler() {
           @Override
@@ -1243,7 +1252,8 @@ public class DefaultDockerClientTest {
     final ContainerCreation creation = sut.createContainer(config, name);
     final String containerId = creation.id();
 
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerSslDirectory").toURI()).toString();
     try {
       sut.copyToContainer(Paths.get(dockerDirectory), containerId, "/tmp");
     } catch (Exception e) {
@@ -1487,7 +1497,8 @@ public class DefaultDockerClientTest {
     // Start container
     sut.startContainer(id);
 
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerSslDirectory").toURI()).toString();
 
     // Copy files to container
     // Docker API should be at least v1.20 to support extracting an archive of files or folders
@@ -2517,7 +2528,8 @@ public class DefaultDockerClientTest {
     final String imageName = "test-docker-ssl";
     final String expose = "2376/tcp";
 
-    final String dockerDirectory = Resources.getResource("dockerSslDirectory").getPath();
+    final String dockerDirectory = 
+        Paths.get(Resources.getResource("dockerSslDirectory").toURI()).toString();
     sut.build(Paths.get(dockerDirectory), imageName);
 
     final HostConfig hostConfig = HostConfig.builder()
@@ -3709,7 +3721,7 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.17", "image labels");
 
     final String dockerDirectory =
-        Resources.getResource("dockerDirectoryWithImageLabels").getPath();
+        Paths.get(Resources.getResource("dockerDirectoryWithImageLabels").toURI()).toString();
 
     // Create test images
     final String barDir = (new File(dockerDirectory, "barDir")).toString();
