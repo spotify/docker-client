@@ -67,7 +67,6 @@ public class CompressedDirectoryTest {
     }
   }
 
-
   @Test
   public void testFileWithIgnore() throws Exception {
     // note: Paths.get(someURL.toUri()) is the platform-neutral way to convert a URL to a Path
