@@ -18,7 +18,7 @@
  * -/-/-
  */
 
-package com.spotify.docker.client.gcr;
+package com.spotify.docker.client.auth.gcr;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
