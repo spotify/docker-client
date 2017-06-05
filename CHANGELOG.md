@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.7.1
+
+### Bugfixes
+
+Fix NPE in MultiRegistryAuthSupplier ([783][])
+
+[783]: https://github.com/spotify/docker-client/pull/783
+
 ## 8.7.0
 
 Released June 5, 2017

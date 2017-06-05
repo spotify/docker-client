@@ -38,6 +38,8 @@ public interface RegistryAuthSupplier {
    * Returns a RegistryAuth object that is valid for a Docker Swarm context [i.e. not tied
    * to specific image]. It's unnecessary if it's not planned to use this AuthSupplier to pull
    * images for Swarm.
+   *
+   * @return the RegistryAuth to use in Swarn, or else {@code null} for no authentication info
    */
   RegistryAuth authForSwarm() throws DockerException;
 

@@ -75,7 +75,9 @@ public class MultiRegistryAuthSupplier implements RegistryAuthSupplier {
     // have precedence
     for (RegistryAuthSupplier supplier : Lists.reverse(suppliers)) {
       final RegistryConfigs configs = supplier.authForBuild();
-      allConfigs.putAll(configs.configs());
+      if (configs != null && configs.configs() != null) {
+        allConfigs.putAll(configs.configs());
+      }
     }
     return RegistryConfigs.create(allConfigs);
   }
