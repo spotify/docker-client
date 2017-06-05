@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 if [[ -z $1 ]]; then
   "I need a command!"
@@ -45,6 +45,26 @@ case "$1" in
     sudo restart docker
     # Give it time to be ready
     sleep 10
+
+    # Check if docker is ready up to a certain number of times
+    retries=0
+    max_retries=10
+    while true ; do
+      retries=$((retries+1))
+      if [ "$retries" -gt "$max_retries" ]; then
+        echo 'Exceeded number of retries.'
+        exit 1
+      fi
+
+      echo 'Checking docker is ready.'
+      if docker ps; then
+          echo 'Docker is ready.'
+          break
+      else
+        echo 'Docker is not ready yet. Sleeping and checking again.'
+        sleep 2
+      fi
+    done
 
     if [[ "$ENABLE_SWARM" = "1"  ]]; then
         # initialize docker swarm to be able to run docker tests
