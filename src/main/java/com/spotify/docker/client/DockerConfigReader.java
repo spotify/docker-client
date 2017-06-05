@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -108,7 +109,9 @@ public class DockerConfigReader {
   }
 
   private ObjectNode extractAuthJson(final Path configPath) throws IOException {
-    final JsonNode config = MAPPER.readTree(configPath.toFile());
+    final File file = configPath.toFile();
+
+    final JsonNode config = MAPPER.readTree(file);
 
     Preconditions.checkState(config.isObject(),
         "config file contents are not a JSON Object, instead it is a %s", config.getNodeType());

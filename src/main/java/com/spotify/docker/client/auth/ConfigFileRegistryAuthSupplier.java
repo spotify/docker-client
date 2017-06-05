@@ -25,6 +25,7 @@ import com.spotify.docker.client.ImageRef;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.slf4j.Logger;
@@ -55,16 +56,25 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
     this.path = path;
   }
 
+  private boolean configFileExists() {
+    final File f = this.path.toFile();
+    return f.isFile() && f.canRead();
+  }
+
   @Override
   public RegistryAuth authFor(final String imageName) throws DockerException {
+    if (!configFileExists()) {
+      return null;
+    }
+
     final ImageRef ref = new ImageRef(imageName);
     try {
       return reader.fromConfig(path, ref.getRegistryName());
+    } catch (IllegalArgumentException e) {
+      // no configuration for registry
+      return null;
     } catch (IOException e) {
       throw new DockerException(e);
-    } catch (IllegalArgumentException e) {
-      // no configuration
-      return null;
     }
   }
 
@@ -76,6 +86,10 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
 
   @Override
   public RegistryConfigs authForBuild() throws DockerException {
+    if (!configFileExists()) {
+      return null;
+    }
+
     try {
       return reader.fromConfig(path);
     } catch (IOException e) {
