@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.7.2
+
+### Bugfixes
+
+- Fix: make MemoryStat.stats nullable for ARM ([784][])
+
+[784]: https://github.com/spotify/docker-client/pull/784
+
 ## 8.7.1
 
 ### Bugfixes
