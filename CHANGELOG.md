@@ -1,6 +1,6 @@
 # Changelog
 
-## 8.7.0 (not yet released)
+## 8.7.0 (released June 5, 2017)
 
 ### Expanded RegistryAuthSupplier support
 Add RegistryAuthSuppliers for:
