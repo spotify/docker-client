@@ -1,6 +1,8 @@
 # Changelog
 
-## 8.7.0 (released June 5, 2017)
+## 8.7.0
+
+Released June 5, 2017
 
 ### Expanded RegistryAuthSupplier support
 Add RegistryAuthSuppliers for:
@@ -12,7 +14,9 @@ ConfigFileRegistryAuthSupplier if no other authentication options are passed to
 the Builder, so that out-of-the-box, any authentication info from the docker
 config file (at `~/.dockercfg` or `~/.docker/config.json`) is used.
 
-## 8.6.2 (released May 31, 2017)
+## 8.6.2
+
+Released May 31, 2017
 
 ### Bugfixes
 - ContainerRegistryAuthSupplier should ignore exceptions in refreshing the
@@ -20,13 +24,17 @@ config file (at `~/.dockercfg` or `~/.docker/config.json`) is used.
 
 [773]: https://github.com/spotify/docker-client/pull/773
 
-## 8.6.1 (released May 31, 2017)
+## 8.6.1
+
+Released May 31, 2017
 
 Added NetworkConfig.Attachable.
 
 [768](https://github.com/spotify/docker-client/issues/768) [770](https://github.com/spotify/docker-client/issues/770)
 
-## 8.6.0 (released May 26, 2017)
+## 8.6.0
+
+Released May 26, 2017
 
 ### Revamped support for authentication
 This version introduces a new way to configure DefaultDockerClient to use
