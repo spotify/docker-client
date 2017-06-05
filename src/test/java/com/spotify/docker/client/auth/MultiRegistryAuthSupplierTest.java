@@ -111,7 +111,6 @@ public class MultiRegistryAuthSupplierTest {
         "b", auth2
     )));
 
-    //
     when(supplier2.authForBuild()).thenReturn(RegistryConfigs.create(ImmutableMap.of(
         "b", auth3,
         "c", auth4
@@ -123,5 +122,30 @@ public class MultiRegistryAuthSupplierTest {
         hasEntry("b", auth2),
         hasEntry("c", auth4)
     ));
+  }
+
+  /**
+   * Test what happens if one of the Suppliers returns null for authForBuild().
+   */
+  @Test
+  public void testAuthForBuild_ReturnsNull() throws Exception {
+
+    when(supplier1.authForBuild()).thenReturn(null);
+
+    final RegistryConfigs registryConfigs = RegistryConfigs.create(ImmutableMap.of(
+        "a",
+        RegistryAuth.builder()
+            .username("1")
+            .serverAddress("a")
+            .build(),
+        "b",
+        RegistryAuth.builder()
+            .username("2")
+            .serverAddress("b")
+            .build()
+    ));
+    when(supplier2.authForBuild()).thenReturn(registryConfigs);
+
+    assertThat(multiSupplier.authForBuild(), is(registryConfigs));
   }
 }
