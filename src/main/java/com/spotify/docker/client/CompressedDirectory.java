@@ -388,6 +388,8 @@ class CompressedDirectory implements Closeable {
 
     private final boolean exclude;
 
+    private final boolean hasAsterisk;
+
     /**
      * Constructor.
      *
@@ -405,6 +407,8 @@ class CompressedDirectory implements Closeable {
       } else {
         this.matcher = goPathMatcher(fileSystem, pattern.substring(1));
       }
+
+      hasAsterisk = this.pattern.contains("*");
     }
 
     /**
@@ -424,7 +428,9 @@ class CompressedDirectory implements Closeable {
      */
     @Override
     public boolean matches(Path path) {
-      return path.startsWith(this.pattern) || this.matcher.matches(path);
+      return (hasAsterisk && OsUtils.isWindows())
+          ? this.matcher.matches(path) :
+          path.startsWith(this.pattern) || this.matcher.matches(path);
     }
 
     @Override

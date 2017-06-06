@@ -31,4 +31,8 @@ public class OsUtils {
   public static boolean isLinux() {
     return System.getProperty("os.name").equalsIgnoreCase("linux");
   }
+
+  public static boolean isWindows() {
+    return System.getProperty("os.name").toLowerCase(Locale.US).startsWith("windows");
+  }
 }
