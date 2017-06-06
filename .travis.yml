@@ -30,8 +30,8 @@ before_install:
   - dpkg -l | grep docker
   # install the version of docker in the DOCKER_VERSION env var
   - ./.travis.sh install_docker
-  # double-check that the version/config is correct
-  - ./.travis.sh dump_docker_config
+  # uncomment to double-check that the version/config is correct
+  # - ./.travis.sh dump_docker_config
   - docker version
   - docker info
 
@@ -43,9 +43,11 @@ after_success:
   # deploy snapshots to Maven central, but only from master branch
   - "[[ $TRAVIS_BRANCH == \"master\" && $UPLOAD_SONATYPE == \"1\" ]] && mvn --settings sonatype-settings.xml -DskipTests -B deploy"
 
-# dump the docker logs in case they are needed for troubleshooting failures
-after_script:
-  - sudo cat /var/log/upstart/docker.log
+# To troubleshoot a failing build, you can uncomment this block to dump the
+# docker logs in case they are needed for troubleshooting failures. We don't do
+# this on every single build as the logs are verbose and noisy.
+# after_script:
+#   - sudo cat /var/log/upstart/docker.log
 
 branches:
   only:
