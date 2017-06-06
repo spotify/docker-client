@@ -4,9 +4,11 @@
 
 ### Bugfixes
 
-Fix NPE in MultiRegistryAuthSupplier ([783][])
+- Fix NPE in MultiRegistryAuthSupplier ([783][])
+- Enable http proxy support ([742][])
 
 [783]: https://github.com/spotify/docker-client/pull/783
+[742]: https://github.com/spotify/docker-client/issues/742
 
 ## 8.7.0
 
