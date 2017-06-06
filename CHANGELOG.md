@@ -1,6 +1,48 @@
 # Changelog
 
-## 8.6.0 (not yet released)
+## 8.7.1
+
+### Bugfixes
+
+Fix NPE in MultiRegistryAuthSupplier ([783][])
+
+[783]: https://github.com/spotify/docker-client/pull/783
+
+## 8.7.0
+
+Released June 5, 2017
+
+### Expanded RegistryAuthSupplier support
+Add RegistryAuthSuppliers for:
+- reading from docker config file (ConfigFileRegistryAuthSupplier)
+- combining multiple suppliers (MultiRegistryAuthSupplier)
+
+Also change the default behavior of DefaultDockerClient.Builder to use the
+ConfigFileRegistryAuthSupplier if no other authentication options are passed to
+the Builder, so that out-of-the-box, any authentication info from the docker
+config file (at `~/.dockercfg` or `~/.docker/config.json`) is used.
+
+## 8.6.2
+
+Released May 31, 2017
+
+### Bugfixes
+- ContainerRegistryAuthSupplier should ignore exceptions in refreshing the
+  Access Token unless RegistryAuth info is needed for a GCR image ([773][])
+
+[773]: https://github.com/spotify/docker-client/pull/773
+
+## 8.6.1
+
+Released May 31, 2017
+
+Added NetworkConfig.Attachable.
+
+[768](https://github.com/spotify/docker-client/issues/768) [770](https://github.com/spotify/docker-client/issues/770)
+
+## 8.6.0
+
+Released May 26, 2017
 
 ### Revamped support for authentication
 This version introduces a new way to configure DefaultDockerClient to use

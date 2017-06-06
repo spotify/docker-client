@@ -18,7 +18,7 @@
  * -/-/-
  */
 
-package com.spotify.docker.client.gcr;
+package com.spotify.docker.client.auth.gcr;
 
 import com.google.api.client.util.Clock;
 import com.google.auth.oauth2.AccessToken;
@@ -28,9 +28,9 @@ import com.google.auth.oauth2.UserCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
-import com.spotify.docker.client.messages.RegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
 import java.io.InputStream;
@@ -157,7 +157,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       return this;
     }
 
-    public ContainerRegistryAuthSupplier build() throws IOException {
+    public ContainerRegistryAuthSupplier build() {
       final GoogleCredentials credentials = this.credentials.createScoped(scopes);
 
       // log some sort of identifier for the credentials, which requires looking at the
@@ -218,16 +218,11 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
    * Get an accessToken to use, possibly refreshing the token if it expires within the
    * minimumExpiryMillis.
    */
-  private AccessToken getAccessToken() throws DockerException {
+  private AccessToken getAccessToken() throws IOException {
     // synchronize attempts to refresh the accessToken
     synchronized (credentials) {
       if (needsRefresh(credentials.getAccessToken())) {
-        try {
-          credentialRefresher.refresh(credentials);
-        } catch (IOException e) {
-          // rethrow as DockerException to match the signature of the RegistryAuthSupplier methods
-          throw new DockerException("Could not refresh access token", e);
-        }
+        credentialRefresher.refresh(credentials);
       }
     }
     return credentials.getAccessToken();
@@ -254,7 +249,13 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       return null;
     }
 
-    return authForAccessToken(getAccessToken());
+    final AccessToken accessToken;
+    try {
+      accessToken = getAccessToken();
+    } catch (IOException e) {
+      throw new DockerException(e);
+    }
+    return authForAccessToken(accessToken);
   }
 
   // see https://cloud.google.com/container-registry/docs/advanced-authentication
@@ -267,12 +268,32 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
 
   @Override
   public RegistryAuth authForSwarm() throws DockerException {
-    return authForAccessToken(getAccessToken());
+    final AccessToken accessToken;
+    try {
+      accessToken = getAccessToken();
+    } catch (IOException e) {
+      // ignore the exception, as the user may not care if swarm is authenticated to use GCR
+      log.warn("unable to get access token for Google Container Registry due to exception, "
+               + "configuration for Swarm will not contain RegistryAuth for GCR",
+          e);
+      return null;
+    }
+    return authForAccessToken(accessToken);
   }
 
   @Override
   public RegistryConfigs authForBuild() throws DockerException {
-    final AccessToken accessToken = getAccessToken();
+    final AccessToken accessToken;
+    try {
+      accessToken = getAccessToken();
+    } catch (IOException e) {
+      // do not fail as the GCR access token may not be necessary for building the image currently
+      // being built
+      log.warn("unable to get access token for Google Container Registry, "
+               + "configuration for building image will not contain RegistryAuth for GCR",
+          e);
+      return RegistryConfigs.empty();
+    }
 
     final Map<String, RegistryAuth> configs = new HashMap<>(GCR_REGISTRIES.size());
     for (String serverName : GCR_REGISTRIES) {

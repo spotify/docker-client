@@ -21,4 +21,4 @@
 /**
  * Support for authenticating with Google Container Registry.
  */
-package com.spotify.docker.client.gcr;
+package com.spotify.docker.client.auth.gcr;

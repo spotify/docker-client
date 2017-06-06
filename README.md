@@ -47,15 +47,6 @@ final DockerClient docker = DefaultDockerClient.fromEnv().build();
 // Pull an image
 docker.pull("busybox");
 
-// Pull an image from a private repository
-// Server address defaults to "https://index.docker.io/v1/"
-RegistryAuth registryAuth = RegistryAuth.builder().email("foo@bar.com").username("foobar")
-  .password("secret-password").serverAddress("https://myprivateregistry.com/v1/").build();
-docker.pull("foobar/busybox-private:latest", registryAuth);
-
-// You can also set the RegistryAuth for the DockerClient instead of passing everytime you call pull()
-DockerClient docker = DefaultDockerClient.fromEnv().registryAuth(registryAuth).build();
-
 // Bind container ports to host ports
 final String[] ports = {"80", "22"};
 final Map<String, List<PortBinding>> portBindings = new HashMap<>();
@@ -110,7 +101,6 @@ docker.close();
 
 If you're looking for how to use docker-client, see the [User Manual][2].
 If you're looking for how to build and develop it, keep reading.
-
 
 ## Prerequisites
 

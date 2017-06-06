@@ -20,8 +20,13 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.MoreObjects;
+
 public class ImageRef {
 
+  private static final String DEFAULT_REGISTRY = "docker.io";
+
+  private final String registry;
   private final String image;
   private final String tag;
 
@@ -44,18 +49,38 @@ public class ImageRef {
         this.tag = null;
       }
     }
+    final String[] parts = image.split("/", 2);
+    if (parts.length > 1 && isRegistry(parts[0])) {
+      this.registry = parts[0];
+    } else {
+      this.registry = DEFAULT_REGISTRY;
+    }
+  }
+
+  private static boolean isRegistry(String part) {
+    return part.contains(".");
   }
 
   public String getImage() {
     return image;
   }
 
+  /** The image tag, or null if not set. */
   public String getTag() {
     return tag;
   }
 
+  /** Hostname/ip address and port of the registry. */
+  public String getRegistryName() {
+    return registry;
+  }
+
   @Override
   public String toString() {
-    return tag == null ? image : image + ':' + tag;
+    return MoreObjects.toStringHelper(this)
+        .add("registry", registry)
+        .add("image", image)
+        .add("tag", tag)
+        .toString();
   }
 }

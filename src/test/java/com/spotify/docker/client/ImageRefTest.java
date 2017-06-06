@@ -25,6 +25,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import org.hamcrest.FeatureMatcher;
+import org.hamcrest.Matcher;
 import org.junit.Test;
 
 public class ImageRefTest {
@@ -60,6 +62,35 @@ public class ImageRefTest {
   public void testImageWithDigestAndRegistry() {
     final ImageRef sut = new ImageRef("registry:4711/foo/bar@sha256:12345");
     assertThat(sut.getImage(), equalTo("registry:4711/foo/bar@sha256:12345"));
+  }
+
+  @Test
+  public void testRegistry() {
+    final String defaultRegistry = "docker.io";
+    assertThat(new ImageRef("ubuntu"), hasRegistry(defaultRegistry));
+    assertThat(new ImageRef("library/ubuntu"), hasRegistry(defaultRegistry));
+    assertThat(new ImageRef("docker.io/library/ubuntu"), hasRegistry(defaultRegistry));
+
+    assertThat(new ImageRef("registry.example.net/foo/bar"),
+        hasRegistry("registry.example.net"));
+
+    assertThat(new ImageRef("registry.example.net/foo/bar:1.2.3"),
+        hasRegistry("registry.example.net"));
+
+    assertThat(new ImageRef("registry.example.net/foo/bar:latest"),
+        hasRegistry("registry.example.net"));
+
+    assertThat(new ImageRef("registry.example.net:5555/foo/bar:latest"),
+        hasRegistry("registry.example.net:5555"));
+  }
+
+  private static Matcher<ImageRef> hasRegistry(final String expected) {
+    return new FeatureMatcher<ImageRef, String>(equalTo(expected), "registryName", "registryName") {
+      @Override
+      protected String featureValueOf(final ImageRef actual) {
+        return actual.getRegistryName();
+      }
+    };
   }
 
 }
