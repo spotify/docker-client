@@ -31,6 +31,7 @@ import com.google.common.io.Resources;
 import com.spotify.docker.client.DockerCertificates.SslContextFactory;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -136,15 +137,15 @@ public class DockerCertificatesTest {
     assertNotNull(pkEntry.getPrivateKey());
   }
 
-  private Path getResourceFile(String path) {
-    return Paths.get(Resources.getResource(path).getPath());
+  private Path getResourceFile(String path) throws URISyntaxException {
+    return Paths.get(Resources.getResource(path).toURI());
   }
 
-  private Path getCertPath() {
+  private Path getCertPath() throws URISyntaxException {
     return getResourceFile("dockerSslDirectory");
   }
 
-  private Path getVariant(String filename) {
+  private Path getVariant(String filename) throws URISyntaxException {
     return getResourceFile("dockerSslVariants").resolve(filename);
   }
 }
