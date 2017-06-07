@@ -33,6 +33,7 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ExecNotFoundException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
@@ -67,6 +68,7 @@ import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
+import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.Secret;
 import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
 import com.spotify.docker.client.messages.swarm.SecretSpec;
@@ -78,7 +80,6 @@ import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -2861,4 +2862,19 @@ public interface DockerClient extends Closeable {
    * @since Docker 1.12, API Version 1.24
    */
   NodeInfo inspectNode(final String nodeId) throws DockerException, InterruptedException;
+
+  /**
+   * Update a swarm node. Only available in Docker API &gt;= 1.24.
+   *
+   * @param nodeId The id of the node to update
+   * @param version The version number of the node object being updated.
+   *                This is required to avoid conflicting writes
+   * @throws NodeNotFoundException If the node doesn't exist (404)
+   * @throws NonSwarmNodeException If the node is not part of a swarm (503)
+   * @throws DockerException If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @since Docker 1.12, API version 1.24
+   */
+  void updateNode(final String nodeId, final Long version, final NodeSpec nodeSpec)
+      throws DockerException, InterruptedException;
 }

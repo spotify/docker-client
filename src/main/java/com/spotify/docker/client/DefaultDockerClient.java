@@ -111,6 +111,7 @@ import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
+import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.Secret;
 import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
 import com.spotify.docker.client.messages.swarm.SecretSpec;
@@ -1988,6 +1989,31 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw new NodeNotFoundException(nodeId);
         case 503:
           throw new NonSwarmNodeException("Node " + nodeId + " is not in a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
+  public void updateNode(final String nodeId, final Long version, final NodeSpec nodeSpec)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    WebTarget resource = resource().path("nodes")
+        .path(nodeId)
+        .path("update")
+        .queryParam("version", version);
+
+    try {
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(nodeSpec));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NodeNotFoundException(nodeId);
+        case 503:
+          throw new NonSwarmNodeException("Node " + nodeId + " is not a swarm node", e);
         default:
           throw e;
       }
