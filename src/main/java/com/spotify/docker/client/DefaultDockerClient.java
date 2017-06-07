@@ -71,6 +71,7 @@ import com.spotify.docker.client.exceptions.ExecCreateConflictException;
 import com.spotify.docker.client.exceptions.ExecNotFoundException;
 import com.spotify.docker.client.exceptions.ExecStartConflictException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
+import com.spotify.docker.client.exceptions.ImagePullFailedException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
@@ -1240,6 +1241,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerException(e);
     } catch (DockerRequestException e) {
       switch (e.status()) {
+        case 401:
+          throw new ImagePullFailedException(image, e.getCause());
         case 404:
           throw new ImageNotFoundException(image, e);
         default:
