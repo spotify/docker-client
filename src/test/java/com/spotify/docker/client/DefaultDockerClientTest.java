@@ -457,7 +457,7 @@ public class DefaultDockerClientTest {
     // Resources.getResources(...).getPath() does not work correctly on windows,
     // hence this workaround.  See: https://github.com/spotify/docker-client/pull/780
     // for details
-    return Paths.get(Resources.getResource("dockerDirectoryWithBuildargs").toURI());
+    return Paths.get(Resources.getResource(name).toURI());
   }
 
   @Test
