@@ -92,6 +92,7 @@
     ],
     "Isolation":"",
     "CpuShares":0,
+    "NanoCpus": 0,
     "CgroupParent":"",
     "BlkioWeight":0,
     "BlkioWeightDevice":null,
