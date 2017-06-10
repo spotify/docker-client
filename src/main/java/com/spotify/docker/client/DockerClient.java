@@ -2851,6 +2851,18 @@ public interface DockerClient extends Closeable {
   List<Node> listNodes() throws DockerException, InterruptedException;
 
   /**
+   * List swarm nodes that match the given criteria. Only available in Docker API &gt;= 1.24.
+   *
+   * @param criteria Node listing and filtering options.
+   * @return A list of nodes.
+   *
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @since Docker 1.12, API version 1.24
+   */
+  List<Node> listNodes(final Node.Criteria criteria) throws DockerException, InterruptedException;
+
+  /**
    * Inspects a swarm node. Only available in Docker API &gt;= 1.24.
    *
    * @param nodeId The id of the swarm node to inspect

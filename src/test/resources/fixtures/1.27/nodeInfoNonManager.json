@@ -1,0 +1,55 @@
+{
+  "ID": "24ifsmvkjbyhk",
+  "Version": {
+    "Index": 8
+  },
+  "CreatedAt": "2016-06-07T20:31:11.853781916Z",
+  "UpdatedAt": "2016-06-07T20:31:11.999868824Z",
+  "Spec": {
+    "Name": "my-node",
+    "Role": "manager",
+    "Availability": "active",
+    "Labels": {
+      "foo": "bar"
+    }
+  },
+  "Description": {
+    "Hostname": "bf3067039e47",
+    "Platform": {
+      "Architecture": "x86_64",
+      "OS": "linux"
+    },
+    "Resources": {
+      "NanoCPUs": 4000000000,
+      "MemoryBytes": 8272408576
+    },
+    "Engine": {
+      "EngineVersion": "1.13.0",
+      "Labels": {
+        "foo": "bar"
+      },
+      "Plugins": [
+        {
+          "Type": "Volume",
+          "Name": "local"
+        },
+        {
+          "Type": "Network",
+          "Name": "bridge"
+        },
+        {
+          "Type": "Network",
+          "Name": "null"
+        },
+        {
+          "Type": "Network",
+          "Name": "overlay"
+        }
+      ]
+    }
+  },
+  "Status": {
+    "State": "ready",
+    "Addr": "172.17.0.2"
+  }
+}

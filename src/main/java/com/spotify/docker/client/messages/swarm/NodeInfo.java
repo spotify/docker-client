@@ -27,8 +27,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-
-
 import java.util.Date;
 import javax.annotation.Nullable;
 
@@ -58,6 +56,7 @@ public abstract class NodeInfo {
   @JsonProperty("Status")
   public abstract NodeStatus status();
 
+  @Nullable
   @JsonProperty("ManagerStatus")
   public abstract ManagerStatus managerStatus();
 
@@ -76,55 +75,5 @@ public abstract class NodeInfo {
 
     return new AutoValue_NodeInfo(id, version, createdAt, updatedAt,
         nodeSpec, description, nodeStatus, managerStatus);
-  }
-
-  @AutoValue
-  public abstract static class Criteria {
-    /**
-     * Filter by node id.
-     */
-    @Nullable
-    public abstract String nodeId();
-
-    /**
-     * Filter by label.
-     */
-    @Nullable
-    public abstract String label();
-
-    /**
-     * Filter by node name.
-     */
-    @Nullable
-    public abstract String nodeName();
-
-    /**
-     * Filter by node role {manager | worker}.
-     */
-    @Nullable
-    public abstract String nodeRole();
-
-    public static Builder builder() {
-      return new AutoValue_NodeInfo_Criteria.Builder();
-    }
-
-
-    @AutoValue.Builder
-    public abstract static class Builder {
-      public abstract Builder nodeId(String nodeId);
-
-      public abstract Builder label(String label);
-
-      public abstract Builder nodeName(String nodeName);
-
-      public abstract Builder nodeRole(String nodeRole);
-
-      public abstract NodeInfo.Criteria build();
-    }
-  }
-
-
-  public static NodeInfo.Criteria.Builder find() {
-    return AutoValue_NodeInfo_Criteria.builder();
   }
 }

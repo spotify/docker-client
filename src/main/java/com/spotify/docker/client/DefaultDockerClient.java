@@ -1975,6 +1975,32 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public List<Node> listNodes(Node.Criteria criteria) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+    final Map<String, List<String>> filters = new HashMap<>();
+
+    if (criteria.nodeId() != null) {
+      filters.put("id", Collections.singletonList(criteria.nodeId()));
+    }
+    if (criteria.label() != null) {
+      filters.put("label", Collections.singletonList(criteria.label()));
+    }
+    if (criteria.membership() != null) {
+      filters.put("membership", Collections.singletonList(criteria.membership()));
+    }
+    if (criteria.nodeName() != null) {
+      filters.put("name", Collections.singletonList(criteria.nodeName()));
+    }
+    if (criteria.nodeRole() != null) {
+      filters.put("role", Collections.singletonList(criteria.nodeRole()));
+    }
+
+    WebTarget resource = resource().path("nodes");
+    resource = resource.queryParam("filters", urlEncodeFilters(filters));
+    return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
   public NodeInfo inspectNode(final String nodeId) throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.24");
 
