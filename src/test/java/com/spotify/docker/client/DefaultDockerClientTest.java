@@ -777,6 +777,7 @@ public class DefaultDockerClientTest {
     if (dockerApiVersionAtLeast("1.23")) {
       assertThat(info.cgroupDriver(), not(isEmptyOrNullString()));
       assertThat(info.kernelMemory(), is(anything()));
+      assertThat(info.swarm(), is(anything()));
     }
   }
 

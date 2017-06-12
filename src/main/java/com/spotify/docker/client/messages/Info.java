@@ -268,7 +268,7 @@ public abstract class Info {
         kernelMemory, kernelVersion, labelsT, memTotal, memoryLimit, cpus, eventsListener,
         fileDescriptors, goroutines, name, noProxy, oomKillDisable, operatingSystem, osType,
         plugins, registryConfig, serverVersion, swapLimit, systemStatusB.build(), systemTime,
-            swarm);
+        swarm);
   }
 
   @AutoValue
@@ -386,8 +386,7 @@ public abstract class Info {
             @JsonProperty("RemoteManagers") ImmutableList<RemoteManager> remoteManagers,
             @JsonProperty("Nodes") int nodes,
             @JsonProperty("Managers") int managers,
-            @JsonProperty("Cluster") Cluster cluster
-    ) {
+            @JsonProperty("Cluster") Cluster cluster) {
       final ImmutableList<RemoteManager> remoteManagersT =
               remoteManagers == null ? ImmutableList.<RemoteManager>of()
                       : ImmutableList.copyOf(remoteManagers);
@@ -441,8 +440,7 @@ public abstract class Info {
             @JsonProperty("Version") Version version,
             @JsonProperty("CreatedAt") Date createdAt,
             @JsonProperty("UpdatedAt") Date updatedAt,
-            @JsonProperty("Spec") SwarmSpec spec
-    ) {
+            @JsonProperty("Spec") SwarmSpec spec) {
       return new AutoValue_Info_Cluster(id, version, createdAt, updatedAt, spec);
     }
   }
