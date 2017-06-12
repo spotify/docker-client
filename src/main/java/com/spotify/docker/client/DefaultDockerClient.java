@@ -2613,7 +2613,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
-      final String hostText = hostAndPort.getHostText();
+      final String hostText = hostAndPort.getHost();
       final String scheme = certs.isPresent() ? "https" : "http";
 
       final int port = hostAndPort.getPortOrDefault(DockerHost.defaultPort());
