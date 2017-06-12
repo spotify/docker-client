@@ -81,7 +81,7 @@ public class DockerHost {
     } else {
       final String stripped = endpoint.replaceAll(".*://", "");
       final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
-      final String hostText = hostAndPort.getHostText();
+      final String hostText = hostAndPort.getHost();
       final String scheme = isNullOrEmpty(certPath) ? "http" : "https";
 
       this.port = hostAndPort.getPortOrDefault(defaultPort());

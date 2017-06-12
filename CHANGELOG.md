@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.8.4
+
+Not yet released
+
+- Upgrade Google Guava to 20.0 ([792][])
+
+[792]: https://github.com/spotify/docker-client/pull/792
+
 ## 8.8.3
 
 Released August 3, 2017
