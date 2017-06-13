@@ -1883,7 +1883,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testContainerWithNanoCpusOptions() throws Exception {
-    requireDockerApiVersionAtLeast("1.19", "Container creation with NanoCpus option");
+    requireDockerApiVersionAtLeast("1.25", "Container creation with NanoCpus option");
 
     sut.pull(BUSYBOX_LATEST);
 
