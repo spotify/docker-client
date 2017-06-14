@@ -2374,7 +2374,7 @@ public class DefaultDockerClientTest {
         .cmd("sleep", "5")
         // Generate some healthy_status events
         .healthcheck(Healthcheck.create(ImmutableList.of("CMD-SHELL", "true"),
-            1000000000L, 1000000000L, 3))
+            1000000000L, 1000000000L, 3, 1000000000L))
         .build();
 
     final long startTime = new Date().getTime() / 1000;
@@ -5075,7 +5075,7 @@ public class DefaultDockerClientTest {
                     .secrets(Arrays.asList(secretBind))
                     .hostname(hostname)
                     .hosts(Arrays.asList(hosts))
-                    .healthcheck(Healthcheck.create(Arrays.asList(healthcheckCmd), 30L, 3L, 3))
+                    .healthcheck(Healthcheck.create(Arrays.asList(healthcheckCmd), 30L, 3L, 3, 15L))
                     .command(commandLine).build())
             .build();
     final String serviceName = randomName();
@@ -5111,6 +5111,8 @@ public class DefaultDockerClientTest {
             equalTo(3L));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().retries(),
             equalTo(3));
+    assertThat(service.spec().taskTemplate().containerSpec().healthcheck().startPeriod(),
+            equalTo(15L));
   }
 
   @Test
