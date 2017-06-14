@@ -4870,6 +4870,28 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCreateServiceWithWarnings() throws Exception {
+    requireDockerApiVersionAtLeast("1.25", "swarm support");
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+        .containerSpec(ContainerSpec.builder()
+            .image("this_image_is_not_found_in_the_registry")
+            .build())
+        .build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+        .name(randomName())
+        .taskTemplate(taskSpec)
+        .build();
+
+    final ServiceCreateResponse response = sut.createService(spec);
+    assertThat(response.id(), is(notNullValue()));
+    assertThat(response.warnings(), is(hasSize(1)));
+
+    sut.removeService(response.id());
+  }
+
+  @Test
   public void testSecretOperations() throws Exception {
     requireDockerApiVersionAtLeast("1.25", "secret support");
 
