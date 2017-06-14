@@ -372,12 +372,20 @@ public abstract class ContainerConfig {
     @JsonProperty("Retries")
     public abstract Integer retries();
 
+    /**
+     * In nanoseconds.
+     */
+    @Nullable
+    @JsonProperty("StartPeriod")
+    public abstract Long startPeriod();
+
     @JsonCreator
     public static Healthcheck create(
             @JsonProperty("Test") final List<String> test,
             @JsonProperty("Interval") final Long interval,
             @JsonProperty("Timeout") final Long timeout,
-            @JsonProperty("Retries") final Integer retries) {
+            @JsonProperty("Retries") final Integer retries,
+            @JsonProperty("StartPeriod") final Long startPeriod) {
       final Builder builder = builder();
 
       if (test != null) {
@@ -391,6 +399,9 @@ public abstract class ContainerConfig {
       }
       if (retries != null) {
         builder.retries(retries);
+      }
+      if (startPeriod != null) {
+        builder.startPeriod(startPeriod);
       }
       return builder.build();
     }
@@ -408,6 +419,8 @@ public abstract class ContainerConfig {
       public abstract Builder timeout(final Long timeout);
 
       public abstract Builder retries(final Integer retries);
+
+      public abstract Builder startPeriod(final Long startPeriod);
 
       public abstract Healthcheck build();
     }
