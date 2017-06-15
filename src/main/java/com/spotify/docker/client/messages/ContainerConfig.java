@@ -379,7 +379,6 @@ public abstract class ContainerConfig {
     @JsonProperty("StartPeriod")
     public abstract Long startPeriod();
 
-    @JsonCreator
     public static Healthcheck create(
             @JsonProperty("Test") final List<String> test,
             @JsonProperty("Interval") final Long interval,
@@ -388,6 +387,7 @@ public abstract class ContainerConfig {
       return create(test, interval, timeout, retries, null);
     }
 
+    @JsonCreator
     public static Healthcheck create(
             @JsonProperty("Test") final List<String> test,
             @JsonProperty("Interval") final Long interval,
