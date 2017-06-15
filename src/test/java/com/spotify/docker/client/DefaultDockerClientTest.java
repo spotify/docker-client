@@ -5111,8 +5111,10 @@ public class DefaultDockerClientTest {
             equalTo(3L));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().retries(),
             equalTo(3));
+    final Matcher<Long> startPeriodMatcher = dockerApiVersionLessThan("1.29")
+            ? nullValue(Long.class) : equalTo(15L);
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().startPeriod(),
-            equalTo(15L));
+            startPeriodMatcher);
   }
 
   @Test
