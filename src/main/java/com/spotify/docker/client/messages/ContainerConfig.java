@@ -384,6 +384,14 @@ public abstract class ContainerConfig {
             @JsonProperty("Test") final List<String> test,
             @JsonProperty("Interval") final Long interval,
             @JsonProperty("Timeout") final Long timeout,
+            @JsonProperty("Retries") final Integer retries) {
+      return create(test, interval, timeout, retries, null);
+    }
+
+    public static Healthcheck create(
+            @JsonProperty("Test") final List<String> test,
+            @JsonProperty("Interval") final Long interval,
+            @JsonProperty("Timeout") final Long timeout,
             @JsonProperty("Retries") final Integer retries,
             @JsonProperty("StartPeriod") final Long startPeriod) {
       final Builder builder = builder();
