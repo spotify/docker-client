@@ -35,6 +35,7 @@ import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -234,9 +235,15 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       return true;
     }
 
+    final Date expirationTime = credentials.getAccessToken().getExpirationTime();
+
+    // Don't refresh if expiration time hasn't been provided.
+    if (expirationTime == null) {
+      return false;
+    }
+
     // refresh the token if it expires "soon"
-    final long expiresIn =
-        credentials.getAccessToken().getExpirationTime().getTime() - clock.currentTimeMillis();
+    final long expiresIn = expirationTime.getTime() - clock.currentTimeMillis();
 
     return expiresIn <= minimumExpiryMillis;
   }
