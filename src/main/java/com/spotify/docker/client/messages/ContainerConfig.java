@@ -374,6 +374,7 @@ public abstract class ContainerConfig {
 
     /**
      * In nanoseconds.
+     * @since API 1.29
      */
     @Nullable
     @JsonProperty("StartPeriod")
