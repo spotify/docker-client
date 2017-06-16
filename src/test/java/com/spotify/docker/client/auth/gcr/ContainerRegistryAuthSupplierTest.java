@@ -39,8 +39,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
@@ -156,6 +158,20 @@ public class ContainerRegistryAuthSupplierTest {
   }
 
   @Test
+  public void testAuthForImage_TokenWithoutExpirationDoesNotCauseRefresh() throws Exception {
+    final AccessToken accessToken = new AccessToken(tokenValue, null);
+    final GoogleCredentials credentials = new GoogleCredentials(accessToken);
+
+    final ContainerRegistryAuthSupplier supplier =
+        new ContainerRegistryAuthSupplier(credentials, clock,
+            TimeUnit.SECONDS.toMillis(minimumExpirationSecs), refresher);
+
+    assertThat(supplier.authFor("gcr.io/foobar/barfoo:latest"), matchesAccessToken(accessToken));
+
+    verify(refresher, never()).refresh(credentials);
+  }
+
+  @Test
   public void testAuthForSwarm_NoRefresh() throws Exception {
     when(clock.currentTimeMillis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
@@ -183,6 +199,20 @@ public class ContainerRegistryAuthSupplierTest {
     doThrow(new IOException("failure!!")).when(refresher).refresh(credentials);
 
     assertThat(supplier.authForSwarm(), is(nullValue()));
+  }
+
+  @Test
+  public void testAuthForSwarm_TokenWithoutExpirationDoesNotCauseRefresh() throws Exception {
+    final AccessToken accessToken = new AccessToken(tokenValue, null);
+    final GoogleCredentials credentials = new GoogleCredentials(accessToken);
+
+    final ContainerRegistryAuthSupplier supplier =
+        new ContainerRegistryAuthSupplier(credentials, clock,
+            TimeUnit.SECONDS.toMillis(minimumExpirationSecs), refresher);
+
+    assertThat(supplier.authForSwarm(), matchesAccessToken(accessToken));
+
+    verify(refresher, never()).refresh(credentials);
   }
 
   @Test
@@ -218,5 +248,21 @@ public class ContainerRegistryAuthSupplierTest {
 
     final RegistryConfigs configs = supplier.authForBuild();
     assertThat(configs.configs().values(), is(empty()));
+  }
+
+  @Test
+  public void testAuthForBuild_TokenWithoutExpirationDoesNotCauseRefresh() throws Exception {
+    final AccessToken accessToken = new AccessToken(tokenValue, null);
+    final GoogleCredentials credentials = new GoogleCredentials(accessToken);
+
+    final ContainerRegistryAuthSupplier supplier =
+        new ContainerRegistryAuthSupplier(credentials, clock,
+            TimeUnit.SECONDS.toMillis(minimumExpirationSecs), refresher);
+
+    final RegistryConfigs configs = supplier.authForBuild();
+    assertThat(configs.configs().values(), is(not(empty())));
+    assertThat(configs.configs().values(), everyItem(matchesAccessToken(accessToken)));
+
+    verify(refresher, never()).refresh(credentials);
   }
 }
