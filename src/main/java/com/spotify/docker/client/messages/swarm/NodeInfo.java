@@ -58,6 +58,7 @@ public abstract class NodeInfo {
   @JsonProperty("Status")
   public abstract NodeStatus status();
 
+  @Nullable
   @JsonProperty("ManagerStatus")
   public abstract ManagerStatus managerStatus();
 
