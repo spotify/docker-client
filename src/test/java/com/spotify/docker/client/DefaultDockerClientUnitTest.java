@@ -20,6 +20,8 @@
 
 package com.spotify.docker.client;
 
+import static com.google.common.base.Charsets.UTF_8;
+import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -28,9 +30,11 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
@@ -41,10 +45,8 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.RegistryAuth;
-import com.spotify.docker.client.messages.RegistryConfigs;
+import com.spotify.docker.client.messages.*;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -300,5 +302,29 @@ public class DefaultDockerClientUnitTest {
     // the registryAuthSupplier
     final JsonNode headerJsonNode = toJson(BaseEncoding.base64().decode(registryConfigHeader));
     assertThat(headerJsonNode, is(toJson(registryConfigs.configs())));
+  }
+
+  @Test
+  public void testNanoCpus() throws Exception{
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    HostConfig hostConfig = HostConfig.builder()
+            .nanoCpus(2_000_000_000L)
+            .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+            .hostConfig(hostConfig)
+            .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+    final JsonNode nanoCpus = requestJson.get("HostConfig").get("NanoCpus");
+
+    assertThat(hostConfig.nanoCpus(), is(nanoCpus.longValue()));
   }
 }

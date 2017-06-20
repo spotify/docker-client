@@ -1882,31 +1882,6 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testContainerWithNanoCpusOptions() throws Exception {
-    requireDockerApiVersionAtLeast("1.25", "Container creation with NanoCpus option");
-
-    sut.pull(BUSYBOX_LATEST);
-
-    final HostConfig expected = HostConfig.builder()
-            .nanoCpus(2000000000L)
-            .build();
-
-    final ContainerConfig config = ContainerConfig.builder()
-            .image(BUSYBOX_LATEST)
-            .hostConfig(expected)
-            .build();
-    final String name = randomName();
-    final ContainerCreation creation = sut.createContainer(config, name);
-    final String id = creation.id();
-
-    sut.startContainer(id);
-
-    final HostConfig actual = sut.inspectContainer(id).hostConfig();
-
-    assertThat(actual.nanoCpus(), equalTo(expected.nanoCpus()));
-  }
-
-  @Test
   public void testContainerWithBlkioOptions() throws Exception {
     requireDockerApiVersionAtLeast("1.19", "Container creation with blkio options");
 
