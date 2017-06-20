@@ -72,6 +72,7 @@ import com.spotify.docker.client.exceptions.ExecNotFoundException;
 import com.spotify.docker.client.exceptions.ExecStartConflictException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
@@ -109,6 +110,7 @@ import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.Node;
+import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.Secret;
 import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
 import com.spotify.docker.client.messages.swarm.SecretSpec;
@@ -1969,6 +1971,27 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     WebTarget resource = resource().path("nodes");
     return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public NodeInfo inspectNode(final String nodeId) throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    WebTarget resource = resource().path("nodes")
+        .path(nodeId);
+
+    try {
+      return request(GET, NodeInfo.class, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NodeNotFoundException(nodeId);
+        case 503:
+          throw new NonSwarmNodeException("Node " + nodeId + " is not in a swarm", e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override

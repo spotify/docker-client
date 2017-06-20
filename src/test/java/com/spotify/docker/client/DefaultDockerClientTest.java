@@ -194,6 +194,7 @@ import com.spotify.docker.client.messages.swarm.EnginePlugin;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
+import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.OrchestrationConfig;
 import com.spotify.docker.client.messages.swarm.Placement;
@@ -5486,7 +5487,7 @@ public class DefaultDockerClientTest {
       assertThat(plugin.name(), allOf(notNullValue(), not("")));
     }
   }
-  
+
   @SuppressWarnings("ConstantConditions")
   @Test
   public void testMountTmpfsOptions() throws Exception {

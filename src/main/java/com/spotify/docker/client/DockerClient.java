@@ -33,6 +33,7 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ExecNotFoundException;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
+import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
@@ -65,6 +66,7 @@ import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
 import com.spotify.docker.client.messages.swarm.Node;
+import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.Secret;
 import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
 import com.spotify.docker.client.messages.swarm.SecretSpec;
@@ -2843,6 +2845,20 @@ public interface DockerClient extends Closeable {
    * 
    * @throws DockerException      if a server error occurred (500)
    * @throws InterruptedException If the thread is interrupted
+   * @since Docker 1.12, API version 1.24
    */
   List<Node> listNodes() throws DockerException, InterruptedException;
+
+  /**
+   * Inspects a swarm node. Only available in Docker API &gt;= 1.24.
+   *
+   * @param nodeId The id of the swarm node to inspect
+   * @return info about the node
+   *
+   * @throws NonSwarmNodeException if the node is not part of a swarm (503)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException if the thread is interrupted
+   * @since Docker 1.12, API Version 1.24
+   */
+  NodeInfo inspectNode(final String nodeId) throws DockerException, InterruptedException;
 }

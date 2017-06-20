@@ -20,11 +20,13 @@
 
 package com.spotify.docker.client;
 
+import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -41,7 +43,13 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.messages.*;
+import com.spotify.docker.client.exceptions.NodeNotFoundException;
+import com.spotify.docker.client.exceptions.NonSwarmNodeException;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
+import com.spotify.docker.client.messages.swarm.NodeInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -322,5 +330,79 @@ public class DefaultDockerClientUnitTest {
     final JsonNode nanoCpus = requestJson.get("HostConfig").get("NanoCpus");
 
     assertThat(hostConfig.nanoCpus(), is(nanoCpus.longValue()));
+  }
+  
+  public void testInspectNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    // build() calls /version to check what format of header to send
+    enqueueServerApiVersion("1.28");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.28/nodeInfo.json")
+        )
+    );
+
+
+    NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+    assertThat(nodeInfo, notNullValue());
+    assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
+    assertThat(nodeInfo.status(), notNullValue());
+    assertThat(nodeInfo.status().addr(), is("172.17.0.2"));
+    assertThat(nodeInfo.managerStatus(), notNullValue());
+    assertThat(nodeInfo.managerStatus().addr(), is("172.17.0.2:2377"));
+    assertThat(nodeInfo.managerStatus().leader(), is(true));
+    assertThat(nodeInfo.managerStatus().reachability(), is("reachable"));
+  }
+
+  @Test(expected = NodeNotFoundException.class)
+  public void testInspectMissingNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    // build() calls /version to check what format of header to send
+    enqueueServerApiVersion("1.28");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(404)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.inspectNode("24ifsmvkjbyhk");
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testInspectNonSwarmNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    // build() calls /version to check what format of header to send
+    enqueueServerApiVersion("1.28");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(503)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.inspectNode("24ifsmvkjbyhk");
+  }
+
+  private void enqueueServerApiVersion(final String apiVersion) {
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            createObjectNode()
+                .put("ApiVersion", apiVersion)
+                .put("Arch", "foobar")
+                .put("GitCommit", "foobar")
+                .put("GoVersion", "foobar")
+                .put("KernelVersion", "foobar")
+                .put("Os", "foobar")
+                .put("Version", "1.20")
+                .toString()
+        )
+    );
   }
 }
