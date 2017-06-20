@@ -50,6 +50,7 @@ import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -308,6 +309,29 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
+  public void testNanoCpus() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    HostConfig hostConfig = HostConfig.builder()
+            .nanoCpus(2_000_000_000L)
+            .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+            .hostConfig(hostConfig)
+            .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+    final JsonNode nanoCpus = requestJson.get("HostConfig").get("NanoCpus");
+
+    assertThat(hostConfig.nanoCpus(), is(nanoCpus.longValue()));
+  }
+  
   public void testInspectNode() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
