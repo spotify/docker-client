@@ -309,7 +309,7 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
-  public void testNanoCpus() throws Exception{
+  public void testNanoCpus() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
     HostConfig hostConfig = HostConfig.builder()
