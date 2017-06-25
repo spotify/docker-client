@@ -27,6 +27,10 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 
 @AutoValue
@@ -36,8 +40,24 @@ public abstract class ServiceCreateResponse {
   @JsonProperty("ID")
   public abstract String id();
 
+  /**
+   * @since API 1.25
+   */
+  @Nullable
+  @JsonProperty("Warnings")
+  public abstract ImmutableList<String> warnings();
+
+  static ServiceCreateResponse create(
+          @JsonProperty("ID") final String id) {
+    return create(id, null);
+  }
+
   @JsonCreator
-  static ServiceCreateResponse create(@JsonProperty("ID") final String id) {
-    return new AutoValue_ServiceCreateResponse(id);
+  static ServiceCreateResponse create(
+          @JsonProperty("ID") final String id,
+          @JsonProperty("Warnings") final List<String> warnings) {
+    final ImmutableList<String> warningsT = warnings == null
+            ? null : ImmutableList.copyOf(warnings);
+    return new AutoValue_ServiceCreateResponse(id, warningsT);
   }
 }

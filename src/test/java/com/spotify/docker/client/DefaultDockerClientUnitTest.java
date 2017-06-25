@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -52,9 +53,13 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import com.spotify.docker.client.messages.ServiceCreateResponse;
+import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
+import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.TaskSpec;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -460,6 +465,38 @@ public class DefaultDockerClientUnitTest {
         .put("message", message);
 
     enqueueServerApiResponse(statusCode, errorMessage);
+  }
+
+  public void testCreateServiceWithWarnings() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    // build() calls /version to check what format of header to send
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(201)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.25/createServiceResponse.json")
+        )
+    );
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+        .containerSpec(ContainerSpec.builder()
+            .image("this_image_is_not_found_in_the_registry")
+            .build())
+        .build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+        .name("test")
+        .taskTemplate(taskSpec)
+        .build();
+
+    final ServiceCreateResponse response = dockerClient.createService(spec);
+    assertThat(response.id(), is(notNullValue()));
+    assertThat(response.warnings(), is(hasSize(1)));
+    assertThat(response.warnings(),
+        contains("unable to pin image this_image_is_not_found_in_the_registry to digest"));
   }
 
   private void enqueueServerApiEmptyResponse(final int statusCode) {
