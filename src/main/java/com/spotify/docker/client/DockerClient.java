@@ -2877,4 +2877,18 @@ public interface DockerClient extends Closeable {
    */
   void updateNode(final String nodeId, final Long version, final NodeSpec nodeSpec)
       throws DockerException, InterruptedException;
+
+  /**
+   * Remove a node from the swarm.
+   * @param nodeId The id of the node to remove.
+   */
+  void deleteNode(final String nodeId) throws DockerException, InterruptedException;
+
+  /**
+   * Remove a node from the swarm.
+   * @param nodeId The id of the node to remove.
+   * @param force  Forcefully remove the node.
+   */
+  void deleteNode(final String nodeId, final boolean force) throws DockerException,
+                                                                   InterruptedException;
 }

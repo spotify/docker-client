@@ -2021,6 +2021,34 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void deleteNode(final String nodeId) throws DockerException, InterruptedException {
+    deleteNode(nodeId, false);
+  }
+
+  @Override
+  public void deleteNode(final String nodeId, final boolean force)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    final WebTarget resource = resource().path("nodes")
+        .path(nodeId)
+        .queryParam("force", String.valueOf(force));
+
+    try {
+      request(DELETE, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NodeNotFoundException(nodeId);
+        case 503:
+          throw new NonSwarmNodeException("Node " + nodeId + " is not a swarm node", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public void execResizeTty(final String execId,
                             final Integer height,
                             final Integer width)
