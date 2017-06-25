@@ -491,6 +491,7 @@ public class DefaultDockerClientUnitTest {
     enqueueServerApiResponse(statusCode, errorMessage);
   }
 
+  @Test
   public void testCreateServiceWithWarnings() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
