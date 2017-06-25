@@ -319,6 +319,30 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
+  public void testNanoCpus() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .nanoCpus(2_000_000_000L)
+        .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+    final JsonNode nanoCpus = requestJson.get("HostConfig").get("NanoCpus");
+
+    assertThat(hostConfig.nanoCpus(), is(nanoCpus.longValue()));
+  }
+
+  @Test
   public void testInspectNode() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 

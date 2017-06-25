@@ -156,6 +156,10 @@ public abstract class HostConfig {
   public abstract Long memoryReservation();
 
   @Nullable
+  @JsonProperty("NanoCpus")
+  public abstract Long nanoCpus();
+
+  @Nullable
   @JsonProperty("CpuPeriod")
   public abstract Long cpuPeriod();
 
@@ -265,6 +269,7 @@ public abstract class HostConfig {
       @JsonProperty("MemorySwap") final Long memorySwap,
       @JsonProperty("MemorySwappiness") final Integer memorySwappiness,
       @JsonProperty("MemoryReservation") final Long memoryReservation,
+      @JsonProperty("NanoCpus") final Long nanoCpus,
       @JsonProperty("CpuPeriod") final Long cpuPeriod,
       @JsonProperty("CpuShares") final Long cpuShares,
       @JsonProperty("CpusetCpus") final String cpusetCpus,
@@ -312,6 +317,7 @@ public abstract class HostConfig {
         .memorySwap(memorySwap)
         .memorySwappiness(memorySwappiness)
         .memoryReservation(memoryReservation)
+        .nanoCpus(nanoCpus)
         .cpuPeriod(cpuPeriod)
         .cpuShares(cpuShares)
         .cpusetCpus(cpusetCpus)
@@ -559,6 +565,8 @@ public abstract class HostConfig {
     public abstract Builder memorySwappiness(Integer memorySwappiness);
 
     public abstract Builder memoryReservation(Long memoryReservation);
+
+    public abstract Builder nanoCpus(Long nanoCpus);
 
     public abstract Builder cpuPeriod(Long cpuPeriod);
 
