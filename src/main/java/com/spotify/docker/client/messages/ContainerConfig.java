@@ -372,27 +372,36 @@ public abstract class ContainerConfig {
     @JsonProperty("Retries")
     public abstract Integer retries();
 
-    @JsonCreator
+    /**
+     * In nanoseconds.
+     * @since API 1.29
+     */
+    @Nullable
+    @JsonProperty("StartPeriod")
+    public abstract Long startPeriod();
+
     public static Healthcheck create(
             @JsonProperty("Test") final List<String> test,
             @JsonProperty("Interval") final Long interval,
             @JsonProperty("Timeout") final Long timeout,
             @JsonProperty("Retries") final Integer retries) {
-      final Builder builder = builder();
+      return create(test, interval, timeout, retries, null);
+    }
 
-      if (test != null) {
-        builder.test(test);
-      }
-      if (interval != null) {
-        builder.interval(interval);
-      }
-      if (timeout != null) {
-        builder.timeout(timeout);
-      }
-      if (retries != null) {
-        builder.retries(retries);
-      }
-      return builder.build();
+    @JsonCreator
+    public static Healthcheck create(
+            @JsonProperty("Test") final List<String> test,
+            @JsonProperty("Interval") final Long interval,
+            @JsonProperty("Timeout") final Long timeout,
+            @JsonProperty("Retries") final Integer retries,
+            @JsonProperty("StartPeriod") final Long startPeriod) {
+      return builder()
+          .test(test)
+          .interval(interval)
+          .timeout(timeout)
+          .retries(retries)
+          .startPeriod(startPeriod)
+          .build();
     }
 
     public static Builder builder() {
@@ -408,6 +417,8 @@ public abstract class ContainerConfig {
       public abstract Builder timeout(final Long timeout);
 
       public abstract Builder retries(final Integer retries);
+
+      public abstract Builder startPeriod(final Long startPeriod);
 
       public abstract Healthcheck build();
     }
