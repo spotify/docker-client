@@ -395,24 +395,13 @@ public abstract class ContainerConfig {
             @JsonProperty("Timeout") final Long timeout,
             @JsonProperty("Retries") final Integer retries,
             @JsonProperty("StartPeriod") final Long startPeriod) {
-      final Builder builder = builder();
-
-      if (test != null) {
-        builder.test(test);
-      }
-      if (interval != null) {
-        builder.interval(interval);
-      }
-      if (timeout != null) {
-        builder.timeout(timeout);
-      }
-      if (retries != null) {
-        builder.retries(retries);
-      }
-      if (startPeriod != null) {
-        builder.startPeriod(startPeriod);
-      }
-      return builder.build();
+      return builder()
+          .test(test)
+          .interval(interval)
+          .timeout(timeout)
+          .retries(retries)
+          .startPeriod(startPeriod)
+          .build();
     }
 
     public static Builder builder() {

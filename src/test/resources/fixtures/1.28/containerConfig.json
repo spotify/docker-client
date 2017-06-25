@@ -1,0 +1,48 @@
+{
+  "Hostname": "string",
+  "Domainname": "string",
+  "User": "string",
+  "AttachStdin": false,
+  "AttachStdout": true,
+  "AttachStderr": true,
+  "ExposedPorts": {
+    "property1": {},
+    "property2": {}
+  },
+  "Tty": false,
+  "OpenStdin": false,
+  "StdinOnce": false,
+  "Env": [
+    "string"
+  ],
+  "Cmd": null,
+  "Healthcheck": {
+    "Test": [
+      "string"
+    ],
+    "Interval": 0,
+    "Timeout": 0,
+    "Retries": 0
+  },
+  "ArgsEscaped": true,
+  "Image": "string",
+  "Volumes": {
+    "additionalProperties": {}
+  },
+  "WorkingDir": "string",
+  "Entrypoint": null,
+  "NetworkDisabled": true,
+  "MacAddress": "string",
+  "OnBuild": [
+    "string"
+  ],
+  "Labels": {
+    "property1": "string",
+    "property2": "string"
+  },
+  "StopSignal": "SIGTERM",
+  "StopTimeout": 10,
+  "Shell": [
+    "string"
+  ]
+}
