@@ -24,6 +24,7 @@ import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -41,19 +42,24 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
+import com.spotify.docker.FixtureUtil;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
+import com.spotify.docker.client.messages.swarm.NodeSpec;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
@@ -364,21 +370,137 @@ public class DefaultDockerClientUnitTest {
     dockerClient.inspectNode("24ifsmvkjbyhk");
   }
 
-  private void enqueueServerApiVersion(final String apiVersion) {
+  @Test
+  public void testUpdateNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.28");
+    enqueueServerApiResponse(200, "fixtures/1.28/listNodes.json");
+
+    final List<Node> nodes = dockerClient.listNodes();
+
+    assertThat(nodes.size(), is(1));
+
+    final Node node = nodes.get(0);
+
+    assertThat(node.id(), equalTo("24ifsmvkjbyhk"));
+    assertThat(node.version().index(), equalTo(8L));
+    assertThat(node.spec().name(), equalTo("my-node"));
+    assertThat(node.spec().role(), equalTo("manager"));
+    assertThat(node.spec().availability(), equalTo("active"));
+    assertThat(node.spec().labels(), hasKey(equalTo("foo")));
+
+    final NodeSpec updatedNodeSpec = NodeSpec.builder(node.spec())
+        .addLabel("foobar", "foobar")
+        .build();
+
+    enqueueServerApiVersion("1.28");
+    enqueueServerApiEmptyResponse(200);
+
+    dockerClient.updateNode(node.id(), node.version().index(), updatedNodeSpec);
+  }
+
+  @Test(expected = DockerException.class)
+  public void testUpdateNodeWithInvalidVersion() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.28");
+
+    final ObjectNode errorMessage = createObjectNode()
+        .put("message", "invalid node version: '7'");
+
+    enqueueServerApiResponse(500, errorMessage);
+
+    final NodeSpec nodeSpec = NodeSpec.builder()
+        .addLabel("foo", "baz")
+        .name("foobar")
+        .availability("active")
+        .role("manager")
+        .build();
+
+    dockerClient.updateNode("24ifsmvkjbyhk", 7L, nodeSpec);
+  }
+
+  @Test(expected = NodeNotFoundException.class)
+  public void testUpdateMissingNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.28");
+    enqueueServerApiError(404, "Error updating node: '24ifsmvkjbyhk'");
+
+    final NodeSpec nodeSpec = NodeSpec.builder()
+        .addLabel("foo", "baz")
+        .name("foobar")
+        .availability("active")
+        .role("manager")
+        .build();
+
+    dockerClient.updateNode("24ifsmvkjbyhk", 8L, nodeSpec);
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testUpdateNonSwarmNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.28");
+    enqueueServerApiError(503, "Error updating node: '24ifsmvkjbyhk'");
+
+    final NodeSpec nodeSpec = NodeSpec.builder()
+        .name("foobar")
+        .addLabel("foo", "baz")
+        .availability("active")
+        .role("manager")
+        .build();
+
+    dockerClient.updateNode("24ifsmvkjbyhk", 8L, nodeSpec);
+  }
+
+  private void enqueueServerApiError(final int statusCode, String message) throws IOException {
+    final ObjectNode errorMessage = createObjectNode()
+        .put("message", message);
+
+    enqueueServerApiResponse(statusCode, errorMessage);
+  }
+
+  private void enqueueServerApiEmptyResponse(final int statusCode) {
     server.enqueue(new MockResponse()
-        .setResponseCode(200)
+        .setResponseCode(statusCode)
+        .addHeader("Content-Type", "application/json")
+    );
+  }
+
+  private void enqueueServerApiResponse(final int statusCode, final String fileName)
+      throws IOException {
+    server.enqueue(new MockResponse()
+        .setResponseCode(statusCode)
         .addHeader("Content-Type", "application/json")
         .setBody(
-            createObjectNode()
-                .put("ApiVersion", apiVersion)
-                .put("Arch", "foobar")
-                .put("GitCommit", "foobar")
-                .put("GoVersion", "foobar")
-                .put("KernelVersion", "foobar")
-                .put("Os", "foobar")
-                .put("Version", "1.20")
-                .toString()
+            FixtureUtil.fixture(fileName)
         )
+    );
+  }
+
+  private void enqueueServerApiResponse(final int statusCode, final ObjectNode objectResponse)
+      throws IOException {
+    server.enqueue(new MockResponse()
+        .setResponseCode(statusCode)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            objectResponse.toString()
+        )
+    );
+  }
+
+  private void enqueueServerApiVersion(final String apiVersion) throws IOException {
+    enqueueServerApiResponse(200,
+        createObjectNode()
+            .put("ApiVersion", apiVersion)
+            .put("Arch", "foobar")
+            .put("GitCommit", "foobar")
+            .put("GoVersion", "foobar")
+            .put("KernelVersion", "foobar")
+            .put("Os", "foobar")
+            .put("Version", "1.20")
     );
   }
 }
