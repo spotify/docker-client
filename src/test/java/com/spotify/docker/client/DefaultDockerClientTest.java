@@ -117,6 +117,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
+import com.spotify.docker.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.EventsParam;
@@ -937,7 +938,7 @@ public class DefaultDockerClientTest {
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
     final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
-        .registryAuth(registryAuth)
+        .registryAuthSupplier(new FixedRegistryAuthSupplier(AUTH_USERNAME, AUTH_PASSWORD, ""))
         .build();
 
     final String returnedImageId = sut2.build(dockerDirectory, "test", 

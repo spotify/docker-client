@@ -246,6 +246,7 @@ public class DefaultDockerClientUnitTest {
 
     final RegistryAuthSupplier authSupplier = mock(RegistryAuthSupplier.class);
 
+    //noinspection deprecation
     DefaultDockerClient.builder()
         .registryAuth(RegistryAuth.builder().identityToken("hello").build())
         .registryAuthSupplier(authSupplier)
@@ -471,7 +472,8 @@ public class DefaultDockerClientUnitTest {
     dockerClient.joinSwarm(swarmJoin);
   }
 
-  private void enqueueServerApiError(final int statusCode, String message) throws IOException {
+  private void enqueueServerApiError(final int statusCode, final String message)
+      throws IOException {
     final ObjectNode errorMessage = createObjectNode()
         .put("message", message);
 
