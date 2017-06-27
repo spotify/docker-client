@@ -479,6 +479,36 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
+  public void testDeleteNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiEmptyResponse(200);
+
+    dockerClient.deleteNode("node-1234");
+  }
+
+  @Test(expected = NodeNotFoundException.class)
+  public void testDeleteNode_NodeNotFound() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiEmptyResponse(404);
+
+    dockerClient.deleteNode("node-1234");
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testDeleteNode_NodeNotPartOfSwarm() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiEmptyResponse(503);
+
+    dockerClient.deleteNode("node-1234");
+  }
+
+  @Test
   public void testCreateServiceWithWarnings() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
