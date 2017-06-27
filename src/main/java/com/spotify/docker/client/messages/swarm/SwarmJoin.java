@@ -38,14 +38,13 @@ public abstract class SwarmJoin {
   @JsonProperty("ListenAddr")
   public abstract String listenAddr();
 
+  @Nullable
   @JsonProperty("AdvertiseAddr")
   public abstract String advertiseAddr();
 
-  @Nullable
   @JsonProperty("RemoteAddrs")
   public abstract List<String> remoteAddrs();
 
-  @Nullable
   @JsonProperty("JoinToken")
   public abstract String joinToken();
 

@@ -59,10 +59,12 @@ import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -482,6 +484,22 @@ public class DefaultDockerClientUnitTest {
         .build();
 
     dockerClient.updateNode("24ifsmvkjbyhk", 8L, nodeSpec);
+  }
+
+  @Test
+  public void testJoinSwarm() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiEmptyResponse(200);
+
+    SwarmJoin swarmJoin = SwarmJoin.builder()
+            .joinToken("token_foo")
+            .listenAddr("0.0.0.0:2377")
+            .remoteAddrs(Arrays.asList("10.0.0.10:2377"))
+            .build();
+
+    dockerClient.joinSwarm(swarmJoin);
   }
 
   private void enqueueServerApiError(final int statusCode, String message) throws IOException {
