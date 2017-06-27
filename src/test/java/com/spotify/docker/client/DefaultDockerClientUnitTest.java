@@ -20,7 +20,6 @@
 
 package com.spotify.docker.client;
 
-import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -278,21 +277,7 @@ public class DefaultDockerClientUnitTest {
         .build();
 
     // build() calls /version to check what format of header to send
-    server.enqueue(new MockResponse()
-        .setResponseCode(200)
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-            createObjectNode()
-                .put("ApiVersion", "1.20")
-                .put("Arch", "foobar")
-                .put("GitCommit", "foobar")
-                .put("GoVersion", "foobar")
-                .put("KernelVersion", "foobar")
-                .put("Os", "foobar")
-                .put("Version", "1.20")
-                .toString()
-        )
-    );
+    enqueueServerApiVersion("1.20");
 
     // TODO (mbrown): what to return for build response?
     server.enqueue(new MockResponse()
@@ -350,17 +335,9 @@ public class DefaultDockerClientUnitTest {
 
     // build() calls /version to check what format of header to send
     enqueueServerApiVersion("1.28");
+    enqueueServerApiResponse(200, "fixtures/1.28/nodeInfo.json");
 
-    server.enqueue(new MockResponse()
-        .setResponseCode(200)
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-            fixture("fixtures/1.28/nodeInfo.json")
-        )
-    );
-
-
-    NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+    final NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
     assertThat(nodeInfo, notNullValue());
     assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
     assertThat(nodeInfo.status(), notNullValue());
@@ -377,11 +354,7 @@ public class DefaultDockerClientUnitTest {
 
     // build() calls /version to check what format of header to send
     enqueueServerApiVersion("1.28");
-
-    server.enqueue(new MockResponse()
-        .setResponseCode(404)
-        .addHeader("Content-Type", "application/json")
-    );
+    enqueueServerApiEmptyResponse(404);
 
     dockerClient.inspectNode("24ifsmvkjbyhk");
   }
@@ -392,11 +365,7 @@ public class DefaultDockerClientUnitTest {
 
     // build() calls /version to check what format of header to send
     enqueueServerApiVersion("1.28");
-
-    server.enqueue(new MockResponse()
-        .setResponseCode(503)
-        .addHeader("Content-Type", "application/json")
-    );
+    enqueueServerApiEmptyResponse(503);
 
     dockerClient.inspectNode("24ifsmvkjbyhk");
   }
@@ -515,14 +484,7 @@ public class DefaultDockerClientUnitTest {
 
     // build() calls /version to check what format of header to send
     enqueueServerApiVersion("1.25");
-
-    server.enqueue(new MockResponse()
-        .setResponseCode(201)
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-            fixture("fixtures/1.25/createServiceResponse.json")
-        )
-    );
+    enqueueServerApiResponse(201, "fixtures/1.25/createServiceResponse.json");
 
     final TaskSpec taskSpec = TaskSpec.builder()
         .containerSpec(ContainerSpec.builder()
