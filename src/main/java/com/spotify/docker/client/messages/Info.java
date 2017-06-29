@@ -29,6 +29,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.spotify.docker.client.messages.swarm.ExternalCa;
+import com.spotify.docker.client.messages.swarm.TaskDefaults;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -194,6 +197,10 @@ public abstract class Info {
   @JsonProperty("SystemTime")
   public abstract Date systemTime();
 
+  @Nullable
+  @JsonProperty("Swarm")
+  public abstract Swarm swarm();
+
   @JsonCreator
   static Info create(
       @JsonProperty("Architecture") final String architecture,
@@ -238,7 +245,8 @@ public abstract class Info {
       @JsonProperty("ServerVersion") final String serverVersion,
       @JsonProperty("SwapLimit") final Boolean swapLimit,
       @JsonProperty("SystemStatus") final List<List<String>> systemStatus,
-      @JsonProperty("SystemTime") final Date systemTime) {
+      @JsonProperty("SystemTime") final Date systemTime,
+      @JsonProperty("Swarm") final Swarm swarm) {
     final ImmutableList.Builder<ImmutableList<String>> driverStatusB = ImmutableList.builder();
     if (driverStatus != null) {
       for (final List<String> ds : driverStatus) {
@@ -259,7 +267,8 @@ public abstract class Info {
         httpProxy, httpsProxy, id, ipv4Forwarding, images, indexServerAddress, initPath, initSha1,
         kernelMemory, kernelVersion, labelsT, memTotal, memoryLimit, cpus, eventsListener,
         fileDescriptors, goroutines, name, noProxy, oomKillDisable, operatingSystem, osType,
-        plugins, registryConfig, serverVersion, swapLimit, systemStatusB.build(), systemTime);
+        plugins, registryConfig, serverVersion, swapLimit, systemStatusB.build(), systemTime,
+        swarm);
   }
 
   @AutoValue
@@ -330,6 +339,251 @@ public abstract class Info {
       final ImmutableList<String> mirrorsT =
           mirrors == null ? ImmutableList.<String>of() : ImmutableList.copyOf(mirrors);
       return new AutoValue_Info_IndexConfig(name, mirrorsT, secure, official);
+    }
+  }
+
+  @AutoValue
+  public abstract static class Swarm {
+    @Nullable
+    @JsonProperty("NodeID")
+    public abstract String nodeId();
+
+    @Nullable
+    @JsonProperty("NodeAddr")
+    public abstract String nodeAddr();
+
+    @Nullable
+    @JsonProperty("LocalNodeState")
+    public abstract String localNodeState();
+
+    @JsonProperty("ControlAvailable")
+    public abstract boolean controlAvailable();
+
+    @JsonProperty("Error")
+    public abstract boolean error();
+
+    @Nullable
+    @JsonProperty("RemoteManagers")
+    public abstract ImmutableList<RemoteManager> remoteManagers();
+
+    @JsonProperty("Nodes")
+    public abstract int nodes();
+
+    @JsonProperty("Managers")
+    public abstract int managers();
+
+    @Nullable
+    @JsonProperty("Cluster")
+    public abstract Cluster cluster();
+
+    @JsonCreator
+    static Swarm create(
+            @JsonProperty("NodeID") String nodeId,
+            @JsonProperty("NodeAddr") String nodeAddr,
+            @JsonProperty("LocalNodeState") String localNodeState,
+            @JsonProperty("ControlAvailable") boolean controlAvailable,
+            @JsonProperty("Error") boolean error,
+            @JsonProperty("RemoteManagers") ImmutableList<RemoteManager> remoteManagers,
+            @JsonProperty("Nodes") int nodes,
+            @JsonProperty("Managers") int managers,
+            @JsonProperty("Cluster") Cluster cluster) {
+      final ImmutableList<RemoteManager> remoteManagersT =
+              remoteManagers == null ? ImmutableList.<RemoteManager>of()
+                      : ImmutableList.copyOf(remoteManagers);
+      return new AutoValue_Info_Swarm(nodeId, nodeAddr, localNodeState, controlAvailable,
+              error, remoteManagersT, nodes, managers, cluster);
+    }
+  }
+
+  @AutoValue
+  public abstract static class RemoteManager {
+    @Nullable
+    @JsonProperty("NodeID")
+    public abstract String nodeId();
+
+    @Nullable
+    @JsonProperty("Addr")
+    public abstract String addr();
+
+    @JsonCreator
+    static RemoteManager create(@JsonProperty("NodeID") String nodeId,
+                                @JsonProperty("Addr") String addr) {
+      return new AutoValue_Info_RemoteManager(nodeId, addr);
+    }
+  }
+
+  @AutoValue
+  public abstract static class Cluster {
+    @Nullable
+    @JsonProperty("ID")
+    public abstract String id();
+
+    @Nullable
+    @JsonProperty("Version")
+    public abstract Version version();
+
+    @Nullable
+    @JsonProperty("CreatedAt")
+    public abstract Date createdAt();
+
+    @Nullable
+    @JsonProperty("UpdatedAt")
+    public abstract Date updatedAt();
+
+    @Nullable
+    @JsonProperty("Spec")
+    public abstract SwarmSpec spec();
+
+    @JsonCreator
+    static Cluster create(
+            @JsonProperty("ID") String id,
+            @JsonProperty("Version") Version version,
+            @JsonProperty("CreatedAt") Date createdAt,
+            @JsonProperty("UpdatedAt") Date updatedAt,
+            @JsonProperty("Spec") SwarmSpec spec) {
+      return new AutoValue_Info_Cluster(id, version, createdAt, updatedAt, spec);
+    }
+  }
+
+  @AutoValue
+  public abstract static class Version {
+    @Nullable
+    @JsonProperty("Index")
+    public abstract Integer index();
+
+    @JsonCreator
+    static Version create(@JsonProperty("ID") Integer index) {
+      return new AutoValue_Info_Version(index);
+    }
+  }
+
+  @AutoValue
+  public abstract static class SwarmSpec {
+    @Nullable
+    @JsonProperty("Name")
+    public abstract String name();
+
+    @Nullable
+    @JsonProperty("Labels")
+    public abstract ImmutableMap<String, String> labels();
+
+    @Nullable
+    @JsonProperty("Orchestration")
+    public abstract OrchestrationConfig orchestration();
+
+    @Nullable
+    @JsonProperty("Raft")
+    public abstract RaftConfig raft();
+
+    @Nullable
+    @JsonProperty("Dispatcher")
+    public abstract DispatcherConfig dispatcher();
+
+    @Nullable
+    @JsonProperty("CAConfig")
+    public abstract CaConfig caConfig();
+
+    @Nullable
+    @JsonProperty("TaskDefaults")
+    public abstract TaskDefaults taskDefaults();
+
+    @JsonCreator
+    static SwarmSpec create(
+            @JsonProperty("Name") final String name,
+            @JsonProperty("Labels") final Map<String, String> labels,
+            @JsonProperty("Orchestration") final OrchestrationConfig orchestration,
+            @JsonProperty("Raft") final RaftConfig raft,
+            @JsonProperty("Dispatcher") final DispatcherConfig dispatcher,
+            @JsonProperty("CAConfig") final CaConfig caConfig,
+            @JsonProperty("TaskDefaults") final TaskDefaults taskDefaults) {
+      final ImmutableMap<String, String> labelsT = labels == null
+              ? null : ImmutableMap.copyOf(labels);
+      return new AutoValue_Info_SwarmSpec(name, labelsT, orchestration, raft, dispatcher,
+              caConfig, taskDefaults);
+    }
+  }
+
+  @AutoValue
+  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+  public abstract static class OrchestrationConfig {
+    @Nullable
+    @JsonProperty("TaskHistoryRetentionLimit")
+    public abstract Integer taskHistoryRetentionLimit();
+
+    @JsonCreator
+    static OrchestrationConfig create(
+            @JsonProperty("TaskHistoryRetentionLimit") final Integer taskHistoryRetentionLimit) {
+      return new AutoValue_Info_OrchestrationConfig(taskHistoryRetentionLimit);
+    }
+  }
+
+  @AutoValue
+  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+  public abstract static class RaftConfig {
+    @Nullable
+    @JsonProperty("SnapshotInterval")
+    public abstract Integer snapshotInterval();
+
+    @Nullable
+    @JsonProperty("KeepOldSnapshots")
+    public abstract Integer keepOldSnapshots();
+
+    @Nullable
+    @JsonProperty("LogEntriesForSlowFollowers")
+    public abstract Integer logEntriesForSlowFollowers();
+
+    @Nullable
+    @JsonProperty("ElectionTick")
+    public abstract Integer electionTick();
+
+    @Nullable
+    @JsonProperty("HeartbeatTick")
+    public abstract Integer heartbeatTick();
+
+
+    @JsonCreator
+    static RaftConfig create(
+            @JsonProperty("SnapshotInterval") final Integer snapshotInterval,
+            @JsonProperty("KeepOldSnapshots") final Integer keepOldSnapshots,
+            @JsonProperty("LogEntriesForSlowFollowers") final Integer logEntriesForSlowFollowers,
+            @JsonProperty("ElectionTick") final Integer electionTick,
+            @JsonProperty("HeartbeatTick") final Integer heartbeatTick) {
+      return new AutoValue_Info_RaftConfig(snapshotInterval, keepOldSnapshots,
+              logEntriesForSlowFollowers, electionTick, heartbeatTick);
+    }
+  }
+
+  @AutoValue
+  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+  public abstract static class DispatcherConfig {
+    @Nullable
+    @JsonProperty("HeartbeatPeriod")
+    public abstract Long heartbeatPeriod();
+
+    @JsonCreator
+    static DispatcherConfig create(@JsonProperty("HeartbeatPeriod") final Long heartbeatPeriod) {
+      return new AutoValue_Info_DispatcherConfig(heartbeatPeriod);
+    }
+  }
+
+  @AutoValue
+  @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
+  public abstract static class CaConfig {
+    @Nullable
+    @JsonProperty("NodeCertExpiry")
+    public abstract Long nodeCertExpiry();
+
+    @Nullable
+    @JsonProperty("ExternalCAs")
+    public abstract ImmutableList<ExternalCa> externalCas();
+
+    @JsonCreator
+    static CaConfig create(
+            @JsonProperty("NodeCertExpiry") final Long nodeCertExpiry,
+            @JsonProperty("ExternalCAs") final List<ExternalCa> externalCas) {
+      final ImmutableList<ExternalCa> externalCasCopy = externalCas == null
+              ? null : ImmutableList.copyOf(externalCas);
+      return new AutoValue_Info_CaConfig(nodeCertExpiry, externalCasCopy);
     }
   }
 }
