@@ -32,6 +32,8 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
+import com.spotify.docker.client.DockerConfigReader;
+import com.spotify.docker.client.auth.ConfigFileRegistryAuthSupplier;
 import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
@@ -234,6 +236,21 @@ public class PushPullIT {
   }
 
   @Test
+  public void testPushHubPublicImageWithAuthFromConfig() throws Exception {
+    // Push an image to a public repo on Docker Hub and check it succeeds
+    final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final DockerClient client = DefaultDockerClient
+        .fromEnv()
+        .registryAuthSupplier(new ConfigFileRegistryAuthSupplier(
+            new DockerConfigReader(),
+            Paths.get(Resources.getResource("dockerConfig/dxia4Config.json").toURI())))
+        .build();
+
+    client.build(Paths.get(dockerDirectory), HUB_PUBLIC_IMAGE);
+    client.push(HUB_PUBLIC_IMAGE);
+  }
+
+  @Test
   public void testPushHubPrivateImageWithAuth() throws Exception {
     // Push an image to a private repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
@@ -252,7 +269,7 @@ public class PushPullIT {
   }
 
   @Test
-  public void testPullHubPrivateRepoWithBadAuth() throws Exception {
+  public void testPullHubPrivateImageWithBadAuth() throws Exception {
     final RegistryAuth badRegistryAuth = RegistryAuth.builder()
         .username(HUB_AUTH_USERNAME2)
         .password("foobar")
@@ -263,7 +280,7 @@ public class PushPullIT {
   }
 
   @Test
-  public void testBuildHubPrivateRepoWithAuth() throws Exception {
+  public void testBuildHubPrivateImageWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
     final RegistryAuth registryAuth = RegistryAuth.builder()
         .username(HUB_AUTH_USERNAME2)
@@ -279,7 +296,7 @@ public class PushPullIT {
   }
 
   @Test
-  public void testPullHubPrivateRepoWithAuth() throws Exception {
+  public void testPullHubPrivateImageWithAuth() throws Exception {
     final RegistryAuth registryAuth = RegistryAuth.builder()
         .username(HUB_AUTH_USERNAME2)
         .password(HUB_AUTH_PASSWORD2)

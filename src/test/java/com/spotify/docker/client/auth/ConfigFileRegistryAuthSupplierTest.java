@@ -33,7 +33,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.DockerConfigReader;
 import com.spotify.docker.client.messages.RegistryAuth;
@@ -49,8 +48,6 @@ import org.junit.rules.TemporaryFolder;
 public class ConfigFileRegistryAuthSupplierTest {
 
   private final DockerConfigReader reader = mock(DockerConfigReader.class);
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
