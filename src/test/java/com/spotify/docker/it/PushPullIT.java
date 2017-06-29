@@ -21,11 +21,13 @@
 package com.spotify.docker.it;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.isA;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
+import com.spotify.docker.FixedRegistryAuthSupplier;
 import com.spotify.docker.Polling;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
@@ -40,12 +42,15 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.RegistryAuth;
+
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
 import javax.ws.rs.NotAuthorizedException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -67,6 +72,7 @@ public class PushPullIT {
 
   private static final String REGISTRY_IMAGE = "registry:2";
   private static final String REGISTRY_NAME = "registry";
+  private static final String HUB_NAME = "https://index.docker.io/v1/";
 
   private static final String LOCAL_AUTH_USERNAME = "testuser";
   private static final String LOCAL_AUTH_PASSWORD = "testpassword";
@@ -107,13 +113,10 @@ public class PushPullIT {
 
   @Before
   public void setup() throws Exception {
-    final RegistryAuth registryAuth = RegistryAuth.builder()
-        .username(LOCAL_AUTH_USERNAME)
-        .password(LOCAL_AUTH_PASSWORD)
-        .build();
     client = DefaultDockerClient
         .fromEnv()
-        .registryAuth(registryAuth)
+        .registryAuthSupplier(new FixedRegistryAuthSupplier(
+            LOCAL_AUTH_USERNAME, LOCAL_AUTH_PASSWORD, HUB_NAME))
         .build();
 
     System.out.printf("- %s\n", testName.getMethodName());
@@ -194,7 +197,7 @@ public class PushPullIT {
   }
 
   private static String startUnauthedRegistry(final DockerClient client) throws Exception {
-    final Map<String, List<PortBinding>> ports = Collections.singletonMap(
+    final Map<String, List<PortBinding>> ports = singletonMap(
         "5000/tcp", Collections.singletonList(PortBinding.of("0.0.0.0", 5000)));
     final HostConfig hostConfig = HostConfig.builder().portBindings(ports)
         .build();
@@ -213,10 +216,8 @@ public class PushPullIT {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final DockerClient client = DefaultDockerClient
         .fromEnv()
-        .registryAuth(RegistryAuth.builder()
-                        .username(HUB_AUTH_USERNAME)
-                        .password(HUB_AUTH_PASSWORD)
-                        .build())
+        .registryAuthSupplier(new FixedRegistryAuthSupplier(
+            HUB_AUTH_USERNAME, HUB_AUTH_PASSWORD, HUB_NAME))
         .build();
 
     client.build(Paths.get(dockerDirectory), HUB_PUBLIC_IMAGE);
@@ -229,10 +230,8 @@ public class PushPullIT {
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
     final DockerClient client = DefaultDockerClient
         .fromEnv()
-        .registryAuth(RegistryAuth.builder()
-                        .username(HUB_AUTH_USERNAME)
-                        .password(HUB_AUTH_PASSWORD)
-                        .build())
+        .registryAuthSupplier(new FixedRegistryAuthSupplier(
+            HUB_AUTH_USERNAME, HUB_AUTH_PASSWORD, HUB_NAME))
         .build();
 
     client.build(Paths.get(dockerDirectory), HUB_PRIVATE_IMAGE);
@@ -253,13 +252,10 @@ public class PushPullIT {
   @Test
   public void testBuildHubPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-    final RegistryAuth registryAuth = RegistryAuth.builder()
-        .username(HUB_AUTH_USERNAME2)
-        .password(HUB_AUTH_PASSWORD2)
-        .build();
 
     final DefaultDockerClient client = DefaultDockerClient.fromEnv()
-        .registryAuth(registryAuth)
+        .registryAuthSupplier(new FixedRegistryAuthSupplier(
+            HUB_AUTH_USERNAME2, HUB_AUTH_PASSWORD2, HUB_NAME))
         .build();
 
     client.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());
@@ -275,7 +271,7 @@ public class PushPullIT {
   }
 
   private static String startAuthedRegistry(final DockerClient client) throws Exception {
-    final Map<String, List<PortBinding>> ports = Collections.singletonMap(
+    final Map<String, List<PortBinding>> ports = singletonMap(
         "5000/tcp", Collections.singletonList(PortBinding.of("0.0.0.0", 5000)));
     final HostConfig hostConfig = HostConfig.builder().portBindings(ports)
         .binds(ImmutableList.of(
