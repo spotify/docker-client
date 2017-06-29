@@ -20,6 +20,7 @@
 
 package com.spotify.docker.client;
 
+import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -42,7 +43,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
-import com.spotify.docker.FixtureUtil;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
@@ -54,7 +54,9 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
+import com.spotify.docker.client.messages.swarm.EngineConfig;
 import com.spotify.docker.client.messages.swarm.Node;
+import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
@@ -338,6 +340,7 @@ public class DefaultDockerClientUnitTest {
     enqueueServerApiResponse(200, "fixtures/1.28/nodeInfo.json");
 
     final NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+
     assertThat(nodeInfo, notNullValue());
     assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
     assertThat(nodeInfo.status(), notNullValue());
@@ -346,6 +349,53 @@ public class DefaultDockerClientUnitTest {
     assertThat(nodeInfo.managerStatus().addr(), is("172.17.0.2:2377"));
     assertThat(nodeInfo.managerStatus().leader(), is(true));
     assertThat(nodeInfo.managerStatus().reachability(), is("reachable"));
+  }
+
+  @Test
+  public void testInspectNonLeaderNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.27");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.27/nodeInfoNonLeader.json")
+        )
+    );
+
+    NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+    assertThat(nodeInfo, notNullValue());
+    assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
+    assertThat(nodeInfo.status(), notNullValue());
+    assertThat(nodeInfo.status().addr(), is("172.17.0.2"));
+    assertThat(nodeInfo.managerStatus(), notNullValue());
+    assertThat(nodeInfo.managerStatus().addr(), is("172.17.0.2:2377"));
+    assertThat(nodeInfo.managerStatus().leader(), nullValue());
+    assertThat(nodeInfo.managerStatus().reachability(), is("reachable"));
+  }
+
+  @Test
+  public void testInspectNodeNonManager() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.27");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.27/nodeInfoNonManager.json")
+        )
+    );
+
+    NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+    assertThat(nodeInfo, notNullValue());
+    assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
+    assertThat(nodeInfo.status(), notNullValue());
+    assertThat(nodeInfo.status().addr(), is("172.17.0.2"));
+    assertThat(nodeInfo.managerStatus(), nullValue());
   }
 
   @Test(expected = NodeNotFoundException.class)
@@ -541,13 +591,76 @@ public class DefaultDockerClientUnitTest {
     );
   }
 
+  @Test
+  public void testListNodes() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.28");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.28/listNodes.json")
+        )
+    );
+
+    final List<Node> nodes = dockerClient.listNodes();
+    assertThat(nodes.size(), equalTo(1));
+
+    final Node node = nodes.get(0);
+
+    assertThat(node, notNullValue());
+    assertThat(node.id(), is("24ifsmvkjbyhk"));
+    assertThat(node.version().index(), is(8L));
+
+    final NodeSpec nodeSpec = node.spec();
+    assertThat(nodeSpec.name(), is("my-node"));
+    assertThat(nodeSpec.role(), is("manager"));
+    assertThat(nodeSpec.availability(), is("active"));
+    assertThat(nodeSpec.labels().keySet(), contains("foo"));
+
+    final NodeDescription desc = node.description();
+    assertThat(desc.hostname(), is("bf3067039e47"));
+    assertThat(desc.platform().architecture(), is("x86_64"));
+    assertThat(desc.platform().os(), is("linux"));
+    assertThat(desc.resources().memoryBytes(), is(8272408576L));
+    assertThat(desc.resources().nanoCpus(), is(4000000000L));
+
+    final EngineConfig engine = desc.engine();
+    assertThat(engine.engineVersion(), is("17.04.0"));
+    assertThat(engine.labels().keySet(), contains("foo"));
+    assertThat(engine.plugins().size(), equalTo(4));
+
+    assertThat(node.status(), notNullValue());
+    assertThat(node.status().addr(), is("172.17.0.2"));
+    assertThat(node.managerStatus(), notNullValue());
+    assertThat(node.managerStatus().addr(), is("172.17.0.2:2377"));
+    assertThat(node.managerStatus().leader(), is(true));
+    assertThat(node.managerStatus().reachability(), is("reachable"));
+  }
+
+  @Test(expected = DockerException.class)
+  public void testListNodesWithServerError() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.28");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(500)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.listNodes();
+  }
+
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
       throws IOException {
     server.enqueue(new MockResponse()
         .setResponseCode(statusCode)
         .addHeader("Content-Type", "application/json")
         .setBody(
-            FixtureUtil.fixture(fileName)
+            fixture(fileName)
         )
     );
   }
