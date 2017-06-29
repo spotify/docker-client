@@ -745,6 +745,7 @@ public class DefaultDockerClientTest {
     assertThat(info.registryConfig(), notNullValue());
     assertThat(info.registryConfig().indexConfigs(), hasKey("docker.io"));
     assertThat(info.swapLimit(), not(nullValue()));
+    assertThat(info.swarm(), is(anything()));
 
     if (dockerApiVersionAtLeast("1.18")) {
       assertThat(info.httpProxy(), is(anything()));
