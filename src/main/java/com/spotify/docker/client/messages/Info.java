@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.spotify.docker.client.messages.swarm.SwarmInfo;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -186,6 +187,10 @@ public abstract class Info {
 
   @JsonProperty("SwapLimit")
   public abstract Boolean swapLimit();
+  
+  @Nullable
+  @JsonProperty("Swarm")
+  public abstract SwarmInfo swarm();
 
   @Nullable
   @JsonProperty("SystemStatus")
@@ -237,6 +242,7 @@ public abstract class Info {
       @JsonProperty("RegistryConfig") final RegistryConfig registryConfig,
       @JsonProperty("ServerVersion") final String serverVersion,
       @JsonProperty("SwapLimit") final Boolean swapLimit,
+      @JsonProperty("Swarm") final SwarmInfo swarm,
       @JsonProperty("SystemStatus") final List<List<String>> systemStatus,
       @JsonProperty("SystemTime") final Date systemTime) {
     final ImmutableList.Builder<ImmutableList<String>> driverStatusB = ImmutableList.builder();
@@ -259,7 +265,8 @@ public abstract class Info {
         httpProxy, httpsProxy, id, ipv4Forwarding, images, indexServerAddress, initPath, initSha1,
         kernelMemory, kernelVersion, labelsT, memTotal, memoryLimit, cpus, eventsListener,
         fileDescriptors, goroutines, name, noProxy, oomKillDisable, operatingSystem, osType,
-        plugins, registryConfig, serverVersion, swapLimit, systemStatusB.build(), systemTime);
+        plugins, registryConfig, serverVersion, swapLimit, swarm, systemStatusB.build(), 
+        systemTime);
   }
 
   @AutoValue
