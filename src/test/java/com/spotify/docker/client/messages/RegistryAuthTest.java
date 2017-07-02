@@ -20,13 +20,30 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.spotify.docker.client.ObjectMapperProvider;
 import org.junit.Test;
 
 public class RegistryAuthTest {
+
+  private static final ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
+
+  @Test
+  public void testDeserializingFromJson() throws Exception {
+    final RegistryAuth registryAuth =
+        objectMapper.readValue(fixture("fixtures/registryAuth.json"), RegistryAuth.class);
+    assertThat(registryAuth.username(), equalTo("hannibal"));
+    assertThat(registryAuth.password(), equalTo("xxxx"));
+    assertThat(registryAuth.email(), equalTo("hannibal@a-team.com"));
+    assertThat(registryAuth.serverAddress(), equalTo("https://index.docker.io/v1/"));
+    assertThat(registryAuth.identityToken(), equalTo("foobar"));
+  }
 
   @Test
   public void testForAuth() {
