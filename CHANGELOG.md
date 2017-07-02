@@ -1,5 +1,25 @@
 # Changelog
 
+## 8.8.0
+
+Released July 2, 2017
+
+### Bugfixes
+
+- Fix: make `SwarmJoin.AdvertiseAddr` nullable; `RemoteAddrs` and `JoinToken` are not ([796][])
+- Fix: `Node.ManagerStatus` when a manager is not a leader ([790][])
+
+[796]: https://github.com/spotify/docker-client/pull/796
+[790]: https://github.com/spotify/docker-client/pull/790
+
+- Add `HostConfig.NanoCpus`
+- Add `ContainerConfig.Healthcheck.StartPeriod`
+- Add `Node.ManagerStatus`
+- Return swarm info from `DockerClient.info()`, i.e. `/info` endpoint
+- Support updating swarm node with `DockerClient.updateNode()`
+- Support deleting swarm node with `DockerClient.deleteNode()`
+- Support returning warnings when creating a service
+
 ## 8.7.2
 
 ### Bugfixes
