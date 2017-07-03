@@ -36,6 +36,7 @@ import java.util.Queue;
 
 import jnr.unixsocket.UnixSocketAddress;
 import jnr.unixsocket.UnixSocketChannel;
+import jnr.unixsocket.UnixSocketOptions;
 
 /**
  * Provides a socket that wraps an jnr.unixsocket.UnixSocketChannel and delays setting options until
@@ -196,14 +197,22 @@ public class ApacheUnixSocket extends Socket {
     setSocketOption(new SocketOptionSetter() {
       @Override
       public void run() throws SocketException {
-        inner.setSoTimeout(timeout);
+        try {
+          inner.setOption(UnixSocketOptions.SO_RCVTIMEO, Integer.valueOf(timeout));
+        } catch (IOException e) {
+          throw (SocketException)new SocketException().initCause(e);
+        }
       }
     });
   }
 
   @Override
   public synchronized int getSoTimeout() throws SocketException {
-    return inner.getSoTimeout();
+    try {
+      return inner.getOption(UnixSocketOptions.SO_RCVTIMEO).intValue();
+    } catch (IOException e) {
+      throw (SocketException)new SocketException().initCause(e);
+    }
   }
 
   @Override
@@ -231,14 +240,22 @@ public class ApacheUnixSocket extends Socket {
     setSocketOption(new SocketOptionSetter() {
       @Override
       public void run() throws SocketException {
-        inner.setKeepAlive(on);
+        try {
+          inner.setOption(UnixSocketOptions.SO_KEEPALIVE, Boolean.valueOf(on));
+        } catch (IOException e) {
+          throw (SocketException)new SocketException().initCause(e);
+        }
       }
     });
   }
 
   @Override
   public boolean getKeepAlive() throws SocketException {
-    return inner.getKeepAlive();
+    try {
+      return inner.getOption(UnixSocketOptions.SO_KEEPALIVE).booleanValue();
+    } catch (IOException e) {
+      throw (SocketException)new SocketException().initCause(e);
+    }
   }
 
   @Override
