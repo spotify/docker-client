@@ -27,12 +27,12 @@ import static org.hamcrest.CoreMatchers.isA;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
-import com.spotify.docker.FixedRegistryAuthSupplier;
 import com.spotify.docker.Polling;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.RemoveContainerParam;
+import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
@@ -42,6 +42,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
 
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -113,10 +114,14 @@ public class PushPullIT {
 
   @Before
   public void setup() throws Exception {
+    final RegistryAuth registryAuth = RegistryAuth.builder()
+        .username(LOCAL_AUTH_USERNAME)
+        .password(LOCAL_AUTH_PASSWORD)
+        .build();
     client = DefaultDockerClient
         .fromEnv()
         .registryAuthSupplier(new FixedRegistryAuthSupplier(
-            LOCAL_AUTH_USERNAME, LOCAL_AUTH_PASSWORD, HUB_NAME))
+            registryAuth, RegistryConfigs.create(singletonMap(HUB_NAME, registryAuth))))
         .build();
 
     System.out.printf("- %s\n", testName.getMethodName());
@@ -214,10 +219,14 @@ public class PushPullIT {
   public void testPushHubPublicImageWithAuth() throws Exception {
     // Push an image to a public repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final RegistryAuth registryAuth = RegistryAuth.builder()
+        .username(HUB_AUTH_USERNAME)
+        .password(HUB_AUTH_PASSWORD)
+        .build();
     final DockerClient client = DefaultDockerClient
         .fromEnv()
         .registryAuthSupplier(new FixedRegistryAuthSupplier(
-            HUB_AUTH_USERNAME, HUB_AUTH_PASSWORD, HUB_NAME))
+            registryAuth, RegistryConfigs.create(singletonMap(HUB_NAME, registryAuth))))
         .build();
 
     client.build(Paths.get(dockerDirectory), HUB_PUBLIC_IMAGE);
@@ -228,10 +237,14 @@ public class PushPullIT {
   public void testPushHubPrivateImageWithAuth() throws Exception {
     // Push an image to a private repo on Docker Hub and check it succeeds
     final String dockerDirectory = Resources.getResource("dockerDirectory").getPath();
+    final RegistryAuth registryAuth = RegistryAuth.builder()
+        .username(HUB_AUTH_USERNAME)
+        .password(HUB_AUTH_PASSWORD)
+        .build();
     final DockerClient client = DefaultDockerClient
         .fromEnv()
         .registryAuthSupplier(new FixedRegistryAuthSupplier(
-            HUB_AUTH_USERNAME, HUB_AUTH_PASSWORD, HUB_NAME))
+            registryAuth, RegistryConfigs.create(singletonMap(HUB_NAME, registryAuth))))
         .build();
 
     client.build(Paths.get(dockerDirectory), HUB_PRIVATE_IMAGE);
@@ -252,10 +265,14 @@ public class PushPullIT {
   @Test
   public void testBuildHubPrivateRepoWithAuth() throws Exception {
     final String dockerDirectory = Resources.getResource("dockerDirectoryNeedsAuth").getPath();
-
-    final DefaultDockerClient client = DefaultDockerClient.fromEnv()
+    final RegistryAuth registryAuth = RegistryAuth.builder()
+        .username(HUB_AUTH_USERNAME2)
+        .password(HUB_AUTH_PASSWORD2)
+        .build();
+    final DockerClient client = DefaultDockerClient
+        .fromEnv()
         .registryAuthSupplier(new FixedRegistryAuthSupplier(
-            HUB_AUTH_USERNAME2, HUB_AUTH_PASSWORD2, HUB_NAME))
+            registryAuth, RegistryConfigs.create(singletonMap(HUB_NAME, registryAuth))))
         .build();
 
     client.build(Paths.get(dockerDirectory), "testauth", BuildParam.pullNewerImage());

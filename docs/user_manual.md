@@ -125,7 +125,7 @@ Docker-client is packaged with a few implementations of this interface
 - `auth.ConfigFileRegistryAuthSupplier`, which reads authentication info from
   the the config files used by docker-cli (`~/.dockercfg` or
   `~/.docker/config.json`)
-- `auth.NoOpRegistryAuthSupplier` which uses a fixed instance of the
+- `auth.FixedRegistryAuthSupplier` which uses a fixed instance of the
   `RegistryAuth` and `RegistryConfigs` POJOs
 - `auth.gcr.ContainerRegistryAuthSupplier`, which programmatically fetches
   access tokens for use with Google Container Registry based on given Gogole

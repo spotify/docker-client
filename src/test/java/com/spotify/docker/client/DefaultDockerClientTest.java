@@ -61,6 +61,7 @@ import static java.lang.Long.toHexString;
 import static java.lang.String.format;
 import static java.lang.System.getenv;
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.allOf;
@@ -117,13 +118,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.SettableFuture;
-import com.spotify.docker.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.DockerClient.AttachParameter;
 import com.spotify.docker.client.DockerClient.BuildParam;
 import com.spotify.docker.client.DockerClient.EventsParam;
 import com.spotify.docker.client.DockerClient.ExecCreateParam;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.DockerClient.ListNetworksParam;
+import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.ContainerNotFoundException;
@@ -173,6 +174,7 @@ import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.ProcessConfig;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
@@ -195,7 +197,6 @@ import com.spotify.docker.client.messages.swarm.EnginePlugin;
 import com.spotify.docker.client.messages.swarm.NetworkAttachmentConfig;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
-import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.OrchestrationConfig;
 import com.spotify.docker.client.messages.swarm.Placement;
@@ -938,8 +939,13 @@ public class DefaultDockerClientTest {
     final Path dockerDirectory = getResource("dockerDirectory");
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
-    final DefaultDockerClient sut2 = DefaultDockerClient.fromEnv()
-        .registryAuthSupplier(new FixedRegistryAuthSupplier(AUTH_USERNAME, AUTH_PASSWORD, ""))
+    final RegistryAuth registryAuth = RegistryAuth.builder()
+        .username(AUTH_USERNAME)
+        .password(AUTH_PASSWORD)
+        .build();
+    final DockerClient sut2 = DefaultDockerClient.fromEnv()
+        .registryAuthSupplier(new FixedRegistryAuthSupplier(
+            registryAuth, RegistryConfigs.create(singletonMap("", registryAuth))))
         .build();
 
     final String returnedImageId = sut2.build(dockerDirectory, "test", 

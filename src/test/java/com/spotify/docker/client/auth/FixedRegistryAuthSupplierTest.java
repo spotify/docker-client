@@ -28,20 +28,20 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import org.junit.Test;
 
-public class NoOpRegistryAuthSupplierTest {
+public class FixedRegistryAuthSupplierTest {
 
   @Test
   public void authForReturnsWrappedAuthRegistry() throws DockerException {
-    RegistryAuth registryAuth = mock(RegistryAuth.class);
-    NoOpRegistryAuthSupplier noOpRegistryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth,
-        null);
-    assertEquals(registryAuth, noOpRegistryAuthSupplier.authFor("doesn't matter"));
+    final RegistryAuth registryAuth = mock(RegistryAuth.class);
+    FixedRegistryAuthSupplier fixedRegistryAuthSupplier =
+        new FixedRegistryAuthSupplier(registryAuth, null);
+    assertEquals(registryAuth, fixedRegistryAuthSupplier.authFor("doesn't matter"));
   }
 
   @Test
   public void authForReturnsNullForEmptyConstructor() throws DockerException {
-    NoOpRegistryAuthSupplier noOpRegistryAuthSupplier = new NoOpRegistryAuthSupplier();
-    assertNull(noOpRegistryAuthSupplier.authFor("any"));
-    assertNull(noOpRegistryAuthSupplier.authForBuild());
+    final FixedRegistryAuthSupplier fixedRegistryAuthSupplier = new FixedRegistryAuthSupplier();
+    assertNull(fixedRegistryAuthSupplier.authFor("any"));
+    assertNull(fixedRegistryAuthSupplier.authForBuild());
   }
 }
