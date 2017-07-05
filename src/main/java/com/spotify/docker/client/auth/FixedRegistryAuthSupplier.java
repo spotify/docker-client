@@ -27,24 +27,24 @@ import com.spotify.docker.client.messages.RegistryConfigs;
 /**
  * Wraps a RegistryAuth with the RegistryAuthSupplier interface.
  */
-public class NoOpRegistryAuthSupplier implements RegistryAuthSupplier {
+public class FixedRegistryAuthSupplier implements RegistryAuthSupplier {
 
   private final RegistryAuth registryAuth;
   private final RegistryConfigs configsForBuild;
 
-  public NoOpRegistryAuthSupplier(final RegistryAuth registryAuth,
-                                  final RegistryConfigs configsForBuild) {
+  public FixedRegistryAuthSupplier(final RegistryAuth registryAuth,
+                                   final RegistryConfigs configsForBuild) {
     this.registryAuth = registryAuth;
     this.configsForBuild = configsForBuild;
   }
 
-  public NoOpRegistryAuthSupplier() {
+  public FixedRegistryAuthSupplier() {
     registryAuth = null;
     configsForBuild = null;
   }
 
   @Override
-  public RegistryAuth authFor(String imageName) throws DockerException {
+  public RegistryAuth authFor(final String imageName) throws DockerException {
     return registryAuth;
   }
 

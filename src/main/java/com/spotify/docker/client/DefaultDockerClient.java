@@ -57,7 +57,7 @@ import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.net.HostAndPort;
 import com.spotify.docker.client.auth.ConfigFileRegistryAuthSupplier;
-import com.spotify.docker.client.auth.NoOpRegistryAuthSupplier;
+import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.BadParamException;
 import com.spotify.docker.client.exceptions.ConflictException;
@@ -408,7 +408,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
 
     if (builder.registryAuthSupplier == null) {
-      this.registryAuthSupplier = new NoOpRegistryAuthSupplier();
+      this.registryAuthSupplier = new FixedRegistryAuthSupplier();
     } else {
       this.registryAuthSupplier = builder.registryAuthSupplier;
     }
@@ -2784,7 +2784,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           registryAuth
       ));
 
-      this.registryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth, configs);
+      this.registryAuthSupplier = new FixedRegistryAuthSupplier(registryAuth, configs);
       return this;
     }
 
