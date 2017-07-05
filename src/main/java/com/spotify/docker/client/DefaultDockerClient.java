@@ -1281,8 +1281,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam("tag", imageRef.getTag());
     }
 
-    // the docker daemon requires that the X-Registry-Auth header is specified
-    // with a non-empty string even if your registry doesn't use authentication
     try (ProgressStream push =
              request(POST, ProgressStream.class, resource,
                      resource.request(APPLICATION_JSON_TYPE)
@@ -2528,6 +2526,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private String authHeader(final RegistryAuth registryAuth) throws DockerException {
+    // the docker daemon requires that the X-Registry-Auth header is specified
+    // with a non-empty string even if your registry doesn't use authentication
     if (registryAuth == null) {
       return "null";
     }
@@ -2543,7 +2543,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private String authRegistryHeader(final RegistryConfigs registryConfigs)
       throws DockerException {
     if (registryConfigs == null) {
-      return "null";
+      return null;
     }
     try {
       String authRegistryJson =
