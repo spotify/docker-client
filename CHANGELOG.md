@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.8.1
+
+Not yet released
+
+- Rename `NoOpRegistryAuthSupplier` to `FixedRegistryAuthSupplier`
+
 ## 8.8.0
 
 Released July 2, 2017
