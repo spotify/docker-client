@@ -1,0 +1,7 @@
+{
+  "username": "hannibal",
+  "password": "xxxx",
+  "email": "hannibal@a-team.com",
+  "serveraddress": "https://index.docker.io/v1/",
+  "identitytoken": "foobar"
+}

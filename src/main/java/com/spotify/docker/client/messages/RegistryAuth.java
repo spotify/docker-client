@@ -40,26 +40,26 @@ import org.glassfish.jersey.internal.util.Base64;
 public abstract class RegistryAuth {
 
   @Nullable
-  @JsonProperty("Username")
+  @JsonProperty("username")
   public abstract String username();
 
   @Nullable
-  @JsonProperty("Password")
+  @JsonProperty("password")
   public abstract String password();
 
   /**
    * Unused but must be a well-formed email address (e.g. 1234@5678.com).
    */
   @Nullable
-  @JsonProperty("Email")
+  @JsonProperty("email")
   public abstract String email();
 
   @Nullable
-  @JsonProperty("ServerAddress")
+  @JsonProperty("serveraddress")
   public abstract String serverAddress();
 
   @Nullable
-  @JsonProperty("IdentityToken")
+  @JsonProperty("identitytoken")
   public abstract String identityToken();
 
   @Override
@@ -67,8 +67,8 @@ public abstract class RegistryAuth {
     return MoreObjects.toStringHelper(RegistryAuth.class)
         .add("username", username())
         // don't log the password or email
-        .add("serverAddress", serverAddress())
-        .add("identityToken", identityToken())
+        .add("serveraddress", serverAddress())
+        .add("identitytoken", identityToken())
         .toString();
   }
 
@@ -137,11 +137,11 @@ public abstract class RegistryAuth {
   }
 
   @JsonCreator
-  public static RegistryAuth create(@JsonProperty("username") String username,
-                                    @JsonProperty("password") String password,
+  public static RegistryAuth create(@JsonProperty("username") final String username,
+                                    @JsonProperty("password") final String password,
                                     @JsonProperty("email") final String email,
-                                    @JsonProperty("serverAddress") final String serverAddress,
-                                    @JsonProperty("identityToken") final String identityToken,
+                                    @JsonProperty("serveraddress") final String serveraddress,
+                                    @JsonProperty("identitytoken") final String identitytoken,
                                     @JsonProperty("auth") final String auth) {
 
     final Builder builder;
@@ -154,13 +154,13 @@ public abstract class RegistryAuth {
     }
     return builder
         .email(email)
-        .serverAddress(serverAddress)
-        .identityToken(identityToken)
+        .serverAddress(serveraddress)
+        .identityToken(identitytoken)
         .build();
   }
 
   /** Construct a Builder based upon the "auth" field of the docker client config file. */
-  public static Builder forAuth(String auth) {
+  public static Builder forAuth(final String auth) {
     // split with limit=2 to catch case where password contains a colon
     final String[] authParams = Base64.decodeAsString(auth).split(":", 2);
 
