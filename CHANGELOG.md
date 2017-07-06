@@ -5,6 +5,7 @@
 Not yet released
 
 - Rename `NoOpRegistryAuthSupplier` to `FixedRegistryAuthSupplier`
+- Fix RegistryAuth JSON properties; RegistryAuth keys should all be lowercase
 
 ## 8.8.0
 
