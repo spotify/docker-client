@@ -1,0 +1,8 @@
+{
+  "auths": {
+    "https://index.docker.io/v1/": {
+      "auth": "ZHhpYTQ6MDN5RFQ2WWVlNGlGYWdnaQ==",
+      "email": "dxia+4@spotify.com"
+    }
+  }
+}

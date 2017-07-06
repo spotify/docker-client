@@ -44,7 +44,7 @@ public class DockerConfigReader {
   private static final ObjectMapper MAPPER = ObjectMapperProvider.objectMapper();
 
   /** Returns all RegistryConfig instances from the configuration file. */
-  public RegistryConfigs fromConfig(Path configPath) throws IOException {
+  public RegistryConfigs fromConfig(final Path configPath) throws IOException {
     return parseDockerConfig(configPath);
   }
 
@@ -54,7 +54,8 @@ public class DockerConfigReader {
    * @throws IllegalArgumentException if the config file does not contain registry auth info for the
    *                                  registry
    */
-  public RegistryAuth fromConfig(Path configPath, String serverAddress) throws IOException {
+  public RegistryAuth fromConfig(final Path configPath, final String serverAddress)
+      throws IOException {
     return parseDockerConfig(configPath, serverAddress);
   }
 
@@ -67,12 +68,12 @@ public class DockerConfigReader {
     return parseDockerConfig(configPath, null);
   }
 
-  private RegistryAuth parseDockerConfig(final Path configPath, String serverAddress)
+  private RegistryAuth parseDockerConfig(final Path configPath, final String serverAddress)
       throws IOException {
     checkNotNull(configPath);
 
     final Map<String, RegistryAuth> configs = parseDockerConfig(configPath).configs();
-    if (serverAddress != null && configs.containsKey(serverAddress) ) {
+    if (serverAddress != null && configs.containsKey(serverAddress)) {
       return configs.get(serverAddress);
     }
 

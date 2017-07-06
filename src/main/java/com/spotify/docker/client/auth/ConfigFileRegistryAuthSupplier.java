@@ -69,6 +69,12 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
 
     final ImageRef ref = new ImageRef(imageName);
     try {
+      // Some registries like Docker Hub and GCR include "https://" in the server address.
+      // Others like quay.io don't.
+      final RegistryAuth registryAuth = reader.fromConfig(path, ref.getRegistryUrl());
+      if (registryAuth != null) {
+        return registryAuth;
+      }
       return reader.fromConfig(path, ref.getRegistryName());
     } catch (IllegalArgumentException e) {
       // no configuration for registry
