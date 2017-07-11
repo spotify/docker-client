@@ -58,6 +58,7 @@ public abstract class NetworkSpec {
   @JsonProperty("Attachable")
   public abstract Boolean attachable();
 
+  @Nullable
   @JsonProperty("IPAMOptions")
   public abstract IpamOptions ipamOptions();
 
