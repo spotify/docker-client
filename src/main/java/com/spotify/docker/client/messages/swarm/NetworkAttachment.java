@@ -45,6 +45,10 @@ public abstract class NetworkAttachment {
   static NetworkAttachment create(
       @JsonProperty("Network") final Network network,
       @JsonProperty("Addresses") final List<String> addresses) {
-    return new AutoValue_NetworkAttachment(network, ImmutableList.copyOf(addresses));
+    final ImmutableList<String> addressesCopy =
+            addresses == null
+                    ? ImmutableList.<String>of()
+                    : ImmutableList.copyOf(addresses);
+    return new AutoValue_NetworkAttachment(network, addressesCopy);
   }
 }
