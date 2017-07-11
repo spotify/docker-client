@@ -2864,13 +2864,16 @@ public class DefaultDockerClientTest {
       assertThat(bindObjectMount.rw(), is(false));
       assertThat(bindObjectMount.mode(), is(equalTo("ro")));
 
-      if (dockerApiVersionAtLeast("1.25")) {
+      if (dockerApiVersionAtLeast("1.25") && dockerApiVersionLessThan("1.30")) {
+        // From version 1.25 to 1.29, the API behaved like this
         assertThat(bindObjectMount.name(), isEmptyOrNullString());
         assertThat(bindObjectMount.propagation(), isEmptyOrNullString());
-      } else if (dockerApiVersionAtLeast("1.22")) {
+      } else if (dockerApiVersionAtLeast("1.22") || dockerApiVersionAtLeast("1.30")) {
+        // From version 1.22 to 1.24, and from 1.30 up, the API behaves like this
         assertThat(bindObjectMount.name(), isEmptyOrNullString());
         assertThat(bindObjectMount.propagation(), is(equalTo("rprivate")));
       } else {
+        // Below version 1.22
         assertThat(bindObjectMount.name(), is(nullValue()));
         assertThat(bindObjectMount.propagation(), is(nullValue()));
       }
@@ -2899,13 +2902,16 @@ public class DefaultDockerClientTest {
       assertThat(bindStringMount.rw(), is(true));
       assertThat(bindStringMount.mode(), is(equalTo("")));
 
-      if (dockerApiVersionAtLeast("1.25")) {
+      if (dockerApiVersionAtLeast("1.25") && dockerApiVersionLessThan("1.30")) {
+        // From version 1.25 to 1.29, the API behaved like this
         assertThat(bindStringMount.name(), isEmptyOrNullString());
         assertThat(bindStringMount.propagation(), isEmptyOrNullString());
-      } else if (dockerApiVersionAtLeast("1.22")) {
+      } else if (dockerApiVersionAtLeast("1.22") || dockerApiVersionAtLeast("1.30")) {
+        // From version 1.22 to 1.24, and from 1.30 up, the API behaves like this
         assertThat(bindStringMount.name(), isEmptyOrNullString());
         assertThat(bindStringMount.propagation(), is(equalTo("rprivate")));
       } else {
+        // Below version 1.22
         assertThat(bindStringMount.name(), is(nullValue()));
         assertThat(bindStringMount.propagation(), is(nullValue()));
       }
