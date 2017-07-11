@@ -5099,13 +5099,22 @@ public class DefaultDockerClientTest {
             .build();
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
+    final long interval = dockerApiVersionLessThan("1.30") ? 30L : 30000000L;
+    final long timeout = dockerApiVersionLessThan("1.30") ? 3L : 3000000L;
+    final int retries = 3;
+    final long startPeriod = dockerApiVersionLessThan("1.30") ? 15L : 15000000L;
     final TaskSpec taskSpec = TaskSpec
             .builder()
             .containerSpec(ContainerSpec.builder().image("alpine")
                     .secrets(Arrays.asList(secretBind))
                     .hostname(hostname)
                     .hosts(Arrays.asList(hosts))
-                    .healthcheck(Healthcheck.create(Arrays.asList(healthcheckCmd), 30L, 3L, 3, 15L))
+                    .healthcheck(Healthcheck.create(
+                            Arrays.asList(healthcheckCmd),
+                            interval,
+                            timeout,
+                            retries,
+                            startPeriod))
                     .command(commandLine).build())
             .build();
     final String serviceName = randomName();
@@ -5119,7 +5128,7 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(response.id());
 
     assertThat(service.spec().name(), is(serviceName));
-    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
+    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25") || dockerApiVersionAtLeast("1.30")
             ? is("alpine") : startsWith("alpine:latest@sha256:");
     assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
     assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
@@ -5136,13 +5145,13 @@ public class DefaultDockerClientTest {
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().test(),
             equalTo(Arrays.asList(healthcheckCmd)));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().interval(),
-            equalTo(30L));
+            equalTo(interval));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().timeout(),
-            equalTo(3L));
+            equalTo(timeout));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().retries(),
-            equalTo(3));
+            equalTo(retries));
     final Matcher<Long> startPeriodMatcher = dockerApiVersionLessThan("1.29")
-            ? nullValue(Long.class) : equalTo(15L);
+            ? nullValue(Long.class) : equalTo(startPeriod);
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().startPeriod(),
             startPeriodMatcher);
   }
