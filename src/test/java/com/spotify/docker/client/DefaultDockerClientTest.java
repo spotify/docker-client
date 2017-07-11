@@ -1030,8 +1030,8 @@ public class DefaultDockerClientTest {
     final AtomicBoolean usedCache = new AtomicBoolean(false);
     sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
-      public void progress(ProgressMessage message) throws DockerException {
-        if (message.stream().contains(usingCache)) {
+      public void progress(final ProgressMessage message) throws DockerException {
+        if (message.stream() != null && message.stream().contains(usingCache)) {
           usedCache.set(true);
         }
       }
