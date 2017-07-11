@@ -3048,6 +3048,8 @@ public class DefaultDockerClientTest {
     sut.createContainer(volumeConfig, volumeContainer);
     sut.startContainer(volumeContainer);
 
+    Thread.sleep(1000L);
+
     final String logs;
     try (LogStream stream = sut.attachContainer(volumeContainer,
                                                 AttachParameter.LOGS, AttachParameter.STDOUT,
