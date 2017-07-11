@@ -4894,6 +4894,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testCreateServiceWithWarnings() throws Exception {
     requireDockerApiVersionAtLeast("1.25", "swarm support");
+    requireDockerApiVersionLessThan("1.30",
+            "warning on create service with bad image");
 
     final TaskSpec taskSpec = TaskSpec.builder()
         .containerSpec(ContainerSpec.builder()
