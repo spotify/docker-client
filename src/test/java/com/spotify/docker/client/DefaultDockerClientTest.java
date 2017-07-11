@@ -5136,9 +5136,8 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(response.id());
 
     assertThat(service.spec().name(), is(serviceName));
-    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25") || dockerApiVersionAtLeast("1.30")
-            ? is("alpine") : startsWith("alpine:latest@sha256:");
-    assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
+    assertThat(service.spec().taskTemplate().containerSpec().image(),
+            latestImageNameMatcher("alpine"));
     assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
     assertThat(service.spec().taskTemplate().containerSpec().hosts(), containsInAnyOrder(hosts));
     assertThat(service.spec().taskTemplate().containerSpec().secrets().size(),
@@ -5206,9 +5205,8 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(response.id());
 
     assertThat(service.spec().name(), is(serviceName));
-    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
-                                         ? is("alpine") : startsWith("alpine:latest@sha256:");
-    assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
+    assertThat(service.spec().taskTemplate().containerSpec().image(),
+            latestImageNameMatcher("alpine"));
     assertThat(service.spec().taskTemplate().containerSpec().command(),
                equalTo(Arrays.asList(commandLine)));
   }
@@ -5418,9 +5416,7 @@ public class DefaultDockerClientTest {
     final ContainerSpec containerSpecTemplate = taskSpecTemplate.containerSpec();
     final ContainerSpec containerSpecActual = taskSpecActual.containerSpec();
     assertThat(containerSpecActual.image(),
-            dockerApiVersionLessThan("1.25")
-                    ? is(containerSpecTemplate.image())
-                    : startsWith(containerSpecTemplate.image() + ":latest@sha256:"));
+            latestImageNameMatcher(containerSpecTemplate.image()));
     assertEquals(containerSpecTemplate.labels(), containerSpecActual.labels());
     assertEquals(containerSpecTemplate.command(), containerSpecActual.command());
     assertEquals(containerSpecTemplate.args(), containerSpecActual.args());
@@ -5726,5 +5722,10 @@ public class DefaultDockerClientTest {
                && publishModeMatcher.matches(portConfig.publishMode());
       }
     };
+  }
+
+  private Matcher<String> latestImageNameMatcher(final String imageName) throws Exception {
+    return dockerApiVersionLessThan("1.25") || dockerApiVersionAtLeast("1.30")
+            ? is(imageName) : startsWith(imageName + ":latest@sha256:");
   }
 }
