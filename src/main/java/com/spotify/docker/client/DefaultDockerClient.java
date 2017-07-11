@@ -402,7 +402,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setSocketTimeout((int) builder.readTimeoutMillis)
         .build();
 
-    final ClientConfig config = updateProxy(defaultConfig)
+    final ClientConfig config = updateProxy(defaultConfig, builder)
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
@@ -432,14 +432,17 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     this.headers = new HashMap<>(builder.headers());
   }
 
-  private ClientConfig updateProxy(ClientConfig config) {
-    final String proxyHost = System.getProperty("http.proxyHost");
-    if (proxyHost != null) {
-      config.property(ClientProperties.PROXY_URI, proxyHost + ":"
-              + checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort"));
+  private ClientConfig updateProxy(ClientConfig config, Builder builder) {
+    if (builder.useProxy()) {
+      final String proxyHost = System.getProperty("http.proxyHost");
+      if (proxyHost != null) {
+        config.property(ClientProperties.PROXY_URI, proxyHost + ":"
+                + checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort"));
 
-      //ensure Content-Length is populated before sending request via proxy.
-      config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+        //ensure Content-Length is populated before sending request via proxy.
+        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
+                RequestEntityProcessing.BUFFERED);
+      }
     }
     return config;
   }
@@ -2637,6 +2640,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private int connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
     private DockerCertificatesStore dockerCertificatesStore;
     private boolean dockerAuth;
+    private boolean useProxy = true;
     private RegistryAuth registryAuth;
     private RegistryAuthSupplier registryAuthSupplier;
     private Map<String, Object> headers = new HashMap<>();
@@ -2754,6 +2758,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     @Deprecated
     public Builder dockerAuth(final boolean dockerAuth) {
       this.dockerAuth = dockerAuth;
+      return this;
+    }
+
+    public boolean useProxy() {
+      return useProxy;
+    }
+
+    /**
+     * Allows connecting to Docker Daemon using HTTP proxy.
+     *
+     * @param useProxy tells if Docker Client has to connect to docker daemon using HTTP Proxy
+     * @return Builder
+     */
+    public Builder useProxy(final boolean useProxy) {
+      this.useProxy = useProxy;
       return this;
     }
 
