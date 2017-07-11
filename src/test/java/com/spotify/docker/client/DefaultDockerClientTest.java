@@ -48,6 +48,7 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 import static com.spotify.docker.client.DockerClient.LogsParam.tail;
 import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
+import static com.spotify.docker.client.DockerClient.RemoveContainerParam.forceKill;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static com.spotify.docker.client.messages.Event.Type.CONTAINER;
 import static com.spotify.docker.client.messages.Event.Type.IMAGE;
@@ -3714,6 +3715,10 @@ public class DefaultDockerClientTest {
     final List<Container> quxContainers =
         sut.listContainers(withLabel("foo", "qux"));
     assertThat(quxContainers.size(), equalTo(0));
+
+    // Clean up
+    sut.removeContainer(id, forceKill());
+    sut.removeContainer(id2, forceKill());
   }
 
   @Test
