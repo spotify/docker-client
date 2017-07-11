@@ -3307,6 +3307,9 @@ public class DefaultDockerClientTest {
     final String goodName = "aBc1.2-3_";
     sut.createContainer(config, goodName);
 
+    // Clean up so subsequent test runs do not fail. -JF
+    sut.removeContainer(goodName);
+
     // Bad names
     final String oneCharacter = "a";
     exception.expect(invalidContainerNameException(oneCharacter));
