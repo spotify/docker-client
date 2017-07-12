@@ -145,7 +145,11 @@ public abstract class Event {
     IMAGE("image"),
     VOLUME("volume"),
     NETWORK("network"),
-    DAEMON("daemon");
+    DAEMON("daemon"),
+    PLUGIN("plugin"),
+    NODE("node"),
+    SERVICE("service"),
+    SECRET("secret");
 
     private final String name;
 

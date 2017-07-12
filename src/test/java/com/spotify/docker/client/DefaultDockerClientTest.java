@@ -48,6 +48,7 @@ import static com.spotify.docker.client.DockerClient.LogsParam.stderr;
 import static com.spotify.docker.client.DockerClient.LogsParam.stdout;
 import static com.spotify.docker.client.DockerClient.LogsParam.tail;
 import static com.spotify.docker.client.DockerClient.LogsParam.timestamps;
+import static com.spotify.docker.client.DockerClient.RemoveContainerParam.forceKill;
 import static com.spotify.docker.client.VersionCompare.compareVersion;
 import static com.spotify.docker.client.messages.Event.Type.CONTAINER;
 import static com.spotify.docker.client.messages.Event.Type.IMAGE;
@@ -1029,8 +1030,8 @@ public class DefaultDockerClientTest {
     final AtomicBoolean usedCache = new AtomicBoolean(false);
     sut.build(dockerDirectory, "test", new ProgressHandler() {
       @Override
-      public void progress(ProgressMessage message) throws DockerException {
-        if (message.stream().contains(usingCache)) {
+      public void progress(final ProgressMessage message) throws DockerException {
+        if (message.stream() != null && message.stream().contains(usingCache)) {
           usedCache.set(true);
         }
       }
@@ -2863,13 +2864,16 @@ public class DefaultDockerClientTest {
       assertThat(bindObjectMount.rw(), is(false));
       assertThat(bindObjectMount.mode(), is(equalTo("ro")));
 
-      if (dockerApiVersionAtLeast("1.25")) {
+      if (dockerApiVersionAtLeast("1.25") && dockerApiVersionLessThan("1.30")) {
+        // From version 1.25 to 1.29, the API behaved like this
         assertThat(bindObjectMount.name(), isEmptyOrNullString());
         assertThat(bindObjectMount.propagation(), isEmptyOrNullString());
-      } else if (dockerApiVersionAtLeast("1.22")) {
+      } else if (dockerApiVersionAtLeast("1.22") || dockerApiVersionAtLeast("1.30")) {
+        // From version 1.22 to 1.24, and from 1.30 up, the API behaves like this
         assertThat(bindObjectMount.name(), isEmptyOrNullString());
         assertThat(bindObjectMount.propagation(), is(equalTo("rprivate")));
       } else {
+        // Below version 1.22
         assertThat(bindObjectMount.name(), is(nullValue()));
         assertThat(bindObjectMount.propagation(), is(nullValue()));
       }
@@ -2898,13 +2902,16 @@ public class DefaultDockerClientTest {
       assertThat(bindStringMount.rw(), is(true));
       assertThat(bindStringMount.mode(), is(equalTo("")));
 
-      if (dockerApiVersionAtLeast("1.25")) {
+      if (dockerApiVersionAtLeast("1.25") && dockerApiVersionLessThan("1.30")) {
+        // From version 1.25 to 1.29, the API behaved like this
         assertThat(bindStringMount.name(), isEmptyOrNullString());
         assertThat(bindStringMount.propagation(), isEmptyOrNullString());
-      } else if (dockerApiVersionAtLeast("1.22")) {
+      } else if (dockerApiVersionAtLeast("1.22") || dockerApiVersionAtLeast("1.30")) {
+        // From version 1.22 to 1.24, and from 1.30 up, the API behaves like this
         assertThat(bindStringMount.name(), isEmptyOrNullString());
         assertThat(bindStringMount.propagation(), is(equalTo("rprivate")));
       } else {
+        // Below version 1.22
         assertThat(bindStringMount.name(), is(nullValue()));
         assertThat(bindStringMount.propagation(), is(nullValue()));
       }
@@ -3040,6 +3047,8 @@ public class DefaultDockerClientTest {
         .build();
     sut.createContainer(volumeConfig, volumeContainer);
     sut.startContainer(volumeContainer);
+
+    Thread.sleep(1000L);
 
     final String logs;
     try (LogStream stream = sut.attachContainer(volumeContainer,
@@ -3306,6 +3315,9 @@ public class DefaultDockerClientTest {
 
     final String goodName = "aBc1.2-3_";
     sut.createContainer(config, goodName);
+
+    // Clean up so subsequent test runs do not fail. -JF
+    sut.removeContainer(goodName);
 
     // Bad names
     final String oneCharacter = "a";
@@ -3711,6 +3723,10 @@ public class DefaultDockerClientTest {
     final List<Container> quxContainers =
         sut.listContainers(withLabel("foo", "qux"));
     assertThat(quxContainers.size(), equalTo(0));
+
+    // Clean up
+    sut.removeContainer(id, forceKill());
+    sut.removeContainer(id2, forceKill());
   }
 
   @Test
@@ -4880,6 +4896,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testCreateServiceWithWarnings() throws Exception {
     requireDockerApiVersionAtLeast("1.25", "swarm support");
+    requireDockerApiVersionLessThan("1.30",
+            "warning on create service with bad image");
 
     final TaskSpec taskSpec = TaskSpec.builder()
         .containerSpec(ContainerSpec.builder()
@@ -5099,13 +5117,22 @@ public class DefaultDockerClientTest {
             .build();
 
     final String[] commandLine = {"ping", "-c4", "localhost"};
+    final long interval = dockerApiVersionLessThan("1.30") ? 30L : 30000000L;
+    final long timeout = dockerApiVersionLessThan("1.30") ? 3L : 3000000L;
+    final int retries = 3;
+    final long startPeriod = dockerApiVersionLessThan("1.30") ? 15L : 15000000L;
     final TaskSpec taskSpec = TaskSpec
             .builder()
             .containerSpec(ContainerSpec.builder().image("alpine")
                     .secrets(Arrays.asList(secretBind))
                     .hostname(hostname)
                     .hosts(Arrays.asList(hosts))
-                    .healthcheck(Healthcheck.create(Arrays.asList(healthcheckCmd), 30L, 3L, 3, 15L))
+                    .healthcheck(Healthcheck.create(
+                            Arrays.asList(healthcheckCmd),
+                            interval,
+                            timeout,
+                            retries,
+                            startPeriod))
                     .command(commandLine).build())
             .build();
     final String serviceName = randomName();
@@ -5119,9 +5146,8 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(response.id());
 
     assertThat(service.spec().name(), is(serviceName));
-    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
-            ? is("alpine") : startsWith("alpine:latest@sha256:");
-    assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
+    assertThat(service.spec().taskTemplate().containerSpec().image(),
+            latestImageNameMatcher("alpine"));
     assertThat(service.spec().taskTemplate().containerSpec().hostname(), is(hostname));
     assertThat(service.spec().taskTemplate().containerSpec().hosts(), containsInAnyOrder(hosts));
     assertThat(service.spec().taskTemplate().containerSpec().secrets().size(),
@@ -5136,13 +5162,13 @@ public class DefaultDockerClientTest {
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().test(),
             equalTo(Arrays.asList(healthcheckCmd)));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().interval(),
-            equalTo(30L));
+            equalTo(interval));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().timeout(),
-            equalTo(3L));
+            equalTo(timeout));
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().retries(),
-            equalTo(3));
+            equalTo(retries));
     final Matcher<Long> startPeriodMatcher = dockerApiVersionLessThan("1.29")
-            ? nullValue(Long.class) : equalTo(15L);
+            ? nullValue(Long.class) : equalTo(startPeriod);
     assertThat(service.spec().taskTemplate().containerSpec().healthcheck().startPeriod(),
             startPeriodMatcher);
   }
@@ -5189,9 +5215,8 @@ public class DefaultDockerClientTest {
     final Service service = sut.inspectService(response.id());
 
     assertThat(service.spec().name(), is(serviceName));
-    final Matcher<String> imageMatcher = dockerApiVersionLessThan("1.25")
-                                         ? is("alpine") : startsWith("alpine:latest@sha256:");
-    assertThat(service.spec().taskTemplate().containerSpec().image(), imageMatcher);
+    assertThat(service.spec().taskTemplate().containerSpec().image(),
+            latestImageNameMatcher("alpine"));
     assertThat(service.spec().taskTemplate().containerSpec().command(),
                equalTo(Arrays.asList(commandLine)));
   }
@@ -5401,9 +5426,7 @@ public class DefaultDockerClientTest {
     final ContainerSpec containerSpecTemplate = taskSpecTemplate.containerSpec();
     final ContainerSpec containerSpecActual = taskSpecActual.containerSpec();
     assertThat(containerSpecActual.image(),
-            dockerApiVersionLessThan("1.25")
-                    ? is(containerSpecTemplate.image())
-                    : startsWith(containerSpecTemplate.image() + ":latest@sha256:"));
+            latestImageNameMatcher(containerSpecTemplate.image()));
     assertEquals(containerSpecTemplate.labels(), containerSpecActual.labels());
     assertEquals(containerSpecTemplate.command(), containerSpecActual.command());
     assertEquals(containerSpecTemplate.args(), containerSpecActual.args());
@@ -5709,5 +5732,10 @@ public class DefaultDockerClientTest {
                && publishModeMatcher.matches(portConfig.publishMode());
       }
     };
+  }
+
+  private Matcher<String> latestImageNameMatcher(final String imageName) throws Exception {
+    return dockerApiVersionLessThan("1.25") || dockerApiVersionAtLeast("1.30")
+            ? is(imageName) : startsWith(imageName + ":latest@sha256:");
   }
 }

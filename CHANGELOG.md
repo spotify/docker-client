@@ -6,6 +6,11 @@ Not yet released
 
 - Rename `NoOpRegistryAuthSupplier` to `FixedRegistryAuthSupplier`
 - Fix RegistryAuth JSON properties; RegistryAuth keys should all be lowercase
+- Add Event types: plugin, node, service, and secret ([825][])
+- Add Event filters: plugin and scope ([825][])
+- Small fixes to code and tests for docker 17.06.0 ([825][])
+
+[825]: https://github.com/spotify/docker-client/pull/825
 
 ## 8.8.0
 
@@ -133,7 +138,7 @@ but never used the value were removed. These methods are:
 
 ### Fix thread-safety issues with DefaultDockerClient's connection pool
 
-See [#446](https://github.com/spotify/docker-client/issues/446) 
+See [#446](https://github.com/spotify/docker-client/issues/446)
 and [#744](https://github.com/spotify/docker-client/pulls/744).
 
 ## 7.0.0

@@ -2700,6 +2700,27 @@ public interface DockerClient extends Closeable {
     public static EventsParam label(final String label) {
       return label(label, null);
     }
+
+    /**
+     * Show events for a plugin.
+     * @param plugin A plugin name or id
+     * @return EventsParam
+     * @since API 1.30
+     */
+    public static EventsParam plugin(final String plugin) {
+      return filter("plugin", plugin);
+    }
+
+    /**
+     * Show events for a scope: "local" or "swarm"
+     * @param scope "local" or "swarm"
+     * @return EventsParam
+     * @since API 1.30
+     */
+    public static EventsParam scope(final String scope) {
+      return filter("scope", scope);
+    }
+
   }
 
   /**
