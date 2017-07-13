@@ -31,6 +31,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Ipam {
@@ -38,6 +40,7 @@ public abstract class Ipam {
   @JsonProperty("Driver")
   public abstract String driver();
 
+  @Nullable
   @JsonProperty("Config")
   public abstract ImmutableList<IpamConfig> config();
 
