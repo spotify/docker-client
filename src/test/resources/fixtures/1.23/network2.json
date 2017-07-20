@@ -1,0 +1,14 @@
+{
+  "Name": "none",
+  "Id": "e086a3893b05ab69242d3c44e49483a3bbbd3a26b46baa8f61ab797c1088d794",
+  "Scope": "local",
+  "Driver": "null",
+  "EnableIPv6": false,
+  "Internal": false,
+  "IPAM": {
+    "Driver": "default",
+    "Config": []
+  },
+  "Containers": {},
+  "Options": {}
+}
