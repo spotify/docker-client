@@ -73,6 +73,9 @@ public abstract class ImageInfo {
   @JsonProperty("VirtualSize")
   public abstract Long virtualSize();
 
+  @JsonProperty("RootFS")
+  public abstract RootFs rootFs();
+
   @JsonCreator
   static ImageInfo create(
       @JsonProperty("Id") final String id,
