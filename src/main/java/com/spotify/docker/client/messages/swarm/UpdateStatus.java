@@ -42,6 +42,7 @@ public abstract class UpdateStatus {
   @JsonProperty("StartedAt")
   public abstract Date startedAt();
 
+  @Nullable
   @JsonProperty("CompletedAt")
   public abstract Date completedAt();
 
