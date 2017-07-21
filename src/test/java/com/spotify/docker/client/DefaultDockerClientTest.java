@@ -870,7 +870,7 @@ public class DefaultDockerClientTest {
 
     assertThat(info.size(), notNullValue());
     assertThat(info.virtualSize(), notNullValue());
-    assertThat(info.rootFS(), notNullValue());
+    assertThat(info.rootFs(), notNullValue());
   }
 
   @Test
