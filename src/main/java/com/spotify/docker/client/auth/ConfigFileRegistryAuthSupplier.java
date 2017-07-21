@@ -83,7 +83,7 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
       } catch (IllegalArgumentException e2) {
         log.debug("Failed second attempt to find auth for {}", ref.getRegistryName(), e2);
         return null;
-      } catch (IOExeption e2) {
+      } catch (IOException e2) {
         throw new DockerException(e2);
       }
     } catch (IOException e) {
