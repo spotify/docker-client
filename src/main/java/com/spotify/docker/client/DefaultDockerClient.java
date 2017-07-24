@@ -2230,7 +2230,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void connectToNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException {
-    manageNetworkConnection(containerId, "connect", networkId);
+    connectToNetwork(networkId, NetworkConnection.builder().containerId(containerId).build());
   }
 
   @Override
@@ -2239,7 +2239,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final WebTarget resource = resource().path("networks").path(networkId).path("connect");
 
     try {
-      request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
               Entity.json(networkConnection));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -2256,18 +2256,20 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void disconnectFromNetwork(String containerId, String networkId)
       throws DockerException, InterruptedException {
-    manageNetworkConnection(containerId, "disconnect", networkId);
+    disconnectFromNetwork(containerId, networkId, false);
   }
 
-  private void manageNetworkConnection(String containerId, String methodname, String networkId)
-      throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("networks").path(networkId).path(methodname);
+  @Override
+  public void disconnectFromNetwork(String containerId, String networkId, boolean force)
+          throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("networks").path(networkId).path("disconnect");
 
-    final Map<String, String> request = new HashMap<>();
+    final Map<String, Object> request = new HashMap<>();
     request.put("Container", containerId);
+    request.put("Force", force);
 
     try {
-      request(POST, Response.class, resource, resource.request(APPLICATION_JSON_TYPE),
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
               Entity.json(request));
     } catch (DockerRequestException e) {
       switch (e.status()) {
@@ -2844,5 +2846,4 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
   }
-
 }
