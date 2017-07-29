@@ -21,12 +21,19 @@
 package com.spotify.docker.client;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static com.spotify.hamcrest.jackson.IsJsonArray.jsonArray;
+import static com.spotify.hamcrest.jackson.IsJsonNumber.jsonLong;
+import static com.spotify.hamcrest.jackson.IsJsonObject.jsonObject;
+import static com.spotify.hamcrest.jackson.IsJsonText.jsonText;
+import static com.spotify.hamcrest.pojo.IsPojo.pojo;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -35,9 +42,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -55,25 +60,29 @@ import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.EngineConfig;
+import com.spotify.docker.client.messages.swarm.ManagerStatus;
 import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
+import com.spotify.docker.client.messages.swarm.NodeStatus;
+import com.spotify.docker.client.messages.swarm.Platform;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
+import com.spotify.docker.client.messages.swarm.Version;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
+
+import org.hamcrest.collection.IsMapContaining;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -222,21 +231,12 @@ public class DefaultDockerClientUnitTest {
     final JsonNode requestJson = toJson(recordedRequest.getBody());
 
     final JsonNode capAddNode = requestJson.get("HostConfig").get("CapAdd");
-    assertThat(capAddNode.isArray(), is(true));
-
-    assertThat(childrenTextNodes((ArrayNode) capAddNode), containsInAnyOrder("baz", "qux"));
-  }
-
-  private static Set<String> childrenTextNodes(ArrayNode arrayNode) {
-    final Set<String> texts = new HashSet<>();
-    for (JsonNode child : arrayNode) {
-      Preconditions.checkState(child.isTextual(),
-          "ArrayNode must only contain text nodes, but found %s in %s",
-          child.getNodeType(),
-          arrayNode);
-      texts.add(child.textValue());
-    }
-    return texts;
+    assertThat(capAddNode, is(
+        jsonArray(containsInAnyOrder(
+            jsonText("baz"),
+            jsonText("qux"))
+        )
+    ));
   }
 
   @Test
@@ -327,9 +327,13 @@ public class DefaultDockerClientUnitTest {
     final RecordedRequest recordedRequest = takeRequestImmediately();
 
     final JsonNode requestJson = toJson(recordedRequest.getBody());
-    final JsonNode nanoCpus = requestJson.get("HostConfig").get("NanoCpus");
 
-    assertThat(hostConfig.nanoCpus(), is(nanoCpus.longValue()));
+    assertThat(requestJson, is(
+        jsonObject()
+            .where("HostConfig", is(jsonObject()
+                .where("NanoCpus", is(jsonLong(anything())))
+            ))
+    ));
   }
 
   @Test
@@ -342,14 +346,20 @@ public class DefaultDockerClientUnitTest {
 
     final NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
 
-    assertThat(nodeInfo, notNullValue());
-    assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
-    assertThat(nodeInfo.status(), notNullValue());
-    assertThat(nodeInfo.status().addr(), is("172.17.0.2"));
-    assertThat(nodeInfo.managerStatus(), notNullValue());
-    assertThat(nodeInfo.managerStatus().addr(), is("172.17.0.2:2377"));
-    assertThat(nodeInfo.managerStatus().leader(), is(true));
-    assertThat(nodeInfo.managerStatus().reachability(), is("reachable"));
+    assertThat(nodeInfo, is(
+        pojo(NodeInfo.class)
+            .where("id", is("24ifsmvkjbyhk"))
+            .where("status", is(
+                pojo(NodeStatus.class)
+                    .where("addr", is("172.17.0.2"))
+            ))
+            .where("managerStatus", is(
+                pojo(ManagerStatus.class)
+                    .where("addr", is("172.17.0.2:2377"))
+                    .where("leader", is(true))
+                    .where("reachability", is("reachable"))
+            ))
+    ));
   }
 
   @Test
@@ -366,15 +376,22 @@ public class DefaultDockerClientUnitTest {
         )
     );
 
-    NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
-    assertThat(nodeInfo, notNullValue());
-    assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
-    assertThat(nodeInfo.status(), notNullValue());
-    assertThat(nodeInfo.status().addr(), is("172.17.0.2"));
-    assertThat(nodeInfo.managerStatus(), notNullValue());
-    assertThat(nodeInfo.managerStatus().addr(), is("172.17.0.2:2377"));
-    assertThat(nodeInfo.managerStatus().leader(), nullValue());
-    assertThat(nodeInfo.managerStatus().reachability(), is("reachable"));
+    final NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+
+    assertThat(nodeInfo, is(
+        pojo(NodeInfo.class)
+            .where("id", is("24ifsmvkjbyhk"))
+            .where("status", is(
+                pojo(NodeStatus.class)
+                    .where("addr", is("172.17.0.2"))
+            ))
+            .where("managerStatus", is(
+                pojo(ManagerStatus.class)
+                    .where("addr", is("172.17.0.2:2377"))
+                    .where("leader", is(nullValue()))
+                    .where("reachability", is("reachable"))
+            ))
+    ));
   }
 
   @Test
@@ -391,12 +408,17 @@ public class DefaultDockerClientUnitTest {
         )
     );
 
-    NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
-    assertThat(nodeInfo, notNullValue());
-    assertThat(nodeInfo.id(), is("24ifsmvkjbyhk"));
-    assertThat(nodeInfo.status(), notNullValue());
-    assertThat(nodeInfo.status().addr(), is("172.17.0.2"));
-    assertThat(nodeInfo.managerStatus(), nullValue());
+    final NodeInfo nodeInfo = dockerClient.inspectNode("24ifsmvkjbyhk");
+
+    assertThat(nodeInfo, is(
+        pojo(NodeInfo.class)
+            .where("id", is("24ifsmvkjbyhk"))
+            .where("status", is(
+                pojo(NodeStatus.class)
+                    .where("addr", is("172.17.0.2"))
+            ))
+            .where("managerStatus", is(nullValue()))
+    ));
   }
 
   @Test(expected = NodeNotFoundException.class)
@@ -434,12 +456,21 @@ public class DefaultDockerClientUnitTest {
 
     final Node node = nodes.get(0);
 
-    assertThat(node.id(), equalTo("24ifsmvkjbyhk"));
-    assertThat(node.version().index(), equalTo(8L));
-    assertThat(node.spec().name(), equalTo("my-node"));
-    assertThat(node.spec().role(), equalTo("manager"));
-    assertThat(node.spec().availability(), equalTo("active"));
-    assertThat(node.spec().labels(), hasKey(equalTo("foo")));
+    assertThat(node, is(
+        pojo(Node.class)
+            .where("id", is("24ifsmvkjbyhk"))
+            .where("version", is(
+                pojo(Version.class)
+                    .where("index", is(8L))
+            ))
+            .where("spec", is(
+                pojo(NodeSpec.class)
+                    .where("name", is("my-node"))
+                    .where("role", is("manager"))
+                    .where("availability", is("active"))
+                    .where("labels", hasKey("foo"))
+            ))
+    ));
 
     final NodeSpec updatedNodeSpec = NodeSpec.builder(node.spec())
         .addLabel("foobar", "foobar")
@@ -513,11 +544,11 @@ public class DefaultDockerClientUnitTest {
     enqueueServerApiVersion("1.24");
     enqueueServerApiEmptyResponse(200);
 
-    SwarmJoin swarmJoin = SwarmJoin.builder()
-            .joinToken("token_foo")
-            .listenAddr("0.0.0.0:2377")
-            .remoteAddrs(Arrays.asList("10.0.0.10:2377"))
-            .build();
+    final SwarmJoin swarmJoin = SwarmJoin.builder()
+        .joinToken("token_foo")
+        .listenAddr("0.0.0.0:2377")
+        .remoteAddrs(singletonList("10.0.0.10:2377"))
+        .build();
 
     dockerClient.joinSwarm(swarmJoin);
   }
@@ -580,10 +611,14 @@ public class DefaultDockerClientUnitTest {
         .build();
 
     final ServiceCreateResponse response = dockerClient.createService(spec);
-    assertThat(response.id(), is(notNullValue()));
-    assertThat(response.warnings(), is(hasSize(1)));
-    assertThat(response.warnings(),
-        contains("unable to pin image this_image_is_not_found_in_the_registry to digest"));
+
+    assertThat(response, is(
+        pojo(ServiceCreateResponse.class)
+            .where("id", is(notNullValue()))
+            .where("warnings", contains(
+                "unable to pin image this_image_is_not_found_in_the_registry to digest"
+            ))
+    ));
   }
 
   private void enqueueServerApiEmptyResponse(final int statusCode) {
@@ -611,35 +646,51 @@ public class DefaultDockerClientUnitTest {
     assertThat(nodes.size(), equalTo(1));
 
     final Node node = nodes.get(0);
-
-    assertThat(node, notNullValue());
-    assertThat(node.id(), is("24ifsmvkjbyhk"));
-    assertThat(node.version().index(), is(8L));
-
-    final NodeSpec nodeSpec = node.spec();
-    assertThat(nodeSpec.name(), is("my-node"));
-    assertThat(nodeSpec.role(), is("manager"));
-    assertThat(nodeSpec.availability(), is("active"));
-    assertThat(nodeSpec.labels().keySet(), contains("foo"));
-
-    final NodeDescription desc = node.description();
-    assertThat(desc.hostname(), is("bf3067039e47"));
-    assertThat(desc.platform().architecture(), is("x86_64"));
-    assertThat(desc.platform().os(), is("linux"));
-    assertThat(desc.resources().memoryBytes(), is(8272408576L));
-    assertThat(desc.resources().nanoCpus(), is(4000000000L));
-
-    final EngineConfig engine = desc.engine();
-    assertThat(engine.engineVersion(), is("17.04.0"));
-    assertThat(engine.labels().keySet(), contains("foo"));
-    assertThat(engine.plugins().size(), equalTo(4));
-
-    assertThat(node.status(), notNullValue());
-    assertThat(node.status().addr(), is("172.17.0.2"));
-    assertThat(node.managerStatus(), notNullValue());
-    assertThat(node.managerStatus().addr(), is("172.17.0.2:2377"));
-    assertThat(node.managerStatus().leader(), is(true));
-    assertThat(node.managerStatus().reachability(), is("reachable"));
+    assertThat(node, is(
+        pojo(Node.class)
+            .where("id", is("24ifsmvkjbyhk"))
+            .where("version", is(
+                pojo(Version.class)
+                    .where("index", is(8L))
+            ))
+            .where("spec", is(
+                pojo(NodeSpec.class)
+                    .where("name", is("my-node"))
+                    .where("role", is("manager"))
+                    .where("availability", is("active"))
+                    .where("labels", IsMapContaining.hasKey("foo"))
+            ))
+            .where("description", is(
+                pojo(NodeDescription.class)
+                    .where("hostname", is("bf3067039e47"))
+                    .where("platform", is(
+                        pojo(Platform.class)
+                            .where("architecture", is("x86_64"))
+                            .where("os", is("linux"))
+                    ))
+                    .where("resources", is(
+                        pojo(com.spotify.docker.client.messages.swarm.Resources.class)
+                            .where("memoryBytes", is(8272408576L))
+                            .where("nanoCpus", is(4000000000L))
+                    ))
+                    .where("engine", is(
+                        pojo(EngineConfig.class)
+                            .where("engineVersion", is("17.04.0"))
+                            .where("labels", IsMapContaining.hasKey("foo"))
+                            .where("plugins", is(iterableWithSize(4)))
+                    ))
+            ))
+            .where("status", is(
+                pojo(NodeStatus.class)
+                    .where("addr", is("172.17.0.2"))
+            ))
+            .where("managerStatus", is(
+                pojo(ManagerStatus.class)
+                    .where("addr", is("172.17.0.2:2377"))
+                    .where("leader", is(true))
+                    .where("reachability", is("reachable"))
+            ))
+    ));
   }
 
   @Test(expected = DockerException.class)
