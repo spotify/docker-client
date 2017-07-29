@@ -1948,6 +1948,19 @@ public interface DockerClient extends Closeable {
       throws DockerException, InterruptedException;
 
   /**
+   * Disconnects a docker container to a network.
+   *
+   * @param containerId The id of the container to disconnect.
+   * @param networkId   The id of the network to disconnect.
+   * @param force       Force the container to disconnect from the network.
+   * @throws NotFoundException if either container or network is not found (404)
+   * @throws DockerException            if a server error occurred (500)
+   * @throws InterruptedException       If the thread is interrupted
+   */
+  void disconnectFromNetwork(String containerId, String networkId, boolean force)
+          throws DockerException, InterruptedException;
+
+  /**
    * Closes any and all underlying connections to docker, and release resources.
    */
   @Override
