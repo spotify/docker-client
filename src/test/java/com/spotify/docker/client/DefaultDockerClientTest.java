@@ -1694,7 +1694,7 @@ public class DefaultDockerClientTest {
         try {
           completion.take().get();
         } catch (ExecutionException e) {
-          Throwables.propagateIfInstanceOf(e.getCause(), DockerTimeoutException.class);
+          Throwables.throwIfInstanceOf(e.getCause(), DockerTimeoutException.class);
           throw e;
         }
       }

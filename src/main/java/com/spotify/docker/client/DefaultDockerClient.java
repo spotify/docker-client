@@ -2830,6 +2830,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     public DefaultDockerClient build() {
       if (dockerAuth && registryAuthSupplier == null && registryAuth == null) {
         try {
+          //noinspection deprecation
           registryAuth(RegistryAuth.fromDockerConfig().build());
         } catch (IOException e) {
           log.warn("Unable to use Docker auth info", e);
