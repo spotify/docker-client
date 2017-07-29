@@ -4285,8 +4285,7 @@ public class DefaultDockerClientTest {
         assertEquals(String.format("Container %s is not running\n", id),
                      e.getResponseBody());
       } else {
-        final ObjectMapper mapper =
-            new ObjectMapperProvider().getContext(DefaultDockerClientTest.class);
+        final ObjectMapper mapper = ObjectMapperProvider.objectMapper();
         final Map<String, String> jsonMessage =
             mapper.readValue(e.getResponseBody(), new TypeReference<Map<String, String>>() {
             });

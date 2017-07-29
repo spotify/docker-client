@@ -25,13 +25,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import com.spotify.docker.client.ObjectMapperProvider;
 
-import java.io.IOException;
-
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,12 +36,7 @@ public class ContainerTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private ObjectMapper objectMapper;
-
-  @Before
-  public void setUp() throws Exception {
-    objectMapper = new ObjectMapperProvider().getContext(Container.class);
-  }
+  private ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   @Test
   public void testLoadFromFixture() throws Exception {

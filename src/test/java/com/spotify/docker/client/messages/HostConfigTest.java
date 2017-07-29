@@ -33,17 +33,11 @@ import com.spotify.docker.client.ObjectMapperProvider;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class HostConfigTest {
 
-  private ObjectMapper objectMapper;
-
-  @Before
-  public void setUp() throws Exception {
-    objectMapper = new ObjectMapperProvider().getContext(HostConfig.class);
-  }
+  private ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   @Test
   public void testJsonAlways() throws Exception {
