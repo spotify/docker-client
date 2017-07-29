@@ -47,4 +47,9 @@ public class ContainerStatsTest {
     objectMapper.readValue(fixture("fixtures/1.26/containerStats.json"), ContainerStats.class);
   }
 
+  @Test
+  public void test1_30() throws Exception {
+    objectMapper.readValue(fixture("fixtures/1.30/containerStats.json"), ContainerStats.class);
+  }
+
 }

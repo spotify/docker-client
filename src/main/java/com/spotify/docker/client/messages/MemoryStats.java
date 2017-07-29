@@ -39,9 +39,11 @@ public abstract class MemoryStats {
   @JsonProperty("stats")
   public abstract Stats stats();
 
+  @Nullable
   @JsonProperty("max_usage")
   public abstract Long maxUsage();
 
+  @Nullable
   @JsonProperty("usage")
   public abstract Long usage();
 
@@ -49,6 +51,7 @@ public abstract class MemoryStats {
   @JsonProperty("failcnt")
   public abstract Long failcnt();
 
+  @Nullable
   @JsonProperty("limit")
   public abstract Long limit();
 

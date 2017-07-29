@@ -1,0 +1,102 @@
+{
+  "read":"2017-07-28T03:01:05.573009123Z",
+  "preread":"2017-07-28T03:01:04.573119273Z",
+  "pids_stats":{
+
+  },
+  "blkio_stats":{
+    "io_service_bytes_recursive":[
+
+    ],
+    "io_serviced_recursive":[
+
+    ],
+    "io_queue_recursive":[
+
+    ],
+    "io_service_time_recursive":[
+
+    ],
+    "io_wait_time_recursive":[
+
+    ],
+    "io_merged_recursive":[
+
+    ],
+    "io_time_recursive":[
+
+    ],
+    "sectors_recursive":[
+
+    ]
+  },
+  "num_procs":0,
+  "storage_stats":{
+
+  },
+  "cpu_stats":{
+    "cpu_usage":{
+      "total_usage":15444440,
+      "percpu_usage":[
+        2055152,
+        890316,
+        331923,
+        2011864,
+        323424,
+        8616546,
+        1215215,
+        0
+      ],
+      "usage_in_kernelmode":0,
+      "usage_in_usermode":0
+    },
+    "system_cpu_usage":7257526200000000,
+    "online_cpus":8,
+    "throttling_data":{
+      "periods":0,
+      "throttled_periods":0,
+      "throttled_time":0
+    }
+  },
+  "precpu_stats":{
+    "cpu_usage":{
+      "total_usage":15444440,
+      "percpu_usage":[
+        2055152,
+        890316,
+        331923,
+        2011864,
+        323424,
+        8616546,
+        1215215,
+        0
+      ],
+      "usage_in_kernelmode":0,
+      "usage_in_usermode":0
+    },
+    "system_cpu_usage":7257518190000000,
+    "online_cpus":8,
+    "throttling_data":{
+      "periods":0,
+      "throttled_periods":0,
+      "throttled_time":0
+    }
+  },
+  "memory_stats":{
+
+  },
+  "name":"/fervent_shannon",
+  "id":"f861186c9989f670b97ae0e4d3ee5b69be7aed62b677ea3d430bad2b3084621c",
+  "networks":{
+    "eth0":{
+      "rx_bytes":648,
+      "rx_packets":8,
+      "rx_errors":0,
+      "rx_dropped":0,
+      "tx_bytes":0,
+      "tx_packets":0,
+      "tx_errors":0,
+      "tx_dropped":0
+    }
+  }
+}
