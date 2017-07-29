@@ -37,8 +37,7 @@ import org.junit.Test;
 public class UnixTimestampDeserializerTest {
 
   private final DateTime referenceDateTime = new DateTime(2013, 7, 17, 9, 32, 4, DateTimeZone.UTC);
-  private static final ObjectMapper OBJECT_MAPPER =
-      new ObjectMapperProvider().getContext(UnixTimestampDeserializerTest.class);
+  private static final ObjectMapper OBJECT_MAPPER = ObjectMapperProvider.objectMapper();
 
   private static class TestClass {
 

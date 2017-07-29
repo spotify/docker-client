@@ -25,7 +25,6 @@ import static com.spotify.docker.FixtureUtil.fixture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -35,12 +34,7 @@ public class ContainerConfigTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private ObjectMapper objectMapper;
-
-  @Before
-  public void setUp() throws Exception {
-    objectMapper = new ObjectMapperProvider().getContext(ContainerConfig.class);
-  }
+  private ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   @Test
   public void test1_28() throws Exception {

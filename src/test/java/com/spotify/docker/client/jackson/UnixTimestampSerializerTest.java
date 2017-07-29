@@ -34,8 +34,7 @@ import org.junit.Test;
 
 public class UnixTimestampSerializerTest {
 
-  private static final ObjectMapper OBJECT_MAPPER =
-      new ObjectMapperProvider().getContext(UnixTimestampSerializerTest.class);
+  private static final ObjectMapper OBJECT_MAPPER = ObjectMapperProvider.objectMapper();
 
   private static class TestClass {
 

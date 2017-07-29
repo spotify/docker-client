@@ -36,7 +36,7 @@ public class ProgressMessageTest {
       "sha256:ebd39c3e3962f804787f6b0520f8f1e35fbd5a01ab778ac14c8d6c37978e8445";
 
   private ProgressMessage readMessage(final String status) throws IOException {
-    final ObjectMapper objectMapper = new ObjectMapperProvider().getContext(ProgressMessage.class);
+    final ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
     final String line = objectMapper.createObjectNode()
         .put("status", status)
         .toString();

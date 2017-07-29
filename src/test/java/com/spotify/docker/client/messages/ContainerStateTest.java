@@ -33,7 +33,6 @@ import com.spotify.docker.client.ObjectMapperProvider;
 import java.io.IOException;
 import java.util.Date;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -43,12 +42,7 @@ public class ContainerStateTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private ObjectMapper objectMapper;
-
-  @Before
-  public void setUp() throws Exception {
-    objectMapper = new ObjectMapperProvider().getContext(ContainerState.class);
-  }
+  private ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   @Test
   public void testLoadFromRandomFixture() throws Exception {
