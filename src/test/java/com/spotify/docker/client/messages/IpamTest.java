@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.ObjectMapperProvider;
 
 import org.junit.Test;
@@ -42,6 +43,7 @@ public class IpamTest {
         objectMapper.readValue(fixture("fixtures/1.29/ipam.json"), Ipam.class);
     assertThat(ipam.driver(), equalTo("default"));
     assertThat(ipam.config(), contains(IpamConfig.create("172.17.0.0/16", null, null)));
+    assertThat(ipam.options(), equalTo(ImmutableMap.of("foo", "bar")));
   }
 
   @Test
