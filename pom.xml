@@ -319,6 +319,7 @@
               <include>org.glassfish.**</include>
               <include>com.github.jnr:*</include>
               <include>org.ow2.asm:*</include>
+              <include>com.google.guava:**</include>
             </includes>
           </artifactSet>
           <relocations>
@@ -337,6 +338,10 @@
             <relocation>
               <pattern>com.fasterxml.jackson</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.google.guava</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.google.guava</shadedPattern>
             </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
