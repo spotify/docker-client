@@ -25,15 +25,23 @@ case "$1" in
     # As instructed on http://docs.master.dockerproject.org/engine/installation/linux/ubuntulinux/
     sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     sudo sh -c "echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list"
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
     if [[ "$RC" == "true" ]]; then
         dist_version="$(lsb_release --codename | cut -f2)"
         sudo sh -c "echo deb [arch=$(dpkg --print-architecture)] https://apt.dockerproject.org/repo ubuntu-${dist_version} testing >> /etc/apt/sources.list.d/docker.list"
     fi
     sudo apt-get -qq update
-    sudo apt-get -q -y purge docker-engine
+    sudo apt-get -q -y purge docker-engine docker-ce
     apt-cache policy docker-engine
-    sudo apt-get -q -y install docker-engine=$DOCKER_VERSION* "linux-image-extra-$(uname -r)"
+
+
+
+    if [[ "$DOCKER_CE" == "1" ]]; then
+        sudo apt-get -q -y install docker-ce=$DOCKER_VERSION* "linux-image-extra-$(uname -r)"
+    else
+        sudo apt-get -q -y install docker-engine=$DOCKER_VERSION* "linux-image-extra-$(uname -r)"
+    fi
 
     # set DOCKER_OPTS to make sure docker listens on the ports we intend
     echo 'DOCKER_OPTS="-D=true -H=unix:///var/run/docker.sock -H=tcp://127.0.0.1:2375"' | sudo tee -a /etc/default/docker
