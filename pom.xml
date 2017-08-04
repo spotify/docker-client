@@ -338,6 +338,14 @@
               <pattern>com.fasterxml.jackson</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>org.objectweb.asm</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.objectweb.asm</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>jnr</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jnr</shadedPattern>
+            </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
         </configuration>
