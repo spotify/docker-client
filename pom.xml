@@ -182,7 +182,23 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    <!-- TODO we should pull out the AWS support to a new library -->
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-ecr</artifactId>
+      <version>1.11.172</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <!--test deps-->
     <dependency>
       <groupId>junit</groupId>
