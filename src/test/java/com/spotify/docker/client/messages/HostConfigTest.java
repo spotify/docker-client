@@ -20,6 +20,7 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
@@ -61,10 +62,6 @@ public class HostConfigTest {
         .readValue(fixture("fixtures/hostConfig/restartPolicyOnFailure.json"),
                    HostConfig.class);
     assertThat(hostConfig.restartPolicy(), is(HostConfig.RestartPolicy.onFailure(5)));
-  }
-
-  private static String fixture(String filename) throws IOException {
-    return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
   }
 
   @Test

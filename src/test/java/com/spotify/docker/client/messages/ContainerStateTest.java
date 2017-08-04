@@ -20,6 +20,7 @@
 
 package com.spotify.docker.client.messages;
 
+import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -88,10 +89,5 @@ public class ContainerStateTest {
   public void testLoadInvalidJson() throws Exception {
     expectedException.expect(JsonParseException.class);
     objectMapper.readValue(fixture("fixtures/invalid.json"), ContainerState.class);
-
-  }
-
-  private static String fixture(String filename) throws IOException {
-    return Resources.toString(Resources.getResource(filename), Charsets.UTF_8).trim();
   }
 }
