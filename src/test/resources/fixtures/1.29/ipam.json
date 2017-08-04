@@ -1,0 +1,11 @@
+{
+  "Driver": "default",
+  "Config": [
+    {
+      "Subnet": "172.17.0.0/16"
+    }
+  ],
+  "Options": {
+    "foo": "bar"
+  }
+}

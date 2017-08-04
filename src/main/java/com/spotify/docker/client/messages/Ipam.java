@@ -29,7 +29,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -38,8 +43,13 @@ public abstract class Ipam {
   @JsonProperty("Driver")
   public abstract String driver();
 
+  @Nullable
   @JsonProperty("Config")
   public abstract ImmutableList<IpamConfig> config();
+
+  @Nullable
+  @JsonProperty("Options")
+  public abstract ImmutableMap<String, String> options();
 
   public static Builder builder() {
     return new AutoValue_Ipam.Builder();
@@ -49,6 +59,8 @@ public abstract class Ipam {
   public abstract static class Builder {
 
     public abstract Builder driver(String driver);
+
+    public abstract Builder options(Map<String, String> options);
 
     public abstract Builder config(List<IpamConfig> config);
 
@@ -63,13 +75,23 @@ public abstract class Ipam {
     public abstract Ipam build();
   }
 
-  @JsonCreator
-  public static Ipam create(
-      @JsonProperty("Driver") final String driver,
-      @JsonProperty("Config") final List<IpamConfig> config) {
+  public static Ipam create(final String driver, final List<IpamConfig> config) {
     return builder()
         .driver(driver)
         .config(config)
+        .options(null)
+        .build();
+  }
+
+  @JsonCreator
+  public static Ipam create(
+      @JsonProperty("Driver") final String driver,
+      @JsonProperty("Config") final List<IpamConfig> config,
+      @JsonProperty("Options") final Map<String, String> options) {
+    return builder()
+        .driver(driver)
+        .config(config)
+        .options(options)
         .build();
   }
 }
