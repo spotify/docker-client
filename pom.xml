@@ -340,8 +340,8 @@
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
             </relocation>
             <relocation>
-              <pattern>com.google.guava</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.com.google.guava</shadedPattern>
+              <pattern>com.google.common</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.google.common</shadedPattern>
             </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
