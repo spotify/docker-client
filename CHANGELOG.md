@@ -1,8 +1,32 @@
 # Changelog
 
+## 8.8.3
+
+Released August 3, 2017
+
+- add 'force' parameter to `disconnectFromNetwork` ([839])
+- allow additional `MemoryStats` attributes to be nullable ([847])
+- add missing `Options` property to `Ipam`, allow `Config` to be nullable ([843])
+
+[839]: https://github.com/spotify/docker-client/pull/839
+[847]: https://github.com/spotify/docker-client/pull/847
+[843]: https://github.com/spotify/docker-client/pull/843
+
+## 8.8.2
+
+Released July 24, 2017
+
+- add `attachable` property to `Network` ([830])
+- allow `UpdateStatus.completedAt` to be nullable ([834])
+- add `RootFS` property to `inspectImage` response ([835])
+
+[830]: https://github.com/spotify/docker-client/pull/830
+[834]: https://github.com/spotify/docker-client/pull/834
+[835]: https://github.com/spotify/docker-client/pull/835
+
 ## 8.8.1
 
-Not yet released
+Released July 13, 2017
 
 - Rename `NoOpRegistryAuthSupplier` to `FixedRegistryAuthSupplier`
 - Fix RegistryAuth JSON properties; RegistryAuth keys should all be lowercase
