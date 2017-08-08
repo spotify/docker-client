@@ -1,5 +1,15 @@
 # Changelog
 
+## 8.8.5
+
+Not yet released
+
+- Allow `ImageInfo.RootFS` to be nullable. This field was added in Docker
+  Remote API 1.23 / Docker version 1.11. The field was added to the ImageInfo
+  class in docker-client 8.8.2. ([862][])
+
+[862]: https://github.com/spotify/docker-client/pull/862
+
 ## 8.8.4
 
 Released August 8, 2017

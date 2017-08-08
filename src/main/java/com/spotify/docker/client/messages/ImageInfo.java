@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import java.util.Date;
+import javax.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -73,6 +74,7 @@ public abstract class ImageInfo {
   @JsonProperty("VirtualSize")
   public abstract Long virtualSize();
 
+  @Nullable
   @JsonProperty("RootFS")
   public abstract RootFs rootFs();
 
