@@ -33,6 +33,7 @@ Released July 13, 2017
 - Add Event types: plugin, node, service, and secret ([825][])
 - Add Event filters: plugin and scope ([825][])
 - Small fixes to code and tests for docker 17.06.0 ([825][])
+- Upgrade Google Guava to 20.0 ([792][])
 
 [825]: https://github.com/spotify/docker-client/pull/825
 
