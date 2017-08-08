@@ -231,6 +231,18 @@
       <version>3.8.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.spotify</groupId>
+      <artifactId>hamcrest-jackson</artifactId>
+      <version>1.0.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.spotify</groupId>
+      <artifactId>hamcrest-pojo</artifactId>
+      <version>1.0.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -246,6 +258,8 @@
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
+          <testSource>1.8</testSource>
+          <testTarget>1.8</testTarget>
         </configuration>
       </plugin>
       <plugin>

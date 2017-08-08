@@ -21,8 +21,8 @@
 package com.spotify.docker.client.messages;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static com.spotify.hamcrest.pojo.IsPojo.pojo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,11 +38,14 @@ public class RegistryAuthTest {
   public void testDeserializingFromJson() throws Exception {
     final RegistryAuth registryAuth =
         objectMapper.readValue(fixture("fixtures/registryAuth.json"), RegistryAuth.class);
-    assertThat(registryAuth.username(), equalTo("hannibal"));
-    assertThat(registryAuth.password(), equalTo("xxxx"));
-    assertThat(registryAuth.email(), equalTo("hannibal@a-team.com"));
-    assertThat(registryAuth.serverAddress(), equalTo("https://index.docker.io/v1/"));
-    assertThat(registryAuth.identityToken(), equalTo("foobar"));
+    assertThat(registryAuth, is(
+        pojo(RegistryAuth.class)
+            .where("username", is("hannibal"))
+            .where("password", is("xxxx"))
+            .where("email", is("hannibal@a-team.com"))
+            .where("serverAddress", is("https://index.docker.io/v1/"))
+            .where("identityToken", is("foobar"))
+    ));
   }
 
   @Test
@@ -52,8 +55,11 @@ public class RegistryAuthTest {
     final String encoded = BaseEncoding.base64().encode((username + ":" + password).getBytes());
 
     final RegistryAuth registryAuth = RegistryAuth.forAuth(encoded).build();
-    assertThat(registryAuth.username(), is(username));
-    assertThat(registryAuth.password(), is(password));
+    assertThat(registryAuth, is(
+        pojo(RegistryAuth.class)
+            .where("username", is(username))
+            .where("password", is(password))
+    ));
   }
 
   @Test
@@ -63,7 +69,10 @@ public class RegistryAuthTest {
     final String encoded = BaseEncoding.base64().encode((username + ":" + password).getBytes());
 
     final RegistryAuth registryAuth = RegistryAuth.forAuth(encoded).build();
-    assertThat(registryAuth.username(), is(username));
-    assertThat(registryAuth.password(), is(password));
+    assertThat(registryAuth, is(
+        pojo(RegistryAuth.class)
+            .where("username", is(username))
+            .where("password", is(password))
+    ));
   }
 }

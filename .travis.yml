@@ -10,7 +10,7 @@ services:
 language: java
 
 jdk:
-  - openjdk7
+  - openjdk8
 
 env:
   global:
