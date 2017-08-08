@@ -22,8 +22,8 @@ case "$1" in
     # Remove old docker files that might prevent the installation and starting of other versions
     sudo rm -fr /var/lib/docker || :
 
-    # As instructed on http://docs.master.dockerproject.org/engine/installation/linux/ubuntulinux/
-    sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+    # As instructed on https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/#install-using-the-repository
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
     sudo sh -c "echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list"
     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
