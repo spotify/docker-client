@@ -2,11 +2,16 @@
 
 ## 8.8.4
 
-Not yet released
+Released August 8, 2017
 
+- [The "shaded" artifact for docker-client][README.md#a-note-on-shading]
+  additionally relocates `com.google.guava:guava` classes, to try to
+  help avoid conflicts for users that depend on incompatible versions 
+  of Guava. ([850][])
 - Upgrade Google Guava to 20.0 ([792][])
 
 [792]: https://github.com/spotify/docker-client/pull/792
+[850]: https://github.com/spotify/docker-client/pull/850
 
 ## 8.8.3
 
