@@ -21,24 +21,31 @@
 package com.spotify.docker.client.messages;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
-
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class ImageInfoTest {
-
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
 
   private ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   @Test
   public void test1_24() throws Exception {
     objectMapper.readValue(fixture("fixtures/1.24/imageInfo.json"), ImageInfo.class);
+  }
+
+  /**
+   * Test that an ImageInfo message from 1.22 - before RootFs was introduced - can be deserialized.
+   */
+  @Test
+  public void test1_22() throws Exception {
+    final ImageInfo imageInfo =
+        objectMapper.readValue(fixture("fixtures/1.22/imageInfo.json"), ImageInfo.class);
+    assertThat(imageInfo.rootFs(), is(nullValue()));
   }
 
 }
