@@ -20,6 +20,8 @@
 
 package com.spotify.docker.client.auth.ecr;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.amazonaws.services.ecr.AmazonECR;
 import com.amazonaws.services.ecr.AmazonECRClientBuilder;
 import com.amazonaws.services.ecr.model.AuthorizationData;
@@ -32,6 +34,7 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -181,7 +184,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       throw new IllegalArgumentException();
     }
 
-    String decoded = new String(Base64.decode(accessToken.getAuthorizationToken()));
+    String decoded = new String(Base64.decode(accessToken.getAuthorizationToken()), UTF_8);
     String username = decoded.split(":")[0];
     String password = decoded.split(":")[1];
 
