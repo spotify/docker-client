@@ -69,7 +69,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
    * <p>
    * The default value for the minimum expiry time of an access token is one minute. When the
    * ContainerRegistryAuthSupplier is asked for a RegistryAuth, it will check if the existing
-   * AccessToken for the AWS AuthorizationData expires within this amount of time. If it does, then
+   * authorization token for the AWS AuthorizationData expires within this amount of time. If it does, then
    * the AuthorizationData is refreshed before being returned.
    * </p>
    */
@@ -197,8 +197,8 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       accessToken = getAccessToken();
     } catch (IOException e) {
       // ignore the exception, as the user may not care if swarm is authenticated to use GCR
-      log.warn("unable to get access token for Google Container Registry due to exception, "
-               + "configuration for Swarm will not contain RegistryAuth for GCR", e);
+      log.warn("unable to get access token for AWS Elastic Container Registry due to exception, "
+               + "configuration for Swarm will not contain RegistryAuth for ECR", e);
 
       return null;
     }
@@ -216,8 +216,8 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
       // do not fail as the GCR access token may not be necessary for building the image
       // currently
       // being built
-      log.warn("unable to get access token for Google Container Registry, "
-               + "configuration for building image will not contain RegistryAuth for GCR", e);
+      log.warn("unable to get access token for AWS Elastic Container Registry, "
+               + "configuration for building image will not contain RegistryAuth for ECR", e);
 
       return RegistryConfigs.empty();
     }
