@@ -58,10 +58,8 @@ case "$1" in
     # Give it time to be ready
     sleep 10
 
-    if [[ "$ENABLE_SWARM" = "1"  ]]; then
-        # initialize docker swarm to be able to run docker tests
-        sudo docker swarm init --advertise-addr 127.0.0.1
-    fi
+    # initialize docker swarm to be able to run docker tests
+    sudo docker swarm init --advertise-addr 127.0.0.1
 
     # Wait a minute so we can see more docker logs in case something goes wrong
     sleep 60
