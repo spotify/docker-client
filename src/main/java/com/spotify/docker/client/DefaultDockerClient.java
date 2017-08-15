@@ -1541,6 +1541,24 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  private LogStream getServiceLogStream(final String method, final WebTarget resource,
+                                        final String serviceId)
+      throws DockerException, InterruptedException {
+    try {
+      final Invocation.Builder request = resource.request("application/vnd.docker.raw-stream");
+      return request(method, LogStream.class, resource, request);
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 400:
+          throw new BadParamException(getQueryParamMap(resource), e);
+        case 404:
+          throw new ServiceNotFoundException(serviceId);
+        default:
+          throw e;
+      }
+    }
+  }
+
   @Override
   public ExecCreation execCreate(final String containerId,
                                  final String[] cmd,
@@ -1918,6 +1936,21 @@ public class DefaultDockerClient implements DockerClient, Closeable {
           throw e;
       }
     }
+  }
+
+  @Override
+  public LogStream serviceLogs(String serviceId, LogsParam... params)
+          throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.25");
+    WebTarget resource = noTimeoutResource()
+            .path("services").path(serviceId)
+            .path("logs");
+
+    for (final LogsParam param : params) {
+      resource = resource.queryParam(param.name(), param.value());
+    }
+
+    return getServiceLogStream(GET, resource, serviceId);
   }
 
   @Override
