@@ -386,6 +386,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   protected DefaultDockerClient(final Builder builder) {
     final URI originalUri = checkNotNull(builder.uri, "uri");
+    checkNotNull(originalUri.getScheme(), "url has null scheme");
     this.apiVersion = builder.apiVersion();
 
     if ((builder.dockerCertificatesStore != null) && !originalUri.getScheme().equals("https")) {
