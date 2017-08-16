@@ -1868,11 +1868,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void updateService(final String serviceId, final Long version, final ServiceSpec spec)
       throws DockerException, InterruptedException {
+    updateService(serviceId, version, spec, registryAuthSupplier.authForSwarm());
+  }
+  
+  @Override
+  public void updateService(final String serviceId, final Long version, final ServiceSpec spec,
+                                             final RegistryAuth config)
+      throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.24");
     try {
       WebTarget resource = resource().path("services").path(serviceId).path("update");
       resource = resource.queryParam("version", version);
-      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE)
+              .header("X-Registry-Auth", authHeader(config)),
               Entity.json(spec));
     } catch (DockerRequestException e) {
       switch (e.status()) {
