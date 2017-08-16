@@ -15,7 +15,7 @@ Released August 14, 2017
 
 Released August 8, 2017
 
-- [The "shaded" artifact for docker-client][README.md#a-note-on-shading]
+- [The "shaded" artifact for docker-client](README.md#a-note-on-shading)
   additionally relocates `com.google.guava:guava` classes, to try to
   help avoid conflicts for users that depend on incompatible versions 
   of Guava. ([850][])
