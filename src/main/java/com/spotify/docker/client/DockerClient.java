@@ -37,6 +37,7 @@ import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.exceptions.PermissionException;
+import com.spotify.docker.client.exceptions.ServiceNotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerChange;
@@ -1628,6 +1629,22 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void removeService(String serviceId)
+          throws DockerException, InterruptedException;
+
+  /**
+   * Get docker service logs.
+   *
+   * @param serviceId The id of the service to get logs for.
+   * @param params      Params for controlling what streams to get and whether to tail or not.
+   * @return A log message stream.
+   * @throws BadParamException
+   *                            if one or more params were bad (400)
+   * @throws ServiceNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  LogStream serviceLogs(String serviceId, LogsParam... params)
           throws DockerException, InterruptedException;
 
   /**

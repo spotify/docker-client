@@ -592,6 +592,24 @@ public class DefaultDockerClientUnitTest {
         contains("unable to pin image this_image_is_not_found_in_the_registry to digest"));
   }
 
+  @Test
+  public void testServiceLogs() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .addHeader("Content-Type", "text/plain; charset=utf-8")
+            .setBody(
+                fixture("fixtures/1.25/serviceLogs.txt")
+            )
+    );
+
+    final LogStream stream = dockerClient.serviceLogs("serviceId", DockerClient.LogsParam.stderr());
+    assertThat(stream.readFully(), is("Log Statement"));
+  }
+
   private void enqueueServerApiEmptyResponse(final int statusCode) {
     server.enqueue(new MockResponse()
         .setResponseCode(statusCode)
