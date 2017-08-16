@@ -111,6 +111,13 @@ public abstract class ContainerSpec {
   @JsonProperty("Secrets")
   public abstract ImmutableList<SecretBind> secrets();
 
+  /**
+   * @since API 1.30
+   */
+  @Nullable
+  @JsonProperty("Configs")
+  public abstract ImmutableList<ConfigBind> configs();
+
   @Nullable
   @JsonProperty("DNSConfig")
   public abstract DnsConfig dnsConfig();
@@ -339,6 +346,8 @@ public abstract class ContainerSpec {
 
     public abstract Builder secrets(List<SecretBind> secrets);
 
+    public abstract Builder configs(List<ConfigBind> configs);
+
     public abstract ContainerSpec build();
   }
 
@@ -363,7 +372,8 @@ public abstract class ContainerSpec {
       @JsonProperty("Healthcheck") final ContainerConfig.Healthcheck healthcheck,
       @JsonProperty("Hosts") final List<String> hosts,
       @JsonProperty("Secrets") final List<SecretBind> secrets,
-      @JsonProperty("DNSConfig") final DnsConfig dnsConfig) {
+      @JsonProperty("DNSConfig") final DnsConfig dnsConfig,
+      @JsonProperty("Configs") final List<ConfigBind> configs) {
     final Builder builder = builder()
         .image(image)
         .hostname(hostname)
@@ -389,6 +399,10 @@ public abstract class ContainerSpec {
 
     if (secrets != null) {
       builder.secrets(secrets);
+    }
+
+    if (configs != null) {
+      builder.configs(configs);
     }
 
     return builder.build();
