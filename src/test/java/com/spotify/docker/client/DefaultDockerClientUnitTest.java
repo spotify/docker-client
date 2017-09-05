@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -56,7 +57,9 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.swarm.Config;
+import com.spotify.docker.client.messages.swarm.ConfigBind;
 import com.spotify.docker.client.messages.swarm.ConfigCreateResponse;
+import com.spotify.docker.client.messages.swarm.ConfigFile;
 import com.spotify.docker.client.messages.swarm.ConfigSpec;
 import com.spotify.docker.client.messages.swarm.ContainerSpec;
 import com.spotify.docker.client.messages.swarm.EngineConfig;
@@ -64,6 +67,7 @@ import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
+import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
@@ -615,6 +619,53 @@ public class DefaultDockerClientUnitTest {
         .setResponseCode(statusCode)
         .addHeader("Content-Type", "application/json")
     );
+  }
+
+  @Test
+  public void testCreateServiceWithConfig() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    // build() calls /version to check what format of header to send
+    enqueueServerApiVersion("1.30");
+    enqueueServerApiResponse(201, "fixtures/1.30/configCreateResponse.json");
+
+    final ConfigSpec configSpec = ConfigSpec
+        .builder()
+        .data(Base64.encodeAsString("foobar"))
+        .name("foo.yaml")
+        .build();
+
+    final ConfigCreateResponse configCreateResponse = dockerClient.createConfig(configSpec);
+    assertThat(configCreateResponse.id(), equalTo("ktnbjxoalbkvbvedmg1urrz8h"));
+
+    final ConfigBind configBind = ConfigBind.builder()
+        .configName(configSpec.name())
+        .configId(configCreateResponse.id())
+        .file(ConfigFile.builder()
+          .gid("1000")
+          .uid("1000")
+          .mode(600L)
+          .name(configSpec.name())
+          .build()
+        ).build();
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+        .containerSpec(ContainerSpec.builder()
+            .image("this_image_is_found_in_the_registry")
+            .configs(ImmutableList.of(configBind))
+            .build())
+        .build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+        .name("test")
+        .taskTemplate(taskSpec)
+        .build();
+
+    enqueueServerApiVersion("1.30");
+    enqueueServerApiResponse(201, "fixtures/1.30/createServiceResponse.json");
+
+    final ServiceCreateResponse response = dockerClient.createService(spec);
+    assertThat(response.id(), equalTo("ak7w3gjqoa3kuz8xcpnyy0pvl"));
   }
 
   @Test
