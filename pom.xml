@@ -337,6 +337,10 @@
               <shadedPattern>com.spotify.docker.client.shaded.javax.ws.rs</shadedPattern>
             </relocation>
             <relocation>
+              <pattern>org.glassfish</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.glassfish</shadedPattern>
+            </relocation> 
+            <relocation>
               <pattern>com.fasterxml.jackson</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
             </relocation>
