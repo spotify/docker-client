@@ -321,6 +321,9 @@
               <include>com.github.jnr:*</include>
               <include>org.ow2.asm:*</include>
               <include>com.google.guava:**</include>
+              <include>org.apache.httpcomponents:httpclient</include>
+              <include>org.apache.httpcomponents:httpcore</include>
+              <include>asm:asm</include>
             </includes>
           </artifactSet>
           <relocations>
@@ -347,6 +350,14 @@
             <relocation>
               <pattern>com.google.common</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.google.common</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.apache.http</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.apache.http</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.objectweb.asm</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.objectweb.asm</shadedPattern>
             </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
