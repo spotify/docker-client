@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class ServiceSpec {
 
+  @Nullable
   @JsonProperty("Name")
   public abstract String name();
 
