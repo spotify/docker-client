@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.9.1
+
+Not yet released.
+
+- Support creating a service without specifying a name ([891][] Allow `ServiceSpec.name` to be nullable)
+
+[891]: https://github.com/spotify/docker-client/pull/891
+
 ## 8.8.5
 
 Released August 14, 2017
@@ -17,7 +25,7 @@ Released August 8, 2017
 
 - [The "shaded" artifact for docker-client](README.md#a-note-on-shading)
   additionally relocates `com.google.guava:guava` classes, to try to
-  help avoid conflicts for users that depend on incompatible versions 
+  help avoid conflicts for users that depend on incompatible versions
   of Guava. ([850][])
 - Upgrade Google Guava to 20.0 ([792][])
 
