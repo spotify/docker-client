@@ -5,8 +5,10 @@
 Not yet released.
 
 - Support creating a service without specifying a name ([891][] Allow `ServiceSpec.name` to be nullable)
+- Change `TaskStatus.timestamp` from `String` to `Date` ([895][])
 
 [891]: https://github.com/spotify/docker-client/pull/891
+[895]: https://github.com/spotify/docker-client/pull/895
 
 ## 8.8.5
 

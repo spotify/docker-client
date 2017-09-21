@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+import java.util.Date;
 import javax.annotation.Nullable;
 
 @AutoValue
@@ -49,7 +50,7 @@ public abstract class TaskStatus {
   public static final String TASK_STATE_REJECTED = "rejected";
 
   @JsonProperty("Timestamp")
-  public abstract String timestamp();
+  public abstract Date timestamp();
 
   @JsonProperty("State")
   public abstract String state();
@@ -66,7 +67,7 @@ public abstract class TaskStatus {
 
   @JsonCreator
   static TaskStatus create(
-      @JsonProperty("Timestamp") final String timestamp,
+      @JsonProperty("Timestamp") final Date timestamp,
       @JsonProperty("State") final String state,
       @JsonProperty("Message") final String message,
       @JsonProperty("Err") final String err,
