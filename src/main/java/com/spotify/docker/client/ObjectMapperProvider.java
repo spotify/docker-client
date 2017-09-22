@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,10 +55,10 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
   private static final Logger log = LoggerFactory.getLogger(ObjectMapperProvider.class);
 
-  private static final Function<? super Object, ?> VOID_VALUE = new Function<Object, Object>() {
+  private static final Function<? super Object, ?> EMPTY_MAP = new Function<Object, Object>() {
     @Override
     public Object apply(final Object input) {
-      return null;
+      return Collections.emptyMap();
     }
   };
 
@@ -95,7 +96,7 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
     @Override
     public void serialize(final Set value, final JsonGenerator jgen,
                           final SerializerProvider provider) throws IOException {
-      final Map map = (value == null) ? null : Maps.asMap(value, VOID_VALUE);
+      final Map map = (value == null) ? null : Maps.asMap(value, EMPTY_MAP);
       OBJECT_MAPPER.writeValue(jgen, map);
     }
   }
@@ -115,7 +116,7 @@ public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
     @Override
     public void serialize(final ImmutableSet value, final JsonGenerator jgen,
                           final SerializerProvider provider) throws IOException {
-      final Map map = (value == null) ? null : Maps.asMap(value, VOID_VALUE);
+      final Map map = (value == null) ? null : Maps.asMap(value, EMPTY_MAP);
       OBJECT_MAPPER.writeValue(jgen, map);
     }
   }
