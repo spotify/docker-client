@@ -265,14 +265,7 @@ public abstract class ContainerConfig {
 
     public abstract Builder volumes(final Set<String> volumes);
 
-    public Builder volumes(final String... volumes) {
-      if (volumes != null) {
-        for (final String volume : volumes) {
-          addVolume(volume);
-        }
-      }
-      return this;
-    }
+    public abstract Builder volumes(final String... volumes);
 
     public Builder addVolume(final String volume) {
       volumesBuilder().add(volume);
