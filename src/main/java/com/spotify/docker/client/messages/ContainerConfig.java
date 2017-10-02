@@ -187,7 +187,7 @@ public abstract class ContainerConfig {
       @JsonProperty("StopSignal") final String stopSignal,
       @JsonProperty("Healthcheck") final Healthcheck healthcheck,
       @JsonProperty("NetworkingConfig") final NetworkingConfig networkingConfig) {
-    final Builder builder = builder()
+    return builder()
         .hostname(hostname)
         .domainname(domainname)
         .user(user)
@@ -204,34 +204,16 @@ public abstract class ContainerConfig {
         .hostConfig(hostConfig)
         .stopSignal(stopSignal)
         .networkingConfig(networkingConfig)
-        .volumes(volumes);
-
-    if (portSpecs != null) {
-      builder.portSpecs(portSpecs);
-    }
-    if (exposedPorts != null) {
-      builder.exposedPorts(exposedPorts);
-    }
-    if (env != null) {
-      builder.env(env);
-    }
-    if (cmd != null) {
-      builder.cmd(cmd);
-    }
-    if (entrypoint != null) {
-      builder.entrypoint(entrypoint);
-    }
-    if (onBuild != null) {
-      builder.onBuild(onBuild);
-    }
-    if (labels != null) {
-      builder.labels(labels);
-    }
-    if (healthcheck != null) {
-      builder.healthcheck(healthcheck);
-    }
-
-    return builder.build();
+        .volumes(volumes)
+        .portSpecs(portSpecs)
+        .exposedPorts(exposedPorts)
+        .env(env)
+        .cmd(cmd)
+        .entrypoint(entrypoint)
+        .onBuild(onBuild)
+        .labels(labels)
+        .healthcheck(healthcheck)
+        .build();
   }
 
   public abstract Builder toBuilder();
