@@ -2733,7 +2733,7 @@ public class DefaultDockerClientTest {
     final String expectedLocalPath = "/local/path";
     assertThat(volumeContainer.volumes().values(), hasItem(containsString(expectedLocalPath)));
 
-    assertThat(volumeContainer.config().volumeNames(), hasItem("/foo"));
+    assertThat(volumeContainer.config().volumes(), hasItem("/foo"));
   }
 
   @Test
@@ -2990,7 +2990,7 @@ public class DefaultDockerClientTest {
       }
     }
 
-    assertThat(containerInfo.config().volumeNames(), hasItem(anonVolumeTo));
+    assertThat(containerInfo.config().volumes(), hasItem(anonVolumeTo));
   }
 
   @Test
