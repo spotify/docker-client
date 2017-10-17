@@ -80,7 +80,7 @@ final ContainerInfo info = docker.inspectContainer(id);
 docker.startContainer(id);
 
 // Exec command inside running container with attached STDOUT and STDERR
-final String[] command = {"bash", "-c", "ls"};
+final String[] command = {"sh", "-c", "ls"};
 final ExecCreation execCreation = docker.execCreate(
     id, command, DockerClient.ExecCreateParam.attachStdout(),
     DockerClient.ExecCreateParam.attachStderr());
