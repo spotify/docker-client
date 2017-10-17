@@ -443,8 +443,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (builder.useProxy()) {
       final String proxyHost = System.getProperty("http.proxyHost");
       if (proxyHost != null) {
-        config.property(ClientProperties.PROXY_URI, proxyHost + ":"
-                + checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort"));
+        String proxyPort = checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort");
+        config.property(ClientProperties.PROXY_URI, !proxyHost.startsWith("http") ? "http://" : ""
+                + proxyHost + ":" + proxyPort);
 
         //ensure Content-Length is populated before sending request via proxy.
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
