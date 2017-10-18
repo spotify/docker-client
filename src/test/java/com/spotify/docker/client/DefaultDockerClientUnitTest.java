@@ -292,9 +292,12 @@ public class DefaultDockerClientUnitTest {
     // build() calls /version to check what format of header to send
     enqueueServerApiVersion("1.20");
 
-    // TODO (mbrown): what to return for build response?
     server.enqueue(new MockResponse()
-        .setResponseCode(200)
+            .setResponseCode(200)
+            .addHeader("Content-Type", "application/json")
+            .setBody(
+                fixture("fixtures/1.22/build.json")
+            )
     );
 
     final Path path = Paths.get(Resources.getResource("dockerDirectory").toURI());
