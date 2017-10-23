@@ -1241,6 +1241,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = resource.queryParam("fromImage", imageRef.getImage());
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
+    } else {
+      resource = resource.queryParam("tag", "latest");
     }
 
     try (ProgressStream pull =
