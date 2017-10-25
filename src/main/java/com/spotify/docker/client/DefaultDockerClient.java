@@ -1241,7 +1241,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = resource.queryParam("fromImage", imageRef.getImage());
     if (imageRef.getTag() != null) {
       resource = resource.queryParam("tag", imageRef.getTag());
-    } else if(imageRef.getImage().lastIndexOf('@') < 0) {
+    } else if (imageRef.getImage().lastIndexOf('@') < 0) {
       resource = resource.queryParam("tag", "latest");
     }
 
