@@ -89,6 +89,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
+import com.spotify.docker.client.messages.ContainersDeleted;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
@@ -107,9 +108,11 @@ import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
+import com.spotify.docker.client.messages.UnusedImages;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.VolumesDeleted;
 import com.spotify.docker.client.messages.swarm.Config;
 import com.spotify.docker.client.messages.swarm.ConfigCreateResponse;
 import com.spotify.docker.client.messages.swarm.ConfigSpec;
@@ -625,6 +628,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public UnusedImages removeUnusedImages()
+          throws DockerException, InterruptedException {
+    WebTarget resource = resource()
+            .path("images").path("prune");
+    return request(POST,UnusedImages.class,resource,resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
   public ContainerCreation createContainer(final ContainerConfig config)
       throws DockerException, InterruptedException {
     return createContainer(config, null);
@@ -746,6 +757,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public ContainersDeleted removeStoppedContainers()
+          throws DockerException, InterruptedException {
+    WebTarget resource = resource().path("containers").path("prune");
+    return request(POST,ContainersDeleted.class,resource,resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
   public void stopContainer(final String containerId, final int secondsToWaitBeforeKilling)
       throws DockerException, InterruptedException {
     try {
@@ -796,6 +814,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     removeContainer(containerId, RemoveContainerParam.removeVolumes(removeVolumes));
   }
+
 
   @Override
   public void removeContainer(final String containerId, final RemoveContainerParam... params)
@@ -2528,6 +2547,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("volumes");
     resource = addParameters(resource, params);
     return request(GET, VolumeList.class, resource, resource.request(APPLICATION_JSON_TYPE));
+  }
+
+  @Override
+  public VolumesDeleted removeUnusedVolumes()
+          throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("volumes").path("prune");
+    return request(POST,VolumesDeleted.class,resource,resource.request(APPLICATION_JSON_TYPE));
   }
 
   @Override
