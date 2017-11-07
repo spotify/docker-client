@@ -1616,7 +1616,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public LogStream execStart(final String execId, final ExecStartParameter... params)
       throws DockerException, InterruptedException {
-    final WebTarget resource = resource().path("exec").path(execId).path("start");
+    final WebTarget resource = noTimeoutResource().path("exec").path(execId).path("start");
 
     final StringWriter writer = new StringWriter();
     try {

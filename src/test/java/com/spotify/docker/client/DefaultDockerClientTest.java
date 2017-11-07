@@ -3127,6 +3127,37 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testExecNoTimeout() throws Exception {
+    sut.pull(BUSYBOX_LATEST);
+    final String volumeContainer = randomName();
+    final ContainerConfig volumeConfig = ContainerConfig.builder().image(BUSYBOX_LATEST)
+        .cmd("sh", "-c", "sleep 15")
+        .build();
+    sut.createContainer(volumeConfig, volumeContainer);
+    sut.startContainer(volumeContainer);
+
+    final StringBuffer result = new StringBuffer();
+    final String [] cmd = new String [] { "sh", "-c",
+        "sleep 10 ;"
+        + "echo Finished ;" };
+    final ExecCreation execCreation = sut.execCreate(volumeContainer, cmd,
+        ExecCreateParam.attachStdout(),
+        ExecCreateParam.attachStderr());
+    final LogStream stream = sut.execStart(execCreation.id());
+    try {
+      while (stream.hasNext()) {
+        final String r = UTF_8.decode(stream.next().content()).toString();
+        log.info(r);
+        result.append(r);
+      }
+    } catch (Exception e) {
+      log.info(e.getMessage());
+    }
+
+    verifyNoTimeoutContainer(volumeContainer, result);
+  }
+
+  @Test
   public void testLogsNoStdOut() throws Exception {
     sut.pull(BUSYBOX_LATEST);
 
