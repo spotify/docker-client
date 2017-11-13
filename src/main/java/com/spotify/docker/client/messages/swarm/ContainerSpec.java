@@ -374,7 +374,7 @@ public abstract class ContainerSpec {
       @JsonProperty("Secrets") final List<SecretBind> secrets,
       @JsonProperty("DNSConfig") final DnsConfig dnsConfig,
       @JsonProperty("Configs") final List<ConfigBind> configs) {
-    final Builder builder = builder()
+    return builder()
         .image(image)
         .hostname(hostname)
         .args(args)
@@ -387,24 +387,11 @@ public abstract class ContainerSpec {
         .stopGracePeriod(stopGracePeriod)
         .healthcheck(healthcheck)
         .hosts(hosts)
-        .dnsConfig(dnsConfig);
-
-    if (labels != null) {
-      builder.labels(labels);
-    }
-
-    if (command != null) {
-      builder.command(command);
-    }
-
-    if (secrets != null) {
-      builder.secrets(secrets);
-    }
-
-    if (configs != null) {
-      builder.configs(configs);
-    }
-
-    return builder.build();
+        .dnsConfig(dnsConfig)
+        .labels(labels)
+        .command(command)
+        .secrets(secrets)
+        .configs(configs)
+        .build();
   }
 }

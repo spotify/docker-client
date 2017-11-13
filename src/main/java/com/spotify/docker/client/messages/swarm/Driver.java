@@ -69,13 +69,9 @@ public abstract class Driver {
   static Driver create(
       @JsonProperty("Name") final String name,
       @JsonProperty("Options") final Map<String, String> options) {
-    final Builder builder = builder()
-        .name(name);
-
-    if (options != null) {
-      builder.options(options);
-    }
-
-    return builder.build();
+    return builder()
+        .name(name)
+        .options(options)
+        .build();
   }
 }
