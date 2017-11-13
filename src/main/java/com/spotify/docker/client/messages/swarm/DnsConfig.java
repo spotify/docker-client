@@ -77,17 +77,11 @@ public abstract class DnsConfig {
       @JsonProperty("Nameservers") final List<String> nameServers,
       @JsonProperty("Search") final List<String> search,
       @JsonProperty("Options") final List<String> options) {
-    final Builder builder = builder();
-    if (nameServers != null) {
-      builder.nameServers(nameServers);
-    }
-    if (search != null) {
-      builder.search(search);
-    }
-    if (options != null) {
-      builder.options(options);
-    }
-    return builder.build();
+    return builder()
+        .nameServers(nameServers)
+        .search(search)
+        .options(options)
+        .build();
   }
 
 }
