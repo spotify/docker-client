@@ -71,16 +71,11 @@ public abstract class SwarmInit {
       @JsonProperty("AdvertiseAddr") final String advertiseAddr,
       @JsonProperty("ForceNewCluster") final Boolean forceNewCluster,
       @JsonProperty("Spec") final SwarmSpec swarmSpec) {
-    final Builder builder = builder()
+    return builder()
         .listenAddr(listenAddr)
         .advertiseAddr(advertiseAddr)
-        .forceNewCluster(forceNewCluster);
-
-    if (swarmSpec != null) {
-      builder.swarmSpec(swarmSpec);
-    }
-
-    return builder.build();
-
+        .forceNewCluster(forceNewCluster)
+        .swarmSpec(swarmSpec)
+        .build();
   }
 }
