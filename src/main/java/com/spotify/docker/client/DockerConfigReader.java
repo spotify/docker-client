@@ -36,6 +36,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,15 +90,17 @@ public class DockerConfigReader {
       return configs.get(serverAddress);
     }
 
-    // If the given server address didn't have a protocol try adding the 'https' protocol.
+    // If the given server address didn't have a protocol try adding a protocol to the address.
     // This handles cases where older versions of Docker included the protocol when writing
     // auth tokens to config.json.
     try {
       final URI serverAddressUri = new URI(serverAddress);
       if (serverAddressUri.getScheme() == null) {
-        final String addrWithProto = "https://" + serverAddress;
-        if (configs.containsKey(addrWithProto)) {
-          return configs.get(addrWithProto);
+        for (String proto : Arrays.asList("https://", "http://")) {
+          final String addrWithProto = proto + serverAddress;
+          if (configs.containsKey(addrWithProto)) {
+            return configs.get(addrWithProto);
+          }
         }
       }
     } catch (URISyntaxException e) {

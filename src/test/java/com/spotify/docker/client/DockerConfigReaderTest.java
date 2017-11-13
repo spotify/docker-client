@@ -169,9 +169,13 @@ public class DockerConfigReaderTest {
     final RegistryAuth noProto = reader.fromConfig(path, "docker.example.com");
     assertThat(noProto.serverAddress(), equalTo("docker.example.com"));
 
-    // Server address doesn't have a protocol but the entry in the config file does
+    // Server address doesn't have a protocol but the entry in the config file does (https)
     final RegistryAuth httpsProto = reader.fromConfig(path, "repo.example.com");
     assertThat(httpsProto.serverAddress(), equalTo("https://repo.example.com"));
+
+    // Server address doesn't have a protocol but the entry in the config file does (http)
+    final RegistryAuth httpProto = reader.fromConfig(path, "local.example.com");
+    assertThat(httpProto.serverAddress(), equalTo("http://local.example.com"));
   }
 
   private static Path getTestFilePath(final String path) {
