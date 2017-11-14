@@ -21,6 +21,9 @@
 package com.spotify.docker.client.messages;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
@@ -44,6 +47,20 @@ public class ContainerConfigTest {
   @Test
   public void test1_29() throws Exception {
     objectMapper.readValue(fixture("fixtures/1.29/containerConfig.json"), ContainerConfig.class);
+  }
+
+  @Test
+  public void test1_29_WithoutNullables() throws Exception {
+    final ContainerConfig config = objectMapper.readValue(
+        fixture("fixtures/1.29/containerConfigWithoutNullables.json"), ContainerConfig.class);
+    assertThat(config.portSpecs(), is(nullValue()));
+    assertThat(config.exposedPorts(), is(nullValue()));
+    assertThat(config.env(), is(nullValue()));
+    assertThat(config.cmd(), is(nullValue()));
+    assertThat(config.entrypoint(), is(nullValue()));
+    assertThat(config.onBuild(), is(nullValue()));
+    assertThat(config.labels(), is(nullValue()));
+    assertThat(config.healthcheck(), is(nullValue()));
   }
 
 }
