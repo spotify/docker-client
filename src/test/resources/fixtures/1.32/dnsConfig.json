@@ -1,0 +1,11 @@
+{
+  "Nameservers": [
+    "8.8.8.8"
+  ],
+  "Search": [
+    "example.org"
+  ],
+  "Options": [
+    "timeout:3"
+  ]
+}
