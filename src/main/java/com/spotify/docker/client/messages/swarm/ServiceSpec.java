@@ -188,21 +188,15 @@ public abstract class ServiceSpec {
       @JsonProperty("UpdateConfig") final UpdateConfig updateConfig,
       @JsonProperty("Networks") final List<NetworkAttachmentConfig> networks,
       @JsonProperty("EndpointSpec") final EndpointSpec endpointSpec) {
-    final Builder builder = builder()
+    return builder()
         .name(name)
         .labels(labels)
         .taskTemplate(taskTemplate)
         .mode(mode)
         .updateConfig(updateConfig)
-        .endpointSpec(endpointSpec);
-
-    if (labels != null) {
-      builder.labels(labels);
-    }
-    if (networks != null) {
-      builder.networks(networks);
-    }
-
-    return builder.build();
+        .endpointSpec(endpointSpec)
+        .labels(labels)
+        .networks(networks)
+        .build();
   }
 }

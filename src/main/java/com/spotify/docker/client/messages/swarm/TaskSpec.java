@@ -159,17 +159,13 @@ public abstract class TaskSpec {
       @JsonProperty("Placement") final Placement placement,
       @JsonProperty("Networks") final List<NetworkAttachmentConfig> networks,
       @JsonProperty("LogDriver") final Driver logDriver) {
-    final Builder builder = builder()
+    return builder()
         .containerSpec(containerSpec)
         .resources(resources)
         .restartPolicy(restartPolicy)
         .placement(placement)
-        .logDriver(logDriver);
-
-    if (networks != null) {
-      builder.networks(networks);
-    }
-
-    return builder.build();
+        .logDriver(logDriver)
+        .networks(networks)
+        .build();
   }
 }
