@@ -1,0 +1,7 @@
+{
+  "Name": "my-driver",
+  "Options": {
+    "1": "A",
+    "2": "B"
+  }
+}
