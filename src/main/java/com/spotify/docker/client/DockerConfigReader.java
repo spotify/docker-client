@@ -31,9 +31,12 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,9 +76,6 @@ public class DockerConfigReader {
     checkNotNull(configPath);
 
     final Map<String, RegistryAuth> configs = parseDockerConfig(configPath).configs();
-    if (serverAddress != null && configs.containsKey(serverAddress)) {
-      return configs.get(serverAddress);
-    }
 
     if (isNullOrEmpty(serverAddress)) {
       if (configs.isEmpty()) {
@@ -84,6 +84,27 @@ public class DockerConfigReader {
       LOG.warn("Returning first entry from docker config file - use fromConfig(Path) instead, "
                + "this behavior is deprecated and will soon be removed");
       return configs.values().iterator().next();
+    }
+
+    if (configs.containsKey(serverAddress)) {
+      return configs.get(serverAddress);
+    }
+
+    // If the given server address didn't have a protocol try adding a protocol to the address.
+    // This handles cases where older versions of Docker included the protocol when writing
+    // auth tokens to config.json.
+    try {
+      final URI serverAddressUri = new URI(serverAddress);
+      if (serverAddressUri.getScheme() == null) {
+        for (String proto : Arrays.asList("https://", "http://")) {
+          final String addrWithProto = proto + serverAddress;
+          if (configs.containsKey(addrWithProto)) {
+            return configs.get(addrWithProto);
+          }
+        }
+      }
+    } catch (URISyntaxException e) {
+      // Nothing to do, just let this fall through below
     }
 
     throw new IllegalArgumentException(
