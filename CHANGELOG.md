@@ -1,8 +1,23 @@
 # Changelog
 
+## 8.9.2
+
+Released November 15, 2017
+
+- Support loading auth config for repos with no scheme in their URL ([910][])
+- execStart should use the 'noTimeoutClient' ([916][])
+- upgrade to jnr-unixsocket 0.18 ([918][])
+- upgrade maven-shade-plugin from 2.4.1 to 3.1.0 ([922][]; fixes [900][])
+
+[910]: https://github.com/spotify/docker-client/pull/910
+[916]: https://github.com/spotify/docker-client/pull/916
+[918]: https://github.com/spotify/docker-client/pull/918
+[922]: https://github.com/spotify/docker-client/pull/922
+[900]: https://github.com/spotify/docker-client/issues/900
+
 ## 8.9.1
 
-Not yet released.
+Released September 26, 2017
 
 - Support creating a service without specifying a name ([891][] Allow `ServiceSpec.name` to be nullable)
 - Change `TaskStatus.timestamp` from `String` to `Date` ([895][])
