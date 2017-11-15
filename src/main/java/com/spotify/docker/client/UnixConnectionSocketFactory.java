@@ -27,7 +27,9 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
+import jnr.unixsocket.UnixSocket;
 import jnr.unixsocket.UnixSocketAddress;
+import jnr.unixsocket.UnixSocketChannel;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Contract;
@@ -63,8 +65,8 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
   }
 
   @Override
-  public Socket createSocket(final HttpContext context) throws IOException {
-    return new ApacheUnixSocket();
+  public UnixSocket createSocket(final HttpContext context) throws IOException {
+    return UnixSocketChannel.open().socket();
   }
 
   @Override
@@ -74,12 +76,16 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
                               final InetSocketAddress remoteAddress,
                               final InetSocketAddress localAddress,
                               final HttpContext context) throws IOException {
+    if (!(socket instanceof UnixSocket)) {
+      throw new AssertionError("Unexpected socket: " + socket);
+    }
+
+    socket.setSoTimeout(connectTimeout);
     try {
-      socket.connect(new UnixSocketAddress(socketFile), connectTimeout);
+      socket.getChannel().connect(new UnixSocketAddress(socketFile));
     } catch (SocketTimeoutException e) {
       throw new ConnectTimeoutException(e, null, remoteAddress.getAddress());
     }
-
     return socket;
   }
 }
