@@ -4949,8 +4949,9 @@ public class DefaultDockerClientTest {
     try {
       sut.createSecret(secretSpecConflict);
       fail("Should fail due to secret name conflict");
-    } catch (DockerRequestException ex) {
-      // Ignored; Docker should return status code 409, but it doesn't for some reason.
+    } catch (ConflictException | DockerRequestException ex) {
+      // Ignored; Docker should return status code 409 but doesn't in some earlier versions.
+      // Recent versions return 409 which translates into ConflictException.
     }
 
     final SecretSpec secretSpecInvalidData = SecretSpec.builder()
