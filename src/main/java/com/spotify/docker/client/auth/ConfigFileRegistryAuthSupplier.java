@@ -93,7 +93,6 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
 
   @Override
   public RegistryAuth authForSwarm() throws DockerException {
-    log.warn("authForSwarm not implemented in this class");
     return null;
   }
 
