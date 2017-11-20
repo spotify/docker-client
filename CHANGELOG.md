@@ -5,7 +5,7 @@
 Not yet released.
 
 - `ContainerConfig.exposedPorts` is serialized as a map of keys to empty map placeholders. `exposedPorts` had been serialized as keys -> `null`. (Fixes [893][])
-- Breaking API change: The method `ContainerConfig.volumes()` has changed signature from `ImmutableMap<String, Map> volmues()` (where the second `Map` was always empty) to `Set<String> volumes()`. This change simplifies the code internally. ([898][])
+- Breaking API change: The method `ContainerConfig.volumes()` has changed signature from `ImmutableMap<String, Map> volumes()` (where the second `Map` was always empty) to `ImmutableSet<String> volumes()`. This change simplifies the code internally. ([898][])
 
 [893]: https://github.com/spotify/docker-client/issues/893
 [898]: https://github.com/spotify/docker-client/issues/898

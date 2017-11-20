@@ -101,7 +101,7 @@ public abstract class ContainerConfig {
   public abstract String image();
 
   /**
-   * @deprecated As of 8.9.1, use {@link #volumes()}.
+   * @deprecated As of 8.10.0, use {@link #volumes()}.
    */
   @Deprecated
   public Set<String> volumeNames() {
