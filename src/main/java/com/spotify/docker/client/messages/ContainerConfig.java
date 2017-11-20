@@ -263,20 +263,6 @@ public abstract class ContainerConfig {
 
     abstract ImmutableSet.Builder<String> volumesBuilder();
 
-    public abstract Builder volumes(final Set<String> volumes);
-
-    public abstract Builder volumes(final String... volumes);
-
-    /**
-     * @deprecated As of 8.10.0, use {@link #volumes(Set)} or
-     *             {@link #volumes(String...)}.
-     */
-    @Deprecated
-    public Builder volumes(final Map<String, Map> volumes) {
-      this.volumes(volumes.keySet());
-      return this;
-    }
-
     public Builder addVolume(final String volume) {
       volumesBuilder().add(volume);
       return this;
@@ -288,6 +274,20 @@ public abstract class ContainerConfig {
       }
       return this;
     }
+
+    /**
+     * @deprecated As of 8.10.0, use {@link #volumes(Set)} or
+     *             {@link #volumes(String...)}.
+     */
+    @Deprecated
+    public Builder volumes(final Map<String, Map> volumes) {
+      this.volumes(volumes.keySet());
+      return this;
+    }
+
+    public abstract Builder volumes(final Set<String> volumes);
+
+    public abstract Builder volumes(final String... volumes);
 
     public abstract Builder workingDir(final String workingDir);
 
