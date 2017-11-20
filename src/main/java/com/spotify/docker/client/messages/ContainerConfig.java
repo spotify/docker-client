@@ -267,8 +267,25 @@ public abstract class ContainerConfig {
 
     public abstract Builder volumes(final String... volumes);
 
+    /**
+     * @deprecated As of 8.10.0, use {@link #volumes(Set)} or
+     *             {@link #volumes(String...)}.
+     */
+    @Deprecated
+    public Builder volumes(final Map<String, Map> volumes) {
+      this.volumes(volumes.keySet());
+      return this;
+    }
+
     public Builder addVolume(final String volume) {
       volumesBuilder().add(volume);
+      return this;
+    }
+
+    public Builder addVolumes(final String... volumes) {
+      for (final String volume : volumes) {
+        volumesBuilder().add(volume);
+      }
       return this;
     }
 
