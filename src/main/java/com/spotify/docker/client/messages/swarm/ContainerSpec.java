@@ -387,22 +387,13 @@ public abstract class ContainerSpec {
         .stopGracePeriod(stopGracePeriod)
         .healthcheck(healthcheck)
         .hosts(hosts)
-        .dnsConfig(dnsConfig);
+        .dnsConfig(dnsConfig)
+        .command(command)
+        .secrets(secrets)
+        .configs(configs);
 
     if (labels != null) {
       builder.labels(labels);
-    }
-
-    if (command != null) {
-      builder.command(command);
-    }
-
-    if (secrets != null) {
-      builder.secrets(secrets);
-    }
-
-    if (configs != null) {
-      builder.configs(configs);
     }
 
     return builder.build();
