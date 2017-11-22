@@ -1,0 +1,44 @@
+{
+  "blkio_stats": {
+    "io_merged_recursive": null,
+    "io_queue_recursive": null,
+    "io_service_bytes_recursive": null,
+    "io_service_time_recursive": null,
+    "io_serviced_recursive": null,
+    "io_time_recursive": null,
+    "io_wait_time_recursive": null,
+    "sectors_recursive": null
+  },
+  "cpu_stats": {
+    "cpu_usage": {
+      "total_usage": 0,
+      "usage_in_kernelmode": 0,
+      "usage_in_usermode": 0
+    },
+    "throttling_data": {
+      "periods": 0,
+      "throttled_periods": 0,
+      "throttled_time": 0
+    }
+  },
+  "id": "3c6271139fb2c54e3f2eadf3c7fc9a95887e3d47f24a0caef615b28f111ccfa3",
+  "memory_stats": {},
+  "name": "/jovial_liskov",
+  "num_procs": 0,
+  "pids_stats": {},
+  "precpu_stats": {
+    "cpu_usage": {
+      "total_usage": 0,
+      "usage_in_kernelmode": 0,
+      "usage_in_usermode": 0
+    },
+    "throttling_data": {
+      "periods": 0,
+      "throttled_periods": 0,
+      "throttled_time": 0
+    }
+  },
+  "preread": "0001-01-01T00:00:00Z",
+  "read": "0001-01-01T00:00:00Z",
+  "storage_stats": {}
+}

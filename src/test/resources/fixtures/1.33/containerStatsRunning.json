@@ -1,0 +1,172 @@
+{
+  "blkio_stats": {
+    "io_merged_recursive": [],
+    "io_queue_recursive": [],
+    "io_service_bytes_recursive": [
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Read",
+        "value": 7155712
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Write",
+        "value": 0
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Sync",
+        "value": 0
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Async",
+        "value": 7155712
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Total",
+        "value": 7155712
+      }
+    ],
+    "io_service_time_recursive": [],
+    "io_serviced_recursive": [
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Read",
+        "value": 284
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Write",
+        "value": 0
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Sync",
+        "value": 0
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Async",
+        "value": 284
+      },
+      {
+        "major": 8,
+        "minor": 0,
+        "op": "Total",
+        "value": 284
+      }
+    ],
+    "io_time_recursive": [],
+    "io_wait_time_recursive": [],
+    "sectors_recursive": []
+  },
+  "cpu_stats": {
+    "cpu_usage": {
+      "percpu_usage": [
+        21169594,
+        18112083
+      ],
+      "total_usage": 39281677,
+      "usage_in_kernelmode": 10000000,
+      "usage_in_usermode": 20000000
+    },
+    "online_cpus": 2,
+    "system_cpu_usage": 305318850000000,
+    "throttling_data": {
+      "periods": 0,
+      "throttled_periods": 0,
+      "throttled_time": 0
+    }
+  },
+  "id": "624a23cb3a58da0fd54b3a9dc1cd9a5f545240b2fd92549a5abb422700b401ac",
+  "memory_stats": {
+    "limit": 2099351552,
+    "max_usage": 8720384,
+    "stats": {
+      "active_anon": 1425408,
+      "active_file": 823296,
+      "cache": 7200768,
+      "dirty": 4096,
+      "hierarchical_memory_limit": 9223372036854771712,
+      "hierarchical_memsw_limit": 9223372036854771712,
+      "inactive_anon": 8192,
+      "inactive_file": 6340608,
+      "mapped_file": 4898816,
+      "pgfault": 1166,
+      "pgmajfault": 49,
+      "pgpgin": 2548,
+      "pgpgout": 449,
+      "rss": 1396736,
+      "rss_huge": 0,
+      "swap": 0,
+      "total_active_anon": 1425408,
+      "total_active_file": 823296,
+      "total_cache": 7200768,
+      "total_dirty": 4096,
+      "total_inactive_anon": 8192,
+      "total_inactive_file": 6340608,
+      "total_mapped_file": 4898816,
+      "total_pgfault": 1166,
+      "total_pgmajfault": 49,
+      "total_pgpgin": 2548,
+      "total_pgpgout": 449,
+      "total_rss": 1396736,
+      "total_rss_huge": 0,
+      "total_swap": 0,
+      "total_unevictable": 0,
+      "total_writeback": 0,
+      "unevictable": 0,
+      "writeback": 0
+    },
+    "usage": 8720384
+  },
+  "name": "/inspiring_raman",
+  "networks": {
+    "eth0": {
+      "rx_bytes": 828,
+      "rx_dropped": 0,
+      "rx_errors": 0,
+      "rx_packets": 10,
+      "tx_bytes": 0,
+      "tx_dropped": 0,
+      "tx_errors": 0,
+      "tx_packets": 0
+    }
+  },
+  "num_procs": 0,
+  "pids_stats": {
+    "current": 2
+  },
+  "precpu_stats": {
+    "cpu_usage": {
+      "percpu_usage": [
+        21169594,
+        18112083
+      ],
+      "total_usage": 39281677,
+      "usage_in_kernelmode": 10000000,
+      "usage_in_usermode": 20000000
+    },
+    "online_cpus": 2,
+    "system_cpu_usage": 305316870000000,
+    "throttling_data": {
+      "periods": 0,
+      "throttled_periods": 0,
+      "throttled_time": 0
+    }
+  },
+  "preread": "2017-11-22T04:04:20.31756147Z",
+  "read": "2017-11-22T04:04:21.318496884Z",
+  "storage_stats": {}
+}
