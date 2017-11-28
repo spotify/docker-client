@@ -2,7 +2,7 @@
 
 ## 8.10.0
 
-Not yet released.
+Released November 28, 2017
 
 - `ContainerConfig.exposedPorts` is serialized as a map of keys to empty map placeholders. `exposedPorts` had been serialized as keys -> `null`. (Fixes [893][])
 - Breaking API change: The method `ContainerConfig.volumes()` has changed signature from `ImmutableMap<String, Map> volumes()` (where the second `Map` was always empty) to `ImmutableSet<String> volumes()`. This change simplifies the code internally. ([898][])
