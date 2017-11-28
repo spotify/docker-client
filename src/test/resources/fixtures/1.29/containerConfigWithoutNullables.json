@@ -1,0 +1,24 @@
+{
+  "Hostname": "string",
+  "Domainname": "string",
+  "User": "string",
+  "AttachStdin": false,
+  "AttachStdout": true,
+  "AttachStderr": true,
+  "Tty": false,
+  "OpenStdin": false,
+  "StdinOnce": false,
+  "ArgsEscaped": true,
+  "Image": "string",
+  "Volumes": {
+    "additionalProperties": {}
+  },
+  "WorkingDir": "string",
+  "NetworkDisabled": true,
+  "MacAddress": "string",
+  "StopSignal": "SIGTERM",
+  "StopTimeout": 10,
+  "Shell": [
+    "string"
+  ]
+}

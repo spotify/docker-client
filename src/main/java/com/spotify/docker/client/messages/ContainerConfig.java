@@ -100,15 +100,17 @@ public abstract class ContainerConfig {
   @JsonProperty("Image")
   public abstract String image();
 
-  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
+  /**
+   * @deprecated As of 8.10.0, use {@link #volumes()}.
+   */
+  @Deprecated
   public Set<String> volumeNames() {
-    //noinspection ConstantConditions
-    return volumes() == null ? Collections.<String>emptySet() : volumes().keySet();
+    return volumes();
   }
 
   @Nullable
   @JsonProperty("Volumes")
-  public abstract ImmutableMap<String, Map> volumes();
+  public abstract ImmutableSet<String> volumes();
 
   @Nullable
   @JsonProperty("WorkingDir")
@@ -174,7 +176,7 @@ public abstract class ContainerConfig {
       @JsonProperty("Env") final List<String> env,
       @JsonProperty("Cmd") final List<String> cmd,
       @JsonProperty("Image") final String image,
-      @JsonProperty("Volumes") final Map<String, Map> volumes,
+      @JsonProperty("Volumes") final Set<String> volumes,
       @JsonProperty("WorkingDir") final String workingDir,
       @JsonProperty("Entrypoint") final List<String> entrypoint,
       @JsonProperty("NetworkDisabled") final Boolean networkDisabled,
@@ -185,7 +187,7 @@ public abstract class ContainerConfig {
       @JsonProperty("StopSignal") final String stopSignal,
       @JsonProperty("Healthcheck") final Healthcheck healthcheck,
       @JsonProperty("NetworkingConfig") final NetworkingConfig networkingConfig) {
-    final Builder builder = builder()
+    return builder()
         .hostname(hostname)
         .domainname(domainname)
         .user(user)
@@ -201,37 +203,17 @@ public abstract class ContainerConfig {
         .macAddress(macAddress)
         .hostConfig(hostConfig)
         .stopSignal(stopSignal)
-        .networkingConfig(networkingConfig);
-
-    if (portSpecs != null) {
-      builder.portSpecs(portSpecs);
-    }
-    if (exposedPorts != null) {
-      builder.exposedPorts(exposedPorts);
-    }
-    if (env != null) {
-      builder.env(env);
-    }
-    if (cmd != null) {
-      builder.cmd(cmd);
-    }
-    if (volumes != null)  {
-      builder.volumes(volumes);
-    }
-    if (entrypoint != null) {
-      builder.entrypoint(entrypoint);
-    }
-    if (onBuild != null) {
-      builder.onBuild(onBuild);
-    }
-    if (labels != null) {
-      builder.labels(labels);
-    }
-    if (healthcheck != null) {
-      builder.healthcheck(healthcheck);
-    }
-
-    return builder.build();
+        .networkingConfig(networkingConfig)
+        .volumes(volumes)
+        .portSpecs(portSpecs)
+        .exposedPorts(exposedPorts)
+        .env(env)
+        .cmd(cmd)
+        .entrypoint(entrypoint)
+        .onBuild(onBuild)
+        .labels(labels)
+        .healthcheck(healthcheck)
+        .build();
   }
 
   public abstract Builder toBuilder();
@@ -279,47 +261,33 @@ public abstract class ContainerConfig {
 
     public abstract Builder image(final String image);
 
-    abstract ImmutableMap.Builder<String, Map> volumesBuilder();
+    abstract ImmutableSet.Builder<String> volumesBuilder();
 
     public Builder addVolume(final String volume) {
-      volumesBuilder().put(volume, new HashMap());
+      volumesBuilder().add(volume);
       return this;
     }
 
     public Builder addVolumes(final String... volumes) {
       for (final String volume : volumes) {
-        volumesBuilder().put(volume, new HashMap());
-      }
-      return this;
-    }
-
-    public abstract Builder volumes(final Map<String, Map> volumes);
-
-    /**
-     * @deprecated  As of release 7.0.0, replaced by {@link #volumes(Map)}.
-     */
-    @Deprecated
-    public Builder volumes(final Set<String> volumes) {
-      if (volumes != null && !volumes.isEmpty()) {
-        final ImmutableMap.Builder<String, Map> volumesBuilder = ImmutableMap.builder();
-        for (final String volume : volumes) {
-          volumesBuilder.put(volume, new HashMap());
-        }
-        volumes(volumesBuilder.build());
+        volumesBuilder().add(volume);
       }
       return this;
     }
 
     /**
-     * @deprecated  As of release 7.0.0, replaced by {@link #volumes(Map)}.
+     * @deprecated As of 8.10.0, use {@link #volumes(Set)} or
+     *             {@link #volumes(String...)}.
      */
     @Deprecated
-    public Builder volumes(final String... volumes) {
-      if (volumes != null && volumes.length > 0) {
-        volumes(ImmutableSet.copyOf(volumes));
-      }
+    public Builder volumes(final Map<String, Map> volumes) {
+      this.volumes(volumes.keySet());
       return this;
     }
+
+    public abstract Builder volumes(final Set<String> volumes);
+
+    public abstract Builder volumes(final String... volumes);
 
     public abstract Builder workingDir(final String workingDir);
 
