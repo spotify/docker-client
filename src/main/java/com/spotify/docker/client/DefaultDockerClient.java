@@ -165,6 +165,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -183,7 +185,6 @@ import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
-import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2722,9 +2723,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return "null";
     }
     try {
-      return Base64.encodeAsString(ObjectMapperProvider
+      return Base64.encodeBase64String(ObjectMapperProvider
                                        .objectMapper()
-                                       .writeValueAsString(registryAuth));
+                                       .writeValueAsString(registryAuth).getBytes());
     } catch (JsonProcessingException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
     }
@@ -2750,7 +2751,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
       }
 
-      return Base64.encodeAsString(authRegistryJson);
+      return Base64.encodeBase64String(authRegistryJson.getBytes());
     } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
