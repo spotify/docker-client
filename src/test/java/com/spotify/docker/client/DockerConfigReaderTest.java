@@ -201,7 +201,7 @@ public class DockerConfigReaderTest {
     storeAuthCredential(testAuth1);
     storeAuthCredential(testAuth2);
 
-    final Path path = getTestFilePath("dockerConfig/credsStoreConfig.json");
+    final Path path = getTestFilePath("dockerConfig/" + getCredsStoreFileName());
     final RegistryConfigs configs = reader.fromConfig(path);
 
     for (RegistryAuth authConfigs : configs.configs().values()) {
@@ -238,6 +238,16 @@ public class DockerConfigReaderTest {
     writer.close();
 
     process.waitFor();
+  }
+
+  private static String getCredsStoreFileName() {
+    if (OsUtils.isOsX()) {
+      return "credsStoreConfigOSX.json";
+    } else if (OsUtils.isLinux()) {
+      return "credsStoreConfigLinux.json";
+    } else {
+      return "credsStoreConfigWin.json";
+    }
   }
 
   private static Path getTestFilePath(final String path) {
