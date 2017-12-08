@@ -40,6 +40,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -127,7 +128,6 @@ public class DockerConfigReader {
 
     ObjectNode authJson = extractAuthJson(configPath);
 
-    // Support for new CredsStore
     if (authJson.has(CREDS_STORE) && authJson.has(AUTHS_ENTRY)) {
       String credsStore = authJson.get(CREDS_STORE).textValue();
       Map<String, RegistryAuth> registryAuthMap = new HashMap<>();
@@ -140,27 +140,31 @@ public class DockerConfigReader {
 
         Process process = Runtime.getRuntime().exec("docker-credential-" + credsStore + " get");
 
-        Writer outStreamWriter = new OutputStreamWriter(process.getOutputStream());
-        BufferedWriter writer = new BufferedWriter(outStreamWriter);
+        try (Writer outStreamWriter = new OutputStreamWriter(
+                                        process.getOutputStream(), StandardCharsets.UTF_8)) {
+          try (BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
 
-        writer.write(serverAddress + "\n");
-        writer.flush();
-        writer.close();
-        outStreamWriter.close();
+            writer.write(serverAddress + "\n");
+            writer.flush();
+          }
+        }
 
-        BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String serverAuthDetails = input.readLine();
-        JsonNode serverAuthNode = MAPPER.readTree(serverAuthDetails);
-        RegistryAuthV2 serverAuth = new RegistryAuthV2(serverAuthNode.get("Username").textValue(),
-                                                       serverAuthNode.get("Secret").textValue(),
-                                                       serverAuthNode.get("ServerURL").textValue());
+        try (InputStreamReader reader = new InputStreamReader(
+                                          process.getInputStream(), StandardCharsets.UTF_8)) {
+          try (BufferedReader input = new BufferedReader(reader)) {
+            String serverAuthDetails = input.readLine();
+            JsonNode serverAuthNode = MAPPER.readTree(serverAuthDetails);
+            RegistryAuthV2 serverAuth =
+                new RegistryAuthV2(serverAuthNode.get("Username").textValue(),
+                                   serverAuthNode.get("Secret").textValue(),
+                                   serverAuthNode.get("ServerURL").textValue());
 
-        registryAuthMap.put(serverAddress, serverAuth);
+            registryAuthMap.put(serverAddress, serverAuth);
+          }
+        }
       }
-
       return RegistryConfigs.create(registryAuthMap);
 
-      // Backwards compatibility with old auth types
     } else if (authJson.has(AUTHS_ENTRY)) {
       authJson = (ObjectNode)authJson.get(AUTHS_ENTRY);
     }
@@ -181,8 +185,9 @@ public class DockerConfigReader {
     }
   }
 
-  public String getCredsStore() throws IOException {
-    return "docker-credential-" + extractAuthJson(defaultConfigPath()).get(CREDS_STORE).textValue();
+  public String getSystemCredsStoreType() throws IOException {
+    JsonNode credsStore = extractAuthJson(defaultConfigPath()).get(CREDS_STORE);
+    return credsStore != null ? credsStore.textValue() : null;
   }
 
   private ObjectNode extractAuthJson(final Path configPath) throws IOException {

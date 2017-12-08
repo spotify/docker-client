@@ -24,9 +24,7 @@ public class RegistryAuthV2 extends RegistryAuth {
 
   private String username;
   private String password;
-  private String email;
   private String serverAddress;
-  private String identityToken;
 
 
   public RegistryAuthV2(String username, String password, String serverAddress) {
@@ -47,7 +45,7 @@ public class RegistryAuthV2 extends RegistryAuth {
 
   @Override
   public String email() {
-    return email;
+    return null;
   }
 
   @Override
@@ -57,7 +55,7 @@ public class RegistryAuthV2 extends RegistryAuth {
 
   @Override
   public String identityToken() {
-    return identityToken;
+    return null;
   }
 
   @Override

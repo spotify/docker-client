@@ -42,6 +42,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assume.assumeTrue;
 
 import com.google.common.io.Resources;
 import com.spotify.docker.client.messages.RegistryAuth;
@@ -82,6 +83,8 @@ public class DockerConfigReaderTest {
       .serverAddress("docker.customdomain.com")
       .identityToken("52ce5fd5-eb60-42bf-931f-5eeec128211a")
       .build();
+
+  private String credStore = null;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -182,7 +185,11 @@ public class DockerConfigReaderTest {
 
   @Test
   public void testFromDockerConfig_CredsStore() throws IOException, InterruptedException {
-    // Add the credentials to the credential store
+    String credStoreType = reader.getSystemCredsStoreType();
+    assumeTrue("Need to have support for creds store for this test.", credStoreType != null);
+
+    credStore = "docker-credential-" + credStoreType;
+
     String domain1 = "https://test.fakedomain.com";
     String domain2 = "https://test.fakedomain2.com";
 
@@ -212,7 +219,7 @@ public class DockerConfigReaderTest {
 
   private void eraseAuthCredential(String domain1) throws IOException, InterruptedException {
     // Erase the credentials from the store
-    Process process = Runtime.getRuntime().exec(reader.getCredsStore() + " erase");
+    Process process = Runtime.getRuntime().exec(credStore + " erase");
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
     writer.write(domain1 + "\n");
@@ -223,7 +230,7 @@ public class DockerConfigReaderTest {
   }
 
   private void storeAuthCredential(String testAuth1) throws IOException, InterruptedException {
-    Process process = Runtime.getRuntime().exec(reader.getCredsStore() + " store");
+    Process process = Runtime.getRuntime().exec(credStore + " store");
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
     writer.write(testAuth1 + "\n");
