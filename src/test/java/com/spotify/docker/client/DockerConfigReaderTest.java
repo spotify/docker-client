@@ -84,8 +84,6 @@ public class DockerConfigReaderTest {
       .identityToken("52ce5fd5-eb60-42bf-931f-5eeec128211a")
       .build();
 
-  private String credStore = null;
-
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
@@ -184,11 +182,8 @@ public class DockerConfigReaderTest {
   }
 
   @Test
-  public void testFromDockerConfig_CredsStore() throws IOException, InterruptedException {
-    String credStoreType = reader.getSystemCredsStoreType();
-    assumeTrue("Need to have support for creds store for this test.", credStoreType != null);
-
-    credStore = "docker-credential-" + credStoreType;
+  public void testFromDockerConfig_CredsStore() throws Exception {
+    assumeTrue("Need to have a credential store.", getAuthCredentialsExist());
 
     String domain1 = "https://test.fakedomain.com";
     String domain2 = "https://test.fakedomain2.com";
@@ -219,7 +214,7 @@ public class DockerConfigReaderTest {
 
   private void eraseAuthCredential(String domain1) throws IOException, InterruptedException {
     // Erase the credentials from the store
-    Process process = Runtime.getRuntime().exec(credStore + " erase");
+    Process process = Runtime.getRuntime().exec(getCredsStore() + " erase");
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
     writer.write(domain1 + "\n");
@@ -229,8 +224,19 @@ public class DockerConfigReaderTest {
     process.waitFor();
   }
 
+  private boolean getAuthCredentialsExist() throws InterruptedException {
+    boolean returnValue = false;
+    try {
+      Process process = Runtime.getRuntime().exec(getCredsStore() + " list");
+      returnValue = process.waitFor() == 0;
+    } catch (IOException e) {
+      // Ignored. This is ok, it just means the cred store doesn't exist on this system.
+    }
+    return returnValue;
+  }
+
   private void storeAuthCredential(String testAuth1) throws IOException, InterruptedException {
-    Process process = Runtime.getRuntime().exec(credStore + " store");
+    Process process = Runtime.getRuntime().exec(getCredsStore() + " store");
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 
     writer.write(testAuth1 + "\n");
@@ -248,6 +254,18 @@ public class DockerConfigReaderTest {
     } else {
       return "credsStoreConfigWin.json";
     }
+  }
+
+  private static String getCredsStore() {
+    String credsStore;
+    if (OsUtils.isOsX()) {
+      credsStore = "docker-credential-osxkeychain";
+    } else if (OsUtils.isLinux()) {
+      credsStore =  "docker-credential-secretservice";
+    } else {
+      credsStore = "docker-credential-wincred";
+    }
+    return credsStore;
   }
 
   private static Path getTestFilePath(final String path) {

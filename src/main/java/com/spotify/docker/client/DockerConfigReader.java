@@ -185,11 +185,6 @@ public class DockerConfigReader {
     }
   }
 
-  public String getSystemCredsStoreType() throws IOException {
-    JsonNode credsStore = extractAuthJson(defaultConfigPath()).get(CREDS_STORE);
-    return credsStore != null ? credsStore.textValue() : null;
-  }
-
   private ObjectNode extractAuthJson(final Path configPath) throws IOException {
     final File file = configPath.toFile();
 
