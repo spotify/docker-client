@@ -138,6 +138,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -2751,8 +2752,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
       }
 
-      return Base64.encodeBase64String(authRegistryJson.getBytes("UTF-8"));
-    } catch (JsonProcessingException | InterruptedException | UnsupportedEncodingException ex) {
+      return Base64.encodeBase64String(authRegistryJson.getBytes(StandardCharsets.UTF_8));
+    } catch (JsonProcessingException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
   }
