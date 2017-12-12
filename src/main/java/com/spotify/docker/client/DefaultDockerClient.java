@@ -2725,7 +2725,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     try {
       return Base64.encodeBase64String(ObjectMapperProvider
                                        .objectMapper()
-                                       .writeValueAsString(registryAuth).getBytes());
+                                       .writeValueAsBytes(registryAuth));
     } catch (JsonProcessingException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
     }
@@ -2751,8 +2751,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         authRegistryJson = "{\"auths\":" + authRegistryJson + "}";
       }
 
-      return Base64.encodeBase64String(authRegistryJson.getBytes());
-    } catch (JsonProcessingException | InterruptedException ex) {
+      return Base64.encodeBase64String(authRegistryJson.getBytes("UTF-8"));
+    } catch (JsonProcessingException | InterruptedException | UnsupportedEncodingException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
   }
