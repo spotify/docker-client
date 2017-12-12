@@ -643,7 +643,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam("name", name);
     }
 
-    log.info("Creating container with ContainerConfig: {}", config);
+    log.debug("Creating container with ContainerConfig: {}", config);
 
     try {
       return request(POST, ContainerCreation.class, resource, resource
@@ -1025,7 +1025,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       resource = resource.queryParam("tag", tag);
     }
 
-    log.info("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
+    log.debug("Committing container id: {} to repository: {} with ContainerConfig: {}", containerId,
              repo, config);
 
     try {
