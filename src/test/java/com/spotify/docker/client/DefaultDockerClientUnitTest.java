@@ -56,6 +56,7 @@ import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
+import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.swarm.Config;
 import com.spotify.docker.client.messages.swarm.ConfigBind;
 import com.spotify.docker.client.messages.swarm.ConfigCreateResponse;
@@ -955,6 +956,35 @@ public class DefaultDockerClientUnitTest {
     );
 
     dockerClient.listNodes();
+  }
+
+  @Test
+  public void testInspectVolume() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.33/inspectVolume.json")
+        )
+    );
+
+    final Volume volume = dockerClient.inspectVolume("my-volume");
+
+    assertThat(volume.name(), is("tardis"));
+    assertThat(volume.driver(), is("custom"));
+    assertThat(volume.mountpoint(), is("/var/lib/docker/volumes/tardis"));
+    assertThat(volume.status(), is(ImmutableMap.of("hello", "world")));
+    assertThat(volume.labels(), is(ImmutableMap.of(
+        "com.example.some-label", "some-value",
+        "com.example.some-other-label", "some-other-value"
+    )));
+    assertThat(volume.scope(), is("local"));
+    assertThat(volume.options(), is(ImmutableMap.of(
+        "foo", "bar",
+        "baz", "qux"
+    )));
   }
 
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
