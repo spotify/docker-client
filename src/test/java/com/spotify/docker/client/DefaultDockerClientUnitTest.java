@@ -969,7 +969,7 @@ public class DefaultDockerClientUnitTest {
         .from("noselinux")
         .to("noselinux")
         .build();
-	
+
     final Bind bindSharedSelinuxContent = HostConfig.Bind.builder()
         .from("shared")
         .to("shared")
@@ -979,7 +979,7 @@ public class DefaultDockerClientUnitTest {
     final Bind bindPrivateSelinuxContent = HostConfig.Bind.builder()
         .from("private")
         .to("private")
-        .selinuxLabeling(false)			
+        .selinuxLabeling(false)
         .build();
 
     final HostConfig hostConfig = HostConfig.builder()
@@ -993,20 +993,22 @@ public class DefaultDockerClientUnitTest {
     server.enqueue(new MockResponse());
 
     dockerClient.createContainer(containerConfig);
-	
+
     final RecordedRequest recordedRequest = takeRequestImmediately();
 
     final JsonNode requestJson = toJson(recordedRequest.getBody());
 
     final JsonNode binds = requestJson.get("HostConfig").get("Binds");
-	
-    assertThat(binds.isArray(), is(true));	
+
+    assertThat(binds.isArray(), is(true));
 
     Set<String> bindSet = childrenTextNodes((ArrayNode) binds);
     assertThat(bindSet, hasSize(3));
-	
-    assertThat(bindSet, hasItem(allOf(containsString("noselinux"), not(containsString("z")), not(containsString("Z")))));
-	assertThat(bindSet, hasItem(allOf(containsString("shared"), containsString("z"))));
+
+    assertThat(bindSet, hasItem(allOf(containsString("noselinux"),
+        not(containsString("z")), not(containsString("Z")))));
+
+    assertThat(bindSet, hasItem(allOf(containsString("shared"), containsString("z"))));
     assertThat(bindSet, hasItem(allOf(containsString("private"), containsString("Z"))));
   }
   
