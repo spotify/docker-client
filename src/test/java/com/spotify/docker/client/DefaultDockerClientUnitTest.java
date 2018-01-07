@@ -21,9 +21,12 @@
 package com.spotify.docker.client;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -53,6 +56,7 @@ import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.HostConfig.Bind;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
@@ -956,7 +960,58 @@ public class DefaultDockerClientUnitTest {
 
     dockerClient.listNodes();
   }
+  
+  @Test
+  public void testBindBuilderSelinuxLabeling() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
+    final Bind bindNoSelinuxLabel = HostConfig.Bind.builder()
+        .from("noselinux")
+        .to("noselinux")
+        .build();
+
+    final Bind bindSharedSelinuxContent = HostConfig.Bind.builder()
+        .from("shared")
+        .to("shared")
+        .selinuxLabeling(true)
+        .build();
+
+    final Bind bindPrivateSelinuxContent = HostConfig.Bind.builder()
+        .from("private")
+        .to("private")
+        .selinuxLabeling(false)
+        .build();
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .binds(bindNoSelinuxLabel, bindSharedSelinuxContent, bindPrivateSelinuxContent)
+        .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+
+    final JsonNode binds = requestJson.get("HostConfig").get("Binds");
+
+    assertThat(binds.isArray(), is(true));
+
+    Set<String> bindSet = childrenTextNodes((ArrayNode) binds);
+    assertThat(bindSet, hasSize(3));
+
+    assertThat(bindSet, hasItem(allOf(containsString("noselinux"),
+        not(containsString("z")), not(containsString("Z")))));
+
+    assertThat(bindSet, hasItem(allOf(containsString("shared"), containsString("z"))));
+    assertThat(bindSet, hasItem(allOf(containsString("private"), containsString("Z"))));
+  }
+  
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
       throws IOException {
     server.enqueue(new MockResponse()
