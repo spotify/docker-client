@@ -573,9 +573,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private Map<String, String> getQueryParamMap(final WebTarget resource) {
     final String queryParams = resource.getUri().getQuery();
     final Map<String, String> paramsMap = Maps.newHashMap();
-    for (final String queryParam : queryParams.split("&")) {
-      final String[] kv = queryParam.split("=");
-      paramsMap.put(kv[0], kv[1]);
+    if (queryParams != null) {
+      for (final String queryParam : queryParams.split("&")) {
+        final String[] kv = queryParam.split("=");
+        paramsMap.put(kv[0], kv[1]);
+      }
     }
     return paramsMap;
   }
