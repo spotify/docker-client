@@ -681,6 +681,9 @@ public abstract class HostConfig {
     @Nullable
     public abstract Boolean noCopy();
 
+    @Nullable
+    public abstract Boolean selinuxLabeling();
+
     public static Builder builder() {
       return new AutoValue_HostConfig_Bind.Builder().readOnly(false);
     }
@@ -702,6 +705,15 @@ public abstract class HostConfig {
       //noinspection ConstantConditions
       if (noCopy() != null && noCopy()) {
         options.add("nocopy");
+      }
+
+      if (selinuxLabeling() != null) {
+        // shared
+        if (Boolean.TRUE.equals(selinuxLabeling())) {
+          options.add("z");
+        } else {
+          options.add("Z");
+        }
       }
 
       final String optionsValue = Joiner.on(',').join(options);
@@ -761,6 +773,15 @@ public abstract class HostConfig {
       public abstract Builder readOnly(Boolean readOnly);
 
       public abstract Builder noCopy(Boolean noCopy);
+
+      /**
+       * Turn on automatic SELinux labeling of the host file or directory being
+       * mounted into the container.
+       * @param sharedContent True if this bind mount content is shared among multiple 
+       *     containers (mount option "z"); false if private and unshared (mount option "Z")
+       * @return {@link Builder}
+       */
+      public abstract Builder selinuxLabeling(Boolean sharedContent);
 
       public abstract Bind build();
     }
