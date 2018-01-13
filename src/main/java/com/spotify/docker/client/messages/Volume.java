@@ -49,6 +49,10 @@ public abstract class Volume {
   public abstract ImmutableMap<String, String> driverOpts();
 
   @Nullable
+  @JsonProperty("Options")
+  public abstract ImmutableMap<String, String> options();
+
+  @Nullable
   @JsonProperty("Labels")
   public abstract ImmutableMap<String, String> labels();
 
@@ -69,6 +73,7 @@ public abstract class Volume {
       @JsonProperty("Name") final String name,
       @JsonProperty("Driver") final String driver,
       @JsonProperty("DriverOpts") final Map<String, String> driverOpts,
+      @JsonProperty("Options") final Map<String, String> options,
       @JsonProperty("Labels") final Map<String, String> labels,
       @JsonProperty("Mountpoint") final String mountpoint,
       @JsonProperty("Scope") final String scope,
@@ -77,6 +82,7 @@ public abstract class Volume {
         .name(name)
         .driver(driver)
         .driverOpts(driverOpts)
+        .options(options)
         .labels(labels)
         .mountpoint(mountpoint)
         .scope(scope)
@@ -96,6 +102,8 @@ public abstract class Volume {
     public abstract Builder driver(String driver);
 
     public abstract Builder driverOpts(Map<String, String> driverOpts);
+
+    public abstract Builder options(Map<String, String> options);
 
     public abstract Builder labels(Map<String, String> labels);
 
