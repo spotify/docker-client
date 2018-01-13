@@ -679,12 +679,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                final MultivaluedMap<String, String> queryParameters)
           throws DockerException, InterruptedException {
     try {
-      final WebTarget resource = resource()
+      WebTarget resource = resource()
               .path("containers").path(containerId).path(action);
 
       for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
         for (String parameterValue : queryParameter.getValue()) {
-          resource.queryParam(queryParameter.getKey(), parameterValue);
+          resource = resource.queryParam(queryParameter.getKey(), parameterValue);
         }
       }
       request(POST, resource, resource.request());
