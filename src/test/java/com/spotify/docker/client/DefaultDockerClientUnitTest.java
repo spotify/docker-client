@@ -34,7 +34,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +46,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
+import com.spotify.docker.client.DockerClient.Signal;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -71,7 +71,6 @@ import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
-import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
@@ -83,6 +82,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -1012,6 +1012,21 @@ public class DefaultDockerClientUnitTest {
     assertThat(bindSet, hasItem(allOf(containsString("private"), containsString("Z"))));
   }
   
+  @Test
+  public void testKillContainer() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    server.enqueue(new MockResponse());
+
+    final Signal signal = Signal.SIGHUP;
+    dockerClient.killContainer("1234", signal);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final HttpUrl requestUrl = recordedRequest.getRequestUrl();
+    assertThat(requestUrl.queryParameter("signal"), equalTo(signal.toString()));
+  }
+
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
       throws IOException {
     server.enqueue(new MockResponse()
