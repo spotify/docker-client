@@ -149,7 +149,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.52</version>
+      <version>1.59</version>
     </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
@@ -342,7 +342,7 @@
             <relocation>
               <pattern>org.glassfish</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.glassfish</shadedPattern>
-            </relocation> 
+            </relocation>
             <relocation>
               <pattern>com.fasterxml.jackson</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
