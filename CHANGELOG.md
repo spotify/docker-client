@@ -1,5 +1,15 @@
 # Changelog
 
+## 8.10.1
+
+Released January 15, 2018
+
+- Add Volume.Options
+- Fix containerAction: use query params
+- add support for automatic SELinux labeling
+- #890 fix for proxy usage
+- Set log level to debug when creating containers, fixes #908
+
 ## 8.10.0
 
 Released November 28, 2017
