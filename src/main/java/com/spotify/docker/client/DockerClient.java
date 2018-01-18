@@ -47,6 +47,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
+import com.spotify.docker.client.messages.Distribution;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
@@ -972,6 +973,17 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   void killContainer(final String containerId, final Signal signal)
+      throws DockerException, InterruptedException;
+
+  /**
+   * Get the distribution of a container.
+   * @param imageName The name of the container.
+   * @throws ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  Distribution getDistribution(final String imageName)
       throws DockerException, InterruptedException;
 
   /**

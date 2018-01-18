@@ -38,7 +38,6 @@ import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.HttpMethod.PUT;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -89,6 +88,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
+import com.spotify.docker.client.messages.Distribution;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
 import com.spotify.docker.client.messages.HostConfig;
@@ -324,6 +324,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   private static final GenericType<List<Service>> SERVICE_LIST =
       new GenericType<List<Service>>() {
+      };
+
+  private  static final GenericType<Distribution> DISTRIBUTION =
+      new GenericType<Distribution>(){
       };
 
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() { };
@@ -746,6 +750,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     queryParameters.add("signal", signal.getName());
 
     containerAction(containerId, "kill", queryParameters);
+  }
+
+  @Override
+  public Distribution getDistribution(String imageName)
+      throws DockerException, InterruptedException {
+    checkNotNull(imageName, "containerName");
+    final WebTarget resource = resource().path("distribution").path(imageName).path("json");
+    return request(GET, DISTRIBUTION, resource, resource.request(APPLICATION_JSON_TYPE));
   }
 
   @Override
