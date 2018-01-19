@@ -443,8 +443,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (builder.useProxy()) {
       final String proxyHost = System.getProperty("http.proxyHost");
       if (proxyHost != null) {
-        config.property(ClientProperties.PROXY_URI, proxyHost + ":"
-                + checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort"));
+        String proxyPort = checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort");
+        config.property(ClientProperties.PROXY_URI, !proxyHost.startsWith("http") ? "http://" : ""
+                + proxyHost + ":" + proxyPort);
 
         //ensure Content-Length is populated before sending request via proxy.
         config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
@@ -572,9 +573,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private Map<String, String> getQueryParamMap(final WebTarget resource) {
     final String queryParams = resource.getUri().getQuery();
     final Map<String, String> paramsMap = Maps.newHashMap();
-    for (final String queryParam : queryParams.split("&")) {
-      final String[] kv = queryParam.split("=");
-      paramsMap.put(kv[0], kv[1]);
+    if (queryParams != null) {
+      for (final String queryParam : queryParams.split("&")) {
+        final String[] kv = queryParam.split("=");
+        paramsMap.put(kv[0], kv[1]);
+      }
     }
     return paramsMap;
   }
@@ -678,12 +681,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                final MultivaluedMap<String, String> queryParameters)
           throws DockerException, InterruptedException {
     try {
-      final WebTarget resource = resource()
+      WebTarget resource = resource()
               .path("containers").path(containerId).path(action);
 
       for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
         for (String parameterValue : queryParameter.getValue()) {
-          resource.queryParam(queryParameter.getKey(), parameterValue);
+          resource = resource.queryParam(queryParameter.getKey(), parameterValue);
         }
       }
       request(POST, resource, resource.request());

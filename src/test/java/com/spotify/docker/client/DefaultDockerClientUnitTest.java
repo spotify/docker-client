@@ -21,9 +21,12 @@
 package com.spotify.docker.client;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -31,7 +34,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +46,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
+import com.spotify.docker.client.DockerClient.Signal;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.ConflictException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -53,9 +56,11 @@ import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.HostConfig.Bind;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
+import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.swarm.Config;
 import com.spotify.docker.client.messages.swarm.ConfigBind;
 import com.spotify.docker.client.messages.swarm.ConfigCreateResponse;
@@ -67,7 +72,6 @@ import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
-import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
@@ -79,6 +83,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -955,6 +960,101 @@ public class DefaultDockerClientUnitTest {
     );
 
     dockerClient.listNodes();
+  }
+  
+  @Test
+  public void testBindBuilderSelinuxLabeling() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    final Bind bindNoSelinuxLabel = HostConfig.Bind.builder()
+        .from("noselinux")
+        .to("noselinux")
+        .build();
+
+    final Bind bindSharedSelinuxContent = HostConfig.Bind.builder()
+        .from("shared")
+        .to("shared")
+        .selinuxLabeling(true)
+        .build();
+
+    final Bind bindPrivateSelinuxContent = HostConfig.Bind.builder()
+        .from("private")
+        .to("private")
+        .selinuxLabeling(false)
+        .build();
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .binds(bindNoSelinuxLabel, bindSharedSelinuxContent, bindPrivateSelinuxContent)
+        .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+
+    final JsonNode binds = requestJson.get("HostConfig").get("Binds");
+
+    assertThat(binds.isArray(), is(true));
+
+    Set<String> bindSet = childrenTextNodes((ArrayNode) binds);
+    assertThat(bindSet, hasSize(3));
+
+    assertThat(bindSet, hasItem(allOf(containsString("noselinux"),
+        not(containsString("z")), not(containsString("Z")))));
+
+    assertThat(bindSet, hasItem(allOf(containsString("shared"), containsString("z"))));
+    assertThat(bindSet, hasItem(allOf(containsString("private"), containsString("Z"))));
+  }
+  
+  @Test
+  public void testKillContainer() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    server.enqueue(new MockResponse());
+
+    final Signal signal = Signal.SIGHUP;
+    dockerClient.killContainer("1234", signal);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final HttpUrl requestUrl = recordedRequest.getRequestUrl();
+    assertThat(requestUrl.queryParameter("signal"), equalTo(signal.toString()));
+  }
+
+  @Test
+  public void testInspectVolume() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.33/inspectVolume.json")
+        )
+    );
+
+    final Volume volume = dockerClient.inspectVolume("my-volume");
+
+    assertThat(volume.name(), is("tardis"));
+    assertThat(volume.driver(), is("custom"));
+    assertThat(volume.mountpoint(), is("/var/lib/docker/volumes/tardis"));
+    assertThat(volume.status(), is(ImmutableMap.of("hello", "world")));
+    assertThat(volume.labels(), is(ImmutableMap.of(
+        "com.example.some-label", "some-value",
+        "com.example.some-other-label", "some-other-value"
+    )));
+    assertThat(volume.scope(), is("local"));
+    assertThat(volume.options(), is(ImmutableMap.of(
+        "foo", "bar",
+        "baz", "qux"
+    )));
   }
 
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
