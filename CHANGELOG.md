@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.11.0
+
+Released January 25, 2018
+
+- Upgrade bouncy castle from 1.52 to 1.59
+- Add support for http.proxyUser and http.proxyPassword
+- Upgrade FasterXML Jackson from 2.8.8 to 2.9.4
+
 ## 8.10.1
 
 Released January 15, 2018
