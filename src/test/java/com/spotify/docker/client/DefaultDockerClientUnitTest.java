@@ -166,6 +166,22 @@ public class DefaultDockerClientUnitTest {
     assertThat(client.getHost(), equalTo("192.168.53.103"));
   }
 
+  @Test
+  public void testHostWithProxy() {
+    try {
+      System.setProperty("http.proxyHost", "gmodules.com");
+      System.setProperty("http.proxyPort", "80");
+      final DefaultDockerClient client = DefaultDockerClient.builder()
+              .uri("https://192.168.53.103:2375").build();
+      assertThat((String) client.getClient().getConfiguration()
+                      .getProperty("jersey.config.client.proxy.uri"),
+              equalTo("http://gmodules.com:80"));
+    } finally {
+      System.clearProperty("http.proxyHost");
+      System.clearProperty("http.proxyPort");
+    }
+  }
+
   private RecordedRequest takeRequestImmediately() throws InterruptedException {
     return server.takeRequest(1, TimeUnit.MILLISECONDS);
   }

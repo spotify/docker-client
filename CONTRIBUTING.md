@@ -14,7 +14,7 @@ Please poke us if you feel you're being neglected, and we'll do our best to get 
 
 ## Related Tools You May Find Useful
 
-If you like this project, you might also like [docker-maven-plugin][2], [helios][3], [docker-gc][4],
+If you like this project, you might also like [dockerfile-maven][2], [helios][3], [docker-gc][4],
 [helios-skydns][5], and [helios-consul][6].
 
 
@@ -51,7 +51,7 @@ they end up testing both how docker-client behaves and how the docker daemon
 itself behaves.
 
   [1]: https://github.com/spotify/docker-client#testing
-  [2]: https://github.com/spotify/docker-maven-plugin
+  [2]: https://github.com/spotify/dockerfile-maven
   [3]: https://github.com/spotify/helios
   [4]: https://github.com/spotify/docker-gc
   [5]: https://github.com/spotify/helios-skydns
