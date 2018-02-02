@@ -321,6 +321,46 @@ try (final TarArchiveInputStream tarStream = new TarArchiveInputStream(docker.ar
 ```java
 docker.copyToContainer("/local/path", "containerID", "/path/in/container");
 ```
+
+## Networks
+
+### Inspect a network
+
+```java
+docker.inspectNetwork("networkID");
+```
+
+### Create a network
+
+```java
+NetworkConfig networkConfig = NetworkConfig.builder()
+                                           .checkDuplicate(true)
+                                           .attachable(true)
+                                           .name("newNetwork")
+                                           .build();
+docker.createNetwork(networkConfig);
+```
+
+### Remove a network
+
+```java
+docker.removeNetwork("networkID");
+```
+
+### Attach a container to an existing network
+
+This should be called before starting a container, but may fail silently if duplicate networks exist.
+
+```java
+docker.connectToNetwork("containerID", "networkID");
+```
+
+### Detach a container from a network
+
+```java
+docker.disconnectFromNetwork("containerID", "networkID");
+```
+
 ## Secrets
 
 ### Create secret
