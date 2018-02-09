@@ -72,7 +72,11 @@ import com.spotify.docker.client.messages.swarm.Node;
 import com.spotify.docker.client.messages.swarm.NodeDescription;
 import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
+import com.spotify.docker.client.messages.swarm.Placement;
+import com.spotify.docker.client.messages.swarm.Preference;
+import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
+import com.spotify.docker.client.messages.swarm.Spread;
 import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import java.io.IOException;
@@ -640,6 +644,45 @@ public class DefaultDockerClientUnitTest {
         .setResponseCode(statusCode)
         .addHeader("Content-Type", "application/json")
     );
+  }
+
+  @Test
+  public void testCreateServiceWithPlacementPreference()
+      throws IOException, DockerException, InterruptedException {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    final ImmutableList<Preference> prefs = ImmutableList.of(
+        Preference.create(
+            Spread.create(
+                "test"
+            )
+        )
+    );
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+        .placement(Placement.create(null, prefs))
+        .containerSpec(ContainerSpec.builder()
+            .image("this_image_is_found_in_the_registry")
+            .build())
+        .build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+        .name("test")
+        .taskTemplate(taskSpec)
+        .build();
+
+
+    enqueueServerApiVersion("1.30");
+    enqueueServerApiResponse(201, "fixtures/1.30/createServiceResponse.json");
+
+    final ServiceCreateResponse response = dockerClient.createService(spec);
+    assertThat(response.id(), equalTo("ak7w3gjqoa3kuz8xcpnyy0pvl"));
+
+    enqueueServerApiVersion("1.30");
+    enqueueServerApiResponse(200, "fixtures/1.30/inspectCreateResponseWithPlacementPrefs.json");
+
+    final Service service = dockerClient.inspectService("ak7w3gjqoa3kuz8xcpnyy0pvl");
+    assertThat(service.spec().taskTemplate().placement(), equalTo(taskSpec.placement()));
   }
 
   @Test
