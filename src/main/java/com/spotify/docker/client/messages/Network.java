@@ -57,6 +57,7 @@ public abstract class Network {
   @JsonProperty("Containers")
   public abstract ImmutableMap<String, Container> containers();
 
+  @Nullable
   @JsonProperty("Options")
   public abstract ImmutableMap<String, String> options();
   
