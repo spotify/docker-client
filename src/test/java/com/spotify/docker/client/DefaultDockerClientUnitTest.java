@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -179,6 +180,24 @@ public class DefaultDockerClientUnitTest {
     } finally {
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
+    }
+  }
+
+  @Test
+  public void testHostWithNonProxyHost() {
+    try {
+      System.setProperty("http.proxyHost", "gmodules.com");
+      System.setProperty("http.proxyPort", "80");
+      System.setProperty("http.nonProxyHosts", "127.0.0.1|localhost|192.168.*");
+      final DefaultDockerClient client = DefaultDockerClient.builder()
+              .uri("https://192.168.53.103:2375").build();
+      assertThat((String) client.getClient().getConfiguration()
+                      .getProperty("jersey.config.client.proxy.uri"),
+              isEmptyOrNullString());
+    } finally {
+      System.clearProperty("http.proxyHost");
+      System.clearProperty("http.proxyPort");
+      System.clearProperty("http.nonProxyHosts");
     }
   }
 
