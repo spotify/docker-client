@@ -939,10 +939,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public void copyToContainer(final Path directory, String containerId, String path)
       throws DockerException, InterruptedException, IOException {
-    final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
-    final InputStream fileStream = Files.newInputStream(compressedDirectory.file());
-
-    copyToContainer(fileStream, containerId, path);
+    try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
+         final InputStream fileStream = Files.newInputStream(compressedDirectory.file())) {
+      copyToContainer(fileStream, containerId, path);
+    }
   }
 
   @Override
