@@ -318,6 +318,7 @@
               <include>javax.annotation:*</include>
               <include>javax.ws.rs:*</include>
               <include>org.glassfish.**</include>
+              <include>org.jvnet.hk2.**</include>
               <include>com.github.jnr:*</include>
               <include>org.ow2.asm:*</include>
               <include>com.google.guava:**</include>
@@ -342,6 +343,10 @@
             <relocation>
               <pattern>org.glassfish</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.glassfish</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.jvnet.hk2</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.jvnet.hk2</shadedPattern>
             </relocation>
             <relocation>
               <pattern>com.fasterxml.jackson</pattern>
