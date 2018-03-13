@@ -1,0 +1,11 @@
+{
+  "auths" : {
+    "https://test.fakedomain.com": {
+
+    },
+    "https://test.fakedomain2.com": {
+
+    }
+  },
+  "credsStore" : "secretservice"
+}

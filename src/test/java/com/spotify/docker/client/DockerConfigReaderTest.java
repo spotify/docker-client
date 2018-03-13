@@ -42,12 +42,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assume.assumeTrue;
 
 import com.google.common.io.Resources;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -176,6 +179,93 @@ public class DockerConfigReaderTest {
     // Server address doesn't have a protocol but the entry in the config file does (http)
     final RegistryAuth httpProto = reader.fromConfig(path, "local.example.com");
     assertThat(httpProto.serverAddress(), equalTo("http://local.example.com"));
+  }
+
+  @Test
+  public void testFromDockerConfig_CredsStore() throws Exception {
+    assumeTrue("Need to have a credential store.", getAuthCredentialsExist());
+
+    String domain1 = "https://test.fakedomain.com";
+    String domain2 = "https://test.fakedomain2.com";
+
+    String testAuth1 = "{\n" + "\t\"ServerURL\": \"" + domain1 + "\",\n"
+                       + "\t\"Username\": \"david\",\n" + "\t\"Secret\": \"passw0rd1\"\n" + "}";
+    String testAuth2 = "{\n" + "\t\"ServerURL\": \"" + domain2 + "\",\n"
+                       + "\t\"Username\": \"carl\",\n" + "\t\"Secret\": \"myPassword\"\n" + "}";
+
+    storeAuthCredential(testAuth1);
+    storeAuthCredential(testAuth2);
+
+    final Path path = getTestFilePath("dockerConfig/" + getCredsStoreFileName());
+    final RegistryConfigs configs = reader.fromConfig(path);
+
+    for (RegistryAuth authConfigs : configs.configs().values()) {
+      if (domain1.equals(authConfigs.serverAddress())) {
+        assertThat(authConfigs.username(), equalTo("david"));
+        assertThat(authConfigs.password(), equalTo("passw0rd1"));
+      } else if (domain2.equals(authConfigs.serverAddress())) {
+        assertThat(authConfigs.username(), equalTo("carl"));
+        assertThat(authConfigs.password(), equalTo("myPassword"));
+      }
+    }
+    eraseAuthCredential(domain1);
+    eraseAuthCredential(domain2);
+  }
+
+  private void eraseAuthCredential(String domain1) throws IOException, InterruptedException {
+    // Erase the credentials from the store
+    Process process = Runtime.getRuntime().exec(getCredsStore() + " erase");
+    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+
+    writer.write(domain1 + "\n");
+    writer.flush();
+    writer.close();
+
+    process.waitFor();
+  }
+
+  private boolean getAuthCredentialsExist() throws InterruptedException {
+    boolean returnValue = false;
+    try {
+      Process process = Runtime.getRuntime().exec(getCredsStore() + " list");
+      returnValue = process.waitFor() == 0;
+    } catch (IOException e) {
+      // Ignored. This is ok, it just means the cred store doesn't exist on this system.
+    }
+    return returnValue;
+  }
+
+  private void storeAuthCredential(String testAuth1) throws IOException, InterruptedException {
+    Process process = Runtime.getRuntime().exec(getCredsStore() + " store");
+    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+
+    writer.write(testAuth1 + "\n");
+    writer.flush();
+    writer.close();
+
+    process.waitFor();
+  }
+
+  private static String getCredsStoreFileName() {
+    if (OsUtils.isOsX()) {
+      return "credsStoreConfigOSX.json";
+    } else if (OsUtils.isLinux()) {
+      return "credsStoreConfigLinux.json";
+    } else {
+      return "credsStoreConfigWin.json";
+    }
+  }
+
+  private static String getCredsStore() {
+    String credsStore;
+    if (OsUtils.isOsX()) {
+      credsStore = "docker-credential-osxkeychain";
+    } else if (OsUtils.isLinux()) {
+      credsStore =  "docker-credential-secretservice";
+    } else {
+      credsStore = "docker-credential-wincred";
+    }
+    return credsStore;
   }
 
   private static Path getTestFilePath(final String path) {
