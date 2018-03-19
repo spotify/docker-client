@@ -47,6 +47,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerStats;
 import com.spotify.docker.client.messages.ContainerUpdate;
+import com.spotify.docker.client.messages.ContainersDeleted;
 import com.spotify.docker.client.messages.Event;
 import com.spotify.docker.client.messages.ExecCreation;
 import com.spotify.docker.client.messages.ExecState;
@@ -64,9 +65,11 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RemovedImage;
 import com.spotify.docker.client.messages.ServiceCreateResponse;
 import com.spotify.docker.client.messages.TopResults;
+import com.spotify.docker.client.messages.UnusedImages;
 import com.spotify.docker.client.messages.Version;
 import com.spotify.docker.client.messages.Volume;
 import com.spotify.docker.client.messages.VolumeList;
+import com.spotify.docker.client.messages.VolumesDeleted;
 import com.spotify.docker.client.messages.swarm.Config;
 import com.spotify.docker.client.messages.swarm.ConfigCreateResponse;
 import com.spotify.docker.client.messages.swarm.ConfigSpec;
@@ -163,6 +166,16 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   List<Image> listImages(ListImagesParam... params) throws DockerException, InterruptedException;
+
+  /**
+   * Remove unused images.
+   *
+   * @return List of unused removed images.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @since Docker 1.13, API version 1.25
+   */
+  UnusedImages removeUnusedImages() throws DockerException, InterruptedException;
 
   /**
    * Inspect a docker container.
@@ -1168,6 +1181,16 @@ public interface DockerClient extends Closeable {
       return name;
     }
   }
+
+  /**
+   * Remove stopped containers.
+   *
+   * @return List of removed container id and space reclaimed.
+   * @throws DockerException      If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @since Docker 1.13, API version 1.25
+   */
+  ContainersDeleted removeStoppedContainers() throws DockerException, InterruptedException;
 
   /**
    * Remove a docker container.
@@ -2790,6 +2813,16 @@ public interface DockerClient extends Closeable {
   void removeVolume(String volumeName) throws DockerException, InterruptedException;
 
   VolumeList listVolumes(ListVolumesParam... params) throws DockerException, InterruptedException;
+
+  /**
+   * Remove unused volumes.
+   *
+   * @return list of removed volumes with space reclaimed
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException if the thread is interrupted
+   * @since Docker 1.13, API version 1.25
+   */
+  VolumesDeleted removeUnusedVolumes() throws DockerException, InterruptedException;
 
   /**
    * List secrets.

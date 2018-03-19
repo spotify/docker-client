@@ -1,0 +1,32 @@
+{
+  "Name" : "test",
+  "Labels" : {},
+  "TaskTemplate" : {
+    "ContainerSpec" : {
+      "Image" : "image:latest",
+      "Labels" : {},
+      "Env" : [],
+      "Secrets" : [ ]
+    },
+    "Placement" : {
+      "Preferences":[
+        { "Spread":
+        { "SpreadDescriptor" :"node.labels.test" }
+        }
+      ]
+    },
+    "Networks" : [ {
+      "Target" : "yb0ad29co7uagva94zj3txeb1",
+      "Aliases" : [ "test-latest" ]
+    } ]
+  },
+  "Mode" : {
+    "Replicated" : {
+      "Replicas" : 2
+    }
+  },
+  "Networks" : [ {
+    "Target" : "yb0ad29co7uagva94zj3txeb1",
+    "Aliases" : [ "test-latest" ]
+  } ]
+}

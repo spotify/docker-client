@@ -27,60 +27,35 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
-public abstract class Placement {
+public abstract class SpreadOver {
 
-  @Nullable
-  @JsonProperty("Constraints")
-  public abstract ImmutableList<String> constraints();
+  @JsonProperty("SpreadDescriptor")
+  public abstract String spreadDescriptor();
 
-  @Nullable
-  @JsonProperty("Preferences")
-  public abstract ImmutableList<PlacementPreference> preferences();
-
-  public static Placement.Builder builder() {
-    return new AutoValue_Placement.Builder();
+  public static SpreadOver.Builder builder() {
+    return new AutoValue_SpreadOver.Builder();
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
 
-    public abstract Placement.Builder  constraints(List<String> constraints);
+    public abstract SpreadOver.Builder  spreadDescriptor(String spreadDescriptor);
 
-    public abstract Placement.Builder  constraints(String...constraints);
-
-    public abstract Placement.Builder  preferences(List<PlacementPreference> preferences);
-
-    public abstract Placement.Builder  preferences(PlacementPreference...preferences);
-
-    public abstract Placement build();
+    public abstract SpreadOver build();
   }
-
 
 
   @JsonCreator
-  static Placement create(
-          @JsonProperty("Constraints") final List<String> constraints,
-          @JsonProperty("Preferences") final List<PlacementPreference> preferences) {
+  static SpreadOver create(
+      @JsonProperty("SpreadDescriptor") final String spreadDescriptor) {
     return builder()
-            .constraints(constraints)
-            .preferences(preferences)
-            .build();
+        .spreadDescriptor(spreadDescriptor)
+        .build();
   }
-
-  public static Placement create(List<String> constraints) {
-    return builder()
-            .constraints(constraints)
-            .build();
-  }
-
 
 
 }
