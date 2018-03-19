@@ -1,0 +1,75 @@
+{
+    "ID": "ak7w3gjqoa3kuz8xcpnyy0pvl",
+    "Version": {
+      "Index": 423388
+    },
+    "CreatedAt": "2018-02-09T13:30:09.6559336Z",
+    "UpdatedAt": "2018-02-09T13:30:09.6633872Z",
+    "Spec": {
+      "Name": "1c6345331a4deb35-c2c5d15aec33b7b4",
+      "Labels": {},
+      "TaskTemplate": {
+        "ContainerSpec": {
+          "Image": "alpine",
+          "Command": [
+            "ping",
+            "-c1000",
+            "localhost"
+          ],
+          "StopGracePeriod": 10000000000,
+          "DNSConfig": {},
+          "Isolation": "default"
+        },
+        "Resources": {},
+        "RestartPolicy": {
+          "Condition": "any",
+          "Delay": 5000000000,
+          "MaxAttempts": 0
+        },
+        "Placement": {
+          "Preferences": [
+            {
+              "Spread": {
+                "SpreadDescriptor": "test"
+              }
+            }
+          ]
+        },
+        "ForceUpdate": 0,
+        "Runtime": "container"
+      },
+      "Mode": {
+        "Replicated": {
+          "Replicas": 1
+        }
+      },
+      "UpdateConfig": {
+        "Parallelism": 1,
+        "FailureAction": "pause",
+        "Monitor": 5000000000,
+        "MaxFailureRatio": 0,
+        "Order": "stop-first"
+      },
+      "RollbackConfig": {
+        "Parallelism": 1,
+        "FailureAction": "pause",
+        "Monitor": 5000000000,
+        "MaxFailureRatio": 0,
+        "Order": "stop-first"
+      },
+      "Networks": [
+        {
+          "Target": "rb9gurw8b9pq7a5t5mqhjd953"
+        }
+      ]
+    },
+    "Endpoint": {
+      "Spec": {},
+      "VirtualIPs": [
+        {
+          "NetworkID": "rb9gurw8b9pq7a5t5mqhjd953",
+          "Addr": "10.0.3.3/24"
+        }
+      ]
+    }
+}
