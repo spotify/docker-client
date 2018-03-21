@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
 
 This is a [Docker](https://github.com/docker/docker) client written in Java.
-It is used it in many critical production systems at Spotify.
+It is used in many critical production systems at Spotify.
 
 * [Version compatibility](#version-compatibility)
 * [Download](#download)
