@@ -195,7 +195,6 @@ public abstract class ServiceSpec {
         .mode(mode)
         .updateConfig(updateConfig)
         .endpointSpec(endpointSpec)
-        .labels(labels)
         .networks(networks)
         .build();
   }
