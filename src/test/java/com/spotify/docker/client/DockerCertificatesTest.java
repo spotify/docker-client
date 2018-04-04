@@ -20,9 +20,11 @@
 
 package com.spotify.docker.client;
 
+import static java.lang.System.getenv;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -30,16 +32,16 @@ import com.google.common.base.Optional;
 import com.google.common.io.Resources;
 import com.spotify.docker.client.DockerCertificates.SslContextFactory;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
-
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 public class DockerCertificatesTest {
+
+  private static final boolean TRAVIS = "true".equals(getenv("TRAVIS"));
 
   private SslContextFactory factory = mock(SslContextFactory.class);
   private ArgumentCaptor<KeyStore> keyStore = ArgumentCaptor.forClass(KeyStore.class);
@@ -137,7 +139,24 @@ public class DockerCertificatesTest {
     assertNotNull(pkEntry.getPrivateKey());
   }
 
-  private Path getResourceFile(String path) throws URISyntaxException {
+  @Test
+  public void testReadEllipticCurvePrivateKey() throws Exception {
+    assumeFalse("Travis' openjdk7 doesn't support the elliptic curve algorithm", TRAVIS);
+
+    DockerCertificates.builder()
+        .dockerCertPath(getResourceFile("dockerSslDirectoryWithEcKey"))
+        .sslFactory(factory)
+        .build();
+
+    verify(factory).newSslContext(keyStore.capture(), password.capture(), trustStore.capture());
+
+    final KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keyStore.getValue()
+            .getEntry("key", new KeyStore.PasswordProtection(password.getValue()));
+
+    assertNotNull(pkEntry.getPrivateKey());
+  }
+
+  private Path getResourceFile(final String path) throws URISyntaxException {
     return Paths.get(Resources.getResource(path).toURI());
   }
 
@@ -145,7 +164,7 @@ public class DockerCertificatesTest {
     return getResourceFile("dockerSslDirectory");
   }
 
-  private Path getVariant(String filename) throws URISyntaxException {
+  private Path getVariant(final String filename) throws URISyntaxException {
     return getResourceFile("dockerSslVariants").resolve(filename);
   }
 }
