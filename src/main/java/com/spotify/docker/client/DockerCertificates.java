@@ -145,8 +145,26 @@ public class DockerCertificates implements DockerCertificatesStore {
   private static PrivateKey generatePrivateKey(PrivateKeyInfo privateKeyInfo) throws IOException,
           InvalidKeySpecException, NoSuchAlgorithmException {
     final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
-    final KeyFactory kf = KeyFactory.getInstance("RSA");
-    return kf.generatePrivate(spec);
+    return tryGeneratePrivateKey(spec, "RSA", "EC");
+  }
+
+  private static PrivateKey tryGeneratePrivateKey(PKCS8EncodedKeySpec spec, String... algorithms)
+          throws InvalidKeySpecException {
+
+    KeyFactory kf;
+    PrivateKey key;
+    for (String algorithm : algorithms) {
+      try {
+        kf = KeyFactory.getInstance(algorithm);
+        key = kf.generatePrivate(spec);
+        log.debug("Generated private key from spec using the '{}' algorithm", algorithm);
+        return key;
+      } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+        log.debug("Tried generating private key from spec using the '{}' algorithm", algorithm, e);
+      }
+    }
+
+    throw new InvalidKeySpecException("Could not generate private key from spec");
   }
 
   private List<Certificate> readCertificates(Path file) throws CertificateException, IOException {
