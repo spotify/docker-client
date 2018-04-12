@@ -443,24 +443,41 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (builder.useProxy()) {
       final String proxyHost = System.getProperty("http.proxyHost");
       if (proxyHost != null) {
-        String proxyPort = checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort");
-        config.property(ClientProperties.PROXY_URI, (!proxyHost.startsWith("http") ? "http://" : "")
-                + proxyHost + ":" + proxyPort);
-        final String proxyUser = System.getProperty("http.proxyUser");
-        if (proxyUser != null) {
-          config.property(ClientProperties.PROXY_USERNAME, proxyUser);
+        boolean skipProxy = false;
+        final String nonProxyHosts = System.getProperty("http.nonProxyHosts");
+        if (nonProxyHosts != null) {
+          String host = getHost();
+          for (String nonProxyHost : nonProxyHosts.split("\\|")) {
+            if (host.matches(toRegExp(nonProxyHost))) {
+              skipProxy = true;
+              break;
+            }
+          }
         }
-        final String proxyPassword = System.getProperty("http.proxyPassword");
-        if (proxyPassword != null) {
-          config.property(ClientProperties.PROXY_PASSWORD, proxyPassword);
-        }
+        if (!skipProxy) {
+          String proxyPort = checkNotNull(System.getProperty("http.proxyPort"), "http.proxyPort");
+          config.property(ClientProperties.PROXY_URI, (!proxyHost.startsWith("http") ? "http://" : "")
+                  + proxyHost + ":" + proxyPort);
+          final String proxyUser = System.getProperty("http.proxyUser");
+          if (proxyUser != null) {
+            config.property(ClientProperties.PROXY_USERNAME, proxyUser);
+          }
+          final String proxyPassword = System.getProperty("http.proxyPassword");
+          if (proxyPassword != null) {
+            config.property(ClientProperties.PROXY_PASSWORD, proxyPassword);
+          }
 
-        //ensure Content-Length is populated before sending request via proxy.
-        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
-                RequestEntityProcessing.BUFFERED);
+          //ensure Content-Length is populated before sending request via proxy.
+          config.property(ClientProperties.REQUEST_ENTITY_PROCESSING,
+                  RequestEntityProcessing.BUFFERED);
+        }
       }
     }
     return config;
+  }
+
+  private String toRegExp(String hostnameWithWildcards) {
+    return hostnameWithWildcards.replace(".", "\\.").replace("*", ".*");
   }
 
   public String getHost() {
