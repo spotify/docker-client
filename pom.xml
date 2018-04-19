@@ -129,12 +129,12 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.5</version>
+      <version>4.5.5</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>4.4.5</version>
+      <version>4.4.9</version>
     </dependency>
     <dependency>
       <groupId>com.github.jnr</groupId>
@@ -169,16 +169,31 @@
       <version>3.0.1</version>
       <scope>provided</scope>
     </dependency>
+    
     <!-- TODO we should pull out the Google Cloud support to a new library -->
     <dependency>
       <groupId>com.google.auth</groupId>
       <artifactId>google-auth-library-oauth2-http</artifactId>
-      <version>0.6.0</version>
+      <version>0.9.1</version>
       <optional>true</optional>
       <exclusions>
         <exclusion>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- TODO we should pull out the Amazon Cloud support to a new library -->
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-ecr</artifactId>
+      <version>1.11.313</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.ion</groupId>
+          <artifactId>ion-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
