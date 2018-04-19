@@ -24,10 +24,10 @@ import com.amazonaws.services.ecr.AmazonECR;
 import com.amazonaws.services.ecr.model.AuthorizationData;
 import com.amazonaws.services.ecr.model.GetAuthorizationTokenRequest;
 import com.amazonaws.services.ecr.model.GetAuthorizationTokenResult;
+import com.amazonaws.util.Base64;
 import com.spotify.docker.client.exceptions.DockerException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 public class EcrAuthenticator implements Authenticator {
   private final AmazonECR client;
@@ -51,8 +51,9 @@ public class EcrAuthenticator implements Authenticator {
       throw new DockerException("Failed to retrieve ECR credentials", e);
     }
         
-    String auth = new String(Base64.getDecoder()
-        .decode(authorization.getAuthorizationToken()), StandardCharsets.UTF_8);
+    String auth = new String(
+        Base64.decode(authorization.getAuthorizationToken()),
+        StandardCharsets.UTF_8);
     String[] authParts = auth.split(":", 2);
     if (authParts.length < 2) {
       // Never put credentials -- even encoded credentials -- in an Exception message.
