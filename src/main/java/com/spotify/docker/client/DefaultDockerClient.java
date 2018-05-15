@@ -419,6 +419,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     } else {
       this.registryAuthSupplier = builder.registryAuthSupplier;
     }
+    
+    if (builder.getRequestEntityProcessing() != null) {
+      config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, builder.requestEntityProcessing);
+    }
 
     this.client = ClientBuilder.newBuilder()
         .withConfig(config)
@@ -2855,6 +2859,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     private RegistryAuth registryAuth;
     private RegistryAuthSupplier registryAuthSupplier;
     private Map<String, Object> headers = new HashMap<>();
+    private RequestEntityProcessing requestEntityProcessing;
 
     public URI uri() {
       return uri;
@@ -3036,6 +3041,27 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     public Map<String, Object> headers() {
       return headers;
+    }
+    
+    /**
+     * Allows setting transfer encoding. CHUNKED does not send the content-length header 
+     * while BUFFERED does.
+     * 
+     * <p>By default ApacheConnectorProvider uses CHUNKED mode. Some Docker API end-points 
+     * seems to fail when no content-length is specified but a body is sent.
+     * 
+     * @param requestEntityProcessing is the requested entity processing to use when calling docker
+     *     daemon (tcp protocol).
+     * @return Builder
+     */
+    public Builder useRequestEntityProcessing(
+        final RequestEntityProcessing requestEntityProcessing) {
+      this.requestEntityProcessing = requestEntityProcessing;
+      return this;
+    }
+    
+    public RequestEntityProcessing getRequestEntityProcessing() {
+      return this.requestEntityProcessing;
     }
 
     public DefaultDockerClient build() {
