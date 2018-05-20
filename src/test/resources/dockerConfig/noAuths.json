@@ -1,0 +1,7 @@
+{
+  "HttpHeaders": {
+    "User-Agent": "Docker-Client/18.04.0-ce (darwin)"
+  },
+  "credsStore": "osxkeychain",
+  "detachKeys": "ctrl-v,ctrl-q"
+}

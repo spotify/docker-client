@@ -295,4 +295,11 @@ public class DockerConfigReaderTest {
         hasEntry("https://narnia.mydock.io/v1/", MY_AUTH_CONFIG)
     ));
   }
+
+  @Test
+  public void testParseNoAuths() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/noAuths.json");
+    final RegistryConfigs configs = reader.fromConfig(path);
+    assertThat(configs, equalTo(RegistryConfigs.empty()));
+  }
 }
