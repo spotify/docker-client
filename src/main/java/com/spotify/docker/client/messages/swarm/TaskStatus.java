@@ -62,6 +62,7 @@ public abstract class TaskStatus {
   @JsonProperty("Err")
   public abstract String err();
 
+  @Nullable
   @JsonProperty("ContainerStatus")
   public abstract ContainerStatus containerStatus();
 
