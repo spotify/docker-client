@@ -1,5 +1,26 @@
 # Changelog
 
+## 8.11.2
+
+Released March 14, 2018
+
+- Add basic documentation for networks
+- Make Network.options nullable ([983][])
+- Fix: honor -Dhttp.nonProxyHosts ([978][])
+- Fix: Shade HK2 implementation properly
+- Add support for credsStore in new docker versions
+
+[983]: https://github.com/spotify/docker-client/issues/983
+[978]: https://github.com/spotify/docker-client/issues/978
+
+## 8.11.1
+
+Released January 30, 2018
+
+- Fix for proxy usage ([890][])
+
+[890]: https://github.com/spotify/docker-client/issues/890
+
 ## 8.11.0
 
 Released January 25, 2018
