@@ -1,3 +1,13 @@
+<!-- This form is for bug reports and feature requests ONLY!
+
+If you're looking for help check
+[Stack Overflow](https://stackoverflow.com/questions/tagged/spotify-docker-client) and the
+[user manual](https://github.com/spotify/docker-client/blob/master/docs/user_manual.md).
+-->
+
+**Is this a BUG REPORT or FEATURE REQUEST?**:
+
+
 ## Description
 
 [Add feature/bug description here]
