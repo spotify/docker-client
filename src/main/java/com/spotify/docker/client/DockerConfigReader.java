@@ -23,6 +23,7 @@ package com.spotify.docker.client;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -164,11 +165,15 @@ public class DockerConfigReader {
         }
       }
       return RegistryConfigs.create(registryAuthMap);
-
     } else if (authJson.has(AUTHS_ENTRY)) {
-      authJson = (ObjectNode)authJson.get(AUTHS_ENTRY);
+      return MAPPER.treeToValue(authJson.get(AUTHS_ENTRY), RegistryConfigs.class);
     }
-    return MAPPER.treeToValue(authJson, RegistryConfigs.class);
+
+    try {
+      return MAPPER.treeToValue(authJson, RegistryConfigs.class);
+    } catch (JsonProcessingException e) {
+      return RegistryConfigs.empty();
+    }
   }
 
   public Path defaultConfigPath() {
