@@ -1,5 +1,25 @@
 # Changelog
 
+## 8.11.5
+
+Released May 28, 2018
+
+- Support interrupting pull, push, build, and create
+
+## 8.11.4
+
+Released May 23, 2018
+
+- Fix DockerConfigReader when ~/.docker/config.json has no auths
+
+## 8.11.3
+
+Released May 20, 2018
+
+- Add support for Service placement preferences
+- Allow attaching to a not started container
+- Fix for #978: Docker client does not honour the -Dhttp.nonProxyHosts
+
 ## 8.11.2
 
 Released March 14, 2018
