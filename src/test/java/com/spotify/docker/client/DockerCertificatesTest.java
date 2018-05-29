@@ -20,12 +20,6 @@
 
 package com.spotify.docker.client;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import com.google.common.base.Optional;
 import com.google.common.io.Resources;
 import com.spotify.docker.client.DockerCertificates.SslContextFactory;
@@ -38,6 +32,12 @@ import java.security.KeyStore;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class DockerCertificatesTest {
 
@@ -137,8 +137,27 @@ public class DockerCertificatesTest {
     assertNotNull(pkEntry.getPrivateKey());
   }
 
+  @Test
+  public void testReadDockerEEClientBundle() throws Exception {
+    Optional<DockerCertificatesStore> store = DockerCertificates.builder()
+            .dockerCertPath(getDockerEEClientBundlePath())
+            .sslFactory(factory)
+            .build();
+
+    verify(factory).newSslContext(keyStore.capture(), password.capture(), trustStore.capture());
+
+    final KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keyStore.getValue()
+            .getEntry("key", new KeyStore.PasswordProtection(password.getValue()));
+
+    assertNotNull(pkEntry.getPrivateKey());
+  }
+
   private Path getResourceFile(String path) throws URISyntaxException {
     return Paths.get(Resources.getResource(path).toURI());
+  }
+
+  private Path getDockerEEClientBundlePath() throws URISyntaxException {
+    return getResourceFile("dockerSslDirectory");
   }
 
   private Path getCertPath() throws URISyntaxException {

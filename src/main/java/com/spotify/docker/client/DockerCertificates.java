@@ -21,6 +21,7 @@
 package com.spotify.docker.client;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 
 import java.io.BufferedReader;
@@ -44,6 +45,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -62,11 +64,13 @@ import org.slf4j.LoggerFactory;
  */
 public class DockerCertificates implements DockerCertificatesStore {
 
+
   public static final String DEFAULT_CA_CERT_NAME = "ca.pem";
   public static final String DEFAULT_CLIENT_CERT_NAME = "cert.pem";
   public static final String DEFAULT_CLIENT_KEY_NAME = "key.pem";
 
   private static final char[] KEY_STORE_PASSWORD = "docker!!11!!one!".toCharArray();
+  private static final Set<String> PRIVATE_KEY_ALGS = ImmutableSet.of("RSA", "EC");
   private static final Logger log = LoggerFactory.getLogger(DockerCertificates.class);
 
   private final SSLContext sslContext;
@@ -143,12 +147,12 @@ public class DockerCertificates implements DockerCertificatesStore {
   }
 
   private static PrivateKey generatePrivateKey(PrivateKeyInfo privateKeyInfo) throws IOException,
-          InvalidKeySpecException, NoSuchAlgorithmException {
+          InvalidKeySpecException {
     final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
-    return tryGeneratePrivateKey(spec, "RSA", "EC");
+    return tryGeneratePrivateKey(spec, PRIVATE_KEY_ALGS);
   }
 
-  private static PrivateKey tryGeneratePrivateKey(PKCS8EncodedKeySpec spec, String... algorithms)
+  private static PrivateKey tryGeneratePrivateKey(PKCS8EncodedKeySpec spec, Set<String> algorithms)
           throws InvalidKeySpecException {
 
     KeyFactory kf;
@@ -164,7 +168,16 @@ public class DockerCertificates implements DockerCertificatesStore {
       }
     }
 
-    throw new InvalidKeySpecException("Could not generate private key from spec");
+    // Would love to use String.join or the streams API but given that legacy Java support is required here goes...
+    StringBuilder error = new StringBuilder("Could not generate private key from spec; tried using the [");
+    String delimeter = "";
+    for(String algorithm : algorithms) {
+      error.append(delimeter);
+      error.append(algorithm);
+      delimeter = ", ";
+    }
+    error.append("] algorithms");
+    throw new InvalidKeySpecException(error.toString());
   }
 
   private List<Certificate> readCertificates(Path file) throws CertificateException, IOException {
