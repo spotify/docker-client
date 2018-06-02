@@ -94,7 +94,10 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
+
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.internal.util.Base64;
+import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1137,6 +1140,48 @@ public class DefaultDockerClientUnitTest {
         "foo", "bar",
         "baz", "qux"
     )));
+  }
+  
+  @Test
+  public void testBufferedRequestEntityProcessing() throws Exception {
+    builder.useRequestEntityProcessing(RequestEntityProcessing.BUFFERED);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+    
+    final HostConfig hostConfig = HostConfig.builder().build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    assertThat(recordedRequest.getHeader("Content-Length"), notNullValue());
+    assertThat(recordedRequest.getHeader("Transfer-Encoding"), nullValue());
+  }
+  
+  @Test
+  public void testChunkedRequestEntityProcessing() throws Exception {
+    builder.useRequestEntityProcessing(RequestEntityProcessing.CHUNKED);
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+    
+    final HostConfig hostConfig = HostConfig.builder().build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    assertThat(recordedRequest.getHeader("Content-Length"), nullValue());
+    assertThat(recordedRequest.getHeader("Transfer-Encoding"), is("chunked"));
   }
 
   @Test
