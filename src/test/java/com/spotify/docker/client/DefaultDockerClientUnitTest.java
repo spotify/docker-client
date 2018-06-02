@@ -56,6 +56,7 @@ import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
 import com.spotify.docker.client.exceptions.NotFoundException;
 import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.Distribution;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.HostConfig.Bind;
 import com.spotify.docker.client.messages.RegistryAuth;
@@ -1135,6 +1136,41 @@ public class DefaultDockerClientUnitTest {
     assertThat(volume.options(), is(ImmutableMap.of(
         "foo", "bar",
         "baz", "qux"
+    )));
+  }
+
+  @Test
+  public void testGetDistribution() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+          fixture("fixtures/1.30/distribution.json")
+        )
+    );
+    final Distribution distribution = dockerClient.getDistribution("my-image");
+    assertThat(distribution, notNullValue());
+    assertThat(distribution.platforms().size(), is(1));
+    assertThat(distribution.platforms().get(0).architecture() , is("amd64"));
+    assertThat(distribution.platforms().get(0).os() , is("linux"));
+    assertThat(distribution.platforms().get(0).osVersion() , is(""));
+    assertThat(distribution.platforms().get(0).variant() , is(""));
+    assertThat(distribution.descriptor().size() , is(Long.valueOf(3987495)));
+    assertThat(distribution.descriptor().digest() , is(
+        "sha256:c0537ff6a5218ef531ece93d4984efc99bbf3f7497c0a7726c88e2bb7584dc96"));
+    assertThat(distribution.descriptor().mediaType() , is(
+        "application/vnd.docker.distribution.manifest.v2+json"
+    ));
+    assertThat(distribution.platforms().get(0).osFeatures() , is(ImmutableList.of(
+        "feature1", "feature2"
+    )));
+    assertThat(distribution.platforms().get(0).features() , is(ImmutableList.of(
+        "feature1", "feature2"
+    )));
+    assertThat(distribution.descriptor().urls() , is(ImmutableList.of(
+        "url1", "url2"
     )));
   }
 
