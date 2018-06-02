@@ -1,5 +1,17 @@
 # Changelog
 
+## 8.11.6
+
+Released Jun 2, 2018
+
+- Make TaskStatus.containerStatus nullable ([1005][])
+- Support getting image information via /distribution
+- Support EC key spec algorithm ([887][])
+- Allow setting up DockerClientBuilder with RequestEntityProcessing
+
+[1005]: https://github.com/spotify/docker-client/issues/1005
+[887]: https://github.com/spotify/docker-client/issues/887
+
 ## 8.11.5
 
 Released May 28, 2018
