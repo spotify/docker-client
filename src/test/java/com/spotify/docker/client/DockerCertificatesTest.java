@@ -20,24 +20,22 @@
 
 package com.spotify.docker.client;
 
-import com.google.common.base.Optional;
-import com.google.common.io.Resources;
-import com.spotify.docker.client.DockerCertificates.SslContextFactory;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
+import com.google.common.base.Optional;
+import com.google.common.io.Resources;
+import com.spotify.docker.client.DockerCertificates.SslContextFactory;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class DockerCertificatesTest {
 
@@ -138,11 +136,12 @@ public class DockerCertificatesTest {
   }
 
   @Test
-  public void testReadDockerEEClientBundle() throws Exception {
-    Optional<DockerCertificatesStore> store = DockerCertificates.builder()
-            .dockerCertPath(getDockerEEClientBundlePath())
-            .sslFactory(factory)
-            .build();
+  public void testReadDockerEeClientBundle() throws Exception {
+    DockerCertificates.builder()
+        .dockerCertPath(getDockerEeClientBundlePath())
+        .clientKeyPath(getDockerEeClientBundlePath().resolve("key.pem"))
+        .sslFactory(factory)
+        .build();
 
     verify(factory).newSslContext(keyStore.capture(), password.capture(), trustStore.capture());
 
@@ -156,8 +155,8 @@ public class DockerCertificatesTest {
     return Paths.get(Resources.getResource(path).toURI());
   }
 
-  private Path getDockerEEClientBundlePath() throws URISyntaxException {
-    return getResourceFile("dockerSslDirectory");
+  private Path getDockerEeClientBundlePath() throws URISyntaxException {
+    return getResourceFile("dockerEeClientBundle");
   }
 
   private Path getCertPath() throws URISyntaxException {

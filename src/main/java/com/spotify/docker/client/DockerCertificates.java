@@ -20,6 +20,7 @@
 
 package com.spotify.docker.client;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -157,7 +158,7 @@ public class DockerCertificates implements DockerCertificatesStore {
 
     KeyFactory kf;
     PrivateKey key;
-    for (String algorithm : algorithms) {
+    for (final String algorithm : algorithms) {
       try {
         kf = KeyFactory.getInstance(algorithm);
         key = kf.generatePrivate(spec);
@@ -168,16 +169,9 @@ public class DockerCertificates implements DockerCertificatesStore {
       }
     }
 
-    // Would love to use String.join or the streams API but given that legacy Java support is required here goes...
-    StringBuilder error = new StringBuilder("Could not generate private key from spec; tried using the [");
-    String delimeter = "";
-    for(String algorithm : algorithms) {
-      error.append(delimeter);
-      error.append(algorithm);
-      delimeter = ", ";
-    }
-    error.append("] algorithms");
-    throw new InvalidKeySpecException(error.toString());
+    final String error = String.format("Could not generate private key from spec. Tried using %s",
+        Joiner.on(", ").join(algorithms));
+    throw new InvalidKeySpecException(error);
   }
 
   private List<Certificate> readCertificates(Path file) throws CertificateException, IOException {
