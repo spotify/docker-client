@@ -40,4 +40,9 @@ public class TaskTest {
   public void test1_30() throws Exception {
     objectMapper.readValue(fixture("fixtures/1.30/task.json"), Task.class);
   }
+
+  @Test
+  public void test1_30_noContainerStatus() throws Exception {
+    objectMapper.readValue(fixture("fixtures/1.30/taskNoContainerStatus.json"), Task.class);
+  }
 }
