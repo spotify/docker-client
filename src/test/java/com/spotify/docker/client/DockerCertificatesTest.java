@@ -30,12 +30,10 @@ import com.google.common.base.Optional;
 import com.google.common.io.Resources;
 import com.spotify.docker.client.DockerCertificates.SslContextFactory;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
-
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
-
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -137,8 +135,28 @@ public class DockerCertificatesTest {
     assertNotNull(pkEntry.getPrivateKey());
   }
 
+  @Test
+  public void testReadDockerEeClientBundle() throws Exception {
+    DockerCertificates.builder()
+        .dockerCertPath(getDockerEeClientBundlePath())
+        .clientKeyPath(getDockerEeClientBundlePath().resolve("key.pem"))
+        .sslFactory(factory)
+        .build();
+
+    verify(factory).newSslContext(keyStore.capture(), password.capture(), trustStore.capture());
+
+    final KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keyStore.getValue()
+            .getEntry("key", new KeyStore.PasswordProtection(password.getValue()));
+
+    assertNotNull(pkEntry.getPrivateKey());
+  }
+
   private Path getResourceFile(String path) throws URISyntaxException {
     return Paths.get(Resources.getResource(path).toURI());
+  }
+
+  private Path getDockerEeClientBundlePath() throws URISyntaxException {
+    return getResourceFile("dockerEeClientBundle");
   }
 
   private Path getCertPath() throws URISyntaxException {

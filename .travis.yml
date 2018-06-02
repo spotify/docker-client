@@ -33,6 +33,9 @@ before_install:
   - docker version
   - docker info
 
+before_script:
+  - sudo sed -i 's/security.provider.9/#security.provider.9/g' $JAVA_HOME/jre/lib/security/java.security
+
 script: mvn clean -Dsurefire.rerunFailingTestsCount=1 test
 
 after_success:
