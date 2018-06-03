@@ -394,6 +394,30 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
+  public void testCpus() throws  Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    final HostConfig hostConfig = HostConfig.builder()
+              .cpus((float)1.5)
+              .build();
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+              .hostConfig(hostConfig)
+              .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode requestJson = toJson(recordedRequest.getBody());
+    final JsonNode cpus = requestJson.get("HostConfig").get("Cpus");
+
+    assertThat(hostConfig.cpus(), is(cpus.floatValue()));
+    assertThat(hostConfig.cpus(), is((float)1.5));
+  }
+
+  @Test
   public void testInspectNode() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
