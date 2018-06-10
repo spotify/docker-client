@@ -154,6 +154,12 @@ public class DockerConfigReader {
                                           process.getInputStream(), StandardCharsets.UTF_8)) {
           try (BufferedReader input = new BufferedReader(reader)) {
             String serverAuthDetails = input.readLine();
+            // ErrCredentialsNotFound standardizes the not found error, so every helper returns
+            // the same message and docker can handle it properly.
+            // https://github.com/docker/docker-credential-helpers/blob/19b711cc92fbaa47533646fa8adb457d199c99e1/credentials/error.go#L4-L6
+            if ("credentials not found in native keychain".equals(serverAuthDetails)) {
+              continue;
+            }
             JsonNode serverAuthNode = MAPPER.readTree(serverAuthDetails);
             RegistryAuthV2 serverAuth =
                 new RegistryAuthV2(serverAuthNode.get("Username").textValue(),
