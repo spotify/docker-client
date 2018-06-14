@@ -61,6 +61,9 @@ public class HostConfig {
   @JsonProperty("RestartPolicy") private RestartPolicy restartPolicy;
   @JsonProperty("LogConfig") private LogConfig logConfig;
   @JsonProperty("IpcMode") private String ipcMode;
+  // tacked on ulimit builder to support new-er docker host configs
+  @JsonProperty("Ulimits")
+  private ImmutableList<Ulimit> ulimits;
 
   private HostConfig() {
   }
@@ -91,6 +94,7 @@ public class HostConfig {
     this.restartPolicy = builder.restartPolicy;
     this.logConfig = builder.logConfig;
     this.ipcMode = builder.ipcMode;
+    this.ulimits = builder.ulimits;
   }
 
   public List<String> binds() {
@@ -407,6 +411,7 @@ public class HostConfig {
     private String networkMode;
     private ImmutableList<String> securityOpt;
     private ImmutableList<Device> devices;
+    private ImmutableList<Ulimit> ulimits;
     public Long memory;
     public Long memorySwap;
     public Long cpuShares;
@@ -416,6 +421,7 @@ public class HostConfig {
     public RestartPolicy restartPolicy;
     public LogConfig logConfig;
     public String ipcMode;
+
 
     private Builder() {
     }
@@ -446,6 +452,7 @@ public class HostConfig {
       this.restartPolicy = hostConfig.restartPolicy;
       this.logConfig = hostConfig.logConfig;
       this.ipcMode = hostConfig.ipcMode;
+      this.ulimits = hostConfig.ulimits;
     }
 
     /**
@@ -773,6 +780,25 @@ public class HostConfig {
 
     public List<Device> devices() {
       return devices;
+    }
+
+    public Builder ulimits(final List<Ulimit> ulimits) {
+      if (ulimits != null && !ulimits.isEmpty()) {
+        this.ulimits = ImmutableList.copyOf(ulimits);
+      }
+      return this;
+    }
+
+    public Builder ulimits(final Ulimit... ulmits) {
+      if (ulmits != null && ulmits.length > 0) {
+        this.ulimits = ImmutableList.copyOf(ulmits);
+      }
+
+      return this;
+    }
+
+    public List<Ulimit> ulimits() {
+      return ulimits;
     }
 
     public Builder memory(final Long memory) {
