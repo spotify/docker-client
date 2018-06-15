@@ -232,7 +232,8 @@ public class HostConfig {
         Objects.equals(this.cgroupParent, that.cgroupParent) &&
         Objects.equals(this.restartPolicy, that.restartPolicy) &&
         Objects.equals(this.logConfig, that.logConfig) &&
-        Objects.equals(this.ipcMode, that.ipcMode);
+        Objects.equals(this.ipcMode, that.ipcMode) &&
+            Objects.equals(this.ulimits, that.ulimits);
   }
 
   @Override
@@ -241,7 +242,7 @@ public class HostConfig {
                         publishAllPorts, dns, dnsSearch, extraHosts, volumesFrom, capAdd,
                         capDrop, networkMode, securityOpt, devices, memory, memorySwap,
                         cpuShares, cpusetCpus, cpuQuota, cgroupParent, restartPolicy, logConfig,
-                        ipcMode);
+                        ipcMode, ulimits);
   }
 
   @Override
@@ -272,6 +273,7 @@ public class HostConfig {
         .add("restartPolicy", restartPolicy)
         .add("logConfig", logConfig)
         .add("ipcMode", ipcMode)
+            .add("ulimits", ulimits)
         .toString();
   }
 
@@ -789,9 +791,9 @@ public class HostConfig {
       return this;
     }
 
-    public Builder ulimits(final Ulimit... ulmits) {
-      if (ulmits != null && ulmits.length > 0) {
-        this.ulimits = ImmutableList.copyOf(ulmits);
+    public Builder ulimits(final Ulimit... ulimits) {
+      if (ulimits != null && ulimits.length > 0) {
+        this.ulimits = ImmutableList.copyOf(ulimits);
       }
 
       return this;
