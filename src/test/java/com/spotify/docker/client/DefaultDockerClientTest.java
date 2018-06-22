@@ -307,7 +307,7 @@ public class DefaultDockerClientTest {
   private static final boolean TRAVIS = "true".equals(getenv("TRAVIS"));
 
   private static final String AUTH_USERNAME = "dxia2";
-  private static final String AUTH_PASSWORD = "Tv38KLPd]M";
+  private static final String AUTH_PASSWORD = System.getenv("HUB_DXIA2_PASSWORD");
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClientTest.class);
 
