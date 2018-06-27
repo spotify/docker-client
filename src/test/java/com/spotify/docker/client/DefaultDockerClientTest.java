@@ -734,6 +734,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testAuth() throws Exception {
+    // The Docker Hub password is stored encrypted in Travis. So only run on Travis.
+    assumeTrue(TRAVIS);
+
     final int statusCode = sut.auth(registryAuth);
     assertThat(statusCode, equalTo(200));
   }
@@ -986,6 +989,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testBuildImageIdWithAuth() throws Exception {
+    // The Docker Hub password is stored encrypted in Travis. So only run on Travis.
+    assumeTrue(TRAVIS);
+
     final Path dockerDirectory = getResource("dockerDirectory");
     final AtomicReference<String> imageIdFromMessage = new AtomicReference<>();
 
