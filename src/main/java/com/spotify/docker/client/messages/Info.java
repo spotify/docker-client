@@ -275,13 +275,17 @@ public abstract class Info {
     @JsonProperty("Volumes")
     public abstract ImmutableList<String> volumes();
 
-    @JsonProperty("Networks")
+    /**
+     * Return the value of the `network` json path
+     * todo this method should be renamed to network
+     */
+    @JsonProperty("Network")
     public abstract ImmutableList<String> networks();
 
     @JsonCreator
     static Plugins create(
         @JsonProperty("Volumes") final List<String> volumes,
-        @JsonProperty("Networks") final List<String> networks) {
+        @JsonProperty("Network") final List<String> networks) {
       final ImmutableList<String> volumesT =
           volumes == null ? ImmutableList.<String>of() : ImmutableList.copyOf(volumes);
       final ImmutableList<String> networksT =
