@@ -276,7 +276,7 @@ public abstract class Info {
     public abstract ImmutableList<String> volumes();
 
     /**
-     * Return the value of the `network` json path
+     * Return the value of the `network` json path.
      * todo this method should be renamed to network
      */
     @JsonProperty("Network")
