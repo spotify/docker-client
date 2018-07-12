@@ -250,6 +250,31 @@ public class DefaultDockerClientUnitTest {
   private static ObjectNode createObjectNode() {
     return ObjectMapperProvider.objectMapper().createObjectNode();
   }
+  
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGroupAdd() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    final HostConfig hostConfig = HostConfig.builder()
+        .groupAdd( "63", "65")
+        .build();
+
+    final ContainerConfig containerConfig = ContainerConfig.builder()
+        .hostConfig(hostConfig)
+        .build();
+
+    server.enqueue(new MockResponse());
+
+    dockerClient.createContainer(containerConfig);
+
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+
+    final JsonNode groupAdd = toJson(recordedRequest.getBody()).get("HostConfig").get("GroupAdd");
+    assertThat(groupAdd.isArray(), is(true));
+
+    assertThat(childrenTextNodes((ArrayNode) groupAdd), containsInAnyOrder("63", "65"));
+  }
 
   @Test
   @SuppressWarnings("unchecked")
