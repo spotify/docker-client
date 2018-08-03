@@ -130,8 +130,9 @@ public class DockerConfigReader {
 
     // First use the credsHelpers, if there are any
     if (hasCredsHelpers) {
-      for (final String registry : credsHelpers.keySet()) {
-        final String aCredsStore = credsHelpers.get(registry);
+      for (final Map.Entry<String, String> credsHelpersEntry : credsHelpers.entrySet()) {
+        final String registry = credsHelpersEntry.getKey();
+        final String aCredsStore = credsHelpersEntry.getValue();
         registryConfigsBuilder.addConfig(registry,
             authWithCredentialHelper(aCredsStore, registry));
       }
@@ -145,8 +146,9 @@ public class DockerConfigReader {
       // We will use this empty RegistryAuth to check for empty auth values
       final RegistryAuth empty = RegistryAuth.builder().build();
 
-      for (final String registry : auths.keySet()) {
-        final RegistryAuth registryAuth = auths.get(registry);
+      for (final Map.Entry<String, RegistryAuth> authEntry : auths.entrySet()) {
+        final String registry = authEntry.getKey();
+        final RegistryAuth registryAuth = authEntry.getValue();
         if (registryAuth == null || registryAuth.equals(empty)) {
           // We have an empty object. Can we use credsStore?
           if (credsStore != null) {
