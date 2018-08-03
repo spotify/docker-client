@@ -197,7 +197,7 @@ public class DockerConfigReaderTest {
     storeAuthCredential(testAuth2);
 
     final Path path = getTestFilePath("dockerConfig/" + getCredsStoreFileName());
-    final RegistryConfigs configs = reader.fromConfig(path);
+    final RegistryConfigs configs = reader.authForAllRegistries(path);
 
     for (RegistryAuth authConfigs : configs.configs().values()) {
       if (domain1.equals(authConfigs.serverAddress())) {
@@ -288,7 +288,7 @@ public class DockerConfigReaderTest {
   @Test
   public void testParseRegistryConfigs() throws Exception {
     final Path path = getTestFilePath("dockerConfig/multiConfig.json");
-    final RegistryConfigs configs = reader.fromConfig(path);
+    final RegistryConfigs configs = reader.authForAllRegistries(path);
 
     assertThat(configs.configs(), allOf(
         hasEntry("https://index.docker.io/v1/", DOCKER_AUTH_CONFIG),
@@ -299,7 +299,7 @@ public class DockerConfigReaderTest {
   @Test
   public void testParseNoAuths() throws Exception {
     final Path path = getTestFilePath("dockerConfig/noAuths.json");
-    final RegistryConfigs configs = reader.fromConfig(path);
+    final RegistryConfigs configs = reader.authForAllRegistries(path);
     assertThat(configs, equalTo(RegistryConfigs.empty()));
   }
 }

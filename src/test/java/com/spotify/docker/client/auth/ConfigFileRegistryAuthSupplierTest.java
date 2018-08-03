@@ -97,7 +97,7 @@ public class ConfigFileRegistryAuthSupplierTest {
     assertThat(supplier.authForSwarm(), is(nullValue()));
 
     // force future implementors of this method to write a test
-    verify(reader, never()).fromConfig(any(Path.class));
+    verify(reader, never()).authForAllRegistries(any(Path.class));
   }
 
   @Test
@@ -129,7 +129,7 @@ public class ConfigFileRegistryAuthSupplierTest {
             .build()
     ));
 
-    when(reader.fromConfig(configFile.toPath())).thenReturn(configs);
+    when(reader.authForAllRegistries(configFile.toPath())).thenReturn(configs);
 
     assertThat(supplier.authForBuild(), is(equalTo(configs)));
   }

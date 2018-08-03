@@ -103,7 +103,7 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
     }
 
     try {
-      return reader.fromConfig(path);
+      return reader.authForAllRegistries(path);
     } catch (IOException e) {
       throw new DockerException(e);
     }
