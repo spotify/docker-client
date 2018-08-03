@@ -92,28 +92,28 @@ public class DockerConfigReaderTest {
   @Test
   public void testFromDockerConfig_FullConfig() throws Exception {
     final RegistryAuth registryAuth =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/fullConfig.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/fullConfig.json"));
     assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_FullDockerCfg() throws Exception {
     final RegistryAuth registryAuth =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/fullDockerCfg"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/fullDockerCfg"));
     assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_IdentityToken() throws Exception {
     final RegistryAuth authConfig =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/identityTokenConfig.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/identityTokenConfig.json"));
     assertThat(authConfig, equalTo(IDENTITY_TOKEN_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_IncompleteConfig() throws Exception {
     final RegistryAuth registryAuth =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/incompleteConfig.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/incompleteConfig.json"));
 
     final RegistryAuth expected = RegistryAuth.builder()
         .email("dockerman@hub.com")
@@ -126,11 +126,11 @@ public class DockerConfigReaderTest {
   @Test
   public void testFromDockerConfig_WrongConfigs() throws Exception {
     final RegistryAuth registryAuth1 =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/wrongConfig1.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/wrongConfig1.json"));
     assertThat(registryAuth1, is(emptyRegistryAuth()));
 
     final RegistryAuth registryAuth2 =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/wrongConfig2.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/wrongConfig2.json"));
     assertThat(registryAuth2, is(emptyRegistryAuth()));
   }
 
@@ -150,7 +150,7 @@ public class DockerConfigReaderTest {
   public void testFromDockerConfig_MissingConfigFile() throws Exception {
     final Path randomPath = Paths.get(RandomStringUtils.randomAlphanumeric(16) + ".json");
     expectedException.expect(FileNotFoundException.class);
-    reader.fromFirstConfig(randomPath);
+    reader.anyRegistryAuth(randomPath);
   }
 
   @Test

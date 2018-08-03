@@ -24,6 +24,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableCollection;
 import com.spotify.docker.client.messages.DockerCredentialHelper;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
@@ -75,12 +77,34 @@ public class DockerConfigReader {
   }
 
   /**
-   * @deprecated do not use - only exists for backwards compatibility.
-   *             Use {@link #authForAllRegistries(Path)} instead.
+   * Return a single RegistryAuth from the default config file.
+   * If there is only one, it'll be that one.
+   *
+   * @return Some registry auth value.
    */
-  @Deprecated
-  public RegistryAuth fromFirstConfig(Path configPath) throws IOException {
-    return parseDockerConfig(configPath, null);
+  public RegistryAuth anyRegistryAuth() throws IOException {
+    return anyRegistryAuth(defaultConfigPath());
+  }
+
+  /**
+   * Return a single RegistryAuth from the config file.
+   * If there are multiple RegistryAuth entries, which entry is returned from this method
+   * depends on hashing and should not be considered reliable.
+   * If there is only one entry, however, that will be the one returned. This is the
+   * primary use of this method, as a useful way to extract a RegistryAuth during testing.
+   * In that environment, the contents of the config file are known and controlled. In a
+   * production environment, the contents of the config file are less predictable.
+   *
+   * @param configPath Path to the docker config file.
+   * @return Some registry auth value.
+   */
+  @VisibleForTesting
+  RegistryAuth anyRegistryAuth(final Path configPath) throws IOException {
+    final ImmutableCollection<RegistryAuth> registryAuths =
+        authForAllRegistries(configPath).configs().values();
+    return registryAuths.isEmpty()
+        ? RegistryAuth.builder().build()
+        : registryAuths.iterator().next();
   }
 
   /**

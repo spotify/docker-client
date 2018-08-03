@@ -3166,14 +3166,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
     public DefaultDockerClient build() {
-      if (dockerAuth && registryAuthSupplier == null && registryAuth == null) {
-        try {
-          registryAuth(RegistryAuth.fromDockerConfig().build());
-        } catch (IOException e) {
-          log.warn("Unable to use Docker auth info", e);
-        }
-      }
-
       // read the docker config file for auth info if nothing else was specified
       if (registryAuthSupplier == null) {
         registryAuthSupplier(new ConfigFileRegistryAuthSupplier());
