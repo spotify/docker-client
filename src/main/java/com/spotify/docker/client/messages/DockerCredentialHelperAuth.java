@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
-public abstract class DockerCredentialHelper {
+public abstract class DockerCredentialHelperAuth {
   @JsonProperty("Username")
   public abstract String username();
 
@@ -37,11 +37,11 @@ public abstract class DockerCredentialHelper {
   public abstract String serverUrl();
 
   @JsonCreator
-  public static DockerCredentialHelper create(
+  public static DockerCredentialHelperAuth create(
         @JsonProperty("Username") final String username,
         @JsonProperty("Secret") final String secret,
         @JsonProperty("ServerURL") final String serverUrl) {
-    return new AutoValue_DockerCredentialHelper(username, secret, serverUrl);
+    return new AutoValue_DockerCredentialHelperAuth(username, secret, serverUrl);
   }
 
   @JsonIgnore

@@ -26,19 +26,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
-import com.spotify.docker.client.messages.DockerCredentialHelper;
+import com.spotify.docker.client.messages.DockerCredentialHelperAuth;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,6 +45,7 @@ public class DockerConfigReader {
   private static final Logger LOG = LoggerFactory.getLogger(DockerConfigReader.class);
 
   private static final ObjectMapper MAPPER = ObjectMapperProvider.objectMapper();
+
 
   /**
    * Parse the contents of the config file and generate all possible
@@ -249,31 +244,8 @@ public class DockerConfigReader {
    */
   private RegistryAuth authWithCredentialHelper(final String credsStore,
                                                 final String registry) throws IOException {
-    LOG.debug("Executing \"docker-credential-{} get\" for registry \"{}\"", credsStore, registry);
-    final Process process = Runtime.getRuntime().exec("docker-credential-" + credsStore + " get");
-
-    try (final Writer outStreamWriter =
-          new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
-      try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-        writer.write(registry + "\n");
-        writer.flush();
-      }
-    }
-
-    try (final InputStreamReader reader =
-          new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8)) {
-      try (BufferedReader input = new BufferedReader(reader)) {
-        String serverAuthDetails = input.readLine();
-        // ErrCredentialsNotFound standardizes the not found error, so every helper returns
-        // the same message and docker can handle it properly.
-        // https://github.com/docker/docker-credential-helpers/blob/19b711cc92fbaa47533646fa8adb457d199c99e1/credentials/error.go#L4-L6
-        if ("credentials not found in native keychain".equals(serverAuthDetails)) {
-          return null;
-        }
-        final DockerCredentialHelper dockerCredentialHelper =
-            MAPPER.readValue(serverAuthDetails, DockerCredentialHelper.class);
-        return dockerCredentialHelper == null ? null : dockerCredentialHelper.toRegistryAuth();
-      }
-    }
+    final DockerCredentialHelperAuth dockerCredentialHelperAuth =
+        DockerCredentialHelper.get(credsStore, registry);
+    return dockerCredentialHelperAuth == null ? null : dockerCredentialHelperAuth.toRegistryAuth();
   }
 }

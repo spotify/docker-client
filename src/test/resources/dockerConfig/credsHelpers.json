@@ -1,0 +1,7 @@
+{
+  "credsHelpers": {
+    "https://foo.io": "a-cred-helper",
+    "https://adventure.zone": "magic-missile"
+  },
+  "credsStore": "fallback"
+}
