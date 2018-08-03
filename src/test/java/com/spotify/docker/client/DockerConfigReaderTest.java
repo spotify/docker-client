@@ -174,10 +174,10 @@ public class DockerConfigReaderTest {
   public void testFromDockerConfig_MultiConfig() throws Exception {
     final Path path = getTestFilePath("dockerConfig/multiConfig.json");
 
-    final RegistryAuth myDockParsed = reader.fromConfig(path, "https://narnia.mydock.io/v1/");
+    final RegistryAuth myDockParsed = reader.authForRegistry(path, "https://narnia.mydock.io/v1/");
     assertThat(myDockParsed, equalTo(MY_AUTH_CONFIG));
 
-    final RegistryAuth dockerIoParsed = reader.fromConfig(path, "https://index.docker.io/v1/");
+    final RegistryAuth dockerIoParsed = reader.authForRegistry(path, "https://index.docker.io/v1/");
     assertThat(dockerIoParsed, equalTo(DOCKER_AUTH_CONFIG));
   }
 
@@ -186,15 +186,15 @@ public class DockerConfigReaderTest {
     final Path path = getTestFilePath("dockerConfig/protocolMissing.json");
 
     // Server address matches exactly what's in the config file
-    final RegistryAuth noProto = reader.fromConfig(path, "docker.example.com");
+    final RegistryAuth noProto = reader.authForRegistry(path, "docker.example.com");
     assertThat(noProto.serverAddress(), equalTo("docker.example.com"));
 
     // Server address doesn't have a protocol but the entry in the config file does (https)
-    final RegistryAuth httpsProto = reader.fromConfig(path, "repo.example.com");
+    final RegistryAuth httpsProto = reader.authForRegistry(path, "repo.example.com");
     assertThat(httpsProto.serverAddress(), equalTo("https://repo.example.com"));
 
     // Server address doesn't have a protocol but the entry in the config file does (http)
-    final RegistryAuth httpProto = reader.fromConfig(path, "local.example.com");
+    final RegistryAuth httpProto = reader.authForRegistry(path, "local.example.com");
     assertThat(httpProto.serverAddress(), equalTo("http://local.example.com"));
   }
 

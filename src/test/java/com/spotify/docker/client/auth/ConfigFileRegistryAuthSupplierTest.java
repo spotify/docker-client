@@ -87,7 +87,7 @@ public class ConfigFileRegistryAuthSupplierTest {
         .username("abc123")
         .build();
 
-    when(reader.fromConfig(configFile.toPath(), "foo.example.net")).thenReturn(auth);
+    when(reader.authForRegistry(configFile.toPath(), "foo.example.net")).thenReturn(auth);
 
     assertThat(supplier.authFor("foo.example.net/bar:1.2.3"), is(equalTo(auth)));
   }

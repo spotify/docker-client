@@ -65,10 +65,12 @@ public class DockerConfigReader {
    *
    * @throws IllegalArgumentException if the config file does not contain registry auth info for the
    *                                  registry
+   * @deprecated In favor of {@link #authForRegistry(Path, String)}
    */
+  @Deprecated
   public RegistryAuth fromConfig(final Path configPath, final String serverAddress)
       throws IOException {
-    return parseDockerConfig(configPath, serverAddress);
+    return authForRegistry(configPath, serverAddress);
   }
 
   /**
@@ -178,35 +180,37 @@ public class DockerConfigReader {
     return registryConfigsBuilder.build();
   }
 
-  private RegistryAuth parseDockerConfig(final Path configPath, final String serverAddress)
+  /**
+   * Generate {@link RegistryAuth} for the registry.
+   *
+   * @param configPath Path to the docker config file
+   * @param registry Docker registry for which to generate auth
+   * @return The generated authentication object
+   */
+  public RegistryAuth authForRegistry(final Path configPath, final String registry)
       throws IOException {
     checkNotNull(configPath);
+    checkNotNull(registry);
 
-    final Map<String, RegistryAuth> configs = authForAllRegistries(configPath).configs();
-
-    if (isNullOrEmpty(serverAddress)) {
-      if (configs.isEmpty()) {
-        return RegistryAuth.builder().build();
-      }
-      LOG.warn("Returning first entry from docker config file - use fromConfig(Path) instead, "
-               + "this behavior is deprecated and will soon be removed");
-      return configs.values().iterator().next();
+    final DockerConfig config = MAPPER.readValue(configPath.toFile(), DockerConfig.class);
+    if (config == null) {
+      return RegistryAuth.builder().build();
     }
 
-    if (configs.containsKey(serverAddress)) {
-      return configs.get(serverAddress);
+    final RegistryAuth registryAuth = authForRegistry(registry, config);
+    if (registryAuth != null) {
+      return registryAuth;
     }
-
     // If the given server address didn't have a protocol try adding a protocol to the address.
     // This handles cases where older versions of Docker included the protocol when writing
     // auth tokens to config.json.
     try {
-      final URI serverAddressUri = new URI(serverAddress);
+      final URI serverAddressUri = new URI(registry);
       if (serverAddressUri.getScheme() == null) {
         for (String proto : Arrays.asList("https://", "http://")) {
-          final String addrWithProto = proto + serverAddress;
-          if (configs.containsKey(addrWithProto)) {
-            return configs.get(addrWithProto);
+          final RegistryAuth protoRegistryAuth = authForRegistry(proto + registry, config);
+          if (protoRegistryAuth != null) {
+            return protoRegistryAuth;
           }
         }
       }
@@ -215,7 +219,20 @@ public class DockerConfigReader {
     }
 
     throw new IllegalArgumentException(
-        "serverAddress=" + serverAddress + " does not appear in config file at " + configPath);
+        "registry \"" + registry + "\" does not appear in config file at " + configPath);
+  }
+
+  private RegistryAuth authForRegistry(final String registry, final DockerConfig config)
+      throws IOException {
+    final String credsStore = getCredentialStore(config, registry);
+    if (credsStore != null) {
+      return authWithCredentialHelper(credsStore, registry);
+    }
+
+    final Map<String, RegistryAuth> auths = config.auths();
+    return (auths != null && auths.get(registry) != null)
+        ? auths.get(registry).toBuilder().serverAddress(registry).build()
+        : null;
   }
 
   public Path defaultConfigPath() {
@@ -247,5 +264,17 @@ public class DockerConfigReader {
     final DockerCredentialHelperAuth dockerCredentialHelperAuth =
         DockerCredentialHelper.get(credsStore, registry);
     return dockerCredentialHelperAuth == null ? null : dockerCredentialHelperAuth.toRegistryAuth();
+  }
+
+  private String getCredentialStore(final DockerConfig config, final String registry) {
+    checkNotNull(config, "Docker config cannot be null");
+    checkNotNull(registry, "registry cannot be null");
+
+    // Check for the registry in the credsHelpers map first.
+    // If it isn't there, default to credsStore.
+    final Map<String, String> credsHelpers = config.credsHelpers();
+    return (credsHelpers != null && credsHelpers.containsKey(registry))
+        ? credsHelpers.get(registry)
+        : config.credsStore();
   }
 }

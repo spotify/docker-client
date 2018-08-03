@@ -103,7 +103,7 @@ public abstract class RegistryAuth {
   public static Builder fromDockerConfig(final String serverAddress) throws IOException {
     DockerConfigReader dockerCfgReader = new DockerConfigReader();
     return dockerCfgReader
-        .fromConfig(dockerCfgReader.defaultConfigPath(), serverAddress).toBuilder();
+        .authForRegistry(dockerCfgReader.defaultConfigPath(), serverAddress).toBuilder();
   }
 
   @JsonCreator
