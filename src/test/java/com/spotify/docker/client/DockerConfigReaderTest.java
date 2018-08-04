@@ -263,4 +263,47 @@ public class DockerConfigReaderTest {
 
     assertThat(configs, is(expected));
   }
+
+  @Test
+  public void testCredsStoreAndCredsHelpersAndAuth() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/credsStoreAndCredsHelpersAndAuth.json");
+
+    // This registry is in the file, in the "auths" sections
+    final String registry1 = DOCKER_AUTH_CONFIG.serverAddress();
+    assertThat(reader.authForRegistry(path, registry1), is(DOCKER_AUTH_CONFIG));
+
+    // This registry is in the "credsHelpers" section. It will give us a
+    // credsStore value which will trigger our mock and give us testAuth2.
+    final String registry2 = "https://adventure.zone";
+    final DockerCredentialHelperAuth testAuth2 =
+        DockerCredentialHelperAuth.create(
+            "taako",
+            "lupe",
+            registry2
+        );
+    when(credentialHelperDelegate.get("magic-missile", registry2)).thenReturn(testAuth2);
+    assertThat(reader.authForRegistry(path, registry2), is(testAuth2.toRegistryAuth()));
+
+    // This registry is not in the "auths" or anywhere else. It should default
+    // to using the credsStore value, and our mock will return testAuth3.
+    final String registry3 = "https://rush.in";
+    final DockerCredentialHelperAuth testAuth3 =
+        DockerCredentialHelperAuth.create(
+            "magnus",
+            "julia",
+            registry3
+        );
+    when(credentialHelperDelegate.get("starblaster", registry3)).thenReturn(testAuth3);
+    assertThat(reader.authForRegistry(path, registry3), is(testAuth3.toRegistryAuth()));
+
+    // Finally, when we get auths for *all* registries in the file, we only expect
+    // auths for the two registries that are explicitly mentioned.
+    // Since registry1 is in the "auths" and registry2 is in the "credsHelpers",
+    // we will see auths for them.
+    final RegistryConfigs registryConfigs = RegistryConfigs.builder()
+            .addConfig(registry2, testAuth2.toRegistryAuth())
+            .addConfig(registry1, DOCKER_AUTH_CONFIG)
+            .build();
+    assertThat(reader.authForAllRegistries(path), is(registryConfigs));
+  }
 }

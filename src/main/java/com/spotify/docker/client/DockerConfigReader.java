@@ -21,7 +21,6 @@
 package com.spotify.docker.client;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -199,7 +198,7 @@ public class DockerConfigReader {
       return RegistryAuth.builder().build();
     }
 
-    final RegistryAuth registryAuth = authForRegistry(registry, config);
+    final RegistryAuth registryAuth = authForRegistry(config, registry);
     if (registryAuth != null) {
       return registryAuth;
     }
@@ -210,7 +209,7 @@ public class DockerConfigReader {
       final URI serverAddressUri = new URI(registry);
       if (serverAddressUri.getScheme() == null) {
         for (String proto : Arrays.asList("https://", "http://")) {
-          final RegistryAuth protoRegistryAuth = authForRegistry(proto + registry, config);
+          final RegistryAuth protoRegistryAuth = authForRegistry(config, proto + registry);
           if (protoRegistryAuth != null) {
             return protoRegistryAuth;
           }
@@ -224,17 +223,22 @@ public class DockerConfigReader {
         "registry \"" + registry + "\" does not appear in config file at " + configPath);
   }
 
-  private RegistryAuth authForRegistry(final String registry, final DockerConfig config)
+  private RegistryAuth authForRegistry(final DockerConfig config, final String registry)
       throws IOException {
+
+    // If the registry shows up in "auths", return it
+    final Map<String, RegistryAuth> auths = config.auths();
+    if (auths != null && auths.get(registry) != null) {
+      return auths.get(registry).toBuilder().serverAddress(registry).build();
+    }
+
+    // Else, we use a credential helper.
     final String credsStore = getCredentialStore(config, registry);
     if (credsStore != null) {
       return authWithCredentialHelper(credsStore, registry);
     }
 
-    final Map<String, RegistryAuth> auths = config.auths();
-    return (auths != null && auths.get(registry) != null)
-        ? auths.get(registry).toBuilder().serverAddress(registry).build()
-        : null;
+    return null;
   }
 
   public Path defaultConfigPath() {
