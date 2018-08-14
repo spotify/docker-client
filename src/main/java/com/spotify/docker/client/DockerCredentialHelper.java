@@ -136,8 +136,9 @@ public class DockerCredentialHelper {
     }
 
     private Process exec(final String subcommand, final String credsStore) throws IOException {
-      log.debug("Executing \"docker-credential-{} {}\"", credsStore);
-      return Runtime.getRuntime().exec("docker-credential-" + credsStore + " " + subcommand);
+      final String cmd = "docker-credential-" + credsStore + " " + subcommand;
+      log.debug("Executing \"{}\"", cmd);
+      return Runtime.getRuntime().exec(cmd);
     }
   };
 
