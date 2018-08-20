@@ -52,7 +52,7 @@ public class ContainerStateTest {
     assertThat(containerState.paused(), is(false));
     assertThat(containerState.restarting(), is(false));
     assertThat(containerState.running(), is(true));
-    assertThat(containerState.exitCode(), is(0));
+    assertThat(containerState.exitCode(), is(0L));
     assertThat(containerState.pid(), is(27629));
     assertThat(containerState.startedAt(), is(new Date(1412236798929L)));
     assertThat(containerState.finishedAt(), is(new Date(-62135769600000L)));
