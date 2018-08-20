@@ -1,0 +1,89 @@
+{
+  "ID": "XQOF:PUHX:27AO:3WUP:BKXN:PS4P:J56A:SEMQ:5EMQ:SV6U:4RL7:TBXE",
+  "Containers": 2,
+  "ContainersRunning": 2,
+  "ContainersPaused": 0,
+  "ContainersStopped": 1,
+  "Images": 2,
+  "Driver": "aufs",
+  "DriverStatus": [
+    [
+      "Root Dir",
+      "/var/lib/docker"
+    ],
+    [
+      "Backing Filesystem",
+      "extfs"
+    ],
+    [
+      "Dirs",
+      "2"
+    ],
+    [
+      "Dirperm1 Supported",
+      "true"
+    ]
+  ],
+  "SystemStatus": null,
+  "Plugins": {
+    "Volume": [
+      "local"
+    ],
+    "Network": [
+      "bridge",
+      "null",
+      "host"
+    ],
+    "Authorization": null
+  },
+  "MemoryLimit": true,
+  "SwapLimit": true,
+  "KernelMemory": true,
+  "CpuCfsPeriod": true,
+  "CpuCfsQuota": true,
+  "CPUShares": true,
+  "CPUSet": true,
+  "IPv4Forwarding": true,
+  "BridgeNfIptables": true,
+  "BridgeNfIp6tables": true,
+  "Debug": false,
+  "NFd": 78,
+  "OomKillDisable": true,
+  "NGoroutines": 148,
+  "SystemTime": "2018-07-02T12:28:27.911846858Z",
+  "ExecutionDriver": "",
+  "LoggingDriver": "json-file",
+  "CgroupDriver": "cgroupfs",
+  "NEventsListener": 0,
+  "KernelVersion": "4.4.0-1048-aws",
+  "OperatingSystem": "Ubuntu 16.04.3 LTS",
+  "OSType": "linux",
+  "Architecture": "x86_64",
+  "IndexServerAddress": "https://index.docker.io/v1/",
+  "RegistryConfig": {
+    "InsecureRegistryCIDRs": [
+      "127.0.0.0/8"
+    ],
+    "IndexConfigs": {
+      "docker.io": {
+        "Name": "docker.io",
+        "Mirrors": null,
+        "Secure": true,
+        "Official": true
+      }
+    },
+    "Mirrors": null
+  },
+  "NCPU": 2,
+  "MemTotal": 16040345600,
+  "DockerRootDir": "/var/lib/docker",
+  "HttpProxy": "",
+  "HttpsProxy": "",
+  "NoProxy": "",
+  "Name": "ip-192-168-44-10",
+  "Labels": null,
+  "ExperimentalBuild": false,
+  "ServerVersion": "1.11.2",
+  "ClusterStore": "",
+  "ClusterAdvertise": ""
+}
