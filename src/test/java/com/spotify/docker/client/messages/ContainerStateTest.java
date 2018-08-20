@@ -27,13 +27,8 @@ import static org.junit.Assert.assertThat;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import com.spotify.docker.client.ObjectMapperProvider;
-
-import java.io.IOException;
 import java.util.Date;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
