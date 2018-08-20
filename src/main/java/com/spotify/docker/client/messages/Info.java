@@ -272,7 +272,7 @@ public abstract class Info {
   @AutoValue
   public abstract static class Plugins {
 
-    @JsonProperty("Volumes")
+    @JsonProperty("Volume")
     public abstract ImmutableList<String> volumes();
 
     /**
@@ -284,7 +284,7 @@ public abstract class Info {
 
     @JsonCreator
     static Plugins create(
-        @JsonProperty("Volumes") final List<String> volumes,
+        @JsonProperty("Volume") final List<String> volumes,
         @JsonProperty("Network") final List<String> networks) {
       final ImmutableList<String> volumesT =
           volumes == null ? ImmutableList.<String>of() : ImmutableList.copyOf(volumes);
