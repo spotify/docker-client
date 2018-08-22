@@ -3134,7 +3134,7 @@ public class DefaultDockerClientTest {
 
     final ContainerInfo info = sut.inspectContainer(mountContainer);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
 
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr())) {
@@ -3172,7 +3172,7 @@ public class DefaultDockerClientTest {
     sut.waitContainer(volumeContainer);
     final ContainerInfo info = sut.inspectContainer(volumeContainer);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
   }
 
   @Test
@@ -3261,7 +3261,7 @@ public class DefaultDockerClientTest {
 
     final ContainerInfo info = sut.inspectContainer(container);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
 
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(false), stderr())) {
@@ -3288,7 +3288,7 @@ public class DefaultDockerClientTest {
 
     final ContainerInfo info = sut.inspectContainer(container);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
 
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr(false))) {
@@ -3314,7 +3314,7 @@ public class DefaultDockerClientTest {
 
     final ContainerInfo info = sut.inspectContainer(container);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
 
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), timestamps())) {
@@ -3343,7 +3343,7 @@ public class DefaultDockerClientTest {
 
     final ContainerInfo info = sut.inspectContainer(container);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
 
     final String logs;
     try (LogStream stream = sut.logs(info.id(), stdout(), stderr(), tail(2))) {
@@ -3374,7 +3374,7 @@ public class DefaultDockerClientTest {
 
     final ContainerInfo info = sut.inspectContainer(container);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
 
     final String logs;
     // Get logs since the current timestamp. This should return nothing.
@@ -3407,7 +3407,7 @@ public class DefaultDockerClientTest {
     sut.waitContainer(container);
     final ContainerInfo info = sut.inspectContainer(container);
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
   }
 
   @Test(expected = ContainerNotFoundException.class)
@@ -5778,7 +5778,7 @@ public class DefaultDockerClientTest {
     final ContainerInfo info = sut.inspectContainer(volumeContainer);
     assertThat(result.toString().contains("Finished"), is(true));
     assertThat(info.state().running(), is(false));
-    assertThat(info.state().exitCode(), is(0));
+    assertThat(info.state().exitCode(), is(0L));
   }
 
   private List<String> containersToIds(final List<Container> containers) {

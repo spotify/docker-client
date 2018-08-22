@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.12.0
+
+Not released yet
+
+- Make ContainerState.exitCode() return a Long instead of Integer ([1052][])
+
+[1052]: https://github.com/spotify/docker-client/issues/1052
+
 ## 8.11.6
 
 Released Jun 2, 2018
