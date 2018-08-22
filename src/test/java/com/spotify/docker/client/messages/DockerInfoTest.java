@@ -40,8 +40,7 @@ public class DockerInfoTest {
   private final ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   /**
-   * Test that when we deserialize the docker info response we properly parse the Plugins.Network
-   * json path.
+   * Test that when we deserialize the docker info response we properly parse various fields.
    *
    * @throws Exception when we fail to deserialize
    */
@@ -51,5 +50,7 @@ public class DockerInfoTest {
     assertThat(info.plugins(), is(not(nullValue())));
     assertThat(info.plugins().networks(), is(not(nullValue())));
     assertThat(info.plugins().networks().size(), is(greaterThan(0)));
+    assertThat(info.plugins().volumes(), is(not(nullValue())));
+    assertThat(info.plugins().volumes().size(), is(greaterThan(0)));
   }
 }
