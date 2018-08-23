@@ -33,6 +33,9 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import java.util.Map;
 import javax.annotation.Nullable;
 
+/**
+ * Represents the contents of the docker config.json file.
+ */
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class DockerConfig {

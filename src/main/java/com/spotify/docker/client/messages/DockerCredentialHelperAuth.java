@@ -25,6 +25,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
+/**
+ * Represents the auth response received from a docker credential helper
+ * on a "get" operation, or sent to a credential helper on a "store".
+ *
+ * See {@link com.spotify.docker.client.DockerCredentialHelper}.
+ */
 @AutoValue
 public abstract class DockerCredentialHelperAuth {
   @JsonProperty("Username")
