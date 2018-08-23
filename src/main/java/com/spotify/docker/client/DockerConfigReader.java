@@ -150,7 +150,7 @@ public class DockerConfigReader {
         final RegistryAuth registryAuth = authEntry.getValue();
         if (registryAuth == null || registryAuth.equals(empty)) {
           // We have an empty object. Can we use credsStore?
-          if (credsStore != null) {
+          if (hasCredsStore) {
             registryConfigsBuilder.addConfig(registry,
                 authWithCredentialHelper(credsStore, registry));
           } // no else clause. If we can't fall back to credsStore, we can't auth.
