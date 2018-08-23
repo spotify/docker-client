@@ -64,6 +64,14 @@ public abstract class DockerConfig {
   @JsonProperty("stackOrchestrator")
   public abstract String stackOrchestrator();
 
+  @Nullable
+  @JsonProperty("psFormat")
+  public abstract String psFormat();
+
+  @Nullable
+  @JsonProperty("imagesFormat")
+  public abstract String imagesFormat();
+
   @JsonCreator
   public static DockerConfig create(
           @JsonProperty("credsHelpers") final Map<String, String> credsHelpers,
@@ -71,7 +79,9 @@ public abstract class DockerConfig {
           @JsonProperty("HttpHeaders") final Map<String, String> httpHeaders,
           @JsonProperty("credsStore") final String credsStore,
           @JsonProperty("detachKeys") final String detachKeys,
-          @JsonProperty("stackOrchestrator") final String stackOrchestrator) {
+          @JsonProperty("stackOrchestrator") final String stackOrchestrator,
+          @JsonProperty("psFormat") final String psFormat,
+          @JsonProperty("imagesFormat") final String imagesFormat) {
     return new AutoValue_DockerConfig(
         credsHelpers == null
             ? ImmutableMap.<String, String>of()
@@ -84,6 +94,8 @@ public abstract class DockerConfig {
             : ImmutableMap.copyOf(httpHeaders),
         credsStore,
         detachKeys,
-        stackOrchestrator);
+        stackOrchestrator,
+        psFormat,
+        imagesFormat);
   }
 }
