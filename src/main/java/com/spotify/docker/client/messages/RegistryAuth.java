@@ -38,13 +38,13 @@ import org.glassfish.jersey.internal.util.Base64;
 /**
  * Represents all the auth info for a particular registry.
  *
- * These are sent to docker during authenticated registry operations
- * in the X-Registry-Config header (see {@link RegistryConfigs}).
+ * <p>These are sent to docker during authenticated registry operations
+ * in the X-Registry-Config header (see {@link RegistryConfigs}).</p>
  *
- * Typically these objects are built by requesting auth information from a
+ * <p>Typically these objects are built by requesting auth information from a
  * {@link com.spotify.docker.client.DockerCredentialHelper}. However, in older less-secure
  * docker versions, these can be written directly into the ~/.docker/config.json file,
- * with the username and password joined with a ":" and base-64 encoded.
+ * with the username and password joined with a ":" and base-64 encoded.</p>
  */
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)

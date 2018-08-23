@@ -40,24 +40,24 @@ import org.slf4j.LoggerFactory;
  * This class interacts with a docker credential helper.
  * See https://github.com/docker/docker-credential-helpers.
  *
- * The credential helpers are platform-specific ways of storing and retrieving
+ * <p>The credential helpers are platform-specific ways of storing and retrieving
  * registry auth information. Docker ships with OS-specific implementations,
  * such as osxkeychain and wincred, as well as others. But they also allow
  * third parties to implement their own credential helpers; for instance,
  * Google (https://github.com/GoogleCloudPlatform/docker-credential-gcr) and
  * Amazon (https://github.com/awslabs/amazon-ecr-credential-helper) have
- * implementations for their cloud registries.
+ * implementations for their cloud registries.</p>
  *
- * The main interface to this class is in four static methods, which perform the four
+ * <p>The main interface to this class is in four static methods, which perform the four
  * operations of a credential helper: {@link #get(String, String)}, {@link #list(String)},
  * {@link #store(String, DockerCredentialHelperAuth)}, and {@link #erase(String, String)}.
  * They all take the name of the credential helper as an argument; this value is usually read
- * as the credsStore or a credsHelper from a docker config file (see {@link DockerConfig}).
+ * as the credsStore or a credsHelper from a docker config file (see {@link DockerConfig}).</p>
  *
- * The static methods all pass their operations down to a {@link CredentialHelperDelegate} instance.
- * By default this instance executes a command on the system. However, the delegate is modifiable
- * with {@link #setCredentialHelperDelegate(CredentialHelperDelegate)} and
- * {@link #restoreSystemCredentialHelperDelegate()} to facilitate testing.
+ * <p>The static methods all pass their operations down to a {@link CredentialHelperDelegate}
+ * instance. By default this instance executes a command on the system. However, the delegate
+ * is modifiable with {@link #setCredentialHelperDelegate(CredentialHelperDelegate)} and
+ * {@link #restoreSystemCredentialHelperDelegate()} to facilitate testing.</p>
  */
 public class DockerCredentialHelper {
   private static final Logger log = LoggerFactory.getLogger(DockerConfigReader.class);
@@ -80,7 +80,8 @@ public class DockerCredentialHelper {
   }
 
   /**
-   * The default credential helper delegate. Executes each credential helper operation on the system.
+   * The default credential helper delegate.
+   * Executes each credential helper operation on the system.
    */
   private static final CredentialHelperDelegate SYSTEM_CREDENTIAL_HELPER_DELEGATE =
       new CredentialHelperDelegate() {
@@ -186,8 +187,9 @@ public class DockerCredentialHelper {
    * @param credsStore Name of the docker credential helper
    * @param auth Auth object to store
    * @return Exit code of the process
-   * @throws IOException
-   * @throws InterruptedException
+   * @throws IOException When we cannot read from the credential helper
+   * @throws InterruptedException When writing to the credential helper
+   *                              is interrupted
    */
   public static int store(final String credsStore, final DockerCredentialHelperAuth auth)
       throws IOException, InterruptedException {
@@ -199,8 +201,9 @@ public class DockerCredentialHelper {
    * @param credsStore Name of the docker credential helper
    * @param registry The registry for which you want to erase the auth
    * @return Exit code of the process
-   * @throws IOException
-   * @throws InterruptedException
+   * @throws IOException When we cannot read from the credential helper
+   * @throws InterruptedException When writing to the credential helper
+   *                              is interrupted
    */
   public static int erase(final String credsStore, final String registry)
       throws IOException, InterruptedException {
@@ -212,7 +215,7 @@ public class DockerCredentialHelper {
    * @param credsStore Name of the docker credential helper
    * @param registry The registry for which you want to auth
    * @return A {@link DockerCredentialHelperAuth} auth object
-   * @throws IOException
+   * @throws IOException When we cannot read from the credential helper
    */
   public static DockerCredentialHelperAuth get(final String credsStore, final String registry)
       throws IOException {
@@ -222,8 +225,9 @@ public class DockerCredentialHelper {
   /**
    * Lists credentials stored in the credsStore
    * @param credsStore Name of the docker credential helper
-   * @return Map of registries to auth identifiers. (For instance, usernames for which you have signed in.)
-   * @throws IOException
+   * @return Map of registries to auth identifiers.
+   *         (For instance, usernames for which you have signed in.)
+   * @throws IOException When we cannot read from the credential helper
    */
   public static Map<String, String> list(final String credsStore) throws IOException {
     return credentialHelperDelegate.list(credsStore);
