@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -58,7 +57,7 @@ import java.util.Map;
 public abstract class RegistryConfigs {
 
   public static RegistryConfigs empty() {
-    return RegistryConfigs.create(Collections.<String, RegistryAuth>emptyMap());
+    return builder().build();
   }
 
   public abstract ImmutableMap<String, RegistryAuth> configs();
@@ -66,7 +65,7 @@ public abstract class RegistryConfigs {
   @JsonCreator
   public static RegistryConfigs create(final Map<String, RegistryAuth> configs) {
     if (configs == null) {
-      return new AutoValue_RegistryConfigs(ImmutableMap.<String, RegistryAuth>of());
+      return empty();
     }
 
     // need to add serverAddress to each RegistryAuth instance; it is not available when
@@ -87,6 +86,24 @@ public abstract class RegistryConfigs {
           }
         });
 
-    return new AutoValue_RegistryConfigs(ImmutableMap.copyOf(transformedMap));
+    return builder().configs(transformedMap).build();
+  }
+
+  public static Builder builder() {
+    return new AutoValue_RegistryConfigs.Builder();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+    public abstract Builder configs(Map<String, RegistryAuth> configs);
+
+    abstract ImmutableMap.Builder<String, RegistryAuth> configsBuilder();
+
+    public Builder addConfig(final String server, final RegistryAuth registryAuth) {
+      configsBuilder().put(server, registryAuth);
+      return this;
+    }
+
+    public abstract RegistryConfigs build();
   }
 }

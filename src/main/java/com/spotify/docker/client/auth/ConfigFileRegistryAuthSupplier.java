@@ -71,15 +71,15 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
     try {
       // Some registries like Docker Hub and GCR include "https://" in the server address.
       // Others like quay.io don't.
-      final RegistryAuth registryAuth = reader.fromConfig(path, ref.getRegistryUrl());
+      final RegistryAuth registryAuth = reader.authForRegistry(path, ref.getRegistryUrl());
       if (registryAuth != null) {
         return registryAuth;
       }
-      return reader.fromConfig(path, ref.getRegistryName());
+      return reader.authForRegistry(path, ref.getRegistryName());
     } catch (IllegalArgumentException e) {
       log.debug("Failed first attempt to find auth for {}", ref.getRegistryUrl(), e);
       try {
-        return reader.fromConfig(path, ref.getRegistryName());
+        return reader.authForRegistry(path, ref.getRegistryName());
       } catch (IllegalArgumentException e2) {
         log.debug("Failed second attempt to find auth for {}", ref.getRegistryName(), e2);
         return null;
@@ -103,7 +103,7 @@ public class ConfigFileRegistryAuthSupplier implements RegistryAuthSupplier {
     }
 
     try {
-      return reader.fromConfig(path);
+      return reader.authForAllRegistries(path);
     } catch (IOException e) {
       throw new DockerException(e);
     }

@@ -35,6 +35,17 @@ import java.nio.file.Path;
 import javax.annotation.Nullable;
 import org.glassfish.jersey.internal.util.Base64;
 
+/**
+ * Represents all the auth info for a particular registry.
+ *
+ * <p>These are sent to docker during authenticated registry operations
+ * in the X-Registry-Config header (see {@link RegistryConfigs}).</p>
+ *
+ * <p>Typically these objects are built by requesting auth information from a
+ * {@link com.spotify.docker.client.DockerCredentialHelper}. However, in older less-secure
+ * docker versions, these can be written directly into the ~/.docker/config.json file,
+ * with the username and password joined with a ":" and base-64 encoded.</p>
+ */
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class RegistryAuth {
@@ -76,18 +87,18 @@ public abstract class RegistryAuth {
 
   /**
    * This function looks for and parses credentials for logging into Docker registries. We first
-   * look in ~/.docker/config.json and fallback to ~/.dockercfg. We use the first credential in the
-   * config file. These files are created from running `docker login`.
+   * look in ~/.docker/config.json and fallback to ~/.dockercfg.
+   * These files are created from running `docker login`.
+   * If the file contains multiple credentials, which entry is returned from this method
+   * depends on hashing and should not be considered reliable.
    *
    * @return a {@link Builder}
    * @throws IOException when we can't parse the docker config file
-   * @deprecated in favor of registryAuthSupplier
+   * @deprecated in favor of {@link com.spotify.docker.client.auth.ConfigFileRegistryAuthSupplier}
    */
   @Deprecated
-  @SuppressWarnings({"deprecated", "unused"})
   public static Builder fromDockerConfig() throws IOException {
-    DockerConfigReader dockerCfgReader = new DockerConfigReader();
-    return dockerCfgReader.fromFirstConfig(dockerCfgReader.defaultConfigPath()).toBuilder();
+    return new DockerConfigReader().anyRegistryAuth().toBuilder();
   }
 
   /**
@@ -103,37 +114,7 @@ public abstract class RegistryAuth {
   public static Builder fromDockerConfig(final String serverAddress) throws IOException {
     DockerConfigReader dockerCfgReader = new DockerConfigReader();
     return dockerCfgReader
-        .fromConfig(dockerCfgReader.defaultConfigPath(), serverAddress).toBuilder();
-  }
-
-  /**
-   * Returns the first credential from the specified path to the docker file. This method is
-   * package-local so we can test it.
-   *
-   * @param configPath The path to the config file
-   * @return a {@link Builder}
-   * @throws IOException when we can't parse the docker config file
-   */
-  @VisibleForTesting
-  static Builder fromDockerConfig(final Path configPath) throws IOException {
-    DockerConfigReader dockerCfgReader = new DockerConfigReader();
-    return dockerCfgReader.fromConfig(configPath, null).toBuilder();
-  }
-
-  /**
-   * Returns the specified credential from the specified path to the docker file. This method is
-   * package-local so we can test it.
-   *
-   * @param configPath    The path to the config file
-   * @param serverAddress A string representing the server address
-   * @return a {@link Builder}
-   * @throws IOException If an IOException occurred
-   */
-  @VisibleForTesting
-  static Builder fromDockerConfig(final Path configPath, final String serverAddress)
-      throws IOException {
-    DockerConfigReader dockerConfigReader = new DockerConfigReader();
-    return dockerConfigReader.fromConfig(configPath, serverAddress).toBuilder();
+        .authForRegistry(dockerCfgReader.defaultConfigPath(), serverAddress).toBuilder();
   }
 
   @JsonCreator

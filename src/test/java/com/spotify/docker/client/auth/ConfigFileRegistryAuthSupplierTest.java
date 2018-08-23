@@ -87,7 +87,7 @@ public class ConfigFileRegistryAuthSupplierTest {
         .username("abc123")
         .build();
 
-    when(reader.fromConfig(configFile.toPath(), "foo.example.net")).thenReturn(auth);
+    when(reader.authForRegistry(configFile.toPath(), "foo.example.net")).thenReturn(auth);
 
     assertThat(supplier.authFor("foo.example.net/bar:1.2.3"), is(equalTo(auth)));
   }
@@ -97,7 +97,7 @@ public class ConfigFileRegistryAuthSupplierTest {
     assertThat(supplier.authForSwarm(), is(nullValue()));
 
     // force future implementors of this method to write a test
-    verify(reader, never()).fromConfig(any(Path.class));
+    verify(reader, never()).authForAllRegistries(any(Path.class));
   }
 
   @Test
@@ -129,7 +129,7 @@ public class ConfigFileRegistryAuthSupplierTest {
             .build()
     ));
 
-    when(reader.fromConfig(configFile.toPath())).thenReturn(configs);
+    when(reader.authForAllRegistries(configFile.toPath())).thenReturn(configs);
 
     assertThat(supplier.authForBuild(), is(equalTo(configs)));
   }

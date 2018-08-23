@@ -42,21 +42,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.common.io.Resources;
+import com.spotify.docker.client.DockerCredentialHelper.CredentialHelperDelegate;
+import com.spotify.docker.client.messages.DockerCredentialHelperAuth;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
-import java.io.BufferedWriter;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.lang.RandomStringUtils;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.hamcrest.Matcher;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -89,31 +93,44 @@ public class DockerConfigReaderTest {
 
   private final DockerConfigReader reader = new DockerConfigReader();
 
+  private CredentialHelperDelegate credentialHelperDelegate;
+
+  @Before
+  public void setup() {
+    credentialHelperDelegate = mock(CredentialHelperDelegate.class);
+    DockerCredentialHelper.setCredentialHelperDelegate(credentialHelperDelegate);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    DockerCredentialHelper.restoreSystemCredentialHelperDelegate();
+  }
+
   @Test
   public void testFromDockerConfig_FullConfig() throws Exception {
     final RegistryAuth registryAuth =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/fullConfig.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/fullConfig.json"));
     assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_FullDockerCfg() throws Exception {
     final RegistryAuth registryAuth =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/fullDockerCfg"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/fullDockerCfg"));
     assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_IdentityToken() throws Exception {
     final RegistryAuth authConfig =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/identityTokenConfig.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/identityTokenConfig.json"));
     assertThat(authConfig, equalTo(IDENTITY_TOKEN_AUTH_CONFIG));
   }
 
   @Test
   public void testFromDockerConfig_IncompleteConfig() throws Exception {
     final RegistryAuth registryAuth =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/incompleteConfig.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/incompleteConfig.json"));
 
     final RegistryAuth expected = RegistryAuth.builder()
         .email("dockerman@hub.com")
@@ -126,11 +143,11 @@ public class DockerConfigReaderTest {
   @Test
   public void testFromDockerConfig_WrongConfigs() throws Exception {
     final RegistryAuth registryAuth1 =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/wrongConfig1.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/wrongConfig1.json"));
     assertThat(registryAuth1, is(emptyRegistryAuth()));
 
     final RegistryAuth registryAuth2 =
-        reader.fromFirstConfig(getTestFilePath("dockerConfig/wrongConfig2.json"));
+        reader.anyRegistryAuth(getTestFilePath("dockerConfig/wrongConfig2.json"));
     assertThat(registryAuth2, is(emptyRegistryAuth()));
   }
 
@@ -150,17 +167,17 @@ public class DockerConfigReaderTest {
   public void testFromDockerConfig_MissingConfigFile() throws Exception {
     final Path randomPath = Paths.get(RandomStringUtils.randomAlphanumeric(16) + ".json");
     expectedException.expect(FileNotFoundException.class);
-    reader.fromFirstConfig(randomPath);
+    reader.anyRegistryAuth(randomPath);
   }
 
   @Test
   public void testFromDockerConfig_MultiConfig() throws Exception {
     final Path path = getTestFilePath("dockerConfig/multiConfig.json");
 
-    final RegistryAuth myDockParsed = reader.fromConfig(path, "https://narnia.mydock.io/v1/");
+    final RegistryAuth myDockParsed = reader.authForRegistry(path, "https://narnia.mydock.io/v1/");
     assertThat(myDockParsed, equalTo(MY_AUTH_CONFIG));
 
-    final RegistryAuth dockerIoParsed = reader.fromConfig(path, "https://index.docker.io/v1/");
+    final RegistryAuth dockerIoParsed = reader.authForRegistry(path, "https://index.docker.io/v1/");
     assertThat(dockerIoParsed, equalTo(DOCKER_AUTH_CONFIG));
   }
 
@@ -169,103 +186,16 @@ public class DockerConfigReaderTest {
     final Path path = getTestFilePath("dockerConfig/protocolMissing.json");
 
     // Server address matches exactly what's in the config file
-    final RegistryAuth noProto = reader.fromConfig(path, "docker.example.com");
+    final RegistryAuth noProto = reader.authForRegistry(path, "docker.example.com");
     assertThat(noProto.serverAddress(), equalTo("docker.example.com"));
 
     // Server address doesn't have a protocol but the entry in the config file does (https)
-    final RegistryAuth httpsProto = reader.fromConfig(path, "repo.example.com");
+    final RegistryAuth httpsProto = reader.authForRegistry(path, "repo.example.com");
     assertThat(httpsProto.serverAddress(), equalTo("https://repo.example.com"));
 
     // Server address doesn't have a protocol but the entry in the config file does (http)
-    final RegistryAuth httpProto = reader.fromConfig(path, "local.example.com");
+    final RegistryAuth httpProto = reader.authForRegistry(path, "local.example.com");
     assertThat(httpProto.serverAddress(), equalTo("http://local.example.com"));
-  }
-
-  @Test
-  public void testFromDockerConfig_CredsStore() throws Exception {
-    assumeTrue("Need to have a credential store.", getAuthCredentialsExist());
-
-    String domain1 = "https://test.fakedomain.com";
-    String domain2 = "https://test.fakedomain2.com";
-
-    String testAuth1 = "{\n" + "\t\"ServerURL\": \"" + domain1 + "\",\n"
-                       + "\t\"Username\": \"david\",\n" + "\t\"Secret\": \"passw0rd1\"\n" + "}";
-    String testAuth2 = "{\n" + "\t\"ServerURL\": \"" + domain2 + "\",\n"
-                       + "\t\"Username\": \"carl\",\n" + "\t\"Secret\": \"myPassword\"\n" + "}";
-
-    storeAuthCredential(testAuth1);
-    storeAuthCredential(testAuth2);
-
-    final Path path = getTestFilePath("dockerConfig/" + getCredsStoreFileName());
-    final RegistryConfigs configs = reader.fromConfig(path);
-
-    for (RegistryAuth authConfigs : configs.configs().values()) {
-      if (domain1.equals(authConfigs.serverAddress())) {
-        assertThat(authConfigs.username(), equalTo("david"));
-        assertThat(authConfigs.password(), equalTo("passw0rd1"));
-      } else if (domain2.equals(authConfigs.serverAddress())) {
-        assertThat(authConfigs.username(), equalTo("carl"));
-        assertThat(authConfigs.password(), equalTo("myPassword"));
-      }
-    }
-    eraseAuthCredential(domain1);
-    eraseAuthCredential(domain2);
-  }
-
-  private void eraseAuthCredential(String domain1) throws IOException, InterruptedException {
-    // Erase the credentials from the store
-    Process process = Runtime.getRuntime().exec(getCredsStore() + " erase");
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-
-    writer.write(domain1 + "\n");
-    writer.flush();
-    writer.close();
-
-    process.waitFor();
-  }
-
-  private boolean getAuthCredentialsExist() throws InterruptedException {
-    boolean returnValue = false;
-    try {
-      Process process = Runtime.getRuntime().exec(getCredsStore() + " list");
-      returnValue = process.waitFor() == 0;
-    } catch (IOException e) {
-      // Ignored. This is ok, it just means the cred store doesn't exist on this system.
-    }
-    return returnValue;
-  }
-
-  private void storeAuthCredential(String testAuth1) throws IOException, InterruptedException {
-    Process process = Runtime.getRuntime().exec(getCredsStore() + " store");
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-
-    writer.write(testAuth1 + "\n");
-    writer.flush();
-    writer.close();
-
-    process.waitFor();
-  }
-
-  private static String getCredsStoreFileName() {
-    if (OsUtils.isOsX()) {
-      return "credsStoreConfigOSX.json";
-    } else if (OsUtils.isLinux()) {
-      return "credsStoreConfigLinux.json";
-    } else {
-      return "credsStoreConfigWin.json";
-    }
-  }
-
-  private static String getCredsStore() {
-    String credsStore;
-    if (OsUtils.isOsX()) {
-      credsStore = "docker-credential-osxkeychain";
-    } else if (OsUtils.isLinux()) {
-      credsStore =  "docker-credential-secretservice";
-    } else {
-      credsStore = "docker-credential-wincred";
-    }
-    return credsStore;
   }
 
   private static Path getTestFilePath(final String path) {
@@ -288,7 +218,7 @@ public class DockerConfigReaderTest {
   @Test
   public void testParseRegistryConfigs() throws Exception {
     final Path path = getTestFilePath("dockerConfig/multiConfig.json");
-    final RegistryConfigs configs = reader.fromConfig(path);
+    final RegistryConfigs configs = reader.authForAllRegistries(path);
 
     assertThat(configs.configs(), allOf(
         hasEntry("https://index.docker.io/v1/", DOCKER_AUTH_CONFIG),
@@ -299,7 +229,81 @@ public class DockerConfigReaderTest {
   @Test
   public void testParseNoAuths() throws Exception {
     final Path path = getTestFilePath("dockerConfig/noAuths.json");
-    final RegistryConfigs configs = reader.fromConfig(path);
+    final RegistryConfigs configs = reader.authForAllRegistries(path);
     assertThat(configs, equalTo(RegistryConfigs.empty()));
+  }
+
+  @Test
+  public void testCredsHelpers() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/credsHelpers.json");
+
+    final String registry1 = "https://foo.io";
+    final String registry2 = "https://adventure.zone";
+    final DockerCredentialHelperAuth testAuth1 =
+            DockerCredentialHelperAuth.create(
+                    "cool user",
+                    "cool password",
+                    registry1
+            );
+    final DockerCredentialHelperAuth testAuth2 =
+            DockerCredentialHelperAuth.create(
+                    "taako",
+                    "lupe",
+                    registry2
+            );
+
+    when(credentialHelperDelegate.get("a-cred-helper", registry1)).thenReturn(testAuth1);
+    when(credentialHelperDelegate.get("magic-missile", registry2)).thenReturn(testAuth2);
+
+    final RegistryConfigs expected = RegistryConfigs.builder()
+            .addConfig(registry1, testAuth1.toRegistryAuth())
+            .addConfig(registry2, testAuth2.toRegistryAuth())
+            .build();
+    final RegistryConfigs configs = reader.authForAllRegistries(path);
+
+    assertThat(configs, is(expected));
+  }
+
+  @Test
+  public void testCredsStoreAndCredsHelpersAndAuth() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/credsStoreAndCredsHelpersAndAuth.json");
+
+    // This registry is in the file, in the "auths" sections
+    final String registry1 = DOCKER_AUTH_CONFIG.serverAddress();
+    assertThat(reader.authForRegistry(path, registry1), is(DOCKER_AUTH_CONFIG));
+
+    // This registry is in the "credsHelpers" section. It will give us a
+    // credsStore value which will trigger our mock and give us testAuth2.
+    final String registry2 = "https://adventure.zone";
+    final DockerCredentialHelperAuth testAuth2 =
+        DockerCredentialHelperAuth.create(
+            "taako",
+            "lupe",
+            registry2
+        );
+    when(credentialHelperDelegate.get("magic-missile", registry2)).thenReturn(testAuth2);
+    assertThat(reader.authForRegistry(path, registry2), is(testAuth2.toRegistryAuth()));
+
+    // This registry is not in the "auths" or anywhere else. It should default
+    // to using the credsStore value, and our mock will return testAuth3.
+    final String registry3 = "https://rush.in";
+    final DockerCredentialHelperAuth testAuth3 =
+        DockerCredentialHelperAuth.create(
+            "magnus",
+            "julia",
+            registry3
+        );
+    when(credentialHelperDelegate.get("starblaster", registry3)).thenReturn(testAuth3);
+    assertThat(reader.authForRegistry(path, registry3), is(testAuth3.toRegistryAuth()));
+
+    // Finally, when we get auths for *all* registries in the file, we only expect
+    // auths for the two registries that are explicitly mentioned.
+    // Since registry1 is in the "auths" and registry2 is in the "credsHelpers",
+    // we will see auths for them.
+    final RegistryConfigs registryConfigs = RegistryConfigs.builder()
+            .addConfig(registry2, testAuth2.toRegistryAuth())
+            .addConfig(registry1, DOCKER_AUTH_CONFIG)
+            .build();
+    assertThat(reader.authForAllRegistries(path), is(registryConfigs));
   }
 }

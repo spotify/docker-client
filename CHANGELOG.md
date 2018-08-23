@@ -5,7 +5,13 @@
 Not released yet
 
 - Make ContainerState.exitCode() return a Long instead of Integer ([1052][])
+- Refactor authentication with docker config.json file ([1051][])
+    - Add support for `credsHelper` (Fixes [1037][])
+    - Improve support for authenticating with multiple registries (Fixes [1042][])
 
+[1037]: https://github.com/spotify/docker-client/issues/1037
+[1042]: https://github.com/spotify/docker-client/issues/1042
+[1051]: https://github.com/spotify/docker-client/issues/1051
 [1052]: https://github.com/spotify/docker-client/issues/1052
 
 ## 8.11.6
