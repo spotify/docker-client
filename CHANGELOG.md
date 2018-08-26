@@ -2,7 +2,7 @@
 
 ## 8.12.0
 
-Not released yet
+Released August 26 2018
 
 - Make ContainerState.exitCode() return a Long instead of Integer ([1052][])
 - Refactor authentication with docker config.json file ([1051][])
