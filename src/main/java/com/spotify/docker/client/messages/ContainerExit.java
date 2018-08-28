@@ -34,10 +34,10 @@ import com.google.auto.value.AutoValue;
 public abstract class ContainerExit {
 
   @JsonProperty("StatusCode")
-  public abstract Integer statusCode();
+  public abstract Long statusCode();
 
   @JsonCreator
-  public static ContainerExit create(@JsonProperty("StatusCode") final Integer statusCode) {
+  public static ContainerExit create(@JsonProperty("StatusCode") final Long statusCode) {
     return new AutoValue_ContainerExit(statusCode);
   }
 }

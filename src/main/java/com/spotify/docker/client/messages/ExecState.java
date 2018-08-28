@@ -45,7 +45,7 @@ public abstract class ExecState {
 
   @Nullable
   @JsonProperty("ExitCode")
-  public abstract Integer exitCode();
+  public abstract Long exitCode();
 
   @JsonProperty("ProcessConfig")
   public abstract ProcessConfig processConfig();
@@ -71,7 +71,7 @@ public abstract class ExecState {
   static ExecState create(
       @JsonProperty("ID") final String id,
       @JsonProperty("Running") final Boolean running,
-      @JsonProperty("ExitCode") final Integer exitCode,
+      @JsonProperty("ExitCode") final Long exitCode,
       @JsonProperty("ProcessConfig") final ProcessConfig processConfig,
       @JsonProperty("OpenStdin") final Boolean openStdin,
       @JsonProperty("OpenStdout") final Boolean openStdout,
