@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.13.0
+
+Not yet released
+
+- Make ContainExit.exitCode(), HealthLog.exitCode() and ExecState.exitCode() return a Long instead
+ of Integer.
+- Add support for `runtime` in HostConfig
+
 ## 8.12.0
 
 Released August 26 2018

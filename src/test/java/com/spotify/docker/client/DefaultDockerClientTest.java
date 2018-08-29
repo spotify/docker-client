@@ -203,7 +203,6 @@ import com.spotify.docker.client.messages.swarm.OrchestrationConfig;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.PortConfig;
 import com.spotify.docker.client.messages.swarm.PortConfig.PortConfigPublishMode;
-import com.spotify.docker.client.messages.swarm.Preference;
 import com.spotify.docker.client.messages.swarm.RaftConfig;
 import com.spotify.docker.client.messages.swarm.ReplicatedService;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
@@ -216,7 +215,6 @@ import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceMode;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
-import com.spotify.docker.client.messages.swarm.Spread;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.SwarmInit;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
@@ -3611,7 +3609,7 @@ public class DefaultDockerClientTest {
     assertThat(notStarted.id(), is(execId));
     assertThat(notStarted.running(), is(false));
     if (dockerApiVersionLessThan("1.22")) {
-      assertThat(notStarted.exitCode(), is(0));
+      assertThat(notStarted.exitCode(), is(0L));
     } else {
       assertThat(notStarted.exitCode(), nullValue());
     }
@@ -3626,7 +3624,7 @@ public class DefaultDockerClientTest {
     final ExecState started = sut.execInspect(execId);
     assertThat(started.id(), is(execId));
     assertThat(started.running(), is(false));
-    assertThat(started.exitCode(), is(2));
+    assertThat(started.exitCode(), is(2L));
     assertThat(started.openStdin(), is(true));
     assertThat(started.openStderr(), is(true));
     assertThat(started.openStdout(), is(true));

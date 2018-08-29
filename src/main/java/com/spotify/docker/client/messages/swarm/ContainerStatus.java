@@ -44,13 +44,13 @@ public abstract class ContainerStatus {
 
   @Nullable
   @JsonProperty("ExitCode")
-  public abstract Integer exitCode();
+  public abstract Long exitCode();
 
   @JsonCreator
   static ContainerStatus create(
       @JsonProperty("ContainerID") final String containerId,
       @JsonProperty("PID") final Integer pid,
-      @JsonProperty("ExitCode") final Integer exitCode) {
+      @JsonProperty("ExitCode") final Long exitCode) {
     return new AutoValue_ContainerStatus(containerId, pid, exitCode);
   }
 }

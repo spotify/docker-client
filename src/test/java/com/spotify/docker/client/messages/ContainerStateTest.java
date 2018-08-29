@@ -63,7 +63,7 @@ public class ContainerStateTest {
     ContainerState.HealthLog log = health.log().get(0);
     assertThat(log.start(), is(new Date(1412236801547L)));
     assertThat(log.end(), is(new Date(1412236802697L)));
-    assertThat(log.exitCode(), is(1));
+    assertThat(log.exitCode(), is(1L));
     assertThat(log.output(), is("output"));
   }
 

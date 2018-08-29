@@ -240,6 +240,11 @@ public abstract class HostConfig {
   @JsonProperty("StorageOpt")
   public abstract ImmutableMap<String, String> storageOpt();
 
+  @Nullable
+  @JsonProperty("Runtime")
+  public abstract String runtime();
+
+
   @JsonCreator
   static HostConfig create(
       @JsonProperty("Binds") final List<String> binds,
@@ -288,6 +293,7 @@ public abstract class HostConfig {
       @JsonProperty("PidsLimit") final Integer pidsLimit,
       @JsonProperty("Tmpfs") final Map<String, String> tmpfs,
       @JsonProperty("ReadonlyRootfs") final Boolean readonlyRootfs,
+      @JsonProperty("Runtime") final String runtime,
       @JsonProperty("StorageOpt") final Map<String, String> storageOpt) {
     return builder()
         .binds(binds)
@@ -337,6 +343,7 @@ public abstract class HostConfig {
         .tmpfs(tmpfs)
         .readonlyRootfs(readonlyRootfs)
         .storageOpt(storageOpt)
+        .runtime(runtime)
         .build();
   }
 
@@ -635,6 +642,8 @@ public abstract class HostConfig {
     public abstract Builder readonlyRootfs(Boolean readonlyRootfs);
     
     public abstract Builder storageOpt(Map<String, String> tmpfs);
+
+    public abstract Builder runtime(String runtime);
 
     // Validation of property values using AutoValue requires we split the build method into two.
     // AutoValue implements this package-private method.
