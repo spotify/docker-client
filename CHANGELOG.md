@@ -2,7 +2,7 @@
 
 ## 8.13.0
 
-Not yet released
+Released August 29 2018
 
 - Make ContainExit.exitCode(), HealthLog.exitCode() and ExecState.exitCode() return a Long instead
  of Integer.
