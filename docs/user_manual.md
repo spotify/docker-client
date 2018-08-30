@@ -587,7 +587,7 @@ try (InputStream imagePayload = new BufferedInputStream(new FileInputStream(tarF
 ### Exec Create
 
 ```java
-final String execId = docker.execCreate(containerId, new String[]{"sh", "-c", "exit 2"});
+final String execId = docker.execCreate(containerId, new String[]{"sh", "-c", "exit 2"}).id();
 
 try (final LogStream stream = docker.execStart(execId)) {
   stream.readFully();
