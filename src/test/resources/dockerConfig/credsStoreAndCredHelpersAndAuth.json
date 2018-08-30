@@ -5,7 +5,7 @@
       "email": "dockerman@hub.com"
     }
   },
-  "credsHelpers": {
+  "credHelpers": {
     "https://adventure.zone": "magic-missile"
   },
   "credsStore": "starblaster"

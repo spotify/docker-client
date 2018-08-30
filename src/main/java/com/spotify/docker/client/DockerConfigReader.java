@@ -120,18 +120,18 @@ public class DockerConfigReader {
 
     final RegistryConfigs.Builder registryConfigsBuilder = RegistryConfigs.builder();
 
-    final Map<String, String> credsHelpers = config.credsHelpers();
-    final boolean hasCredsHelpers = credsHelpers != null && !credsHelpers.isEmpty();
+    final Map<String, String> credHelpers = config.credHelpers();
+    final boolean hasCredHelpers = credHelpers != null && !credHelpers.isEmpty();
     final Map<String, RegistryAuth> auths = config.auths();
     final boolean hasAuths = auths != null && !auths.isEmpty();
     final String credsStore = config.credsStore();
     final boolean hasCredsStore = credsStore != null;
 
-    // First use the credsHelpers, if there are any
-    if (hasCredsHelpers) {
-      for (final Map.Entry<String, String> credsHelpersEntry : credsHelpers.entrySet()) {
-        final String registry = credsHelpersEntry.getKey();
-        final String aCredsStore = credsHelpersEntry.getValue();
+    // First use the credHelpers, if there are any
+    if (hasCredHelpers) {
+      for (final Map.Entry<String, String> credHelpersEntry : credHelpers.entrySet()) {
+        final String registry = credHelpersEntry.getKey();
+        final String aCredsStore = credHelpersEntry.getValue();
         registryConfigsBuilder.addConfig(registry,
             authWithCredentialHelper(aCredsStore, registry));
       }
@@ -164,12 +164,12 @@ public class DockerConfigReader {
       }
     }
 
-    // If there are no credsHelpers or auths or credsStore, then the
+    // If there are no credHelpers or auths or credsStore, then the
     // config may be in a very old format. There aren't any keys for different
     // sections. The file is just a map of registries to auths.
     // In other words, it looks like a RegistryConfigs.
     // If we can map it to one, we'll return it.
-    if (!(hasAuths || hasCredsHelpers || hasCredsStore)) {
+    if (!(hasAuths || hasCredHelpers || hasCredsStore)) {
       try {
         return MAPPER.readValue(configPath.toFile(), RegistryConfigs.class);
       } catch (IOException ignored) {
@@ -276,11 +276,11 @@ public class DockerConfigReader {
     checkNotNull(config, "Docker config cannot be null");
     checkNotNull(registry, "registry cannot be null");
 
-    // Check for the registry in the credsHelpers map first.
+    // Check for the registry in the credHelpers map first.
     // If it isn't there, default to credsStore.
-    final Map<String, String> credsHelpers = config.credsHelpers();
-    return (credsHelpers != null && credsHelpers.containsKey(registry))
-        ? credsHelpers.get(registry)
+    final Map<String, String> credHelpers = config.credHelpers();
+    return (credHelpers != null && credHelpers.containsKey(registry))
+        ? credHelpers.get(registry)
         : config.credsStore();
   }
 }

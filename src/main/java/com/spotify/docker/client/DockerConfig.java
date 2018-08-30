@@ -41,8 +41,8 @@ import javax.annotation.Nullable;
 public abstract class DockerConfig {
 
   @Nullable
-  @JsonProperty("credsHelpers")
-  public abstract ImmutableMap<String, String> credsHelpers();
+  @JsonProperty("credHelpers")
+  public abstract ImmutableMap<String, String> credHelpers();
 
   @Nullable
   @JsonProperty("auths")
@@ -74,7 +74,7 @@ public abstract class DockerConfig {
 
   @JsonCreator
   public static DockerConfig create(
-          @JsonProperty("credsHelpers") final Map<String, String> credsHelpers,
+          @JsonProperty("credHelpers") final Map<String, String> credHelpers,
           @JsonProperty("auths") final Map<String, RegistryAuth> auths,
           @JsonProperty("HttpHeaders") final Map<String, String> httpHeaders,
           @JsonProperty("credsStore") final String credsStore,
@@ -83,9 +83,9 @@ public abstract class DockerConfig {
           @JsonProperty("psFormat") final String psFormat,
           @JsonProperty("imagesFormat") final String imagesFormat) {
     return new AutoValue_DockerConfig(
-        credsHelpers == null
+        credHelpers == null
             ? ImmutableMap.<String, String>of()
-            : ImmutableMap.copyOf(credsHelpers),
+            : ImmutableMap.copyOf(credHelpers),
         auths == null
             ? ImmutableMap.<String, RegistryAuth>of()
             : ImmutableMap.copyOf(auths),
