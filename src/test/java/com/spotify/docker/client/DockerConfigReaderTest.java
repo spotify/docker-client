@@ -234,8 +234,8 @@ public class DockerConfigReaderTest {
   }
 
   @Test
-  public void testCredsHelpers() throws Exception {
-    final Path path = getTestFilePath("dockerConfig/credsHelpers.json");
+  public void testCredHelpers() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/credHelpers.json");
 
     final String registry1 = "https://foo.io";
     final String registry2 = "https://adventure.zone";
@@ -265,14 +265,14 @@ public class DockerConfigReaderTest {
   }
 
   @Test
-  public void testCredsStoreAndCredsHelpersAndAuth() throws Exception {
-    final Path path = getTestFilePath("dockerConfig/credsStoreAndCredsHelpersAndAuth.json");
+  public void testCredsStoreAndCredHelpersAndAuth() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/credsStoreAndCredHelpersAndAuth.json");
 
     // This registry is in the file, in the "auths" sections
     final String registry1 = DOCKER_AUTH_CONFIG.serverAddress();
     assertThat(reader.authForRegistry(path, registry1), is(DOCKER_AUTH_CONFIG));
 
-    // This registry is in the "credsHelpers" section. It will give us a
+    // This registry is in the "credHelpers" section. It will give us a
     // credsStore value which will trigger our mock and give us testAuth2.
     final String registry2 = "https://adventure.zone";
     final DockerCredentialHelperAuth testAuth2 =
@@ -298,7 +298,7 @@ public class DockerConfigReaderTest {
 
     // Finally, when we get auths for *all* registries in the file, we only expect
     // auths for the two registries that are explicitly mentioned.
-    // Since registry1 is in the "auths" and registry2 is in the "credsHelpers",
+    // Since registry1 is in the "auths" and registry2 is in the "credHelpers",
     // we will see auths for them.
     final RegistryConfigs registryConfigs = RegistryConfigs.builder()
             .addConfig(registry2, testAuth2.toRegistryAuth())
