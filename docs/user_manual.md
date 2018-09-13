@@ -319,7 +319,7 @@ try (final TarArchiveInputStream tarStream = new TarArchiveInputStream(docker.ar
 ### Extract an archive of files or folders to a directory in a container
 
 ```java
-docker.copyToContainer("/local/path", "containerID", "/path/in/container");
+docker.copyToContainer(new java.io.File("/local/path").toPath(), "containerID", "/path/in/container");
 ```
 
 ## Networks
