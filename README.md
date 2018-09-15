@@ -125,7 +125,7 @@ Make sure Docker daemon is running and that you can do `docker ps`.
 
 You can run tests on their own with `mvn test`. Note that the tests start and stop a large number of
 containers, so the list of containers you see with `docker ps -a` will start to get pretty long
-after many test runs. You may find it helpful to occassionally issue `docker rm $(docker ps -aq)`.
+after many test runs. You may find it helpful to occasionally issue `docker rm $(docker ps -aq)`.
 
 ## Releasing
 
