@@ -63,6 +63,7 @@ import static java.lang.String.format;
 import static java.lang.System.getenv;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.allOf;
@@ -5379,6 +5380,7 @@ public class DefaultDockerClientTest {
     sut.createService(spec);
 
     final Service service = sut.inspectService(name);
+    await().atMost(3, SECONDS).until(numberOfServiceEndpointPorts(sut, name), is(greaterThan(0)));
     final Endpoint endpoint = service.endpoint();
 
     final PortConfig.Builder portConfigBuilder2 = PortConfig.builder()
@@ -5837,6 +5839,16 @@ public class DefaultDockerClientTest {
     return new Callable<String>() {
       public String call() throws Exception {
         return client.inspectTask(taskId).status().state();
+      }
+    };
+  }
+
+  private Callable<Integer> numberOfServiceEndpointPorts(final DockerClient client,
+                                                         final String serviceName) {
+    return new Callable<Integer>() {
+      public Integer call() throws Exception {
+        final Service service = sut.inspectService(serviceName);
+        return service.endpoint().spec().ports().size();
       }
     };
   }
