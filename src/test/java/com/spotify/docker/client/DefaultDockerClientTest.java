@@ -2062,7 +2062,8 @@ public class DefaultDockerClientTest {
 
     final HostConfig.Builder hostConfigBuilder = HostConfig.builder()
         .memory(4194304L)
-        .memorySwap(5000000L);
+        .memorySwap(5000000L)
+        .kernelMemory(5000000L);
 
     if (dockerApiVersionAtLeast("1.20")) {
       hostConfigBuilder.memorySwappiness(42);
@@ -2091,6 +2092,9 @@ public class DefaultDockerClientTest {
     }
     if (dockerApiVersionAtLeast("1.20")) {
       assertThat(actual.memorySwappiness(), equalTo(expected.memorySwappiness()));
+    }
+    if (dockerApiVersionAtLeast("1.21")) {
+      assertThat(actual.kernelMemory(), equalTo(expected.kernelMemory()));
     }
   }
 

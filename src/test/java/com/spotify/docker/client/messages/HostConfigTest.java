@@ -26,14 +26,9 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
 import com.spotify.docker.client.ObjectMapperProvider;
-
-import java.io.IOException;
 import java.util.List;
-
 import org.junit.Test;
 
 public class HostConfigTest {
@@ -104,5 +99,13 @@ public class HostConfigTest {
         .build();
 
     assertThat(hostConfig.binds(), contains("/one:/one"));
+  }
+
+  @Test
+  public void testKernelMemory() throws Exception {
+    final HostConfig hostConfig = objectMapper
+        .readValue(fixture("fixtures/1.21/hostConfigKernelMemory.json"),
+            HostConfig.class);
+    assertThat(hostConfig.kernelMemory(), is(0L));
   }
 }
