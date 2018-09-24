@@ -114,7 +114,11 @@ public abstract class HostConfig {
   @Nullable
   @JsonProperty("ExtraHosts")
   public abstract ImmutableList<String> extraHosts();
-
+  
+  @Nullable
+  @JsonProperty("GroupAdd")
+  public abstract ImmutableList<String> groupAdd();
+  
   @Nullable
   @JsonProperty("VolumesFrom")
   public abstract ImmutableList<String> volumesFrom();
@@ -268,6 +272,7 @@ public abstract class HostConfig {
       @JsonProperty("DnsOptions") final List<String> dnsOptions,
       @JsonProperty("DnsSearch") final List<String> dnsSearch,
       @JsonProperty("ExtraHosts") final List<String> extraHosts,
+      @JsonProperty("GroupAdd") final List<String> groupAdd,
       @JsonProperty("VolumesFrom") final List<String> volumesFrom,
       @JsonProperty("CapAdd") final List<String> capAdd,
       @JsonProperty("CapDrop") final List<String> capDrop,
@@ -318,6 +323,7 @@ public abstract class HostConfig {
         .dnsOptions(dnsOptions)
         .dnsSearch(dnsSearch)
         .extraHosts(extraHosts)
+        .groupAdd( groupAdd )
         .volumesFrom(volumesFrom)
         .capAdd(capAdd)
         .capDrop(capDrop)
@@ -548,6 +554,10 @@ public abstract class HostConfig {
     public abstract Builder extraHosts(List<String> extraHosts);
 
     public abstract Builder extraHosts(String... extraHosts);
+    
+    public abstract Builder groupAdd(List<String> groupAdd);
+
+    public abstract Builder groupAdd(String... groupAdd);
 
     public abstract Builder volumesFrom(List<String> volumesFrom);
 
