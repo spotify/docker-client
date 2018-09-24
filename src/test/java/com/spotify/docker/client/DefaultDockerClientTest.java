@@ -26,6 +26,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
+import static com.spotify.docker.client.DockerClient.EventsParam.network;
 import static com.spotify.docker.client.DockerClient.EventsParam.since;
 import static com.spotify.docker.client.DockerClient.EventsParam.type;
 import static com.spotify.docker.client.DockerClient.EventsParam.until;
@@ -4786,9 +4787,9 @@ public class DefaultDockerClientTest {
   public void testStorageOpt() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "StorageOpt");
     requireStorageDriverNotAufs();
-    // Doesn't work on Travis with Docker API v1.32 because storage driver doesn't have pquota
+    // Doesn't work on Travis with Docker API >= v1.32 because storage driver doesn't have pquota
     // mount option enabled.
-    assumeFalse(dockerApiVersionEquals("1.32") && TRAVIS);
+    assumeFalse(dockerApiVersionAtLeast("1.32") && TRAVIS);
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
@@ -4917,7 +4918,7 @@ public class DefaultDockerClientTest {
         .build();
 
     final SwarmSpec updatedSpec = SwarmSpec.builder()
-        .name(swarm.swarmSpec().name() + "2")
+        .name("default")
         .labels(newLabels)
         .orchestration(newOrchestration)
         .raft(newRaft)
@@ -5124,12 +5125,16 @@ public class DefaultDockerClientTest {
   public void testCreateServiceWithDefaults() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
+    final List<Network> overlayNetworks = sut.listNetworks(ListNetworksParam.withDriver("overlay"));
+    assumeFalse(dockerApiVersionEquals("1.27") && overlayNetworks.isEmpty());
+    final String networkTarget = overlayNetworks.get(0).name();
+
     final String serviceName = randomName();
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder()
             .image("alpine")
-            .command(new String[] {"ping", "-c1000", "localhost"})
+            .command("ping", "-c1000", "localhost")
             .mounts(Mount.builder()
                 .volumeOptions(VolumeOptions.builder()
                     .driverConfig(com.spotify.docker.client.messages.mount.Driver.builder().build())
@@ -5141,7 +5146,7 @@ public class DefaultDockerClientTest {
         .resources(ResourceRequirements.builder().build())
         .restartPolicy(RestartPolicy.builder().build())
         .placement(Placement.create(null))
-        .networks(NetworkAttachmentConfig.builder().build())
+        .networks(NetworkAttachmentConfig.builder().target(networkTarget).build())
         .logDriver(Driver.builder().build())
         .build();
 
@@ -5516,9 +5521,9 @@ public class DefaultDockerClientTest {
     final Date start = new Date();
 
     final ServiceSpec serviceSpec = createServiceSpec(randomName());
-    assertThat(sut.listTasks().size(), is(0));
+    final int initialNumTasks = sut.listTasks().size();
     final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
-    await().until(numberOfTasks(sut), is(greaterThan(0)));
+    await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
     final Task someTask = sut.listTasks().get(0);
     final Task inspectedTask = sut.inspectTask(someTask.id());
@@ -5606,9 +5611,9 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
     final ServiceSpec spec = createServiceSpec(randomName());
-    assertThat(sut.listTasks().size(), is(0));
+    final int initialNumTasks = sut.listTasks().size();
     sut.createService(spec);
-    await().until(numberOfTasks(sut), is(greaterThan(0)));
+    await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
     final Task transientTask = sut.listTasks().get(1);
     await().until(taskState(transientTask.id(), sut), is(transientTask.desiredState()));
