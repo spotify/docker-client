@@ -26,7 +26,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.spotify.docker.client.DefaultDockerClient.NO_TIMEOUT;
-import static com.spotify.docker.client.DockerClient.EventsParam.network;
 import static com.spotify.docker.client.DockerClient.EventsParam.since;
 import static com.spotify.docker.client.DockerClient.EventsParam.type;
 import static com.spotify.docker.client.DockerClient.EventsParam.until;
@@ -249,6 +248,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -2218,14 +2218,14 @@ public class DefaultDockerClientTest {
     assertThat(newContainerInfo.hostConfig().cpuShares(), is(512L));
   }
 
-  @Test(timeout = 5000)
+  @Test(timeout = 10000)
   public void testEventStream() throws Exception {
     // In this test we open an event stream, do stuff, and check that
     // the events for the stuff we did got pushed over the stream
 
     requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
                                        + "So we skip this test.");
-    Thread.sleep(1000); // Waiting to ensure event stream has no events from prior tests
+    Thread.sleep(2000); // Waiting to ensure event stream has no events from prior tests
     try (final EventStream eventStream = getImageAndContainerEventStream()) {
 
       final String containerName = randomName();
@@ -5518,6 +5518,8 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectTask() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final Set<Task> priorTasks = new HashSet<>(sut.listTasks());
+
     final Date start = new Date();
 
     final ServiceSpec serviceSpec = createServiceSpec(randomName());
@@ -5525,7 +5527,11 @@ public class DefaultDockerClientTest {
     final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
     await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
-    final Task someTask = sut.listTasks().get(0);
+    final Set<Task> tasks = new HashSet<>(sut.listTasks());
+
+    final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
+    final Task someTask = newTasks.iterator().next();
+
     final Task inspectedTask = sut.inspectTask(someTask.id());
     final Date now = new Date();
     assertThat(inspectedTask.id(), notNullValue());
@@ -5609,13 +5615,18 @@ public class DefaultDockerClientTest {
   @Test
   public void testListTaskWithCriteria() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final Set<Task> priorTasks = new HashSet<>(sut.listTasks());
 
     final ServiceSpec spec = createServiceSpec(randomName());
     final int initialNumTasks = sut.listTasks().size();
     sut.createService(spec);
     await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
-    final Task transientTask = sut.listTasks().get(1);
+    final Set<Task> tasks = new HashSet<>(sut.listTasks());
+
+    final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
+    final Task transientTask = newTasks.iterator().next();
+
     await().until(taskState(transientTask.id(), sut), is(transientTask.desiredState()));
     final Task task = sut.inspectTask(transientTask.id());
 
@@ -5626,7 +5637,7 @@ public class DefaultDockerClientTest {
     final List<Task> tasksWithServiceName =
             sut.listTasks(Task.find().serviceName(spec.name()).build());
     assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
-    final Set<String> taskIds = Sets.newHashSet(
+    final Set<String> taskIdsWithServiceName = Sets.newHashSet(
             Lists.transform(tasksWithServiceName, new Function<Task, String>() {
               @Nullable
               @Override
@@ -5634,7 +5645,7 @@ public class DefaultDockerClientTest {
                 return task == null ? null : task.id();
               }
             }));
-    assertThat(task.id(), isIn(taskIds));
+    assertThat(task.id(), isIn(taskIdsWithServiceName));
   }
 
   @Test
