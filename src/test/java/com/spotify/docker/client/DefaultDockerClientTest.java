@@ -248,6 +248,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -2217,14 +2218,14 @@ public class DefaultDockerClientTest {
     assertThat(newContainerInfo.hostConfig().cpuShares(), is(512L));
   }
 
-  @Test(timeout = 5000)
+  @Test(timeout = 10000)
   public void testEventStream() throws Exception {
     // In this test we open an event stream, do stuff, and check that
     // the events for the stuff we did got pushed over the stream
 
     requireDockerApiVersionNot("1.19", "Docker 1.7.x has a bug that breaks DockerClient.events(). "
                                        + "So we skip this test.");
-    Thread.sleep(1000); // Waiting to ensure event stream has no events from prior tests
+    Thread.sleep(2000); // Waiting to ensure event stream has no events from prior tests
     try (final EventStream eventStream = getImageAndContainerEventStream()) {
 
       final String containerName = randomName();
@@ -4786,9 +4787,9 @@ public class DefaultDockerClientTest {
   public void testStorageOpt() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "StorageOpt");
     requireStorageDriverNotAufs();
-    // Doesn't work on Travis with Docker API v1.32 because storage driver doesn't have pquota
+    // Doesn't work on Travis with Docker API >= v1.32 because storage driver doesn't have pquota
     // mount option enabled.
-    assumeFalse(dockerApiVersionEquals("1.32") && TRAVIS);
+    assumeFalse(dockerApiVersionAtLeast("1.32") && TRAVIS);
     // Pull image
     sut.pull(BUSYBOX_LATEST);
 
@@ -4917,7 +4918,7 @@ public class DefaultDockerClientTest {
         .build();
 
     final SwarmSpec updatedSpec = SwarmSpec.builder()
-        .name(swarm.swarmSpec().name() + "2")
+        .name("default")
         .labels(newLabels)
         .orchestration(newOrchestration)
         .raft(newRaft)
@@ -5124,12 +5125,16 @@ public class DefaultDockerClientTest {
   public void testCreateServiceWithDefaults() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
+    final List<Network> overlayNetworks = sut.listNetworks(ListNetworksParam.withDriver("overlay"));
+    assumeFalse(dockerApiVersionEquals("1.27") && overlayNetworks.isEmpty());
+    final String networkTarget = overlayNetworks.get(0).name();
+
     final String serviceName = randomName();
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder()
             .image("alpine")
-            .command(new String[] {"ping", "-c1000", "localhost"})
+            .command("ping", "-c1000", "localhost")
             .mounts(Mount.builder()
                 .volumeOptions(VolumeOptions.builder()
                     .driverConfig(com.spotify.docker.client.messages.mount.Driver.builder().build())
@@ -5141,7 +5146,7 @@ public class DefaultDockerClientTest {
         .resources(ResourceRequirements.builder().build())
         .restartPolicy(RestartPolicy.builder().build())
         .placement(Placement.create(null))
-        .networks(NetworkAttachmentConfig.builder().build())
+        .networks(NetworkAttachmentConfig.builder().target(networkTarget).build())
         .logDriver(Driver.builder().build())
         .build();
 
@@ -5513,14 +5518,20 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectTask() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final Set<Task> priorTasks = new HashSet<>(sut.listTasks());
+
     final Date start = new Date();
 
     final ServiceSpec serviceSpec = createServiceSpec(randomName());
-    assertThat(sut.listTasks().size(), is(0));
+    final int initialNumTasks = sut.listTasks().size();
     final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
-    await().until(numberOfTasks(sut), is(greaterThan(0)));
+    await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
-    final Task someTask = sut.listTasks().get(0);
+    final Set<Task> tasks = new HashSet<>(sut.listTasks());
+
+    final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
+    final Task someTask = newTasks.iterator().next();
+
     final Task inspectedTask = sut.inspectTask(someTask.id());
     final Date now = new Date();
     assertThat(inspectedTask.id(), notNullValue());
@@ -5604,13 +5615,18 @@ public class DefaultDockerClientTest {
   @Test
   public void testListTaskWithCriteria() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final Set<Task> priorTasks = new HashSet<>(sut.listTasks());
 
     final ServiceSpec spec = createServiceSpec(randomName());
-    assertThat(sut.listTasks().size(), is(0));
+    final int initialNumTasks = sut.listTasks().size();
     sut.createService(spec);
-    await().until(numberOfTasks(sut), is(greaterThan(0)));
+    await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
-    final Task transientTask = sut.listTasks().get(1);
+    final Set<Task> tasks = new HashSet<>(sut.listTasks());
+
+    final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
+    final Task transientTask = newTasks.iterator().next();
+
     await().until(taskState(transientTask.id(), sut), is(transientTask.desiredState()));
     final Task task = sut.inspectTask(transientTask.id());
 
@@ -5621,7 +5637,7 @@ public class DefaultDockerClientTest {
     final List<Task> tasksWithServiceName =
             sut.listTasks(Task.find().serviceName(spec.name()).build());
     assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
-    final Set<String> taskIds = Sets.newHashSet(
+    final Set<String> taskIdsWithServiceName = Sets.newHashSet(
             Lists.transform(tasksWithServiceName, new Function<Task, String>() {
               @Nullable
               @Override
@@ -5629,7 +5645,7 @@ public class DefaultDockerClientTest {
                 return task == null ? null : task.id();
               }
             }));
-    assertThat(task.id(), isIn(taskIds));
+    assertThat(task.id(), isIn(taskIdsWithServiceName));
   }
 
   @Test
