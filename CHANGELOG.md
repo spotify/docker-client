@@ -1,5 +1,12 @@
 # Changelog
 
+## 8.14.0
+
+Not yet released
+
+- Change maven-compiler-plugin source and target from 1.7 to 1.8 to prepare for Java 8.
+  JAR should still be compatible with JRE 1.7.
+
 ## 8.13.0
 
 Released August 29 2018
