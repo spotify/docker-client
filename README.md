@@ -104,7 +104,7 @@ If you're looking for how to build and develop it, keep reading.
 
 ## Prerequisites
 
-docker-client should be buildable on any platform with Docker 1.6+, JDK7+, and a recent version of
+docker-client should be buildable on any platform with Docker 1.6+, JDK8+, and a recent version of
 Maven 3.
 
 ### A note on using Docker for Mac
