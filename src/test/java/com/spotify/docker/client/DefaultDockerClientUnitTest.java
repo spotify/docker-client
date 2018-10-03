@@ -21,6 +21,9 @@
 package com.spotify.docker.client;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static com.spotify.hamcrest.jackson.JsonMatchers.jsonArray;
+import static com.spotify.hamcrest.jackson.JsonMatchers.jsonObject;
+import static com.spotify.hamcrest.jackson.JsonMatchers.jsonText;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
@@ -51,7 +54,6 @@ import com.google.common.io.Resources;
 import com.spotify.docker.client.DockerClient.Signal;
 import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.ConflictException;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.NodeNotFoundException;
 import com.spotify.docker.client.exceptions.NonSwarmNodeException;
@@ -85,8 +87,6 @@ import com.spotify.docker.client.messages.swarm.TaskSpec;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -99,7 +99,6 @@ import okio.Buffer;
 
 import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.internal.util.Base64;
-import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -303,13 +302,11 @@ public class DefaultDockerClientUnitTest {
 
     assertThat(recordedRequest.getHeader("Content-Type"), is("application/json"));
 
-    // TODO (mbrown): use hamcrest-jackson for this, once we upgrade to Java 8
     final JsonNode requestJson = toJson(recordedRequest.getBody());
-
-    final JsonNode capAddNode = requestJson.get("HostConfig").get("CapAdd");
-    assertThat(capAddNode.isArray(), is(true));
-
-    assertThat(childrenTextNodes((ArrayNode) capAddNode), containsInAnyOrder("baz", "qux"));
+    assertThat(requestJson, is(jsonObject()
+        .where("HostConfig", is(jsonObject()
+            .where("CapAdd", is(jsonArray(
+                containsInAnyOrder(jsonText("baz"), jsonText("qux")))))))));
   }
 
   private static Set<String> childrenTextNodes(ArrayNode arrayNode) {
@@ -609,8 +606,7 @@ public class DefaultDockerClientUnitTest {
     dockerClient.joinSwarm(swarmJoin);
   }
 
-  private void enqueueServerApiError(final int statusCode, final String message)
-      throws IOException {
+  private void enqueueServerApiError(final int statusCode, final String message) {
     final ObjectNode errorMessage = createObjectNode()
         .put("message", message);
 
