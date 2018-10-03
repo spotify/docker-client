@@ -134,7 +134,6 @@ import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.exceptions.ImagePushFailedException;
 import com.spotify.docker.client.exceptions.NetworkNotFoundException;
 import com.spotify.docker.client.exceptions.NotFoundException;
-import com.spotify.docker.client.exceptions.TaskNotFoundException;
 import com.spotify.docker.client.exceptions.UnsupportedApiVersionException;
 import com.spotify.docker.client.exceptions.VolumeNotFoundException;
 import com.spotify.docker.client.messages.AttachedNetwork;
@@ -5743,13 +5742,7 @@ public class DefaultDockerClientTest {
 
   private Callable<String> taskState(final String taskId,
                                      final DockerClient client) {
-    return () -> {
-      try {
-        return client.inspectTask(taskId).status().state();
-      } catch (final TaskNotFoundException e) {
-        return "not found";
-      }
-    };
+    return () -> client.inspectTask(taskId).status().state();
   }
 
   private static Matcher<PortConfig> portConfigWith(
