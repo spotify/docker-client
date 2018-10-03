@@ -20,7 +20,6 @@
 
 package com.spotify.docker.client.auth.gcr;
 
-import com.google.api.client.util.Clock;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -34,6 +33,7 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -171,7 +171,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
         log.info("loaded credentials for user account with clientId={}", clientId);
       }
 
-      final Clock clock = Clock.SYSTEM;
+      final Clock clock = Clock.systemDefaultZone();
       final DefaultCredentialRefresher refresher = new DefaultCredentialRefresher();
 
       return new ContainerRegistryAuthSupplier(credentials, clock, minimumExpiryMillis, refresher);
@@ -197,7 +197,6 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
   }
 
   private final GoogleCredentials credentials;
-  // TODO (mbrown): change to java.time.Clock once on Java 8
   private final Clock clock;
   private final long minimumExpiryMillis;
   private final CredentialRefresher credentialRefresher;
@@ -243,7 +242,7 @@ public class ContainerRegistryAuthSupplier implements RegistryAuthSupplier {
     }
 
     // refresh the token if it expires "soon"
-    final long expiresIn = expirationTime.getTime() - clock.currentTimeMillis();
+    final long expiresIn = expirationTime.getTime() - clock.millis();
 
     return expiresIn <= minimumExpiryMillis;
   }
