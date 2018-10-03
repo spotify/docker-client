@@ -6,6 +6,9 @@ Not yet released
 
 - Change maven-compiler-plugin source and target from 1.7 to 1.8 to prepare for Java 8.
   JAR should still be compatible with JRE 1.7.
+- Updates to allow docker-client to function on Java 9+ ([1068][])
+
+[1068]: https://github.com/spotify/docker-client/pull/1068
 
 ## 8.13.0
 
