@@ -21,6 +21,7 @@
 package com.spotify.docker.client;
 
 import static com.spotify.docker.FixtureUtil.fixture;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -85,6 +86,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -182,7 +184,7 @@ public class DefaultDockerClientUnitTest {
       System.setProperty("http.proxyPort", "80");
       final DefaultDockerClient client = DefaultDockerClient.builder()
               .uri("https://192.168.53.103:2375").build();
-      assertThat((String) client.getClient().getConfiguration()
+      assertThat(client.getClient().getConfiguration()
                       .getProperty("jersey.config.client.proxy.uri"),
               equalTo("http://gmodules.com:80"));
     } finally {
@@ -243,7 +245,7 @@ public class DefaultDockerClientUnitTest {
     return ObjectMapperProvider.objectMapper().readTree(bytes);
   }
 
-  private static JsonNode toJson(Object object) throws IOException {
+  private static JsonNode toJson(Object object) {
     return ObjectMapperProvider.objectMapper().valueToTree(object);
   }
 
@@ -257,7 +259,7 @@ public class DefaultDockerClientUnitTest {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
     final HostConfig hostConfig = HostConfig.builder()
-        .groupAdd( "63", "65")
+        .groupAdd("63", "65")
         .build();
 
     final ContainerConfig containerConfig = ContainerConfig.builder()
@@ -324,8 +326,7 @@ public class DefaultDockerClientUnitTest {
 
   @Test
   @SuppressWarnings("deprecated")
-  public void buildThrowsIfRegistryAuthandRegistryAuthSupplierAreBothSpecified()
-      throws DockerCertificateException {
+  public void buildThrowsIfRegistryAuthandRegistryAuthSupplierAreBothSpecified() {
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("LOGIC ERROR");
 
@@ -602,7 +603,7 @@ public class DefaultDockerClientUnitTest {
     SwarmJoin swarmJoin = SwarmJoin.builder()
             .joinToken("token_foo")
             .listenAddr("0.0.0.0:2377")
-            .remoteAddrs(Arrays.asList("10.0.0.10:2377"))
+            .remoteAddrs(singletonList("10.0.0.10:2377"))
             .build();
 
     dockerClient.joinSwarm(swarmJoin);
@@ -1223,23 +1224,23 @@ public class DefaultDockerClientUnitTest {
     final Distribution distribution = dockerClient.getDistribution("my-image");
     assertThat(distribution, notNullValue());
     assertThat(distribution.platforms().size(), is(1));
-    assertThat(distribution.platforms().get(0).architecture() , is("amd64"));
-    assertThat(distribution.platforms().get(0).os() , is("linux"));
-    assertThat(distribution.platforms().get(0).osVersion() , is(""));
-    assertThat(distribution.platforms().get(0).variant() , is(""));
-    assertThat(distribution.descriptor().size() , is(Long.valueOf(3987495)));
-    assertThat(distribution.descriptor().digest() , is(
+    assertThat(distribution.platforms().get(0).architecture(), is("amd64"));
+    assertThat(distribution.platforms().get(0).os(), is("linux"));
+    assertThat(distribution.platforms().get(0).osVersion(), is(""));
+    assertThat(distribution.platforms().get(0).variant(), is(""));
+    assertThat(distribution.descriptor().size(), is(3987495L));
+    assertThat(distribution.descriptor().digest(), is(
         "sha256:c0537ff6a5218ef531ece93d4984efc99bbf3f7497c0a7726c88e2bb7584dc96"));
-    assertThat(distribution.descriptor().mediaType() , is(
+    assertThat(distribution.descriptor().mediaType(), is(
         "application/vnd.docker.distribution.manifest.v2+json"
     ));
-    assertThat(distribution.platforms().get(0).osFeatures() , is(ImmutableList.of(
+    assertThat(distribution.platforms().get(0).osFeatures(), is(ImmutableList.of(
         "feature1", "feature2"
     )));
-    assertThat(distribution.platforms().get(0).features() , is(ImmutableList.of(
+    assertThat(distribution.platforms().get(0).features(), is(ImmutableList.of(
         "feature1", "feature2"
     )));
-    assertThat(distribution.descriptor().urls() , is(ImmutableList.of(
+    assertThat(distribution.descriptor().urls(), is(ImmutableList.of(
         "url1", "url2"
     )));
   }
@@ -1255,8 +1256,7 @@ public class DefaultDockerClientUnitTest {
     );
   }
 
-  private void enqueueServerApiResponse(final int statusCode, final ObjectNode objectResponse)
-      throws IOException {
+  private void enqueueServerApiResponse(final int statusCode, final ObjectNode objectResponse) {
     server.enqueue(new MockResponse()
         .setResponseCode(statusCode)
         .addHeader("Content-Type", "application/json")
@@ -1266,7 +1266,7 @@ public class DefaultDockerClientUnitTest {
     );
   }
 
-  private void enqueueServerApiVersion(final String apiVersion) throws IOException {
+  private void enqueueServerApiVersion(final String apiVersion) {
     enqueueServerApiResponse(200,
         createObjectNode()
             .put("ApiVersion", apiVersion)
