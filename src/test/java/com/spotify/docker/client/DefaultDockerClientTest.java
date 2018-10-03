@@ -5464,37 +5464,6 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testListTaskWithCriteria() throws Exception {
-    requireDockerApiVersionAtLeast("1.24", "swarm support");
-    final Set<Task> priorTasks = new HashSet<>(sut.listTasks());
-
-    final ServiceSpec spec = createServiceSpec(randomName());
-    final int initialNumTasks = sut.listTasks().size();
-    sut.createService(spec);
-    await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
-
-    final Set<Task> tasks = new HashSet<>(sut.listTasks());
-
-    final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
-    final Task transientTask = newTasks.iterator().next();
-
-    await().until(taskState(transientTask.id(), sut), is(transientTask.desiredState()));
-    final Task task = sut.inspectTask(transientTask.id());
-
-    final List<Task> tasksWithId = sut.listTasks(Task.find().taskId(task.id()).build());
-    assertThat(tasksWithId.size(), is(1));
-    assertThat(tasksWithId.get(0), equalTo(task));
-
-    final List<Task> tasksWithServiceName =
-            sut.listTasks(Task.find().serviceName(spec.name()).build());
-    assertThat(tasksWithServiceName.size(), is(greaterThanOrEqualTo(1)));
-    final Set<String> taskIdsWithServiceName = Sets.newHashSet(tasksWithServiceName.stream()
-        .map(task1 -> task1 == null ? null : task1.id())
-        .collect(Collectors.toList()));
-    assertThat(task.id(), isIn(taskIdsWithServiceName));
-  }
-
-  @Test
   public void testListNodes() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     List<Node> nodes = sut.listNodes();
