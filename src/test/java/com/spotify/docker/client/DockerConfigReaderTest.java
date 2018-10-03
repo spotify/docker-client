@@ -239,6 +239,7 @@ public class DockerConfigReaderTest {
 
     final String registry1 = "https://foo.io";
     final String registry2 = "https://adventure.zone";
+    final String registry3 = "https://beyond.zone";
     final DockerCredentialHelperAuth testAuth1 =
             DockerCredentialHelperAuth.create(
                     "cool user",
@@ -254,6 +255,7 @@ public class DockerConfigReaderTest {
 
     when(credentialHelperDelegate.get("a-cred-helper", registry1)).thenReturn(testAuth1);
     when(credentialHelperDelegate.get("magic-missile", registry2)).thenReturn(testAuth2);
+    when(credentialHelperDelegate.get("elusive-helper", registry3)).thenReturn(null);
 
     final RegistryConfigs expected = RegistryConfigs.builder()
             .addConfig(registry1, testAuth1.toRegistryAuth())
