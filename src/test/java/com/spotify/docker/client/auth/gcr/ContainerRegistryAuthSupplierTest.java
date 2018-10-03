@@ -33,7 +33,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.api.client.util.Clock;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.spotify.docker.client.exceptions.DockerException;
@@ -41,6 +40,7 @@ import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.FeatureMatcher;
@@ -107,7 +107,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForImage_NoRefresh() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
 
     assertThat(supplier.authFor("gcr.io/foobar/barfoo:latest"), matchesAccessToken(accessToken));
@@ -117,7 +117,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForImage_RefreshNeeded() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     assertThat(supplier.authFor("gcr.io/foobar/barfoo:latest"), matchesAccessToken(accessToken));
@@ -127,7 +127,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForImage_TokenExpired() throws Exception {
-    when(clock.currentTimeMillis()).thenReturn(expiration.plusMinutes(1).getMillis());
+    when(clock.millis()).thenReturn(expiration.plusMinutes(1).getMillis());
 
     assertThat(supplier.authFor("gcr.io/foobar/barfoo:latest"), matchesAccessToken(accessToken));
 
@@ -136,7 +136,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForImage_NonGcrImage() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
 
     assertThat(supplier.authFor("foobar"), is(nullValue()));
@@ -144,7 +144,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForImage_ExceptionOnRefresh() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     final IOException ex = new IOException("failure!!");
@@ -173,7 +173,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForSwarm_NoRefresh() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
 
     assertThat(supplier.authForSwarm(), matchesAccessToken(accessToken));
@@ -183,7 +183,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForSwarm_RefreshNeeded() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     assertThat(supplier.authForSwarm(), matchesAccessToken(accessToken));
@@ -193,7 +193,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForSwarm_ExceptionOnRefresh() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     doThrow(new IOException("failure!!")).when(refresher).refresh(credentials);
@@ -217,7 +217,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForBuild_NoRefresh() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs + 1).getMillis());
 
     final RegistryConfigs configs = supplier.authForBuild();
@@ -229,7 +229,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForBuild_RefreshNeeded() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     final RegistryConfigs configs = supplier.authForBuild();
@@ -241,7 +241,7 @@ public class ContainerRegistryAuthSupplierTest {
 
   @Test
   public void testAuthForBuild_ExceptionOnRefresh() throws Exception {
-    when(clock.currentTimeMillis())
+    when(clock.millis())
         .thenReturn(expiration.minusSeconds(minimumExpirationSecs - 1).getMillis());
 
     doThrow(new IOException("failure!!")).when(refresher).refresh(credentials);
