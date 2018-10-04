@@ -249,6 +249,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -5476,10 +5477,9 @@ public class DefaultDockerClientTest {
     final Set<Task> tasks = new HashSet<>(sut.listTasks());
 
     final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
-    final Task transientTask = newTasks.iterator().next();
-
-    await().until(taskState(transientTask.id(), sut), is(transientTask.desiredState()));
-    final Task task = sut.inspectTask(transientTask.id());
+    final Optional<Task> taskOptional = findRunningTask(newTasks, sut);
+    assertThat(taskOptional.isPresent(), is(true));
+    final Task task = taskOptional.get();
 
     final List<Task> tasksWithId = sut.listTasks(Task.find().taskId(task.id()).build());
     assertThat(tasksWithId.size(), is(1));
@@ -5492,6 +5492,21 @@ public class DefaultDockerClientTest {
         .map(task1 -> task1 == null ? null : task1.id())
         .collect(Collectors.toList()));
     assertThat(task.id(), isIn(taskIdsWithServiceName));
+  }
+
+  private static Optional<Task> findRunningTask(final Set<Task> tasks,
+                                                final DockerClient dockerClient) {
+    for (final Task transientTask : tasks) {
+      try {
+        return Optional.of(dockerClient.inspectTask(transientTask.id()));
+      } catch (final TaskNotFoundException e) {
+        System.out.println(String.format("TASK NOT FOUND %s", transientTask));
+      } catch (InterruptedException | DockerException e) {
+        System.out.println("SOMETHING ELSE HAPPENED");
+        e.printStackTrace();
+      }
+    }
+    return Optional.empty();
   }
 
   @Test
@@ -5680,13 +5695,7 @@ public class DefaultDockerClientTest {
 
   private Callable<String> taskState(final String taskId,
                                      final DockerClient client) {
-    return () -> {
-      try {
-        return client.inspectTask(taskId).status().state();
-      } catch (final TaskNotFoundException e) {
-        return "not found";
-      }
-    };
+    return () -> client.inspectTask(taskId).status().state();
   }
 
   private static Matcher<PortConfig> portConfigWith(
