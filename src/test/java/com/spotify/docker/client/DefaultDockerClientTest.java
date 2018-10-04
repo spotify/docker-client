@@ -5430,69 +5430,6 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testInspectTask() throws Exception {
-    requireDockerApiVersionAtLeast("1.24", "swarm support");
-    final Set<Task> priorTasks = new HashSet<>(sut.listTasks());
-
-    final Date start = new Date();
-
-    final ServiceSpec serviceSpec = createServiceSpec(randomName());
-    final int initialNumTasks = sut.listTasks().size();
-    final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
-    await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
-
-    final Set<Task> tasks = new HashSet<>(sut.listTasks());
-
-    final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
-    final Task someTask = newTasks.iterator().next();
-
-    final Task inspectedTask = sut.inspectTask(someTask.id());
-    final Date now = new Date();
-    assertThat(inspectedTask.id(), notNullValue());
-    assertThat(inspectedTask.version().index(), allOf(notNullValue(), greaterThan(0L)));
-    assertThat(inspectedTask.createdAt(),
-            allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
-    assertThat(inspectedTask.updatedAt(),
-            allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
-    assertThat(inspectedTask.slot(), allOf(notNullValue(), greaterThan(0)));
-    assertThat(inspectedTask.status(), notNullValue());
-    assertThat(inspectedTask.name(), nullValue());
-    assertEquals(serviceCreateResponse.id(), inspectedTask.serviceId());
-    if (serviceSpec.labels() == null || serviceSpec.labels().isEmpty()) {
-      // Hamcrest has generally bad support for "is null or empty",
-      // and no support at all for empty maps
-      assertTrue(inspectedTask.labels() == null || inspectedTask.labels().isEmpty());
-    } else {
-      assertEquals(serviceSpec.labels(), inspectedTask.labels());
-    }
-    assertThat(inspectedTask.desiredState(), is(anything()));
-    assertThat(inspectedTask.networkAttachments(), is(anything()));
-
-    final TaskSpec taskSpecTemplate = serviceSpec.taskTemplate();
-    final TaskSpec taskSpecActual = inspectedTask.spec();
-    assertEquals(taskSpecTemplate.resources(), taskSpecActual.resources());
-    assertEquals(taskSpecTemplate.restartPolicy(), taskSpecActual.restartPolicy());
-    assertEquals(taskSpecTemplate.placement(), taskSpecActual.placement());
-    assertEquals(taskSpecTemplate.networks(), taskSpecActual.networks());
-    assertEquals(taskSpecTemplate.logDriver(), taskSpecActual.logDriver());
-
-    final ContainerSpec containerSpecTemplate = taskSpecTemplate.containerSpec();
-    final ContainerSpec containerSpecActual = taskSpecActual.containerSpec();
-    assertThat(containerSpecActual.image(),
-            latestImageNameMatcher(containerSpecTemplate.image()));
-    assertEquals(containerSpecTemplate.labels(), containerSpecActual.labels());
-    assertEquals(containerSpecTemplate.command(), containerSpecActual.command());
-    assertEquals(containerSpecTemplate.args(), containerSpecActual.args());
-    assertEquals(containerSpecTemplate.env(), containerSpecActual.env());
-    assertEquals(containerSpecTemplate.dir(), containerSpecActual.dir());
-    assertEquals(containerSpecTemplate.user(), containerSpecActual.user());
-    assertEquals(containerSpecTemplate.groups(), containerSpecActual.groups());
-    assertEquals(containerSpecTemplate.tty(), containerSpecActual.tty());
-    assertEquals(containerSpecTemplate.mounts(), containerSpecActual.mounts());
-    assertEquals(containerSpecTemplate.stopGracePeriod(), containerSpecActual.stopGracePeriod());
-  }
-
-  @Test
   public void testListTasks() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
