@@ -5436,12 +5436,15 @@ public class DefaultDockerClientTest {
 
     final Date start = new Date();
 
-    final ServiceSpec serviceSpec = createServiceSpec(randomName());
+    final String serviceName = randomName();
+    System.out.println("SERVICE NAME " + serviceName);
+    final ServiceSpec serviceSpec = createServiceSpec(serviceName);
     final int initialNumTasks = sut.listTasks().size();
     final ServiceCreateResponse serviceCreateResponse = sut.createService(serviceSpec);
     await().until(numberOfTasks(sut), is(greaterThan(initialNumTasks)));
 
     final Set<Task> tasks = new HashSet<>(sut.listTasks());
+    tasks.forEach(t -> System.out.println("TASK NAME " + t.name()));
 
     final Set<Task> newTasks = Sets.difference(tasks, priorTasks);
     final Task someTask = newTasks.iterator().next();
@@ -5450,6 +5453,18 @@ public class DefaultDockerClientTest {
     final Date now = new Date();
     assertThat(inspectedTask.id(), notNullValue());
     assertThat(inspectedTask.version().index(), allOf(notNullValue(), greaterThan(0L)));
+
+    System.out.println(String.format("START TIME %s", start));
+    System.out.println(String.format("START TIME MILLISECONDS %s", start.getTime()));
+    System.out.println(String.format("CREATED TIME %s", inspectedTask.createdAt()));
+    System.out.println(String.format("CREATED TIME MILLISECONDS %s",
+        inspectedTask.createdAt().getTime()));
+    System.out.println(String.format("UPDATED TIME %s", inspectedTask.updatedAt()));
+    System.out.println(String.format("UPDATED TIME MILLISECONDS %s",
+        inspectedTask.updatedAt().getTime()));
+    System.out.println(String.format("NOW TIME %s", now));
+    System.out.println(String.format("NOW TIME MILLISECONDS %s", now.getTime()));
+
     assertThat(inspectedTask.createdAt(),
             allOf(notNullValue(), greaterThanOrEqualTo(start), lessThanOrEqualTo(now)));
     assertThat(inspectedTask.updatedAt(),
