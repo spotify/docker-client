@@ -24,6 +24,7 @@ import static com.spotify.docker.FixtureUtil.fixture;
 import static com.spotify.hamcrest.jackson.JsonMatchers.jsonArray;
 import static com.spotify.hamcrest.jackson.JsonMatchers.jsonObject;
 import static com.spotify.hamcrest.jackson.JsonMatchers.jsonText;
+import static com.spotify.hamcrest.pojo.IsPojo.pojo;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
@@ -79,14 +80,19 @@ import com.spotify.docker.client.messages.swarm.NodeInfo;
 import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.Preference;
+import com.spotify.docker.client.messages.swarm.ResourceRequirements;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Spread;
 import com.spotify.docker.client.messages.swarm.SwarmJoin;
+import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
+import com.spotify.docker.client.messages.swarm.Version;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -1239,6 +1245,36 @@ public class DefaultDockerClientUnitTest {
     assertThat(distribution.descriptor().urls(), is(ImmutableList.of(
         "url1", "url2"
     )));
+  }
+
+  @Test
+  public void testInspectTask() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiResponse(200, "fixtures/1.24/task.json");
+
+    final Task task = dockerClient.inspectTask("0kzzo1i0y4jz6027t0k7aezc7");
+
+    assertThat(task, is(pojo(Task.class)
+        .where("id", is("0kzzo1i0y4jz6027t0k7aezc7"))
+        .where("version", is(pojo(Version.class)
+            .where("index", is(71L))
+        ))
+        .where("createdAt", is(Date.from(Instant.parse("2016-06-07T21:07:31.171892745Z"))))
+        .where("updatedAt", is(Date.from(Instant.parse("2016-06-07T21:07:31.376370513Z"))))
+        .where("spec", is(pojo(TaskSpec.class)
+            .where("containerSpec", is(pojo(ContainerSpec.class)
+                .where("image", is("redis"))
+            ))
+            .where("resources", is(pojo(ResourceRequirements.class)
+                .where("limits",
+                    is(pojo(com.spotify.docker.client.messages.swarm.Resources.class)))
+                .where("reservations",
+                    is(pojo(com.spotify.docker.client.messages.swarm.Resources.class)))
+            ))
+        ))
+    ));
   }
 
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
