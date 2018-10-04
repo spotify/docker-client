@@ -117,6 +117,11 @@
       <version>2.22.2</version>
     </dependency>
     <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
       <version>1.9</version>
@@ -390,7 +395,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.7.5.201505241946</version>
+        <version>0.8.2</version>
         <executions>
           <execution>
             <id>jacoco-initialize</id>
