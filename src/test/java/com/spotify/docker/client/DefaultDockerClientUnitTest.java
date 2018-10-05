@@ -246,6 +246,10 @@ public class DefaultDockerClientUnitTest {
     return ObjectMapperProvider.objectMapper().readTree(buffer.inputStream());
   }
 
+  private static JsonNode toJson(final String string) throws IOException {
+    return ObjectMapperProvider.objectMapper().readTree(string);
+  }
+
   private static JsonNode toJson(byte[] bytes) throws IOException {
     return ObjectMapperProvider.objectMapper().readTree(bytes);
   }
@@ -1275,6 +1279,54 @@ public class DefaultDockerClientUnitTest {
             ))
         ))
     ));
+  }
+
+
+  @Test
+  public void testListTaskWithCriteria() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiResponse(200, "fixtures/1.24/tasks.json");
+    final List<Task> tasks = dockerClient.listTasks();
+    // Throw away the first request that gets the docker server version
+    takeRequestImmediately();
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+    assertThat(recordedRequest.getRequestUrl().querySize(), is(0));
+    assertThat(tasks, contains(
+        pojo(Task.class)
+            .where("id", is("0kzzo1i0y4jz6027t0k7aezc7")),
+        pojo(Task.class)
+            .where("id", is("1yljwbmlr8er2waf8orvqpwms"))
+    ));
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiResponse(200, "fixtures/1.24/tasks.json");
+    final String taskId = "task-1";
+    dockerClient.listTasks(Task.find().taskId(taskId).build());
+    takeRequestImmediately();
+    final RecordedRequest recordedRequest2 = takeRequestImmediately();
+    final HttpUrl requestUrl2 = recordedRequest2.getRequestUrl();
+    assertThat(requestUrl2.querySize(), is(1));
+    final JsonNode requestJson2 =
+        toJson(recordedRequest2.getRequestUrl().queryParameter("filters"));
+    assertThat(requestJson2, is(jsonObject()
+        .where("id", is(jsonArray(
+            contains(jsonText(taskId)))))));
+
+    enqueueServerApiVersion("1.24");
+    enqueueServerApiResponse(200, "fixtures/1.24/tasks.json");
+    final String serviceName = "service-1";
+    dockerClient.listTasks(Task.find().serviceName(serviceName).build());
+    takeRequestImmediately();
+    final RecordedRequest recordedRequest3 = takeRequestImmediately();
+    final HttpUrl requestUrl3 = recordedRequest3.getRequestUrl();
+    assertThat(requestUrl3.querySize(), is(1));
+    final JsonNode requestJson3 =
+        toJson(recordedRequest3.getRequestUrl().queryParameter("filters"));
+    assertThat(requestJson3, is(jsonObject()
+        .where("service", is(jsonArray(
+            contains(jsonText(serviceName)))))));
   }
 
   private void enqueueServerApiResponse(final int statusCode, final String fileName)
