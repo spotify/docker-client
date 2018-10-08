@@ -26,17 +26,30 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.spotify.docker.client.messages.DockerCredentialHelperAuth;
 import java.io.BufferedReader;
 import java.io.StringReader;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SystemCredentialHelperDelegateTest {
 
+  private ObjectMapper objectMapper;
+
+  @Before
+  public void setup() {
+    objectMapper = ObjectMapperProvider.objectMapper();
+  }
+
   @Test
   public void testReadServerAuthDetails() throws Exception {
-    final StringReader input = new StringReader(
-        "{\"Username\": \"foo\", \"Secret\": \"bar\", \"ServerURL\": \"example.com\"}");
+    final ObjectNode node = objectMapper.createObjectNode()
+        .put("Username", "foo")
+        .put("Secret", "bar")
+        .put("ServerURL", "example.com");
+    final StringReader input = new StringReader(objectMapper.writeValueAsString(node));
     final DockerCredentialHelperAuth auth = readServerAuthDetails(new BufferedReader(input));
     assertThat(auth, is(pojo(DockerCredentialHelperAuth.class)
         .where("username", is("foo"))
@@ -47,12 +60,12 @@ public class SystemCredentialHelperDelegateTest {
 
   @Test
   public void readServerAuthDetailsFromMultipleLines() throws Exception {
-    final StringReader input = new StringReader(
-        "{\n"
-        + "  \"Username\": \"foo\",\n"
-        + "  \"Secret\": \"bar\",\n"
-        + "  \"ServerURL\": \"example.com\""
-        + "\n}");
+    final ObjectNode node = objectMapper.createObjectNode()
+        .put("Username", "foo")
+        .put("Secret", "bar")
+        .put("ServerURL", "example.com");
+    final StringReader input =
+        new StringReader(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node));
     final DockerCredentialHelperAuth auth = readServerAuthDetails(new BufferedReader(input));
     assertThat(auth, is(pojo(DockerCredentialHelperAuth.class)
         .where("username", is("foo"))
@@ -63,11 +76,11 @@ public class SystemCredentialHelperDelegateTest {
 
   @Test
   public void readServerAuthDetailsNoServerUrl() throws Exception {
-    final StringReader input = new StringReader(
-        "{\n"
-        + "  \"Username\": \"foo\",\n"
-        + "  \"Secret\": \"bar\"\n"
-        + "\n}");
+    final ObjectNode node = objectMapper.createObjectNode()
+        .put("Username", "foo")
+        .put("Secret", "bar");
+    final StringReader input =
+        new StringReader(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node));
     final DockerCredentialHelperAuth auth = readServerAuthDetails(new BufferedReader(input));
     assertThat(auth, is(pojo(DockerCredentialHelperAuth.class)
         .where("username", is("foo"))

@@ -34,6 +34,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,8 @@ class SystemCredentialHelperDelegate implements CredentialHelperDelegate {
     try (final Writer outStreamWriter =
              new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
       try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-        writer.write(mapper.writeValueAsString(auth) + "\n");
+        writer.write(mapper.writeValueAsString(auth));
+        writer.newLine();
         writer.flush();
       }
     }
@@ -71,7 +73,8 @@ class SystemCredentialHelperDelegate implements CredentialHelperDelegate {
     try (final Writer outStreamWriter =
              new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
       try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-        writer.write(registry + "\n");
+        writer.write(registry);
+        writer.newLine();
         writer.flush();
       }
     }
@@ -87,7 +90,8 @@ class SystemCredentialHelperDelegate implements CredentialHelperDelegate {
     try (final Writer outStreamWriter =
              new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
       try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-        writer.write(registry + "\n");
+        writer.write(registry);
+        writer.newLine();
         writer.flush();
       }
     }
@@ -119,7 +123,8 @@ class SystemCredentialHelperDelegate implements CredentialHelperDelegate {
   @VisibleForTesting
   static DockerCredentialHelperAuth readServerAuthDetails(final BufferedReader input)
       throws IOException {
-    final String serverAuthDetails = input.readLine();
+    final String serverAuthDetails = input.lines().collect(Collectors.joining());
+
     // ErrCredentialsNotFound standardizes the not found error, so every helper returns
     // the same message and docker can handle it properly.
     // https://github.com/docker/docker-credential-helpers/blob/19b711cc92fbaa47533646fa8adb457d199c99e1/credentials/error.go#L4-L6
