@@ -20,21 +20,10 @@
 
 package com.spotify.docker.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.spotify.docker.client.messages.DockerCredentialHelperAuth;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class interacts with a docker credential helper.
@@ -60,8 +49,6 @@ import org.slf4j.LoggerFactory;
  * {@link #restoreSystemCredentialHelperDelegate()} to facilitate testing.</p>
  */
 public class DockerCredentialHelper {
-  private static final Logger log = LoggerFactory.getLogger(DockerConfigReader.class);
-  private static final ObjectMapper mapper = ObjectMapperProvider.objectMapper();
 
   /**
    * An interface to be mocked during testing.
@@ -79,98 +66,8 @@ public class DockerCredentialHelper {
     Map<String, String> list(String credsStore) throws IOException;
   }
 
-  /**
-   * The default credential helper delegate.
-   * Executes each credential helper operation on the system.
-   */
-  private static final CredentialHelperDelegate SYSTEM_CREDENTIAL_HELPER_DELEGATE =
-      new CredentialHelperDelegate() {
-
-    @Override
-    public int store(final String credsStore, final DockerCredentialHelperAuth auth)
-        throws IOException, InterruptedException {
-      final Process process = exec("store", credsStore);
-
-        try (final Writer outStreamWriter =
-            new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
-          try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-            writer.write(mapper.writeValueAsString(auth) + "\n");
-            writer.flush();
-          }
-        }
-
-      return process.waitFor();
-    }
-
-    @Override
-    public int erase(final String credsStore, final String registry)
-        throws IOException, InterruptedException {
-      final Process process = exec("erase", credsStore);
-
-      try (final Writer outStreamWriter =
-          new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
-        try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-          writer.write(registry + "\n");
-          writer.flush();
-        }
-      }
-
-      return process.waitFor();
-    }
-
-    @Override
-    public DockerCredentialHelperAuth get(final String credsStore, final String registry)
-        throws IOException {
-      final Process process = exec("get", credsStore);
-
-      try (final Writer outStreamWriter =
-          new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
-        try (final BufferedWriter writer = new BufferedWriter(outStreamWriter)) {
-          writer.write(registry + "\n");
-          writer.flush();
-        }
-      }
-
-      try (final InputStreamReader reader =
-          new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8)) {
-        try (BufferedReader input = new BufferedReader(reader)) {
-          final String serverAuthDetails = input.readLine();
-          // ErrCredentialsNotFound standardizes the not found error, so every helper returns
-          // the same message and docker can handle it properly.
-          // https://github.com/docker/docker-credential-helpers/blob/19b711cc92fbaa47533646fa8adb457d199c99e1/credentials/error.go#L4-L6
-          if ("credentials not found in native keychain".equals(serverAuthDetails)) {
-            return null;
-          }
-          return mapper.readValue(serverAuthDetails, DockerCredentialHelperAuth.class);
-        }
-      }
-    }
-
-    @Override
-    public Map<String, String> list(final String credsStore) throws IOException {
-      final Process process = exec("list", credsStore);
-
-      try (final InputStreamReader reader =
-        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8)) {
-        try (BufferedReader input = new BufferedReader(reader)) {
-          final String serverAuthDetails = input.readLine();
-          if ("The specified item could not be found in the keychain.".equals(serverAuthDetails)) {
-            return null;
-          }
-          return mapper.readValue(serverAuthDetails, new TypeReference<Map<String, String>>() {});
-        }
-      }
-    }
-
-    private Process exec(final String subcommand, final String credsStore) throws IOException {
-      final String cmd = "docker-credential-" + credsStore + " " + subcommand;
-      log.debug("Executing \"{}\"", cmd);
-      return Runtime.getRuntime().exec(cmd);
-    }
-  };
-
   private static CredentialHelperDelegate credentialHelperDelegate =
-          SYSTEM_CREDENTIAL_HELPER_DELEGATE;
+      new SystemCredentialHelperDelegate();
 
   @VisibleForTesting
   static void setCredentialHelperDelegate(final CredentialHelperDelegate delegate) {
@@ -179,7 +76,7 @@ public class DockerCredentialHelper {
 
   @VisibleForTesting
   static void restoreSystemCredentialHelperDelegate() {
-    credentialHelperDelegate = SYSTEM_CREDENTIAL_HELPER_DELEGATE;
+    credentialHelperDelegate = new SystemCredentialHelperDelegate();
   }
 
   /**
@@ -223,7 +120,7 @@ public class DockerCredentialHelper {
   }
 
   /**
-   * Lists credentials stored in the credsStore
+   * Lists credentials stored in the credsStore.
    * @param credsStore Name of the docker credential helper
    * @return Map of registries to auth identifiers.
    *         (For instance, usernames for which you have signed in.)

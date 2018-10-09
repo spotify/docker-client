@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import javax.annotation.Nullable;
 
 /**
  * Represents the auth response received from a docker credential helper
@@ -39,6 +40,7 @@ public abstract class DockerCredentialHelperAuth {
   @JsonProperty("Secret")
   public abstract String secret();
 
+  @Nullable
   @JsonProperty("ServerURL")
   public abstract String serverUrl();
 
