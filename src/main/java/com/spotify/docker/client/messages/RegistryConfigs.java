@@ -100,7 +100,9 @@ public abstract class RegistryConfigs {
     abstract ImmutableMap.Builder<String, RegistryAuth> configsBuilder();
 
     public Builder addConfig(final String server, final RegistryAuth registryAuth) {
-      configsBuilder().put(server, registryAuth);
+      if (registryAuth != null) {
+        configsBuilder().put(server, registryAuth);
+      }
       return this;
     }
 

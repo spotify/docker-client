@@ -1,7 +1,8 @@
 {
   "credHelpers": {
     "https://foo.io": "a-cred-helper",
-    "https://adventure.zone": "magic-missile"
+    "https://adventure.zone": "magic-missile",
+    "https://beyond.zone": "elusive-helper"
   },
   "credsStore": "fallback"
 }
