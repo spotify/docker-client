@@ -4,6 +4,7 @@
  * --
  * Copyright (C) 2016 Spotify AB
  * Copyright (C) 2016 Thoughtworks, Inc
+ * Copyright (C) 2018 Davi da Silva Böger
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1763,6 +1764,20 @@ public interface DockerClient extends Closeable {
    * @throws InterruptedException If the thread is interrupted
    */
   ContainerStats stats(String containerId) throws DockerException, InterruptedException;
+
+  /**
+   * Retrieves a stream of {@link ContainerStats} for the container with the specified id and
+   * passes the stats to the provided {@link StatsHandler}.
+   *
+   * @param containerId The id of the container to retrieve stats for.
+   * @param handler The handler for the stats
+   * @throws ContainerNotFoundException
+   *                              if container is not found (404)
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void stats(String containerId, StatsHandler handler)
+      throws DockerException, InterruptedException;
 
   /**
    * Resize container TTY
