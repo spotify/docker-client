@@ -36,7 +36,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,14 +128,18 @@ public class DockerConfigReader {
     final boolean hasAuths = auths != null && !auths.isEmpty();
     final String credsStore = config.credsStore();
     final boolean hasCredsStore = credsStore != null;
+    final Set<String> addedRegistries = new HashSet<>();
 
     // First use the credHelpers, if there are any
     if (hasCredHelpers) {
       for (final Map.Entry<String, String> credHelpersEntry : credHelpers.entrySet()) {
         final String registry = credHelpersEntry.getKey();
         final String aCredsStore = credHelpersEntry.getValue();
-        registryConfigsBuilder.addConfig(registry,
-            authWithCredentialHelper(aCredsStore, registry));
+        if (!addedRegistries.contains(registry)) {
+          addedRegistries.add(registry);
+          registryConfigsBuilder.addConfig(registry,
+              authWithCredentialHelper(aCredsStore, registry));
+        }
       }
     }
 
@@ -147,6 +153,11 @@ public class DockerConfigReader {
 
       for (final Map.Entry<String, RegistryAuth> authEntry : auths.entrySet()) {
         final String registry = authEntry.getKey();
+        if (addedRegistries.contains(registry)) {
+          continue;
+        }
+
+        addedRegistries.add(registry);
         final RegistryAuth registryAuth = authEntry.getValue();
         if (registryAuth == null || registryAuth.equals(empty)) {
           // We have an empty object. Can we use credsStore?

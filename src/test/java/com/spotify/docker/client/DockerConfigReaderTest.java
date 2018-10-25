@@ -308,4 +308,24 @@ public class DockerConfigReaderTest {
             .build();
     assertThat(reader.authForAllRegistries(path), is(registryConfigs));
   }
+
+  @Test
+  public void testDuplicateServerInAuthsAndCredHelpers() throws Exception {
+    final Path path = getTestFilePath("dockerConfig/duplicateServerInAuthsAndCredHelpers.json");
+
+    final String registry = "https://index.docker.io/v1/";
+    final DockerCredentialHelperAuth testAuth =
+        DockerCredentialHelperAuth.create(
+            "dockerman",
+            "sw4gy0lo",
+            registry
+        );
+    when(credentialHelperDelegate.get("magic-missile", registry)).thenReturn(testAuth);
+
+    // Test that for duplicate registries, credHelpers is preferred over auths.
+    final RegistryConfigs registryConfigs = RegistryConfigs.builder()
+        .addConfig(registry, testAuth.toRegistryAuth())
+        .build();
+    assertThat(reader.authForAllRegistries(path), is(registryConfigs));
+  }
 }
