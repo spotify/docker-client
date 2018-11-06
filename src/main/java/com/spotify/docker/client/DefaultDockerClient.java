@@ -2617,7 +2617,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   @Override
   public List<Secret> listSecrets(final Secret.Criteria criteria)
       throws DockerException, InterruptedException {
-    assertApiVersionIsAbove("1.24");
+    assertApiVersionIsAbove("1.25");
 
     final Map<String, List<String>> filters = new HashMap<>();
 
