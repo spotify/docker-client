@@ -2615,6 +2615,38 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public List<Secret> listSecrets(final Secret.Criteria criteria)
+      throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.24");
+
+    final Map<String, List<String>> filters = new HashMap<>();
+
+    if (criteria.secretId() != null) {
+      filters.put("id", Collections.singletonList(criteria.secretId()));
+    }
+    if (criteria.label() != null) {
+      filters.put("label", Collections.singletonList(criteria.label()));
+    }
+    if (criteria.name() != null) {
+      filters.put("name", Collections.singletonList(criteria.name()));
+    }
+
+    final WebTarget resource = resource().path("secrets")
+        .queryParam("filters", urlEncodeFilters(filters));
+
+    try {
+      return request(GET, SECRET_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 503:
+          throw new NonSwarmNodeException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public SecretCreateResponse createSecret(final SecretSpec secret)
       throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.25");
