@@ -2812,6 +2812,17 @@ public interface DockerClient extends Closeable {
   List<Secret> listSecrets() throws DockerException, InterruptedException;
 
   /**
+   * List secrets.
+   * @param criteria Secret listing and filtering options
+   * @return a list of secrets.
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException if the thread is interrupted
+   * @since Docker 1.13, API version 1.25
+   */
+  List<Secret> listSecrets(final Secret.Criteria criteria)
+      throws DockerException, InterruptedException;
+
+  /**
    * Create a secret.
    * @param secret The spec for the secret.
    * @return {@link SecretCreateResponse}
