@@ -2852,6 +2852,21 @@ public interface DockerClient extends Closeable {
   void deleteSecret(String secretId) throws DockerException, InterruptedException;
   
   /**
+   * Update a swarm secret. Only available in Docker API &gt;= 1.26.
+   *
+   * @param secretId The id of the secret to update
+   * @param version The version number of the secret object being updated.
+   *                This is required to avoid conflicting writes
+   * @throws NodeNotFoundException If the secret doesn't exist (404)
+   * @throws NonSwarmNodeException If the secret is not part of a swarm (503)
+   * @throws DockerException If a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   * @since Docker 1.13, API version 1.26
+   */
+  void updateSecret(final String secretId, final Long version, final SecretSpec nodeSpec)
+      throws DockerException, InterruptedException;
+
+  /**
    * Parameters for {@link #listVolumes(ListVolumesParam...)}.
    * @since Docker 1.9, API version 1.21
    */
