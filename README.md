@@ -21,8 +21,8 @@ It is used in many critical production systems at Spotify.
 
 ## Version compatibility
 docker-client is built and tested against the six most recent minor releases of Docker.
-Right now these are 1.12.6 - 17.09.0-ce (specifically the ones [here][1]).
-We upload the artifact tested on Docker 1.13.1.
+Right now these are 17.03.1~ce - 17.12.1~ce (specifically the ones [here][1]).
+We upload the artifact tested on Docker 17.12.1~ce.
 See [Docker docs on the mapping between Docker version and API version][3].
 
 ## Download
