@@ -2611,7 +2611,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   public List<Secret> listSecrets() throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.25");
     final WebTarget resource = resource().path("secrets");
-    return request(GET, SECRET_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    try {
+      return request(GET, SECRET_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 503:
+          throw new NonSwarmNodeException("node is not part of a swarm", e);
+        default:
+          throw e;
+      }
+    }
   }
 
   @Override
@@ -2658,10 +2667,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                      Entity.json(secret));
     } catch (final DockerRequestException ex) {
       switch (ex.status()) {
-        case 406:
-          throw new NonSwarmNodeException("Server not part of swarm.", ex);
         case 409:
           throw new ConflictException("Name conflicts with an existing object.", ex);
+        case 503:
+          throw new NonSwarmNodeException("node is not part of a swarm", ex);
         default:
           throw ex;
       }
@@ -2679,8 +2688,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       switch (ex.status()) {
         case 404:
           throw new NotFoundException("Secret " + secretId + " not found.", ex);
-        case 406:
-          throw new NonSwarmNodeException("Server not part of swarm.", ex);
+        case 503:
+          throw new NonSwarmNodeException("node is not part of a swarm", ex);
         default:
           throw ex;
       }
@@ -2698,6 +2707,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       switch (ex.status()) {
         case 404:
           throw new NotFoundException("Secret " + secretId + " not found.", ex);
+        case 503:
+          throw new NonSwarmNodeException("node is not part of a swarm", ex);
         default:
           throw ex;
       }
@@ -2723,7 +2734,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         case 404:
           throw new NotFoundException("Secret " + secretId + " not found.");
         case 503:
-          throw new NonSwarmNodeException("Secret not part of a swarm.", e);
+          throw new NonSwarmNodeException("node is not part of a swarm", e);
         default:
           throw e;
       }
