@@ -2704,6 +2704,32 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
+  @Override
+  public void updateSecret(final String secretId, final Long version, final SecretSpec nodeSpec)
+      throws DockerException, InterruptedException {
+
+    assertApiVersionIsAbove("1.26");
+
+    final WebTarget resource = resource().path("secrets")
+        .path(secretId)
+        .path("update")
+        .queryParam("version", version);
+
+    try {
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE),
+          Entity.json(nodeSpec));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new NotFoundException("Secret " + secretId + " not found.");
+        case 503:
+          throw new NonSwarmNodeException("Secret not part of a swarm.", e);
+        default:
+          throw e;
+      }
+    }
+  }
+
   private WebTarget resource() {
     final WebTarget target = client.target(uri);
     if (!isNullOrEmpty(apiVersion)) {

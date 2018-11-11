@@ -81,6 +81,9 @@ import com.spotify.docker.client.messages.swarm.NodeSpec;
 import com.spotify.docker.client.messages.swarm.Placement;
 import com.spotify.docker.client.messages.swarm.Preference;
 import com.spotify.docker.client.messages.swarm.ResourceRequirements;
+import com.spotify.docker.client.messages.swarm.Secret;
+import com.spotify.docker.client.messages.swarm.SecretCreateResponse;
+import com.spotify.docker.client.messages.swarm.SecretSpec;
 import com.spotify.docker.client.messages.swarm.Service;
 import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Spread;
@@ -88,6 +91,9 @@ import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.Version;
+import com.spotify.hamcrest.jackson.IsJsonArray;
+import com.spotify.hamcrest.jackson.IsJsonObject;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -818,6 +824,45 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
+  public void testListConfigs_WithCriteria() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.30");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.30/listConfigs.json")
+        )
+    );
+    
+    final Config.Criteria criteria = Config.Criteria.builder().name("foo").build();
+    final List<Config> configs = dockerClient.listConfigs(criteria);
+
+    assertThat(configs.size(), equalTo(1));
+
+    final Config config = configs.get(0);
+
+    assertThat(config, notNullValue());
+    assertThat(config.id(), equalTo("ktnbjxoalbkvbvedmg1urrz8h"));
+    assertThat(config.version().index(), equalTo(11L));
+
+    final ConfigSpec configSpec = config.configSpec();
+    assertThat(configSpec.name(), equalTo("server.conf"));
+  
+    takeRequestImmediately(); // consume version GET
+    
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+    final HttpUrl requestUrl = recordedRequest.getRequestUrl();
+    assertThat(requestUrl.querySize(), equalTo(1));
+    assertThat(requestUrl.queryParameterName(0), is("filters"));
+    final JsonNode filtersJson = toJson(requestUrl.queryParameter("filters"));
+    assertThat(filtersJson, jsonObject().where("name", is(jsonArray(contains(jsonText("foo"))))));
+    assertThat(filtersJson.size(), equalTo(1));
+  }
+
+  @Test
   public void testCreateConfig() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
@@ -1014,6 +1059,274 @@ public class DefaultDockerClientUnitTest {
         .build();
 
     dockerClient.updateConfig("ktnbjxoalbkvbvedmg1urrz8h", 11L, configSpec);
+  }
+
+  @Test
+  public void testListSecrets() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.25/listSecrets.json")
+        )
+    );
+
+    final List<Secret> secrets = dockerClient.listSecrets();
+    assertThat(secrets.size(), equalTo(1));
+
+    final Secret secret = secrets.get(0);
+
+    assertThat(secret, notNullValue());
+    assertThat(secret.id(), equalTo("ktnbjxoalbkvbvedmg1urrz8h"));
+    assertThat(secret.version().index(), equalTo(11L));
+
+    final SecretSpec secretSpec = secret.secretSpec();
+    assertThat(secretSpec.name(), equalTo("server.conf"));
+  
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+    final HttpUrl requestUrl = recordedRequest.getRequestUrl();
+    assertThat(requestUrl.querySize(), equalTo(0));
+  }
+
+  @Test
+  public void testListSecrets_WithCriteria() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.25/listSecrets.json")
+        )
+    );
+    
+    final Secret.Criteria criteria = Secret.Criteria.builder().name("foo").build();
+    final List<Secret> secrets = dockerClient.listSecrets(criteria);
+
+    assertThat(secrets.size(), equalTo(1));
+
+    final Secret secret = secrets.get(0);
+
+    assertThat(secret, notNullValue());
+    assertThat(secret.id(), equalTo("ktnbjxoalbkvbvedmg1urrz8h"));
+    assertThat(secret.version().index(), equalTo(11L));
+
+    final SecretSpec secretSpec = secret.secretSpec();
+    assertThat(secretSpec.name(), equalTo("server.conf"));
+  
+    takeRequestImmediately(); // consume version GET
+    final RecordedRequest recordedRequest = takeRequestImmediately();
+    final HttpUrl requestUrl = recordedRequest.getRequestUrl();
+    assertThat(requestUrl.querySize(), equalTo(1));
+    assertThat(requestUrl.queryParameterName(0), is("filters"));
+    final JsonNode filtersJson = toJson(requestUrl.queryParameter("filters"));
+    assertThat(filtersJson, jsonObject().where("name", is(jsonArray(contains(jsonText("foo"))))));
+    assertThat(filtersJson.size(), equalTo(1));
+  }
+
+  @Test
+  public void testCreateSecret() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(201)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.25/inspectSecret.json")
+        )
+    );
+
+    final SecretSpec secretSpec = SecretSpec
+        .builder()
+        .data(Base64.encodeAsString("foobar"))
+        .name("foo.yaml")
+        .build();
+
+    final SecretCreateResponse secretCreateResponse = dockerClient.createSecret(secretSpec);
+
+    assertThat(secretCreateResponse.id(), equalTo("ktnbjxoalbkvbvedmg1urrz8h"));
+  }
+
+  @Test(expected = ConflictException.class)
+  public void testCreateSecret_ConflictingName() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(409)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    final SecretSpec secretSpec = SecretSpec
+        .builder()
+        .data(Base64.encodeAsString("foobar"))
+        .name("foo.yaml")
+        .build();
+
+    dockerClient.createSecret(secretSpec);
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testCreateSecret_NonSwarmNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(503)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    final SecretSpec secretSpec = SecretSpec
+        .builder()
+        .data(Base64.encodeAsString("foobar"))
+        .name("foo.yaml")
+        .build();
+
+    dockerClient.createSecret(secretSpec);
+  }
+
+  @Test
+  public void testInspectSecret() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            fixture("fixtures/1.25/inspectSecret.json")
+        )
+    );
+
+    final Secret secret = dockerClient.inspectSecret("ktnbjxoalbkvbvedmg1urrz8h");
+
+    assertThat(secret, notNullValue());
+    assertThat(secret.id(), equalTo("ktnbjxoalbkvbvedmg1urrz8h"));
+    assertThat(secret.version().index(), equalTo(11L));
+
+    final SecretSpec secretSpec = secret.secretSpec();
+    assertThat(secretSpec.name(), equalTo("app-dev.crt"));
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testInspectSecret_NotFound() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(404)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.inspectSecret("ktnbjxoalbkvbvedmg1urrz8h");
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testInspectSecret_NonSwarmNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(503)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.inspectSecret("ktnbjxoalbkvbvedmg1urrz8h");
+  }
+
+  @Test
+  public void testDeleteSecret() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(204)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.deleteSecret("ktnbjxoalbkvbvedmg1urrz8h");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testDeleteSecret_NotFound() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(404)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.deleteSecret("ktnbjxoalbkvbvedmg1urrz8h");
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testDeleteSecret_NonSwarmNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.25");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(503)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    dockerClient.deleteSecret("ktnbjxoalbkvbvedmg1urrz8h");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUpdateSecret_NotFound() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.26");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(404)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    final SecretSpec secretSpec = SecretSpec
+        .builder()
+        .data(Base64.encodeAsString("foobar"))
+        .name("foo.yaml")
+        .build();
+
+    dockerClient.updateSecret("ktnbjxoalbkvbvedmg1urrz8h", 11L, secretSpec);
+  }
+
+  @Test(expected = NonSwarmNodeException.class)
+  public void testUpdateSecret_NonSwarmNode() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+
+    enqueueServerApiVersion("1.26");
+
+    server.enqueue(new MockResponse()
+        .setResponseCode(503)
+        .addHeader("Content-Type", "application/json")
+    );
+
+    final SecretSpec secretSpec = SecretSpec
+        .builder()
+        .data(Base64.encodeAsString("foobar"))
+        .name("foo.yaml")
+        .build();
+
+    dockerClient.updateSecret("ktnbjxoalbkvbvedmg1urrz8h", 11L, secretSpec);
   }
 
   @Test
