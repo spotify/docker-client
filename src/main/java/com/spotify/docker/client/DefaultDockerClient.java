@@ -127,6 +127,8 @@ import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
+import com.spotify.docker.client.npipe.NpipeConnectionSocketFactory;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -314,6 +316,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   // ==========================================================================
 
   private static final String UNIX_SCHEME = "unix";
+  private static final String NPIPE_SCHEME = "npipe";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
@@ -438,6 +441,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     if (originalUri.getScheme().equals(UNIX_SCHEME)) {
       this.uri = UnixConnectionSocketFactory.sanitizeUri(originalUri);
+    } else if (originalUri.getScheme().equals(NPIPE_SCHEME)) {
+      this.uri = NpipeConnectionSocketFactory.sanitizeUri(originalUri);
     } else {
       this.uri = originalUri;
     }
@@ -557,6 +562,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     if (builder.uri.getScheme().equals(UNIX_SCHEME)) {
       registryBuilder.register(UNIX_SCHEME, new UnixConnectionSocketFactory(builder.uri));
+    }
+    
+    if (builder.uri.getScheme().equals(NPIPE_SCHEME)) {
+      registryBuilder.register(NPIPE_SCHEME, new NpipeConnectionSocketFactory(builder.uri));
     }
 
     return registryBuilder.build();
@@ -2923,6 +2932,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
+      builder.uri(endpoint);
+    } else if (endpoint.startsWith(NPIPE_SCHEME + "://")) {
       builder.uri(endpoint);
     } else {
       final String stripped = endpoint.replaceAll(".*://", "");
