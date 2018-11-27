@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.14.5
+
+- Support for Windows 10 Docker named pipes ([875][])
+
 ## 8.14.0
 
 Released October 4 2018
