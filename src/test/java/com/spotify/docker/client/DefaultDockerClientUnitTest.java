@@ -209,6 +209,16 @@ public class DefaultDockerClientUnitTest {
       assertThat((String) client.getClient().getConfiguration()
                       .getProperty("jersey.config.client.proxy.uri"),
               isEmptyOrNullString());
+      final DefaultDockerClient client1 = DefaultDockerClient.builder()
+              .uri("https://127.0.0.1:2375").build();
+      assertThat((String) client1.getClient().getConfiguration()
+                      .getProperty("jersey.config.client.proxy.uri"),
+              isEmptyOrNullString());
+      final DefaultDockerClient client2 = DefaultDockerClient.builder()
+              .uri("https://localhost:2375").build();
+      assertThat((String) client2.getClient().getConfiguration()
+                      .getProperty("jersey.config.client.proxy.uri"),
+              isEmptyOrNullString());
     } finally {
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
