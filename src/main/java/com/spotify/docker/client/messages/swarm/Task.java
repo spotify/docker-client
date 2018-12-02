@@ -30,6 +30,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 import com.google.common.collect.ImmutableMap;
+
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -113,37 +115,37 @@ public abstract class Task {
      * Filter by task id.
      */
     @Nullable
-    public abstract String taskId();
+    public abstract List<String> taskIds();
 
     /**
      * Filter by task name.
      */
     @Nullable
-    public abstract String taskName();
+    public abstract List<String> taskNames();
 
     /**
      * Filter by service name.
      */
     @Nullable
-    public abstract String serviceName();
+    public abstract List<String> serviceNames();
 
     /**
      * Filter by node id.
      */
     @Nullable
-    public abstract String nodeId();
+    public abstract List<String> nodeIds();
 
     /**
      * Filter by label.
      */
     @Nullable
-    public abstract String label();
+    public abstract List<String> labels();
 
     /**
      * Filter by desired state.
      */
     @Nullable
-    public abstract String desiredState();
+    public abstract List<String> desiredStates();
 
     public static Builder builder() {
       return new AutoValue_Task_Criteria.Builder();
@@ -152,69 +154,69 @@ public abstract class Task {
     @AutoValue.Builder
     public abstract static class Builder {
 
-      public abstract Builder taskId(final String taskId);
+      public abstract Builder taskIds(final List<String> taskIds);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #taskId(String)}.
        */
       @Deprecated
       public Builder withTaskId(final String taskId) {
-        taskId(taskId);
+        taskIds(Collections.singletonList(taskId));
         return this;
       }
 
-      public abstract Builder taskName(final String taskName);
+      public abstract Builder taskNames(final List<String> taskNames);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #taskName(String)}.
        */
       @Deprecated
       public Builder withTaskName(final String taskName) {
-        taskName(taskName);
+        taskNames(Collections.singletonList(taskName));
         return this;
       }
 
-      public abstract Builder serviceName(final String serviceName);
+      public abstract Builder serviceNames(final List<String> serviceNames);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #serviceName(String)}.
        */
       @Deprecated
       public Builder withServiceName(final String serviceName) {
-        serviceName(serviceName);
+        serviceNames(Collections.singletonList(serviceName));
         return this;
       }
 
-      public abstract Builder nodeId(final String nodeId);
+      public abstract Builder nodeIds(final List<String> nodeIds);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #nodeId(String)}.
        */
       @Deprecated
       public Builder withNodeId(final String nodeId) {
-        nodeId(nodeId);
+        nodeIds(Collections.singletonList(nodeId));
         return this;
       }
 
-      public abstract Builder label(final String label);
+      public abstract Builder labels(final List<String> labels);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #label(String)}.
        */
       @Deprecated
       public Builder withLabel(final String label) {
-        label(label);
+        labels(Collections.singletonList(label));
         return this;
       }
 
-      public abstract Builder desiredState(final String desiredState);
+      public abstract Builder desiredStates(final List<String> desiredStates);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #desiredState(String)}.
        */
       @Deprecated
       public Builder withDesiredState(final String desiredState) {
-        desiredState(desiredState);
+        desiredStates(Collections.singletonList(desiredState));
         return this;
       }
 

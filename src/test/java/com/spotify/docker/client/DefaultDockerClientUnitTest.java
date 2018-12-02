@@ -94,6 +94,7 @@ import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -1319,7 +1320,7 @@ public class DefaultDockerClientUnitTest {
     enqueueServerApiVersion("1.24");
     enqueueServerApiResponse(200, "fixtures/1.24/tasks.json");
     final String taskId = "task-1";
-    dockerClient.listTasks(Task.find().taskId(taskId).build());
+    dockerClient.listTasks(Task.find().taskIds(Collections.singletonList(taskId)).build());
     takeRequestImmediately();
     final RecordedRequest recordedRequest2 = takeRequestImmediately();
     final HttpUrl requestUrl2 = recordedRequest2.getRequestUrl();
@@ -1333,7 +1334,8 @@ public class DefaultDockerClientUnitTest {
     enqueueServerApiVersion("1.24");
     enqueueServerApiResponse(200, "fixtures/1.24/tasks.json");
     final String serviceName = "service-1";
-    dockerClient.listTasks(Task.find().serviceName(serviceName).build());
+    dockerClient.listTasks(Task.find().serviceNames(Collections.singletonList(serviceName))
+        .build());
     takeRequestImmediately();
     final RecordedRequest recordedRequest3 = takeRequestImmediately();
     final HttpUrl requestUrl3 = recordedRequest3.getRequestUrl();

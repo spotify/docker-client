@@ -2073,23 +2073,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     assertApiVersionIsAbove("1.24");
     final Map<String, List<String>> filters = new HashMap<>();
 
-    if (criteria.taskId() != null) {
-      filters.put("id", Collections.singletonList(criteria.taskId()));
+    if (criteria.taskIds() != null) {
+      filters.put("id", criteria.taskIds());
     }
-    if (criteria.taskName() != null) {
-      filters.put("name", Collections.singletonList(criteria.taskName()));
+    if (criteria.taskNames() != null) {
+      filters.put("name", criteria.taskNames());
     }
-    if (criteria.serviceName() != null) {
-      filters.put("service", Collections.singletonList(criteria.serviceName()));
+    if (criteria.serviceNames() != null) {
+      filters.put("service", criteria.serviceNames());
     }
-    if (criteria.nodeId() != null) {
-      filters.put("node", Collections.singletonList(criteria.nodeId()));
+    if (criteria.nodeIds() != null) {
+      filters.put("node", criteria.nodeIds());
     }
-    if (criteria.label() != null) {
-      filters.put("label", Collections.singletonList(criteria.label()));
+    if (criteria.labels() != null) {
+      filters.put("label", criteria.labels());
     }
-    if (criteria.desiredState() != null) {
-      filters.put("desired-state", Collections.singletonList(criteria.desiredState()));
+    if (criteria.desiredStates() != null) {
+      filters.put("desired-state", criteria.desiredStates());
     }
 
     WebTarget resource = resource().path("tasks");
