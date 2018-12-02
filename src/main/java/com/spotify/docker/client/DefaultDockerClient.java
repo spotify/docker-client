@@ -1988,11 +1988,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     assertApiVersionIsAbove("1.24");
     final Map<String, List<String>> filters = new HashMap<>();
 
-    if (criteria.serviceId() != null) {
-      filters.put("id", Collections.singletonList(criteria.serviceId()));
+    if (criteria.serviceIds() != null) {
+      filters.put("id", criteria.serviceIds());
     }
-    if (criteria.serviceName() != null) {
-      filters.put("name", Collections.singletonList(criteria.serviceName()));
+    if (criteria.serviceNames() != null) {
+      filters.put("name", criteria.serviceNames());
     }
 
     final List<String> labels = new ArrayList<>();

@@ -63,6 +63,7 @@ import static java.lang.String.format;
 import static java.lang.System.getenv;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.allOf;
@@ -5378,28 +5379,38 @@ public class DefaultDockerClientTest {
   }
 
   @Test
-  public void testListServicesFilterById() throws Exception {
+  public void testListServicesFilterByIds() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
-    final ServiceSpec spec = createServiceSpec(randomName());
-    final ServiceCreateResponse response = sut.createService(spec);
+    final ServiceSpec spec1 = createServiceSpec(randomName());
+    final ServiceSpec spec2 = createServiceSpec(randomName());
+    final ServiceCreateResponse response1 = sut.createService(spec1);
+    final ServiceCreateResponse response2 = sut.createService(spec2);
 
     final List<Service> services = sut
-        .listServices(Service.find().serviceId(response.id()).build());
-    assertThat(services.size(), is(1));
-    assertThat(services.get(0).id(), is(response.id()));
+        .listServices(Service.find().serviceIds(Arrays.asList(
+            response1.id(), response2.id())).build());
+    assertThat(services.size(), is(2));
+    List<String> serviceIds = services.stream().map(Service::id).collect(toList());
+    assertThat(serviceIds, containsInAnyOrder(response1.id(), response2.id()));
   }
 
   @Test
-  public void testListServicesFilterByName() throws Exception {
+  public void testListServicesFilterByNames() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
-    final String serviceName = randomName();
-    final ServiceSpec spec = createServiceSpec(serviceName);
-    sut.createService(spec);
+    final String serviceName1 = randomName();
+    final ServiceSpec spec1 = createServiceSpec(serviceName1);
+    sut.createService(spec1);
+    final String serviceName2 = randomName();
+    final ServiceSpec spec2 = createServiceSpec(serviceName2);
+    sut.createService(spec2);
 
     final List<Service> services =
-        sut.listServices(Service.find().serviceName(serviceName).build());
-    assertThat(services.size(), is(1));
-    assertThat(services.get(0).spec().name(), is(serviceName));
+        sut.listServices(Service.find().serviceNames(Arrays.asList(
+            serviceName1, serviceName2)).build());
+    assertThat(services.size(), is(2));
+    List<String> serviceNames = services.stream().map(service -> service.spec().name())
+        .collect(toList());
+    assertThat(serviceNames, containsInAnyOrder(serviceName1, serviceName2));
   }
   
   @Test

@@ -29,7 +29,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -67,13 +69,13 @@ public abstract class Service {
      * Filter by service id.
      */
     @Nullable
-    public abstract String serviceId();
+    public abstract List<String> serviceIds();
 
     /**
      * Filter by service name.
      */
     @Nullable
-    public abstract String serviceName();
+    public abstract List<String> serviceNames();
 
     /**
      * Filter by label.
@@ -88,25 +90,25 @@ public abstract class Service {
     @AutoValue.Builder
     public abstract static class Builder {
 
-      public abstract Builder serviceId(final String serviceId);
+      public abstract Builder serviceIds(final List<String> serviceIds);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #serviceId(String)}.
        */
       @Deprecated
       public Builder withServiceId(final String serviceId) {
-        serviceId(serviceId);
+        serviceIds(Collections.singletonList(serviceId));
         return this;
       }
 
-      public abstract Builder serviceName(final String serviceName);
+      public abstract Builder serviceNames(final List<String> serviceNames);
 
       /**
        * @deprecated  As of release 7.0.0, replaced by {@link #serviceName(String)}.
        */
       @Deprecated
       public Builder withServiceName(final String serviceName) {
-        serviceName(serviceName);
+        serviceNames(Collections.singletonList(serviceName));
         return this;
       }
 
