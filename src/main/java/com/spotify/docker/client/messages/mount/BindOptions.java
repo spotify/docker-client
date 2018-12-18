@@ -24,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
@@ -47,5 +48,13 @@ public abstract class BindOptions {
 
   public static BindOptions.Builder builder() {
     return new AutoValue_BindOptions.Builder();
+  }
+
+  @JsonCreator
+  static BindOptions create(
+          @JsonProperty("Propagation") final String propagation) {
+    return builder()
+            .propagation(propagation)
+            .build();
   }
 }

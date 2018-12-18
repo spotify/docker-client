@@ -4965,6 +4965,50 @@ public class DefaultDockerClientTest {
   }
 
   @Test
+  public void testCreateServiceWithMount() throws Exception {
+    requireDockerApiVersionAtLeast("1.24", "swarm support");
+    final BindOptions bind = BindOptions.builder()
+            .propagation("rprivate")
+            .build();
+
+    // Add a general file
+    final Mount mount = Mount.builder()
+            .type("bind")
+            .bindOptions(bind)
+            .source("fixtures/1.26/network1.json")
+            .target("/network1.json")
+            .build();
+
+    final TaskSpec taskSpec = TaskSpec.builder()
+            .containerSpec(ContainerSpec.builder()
+                .image(BUSYBOX_LATEST)
+                .mounts(mount)
+                .build()
+            ).build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+            .name(randomName())
+            .taskTemplate(taskSpec)
+            .build();
+
+    final ServiceCreateResponse response = sut.createService(spec);
+    assertThat(response.warnings(), is(nullValue()));
+
+    final List<Service> services = sut.listServices();
+    assertThat(services, is(hasSize(greaterThan(0))));
+
+    final Service service = sut.inspectService(response.id());
+    final ImmutableList<Mount> serviceMounts = service
+        .spec()
+        .taskTemplate()
+        .containerSpec()
+        .mounts();
+    assertThat(serviceMounts, is(hasSize(greaterThan(0))));
+
+    sut.removeService(response.id());
+  }
+
+  @Test
   public void testSecretOperations() throws Exception {
     requireDockerApiVersionAtLeast("1.25", "secret support");
 
