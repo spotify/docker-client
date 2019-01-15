@@ -374,6 +374,10 @@
               <shadedPattern>com.spotify.docker.client.shaded.com.google.common</shadedPattern>
             </relocation>
             <relocation>
+              <pattern>com.google.thirdparty</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.google.thirdparty</shadedPattern>
+            </relocation>
+            <relocation>
               <pattern>org.apache.http</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.apache.http</shadedPattern>
             </relocation>
@@ -381,6 +385,30 @@
               <pattern>org.objectweb.asm</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.objectweb.asm</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>org.aopalliance</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.aopalliance</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.jvnet</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.org.jvnet</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.kenai</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.kenai</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>mozilla</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.mozilla</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>jnr</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jnr</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>jni</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jni</shadedPattern>
+             </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
           <transformers>
