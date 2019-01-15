@@ -84,7 +84,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>20.0</version>
+      <version>27.0.1-jre</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -165,7 +165,7 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
-      <version>3.0.1</version>
+      <version>3.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
