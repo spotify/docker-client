@@ -188,7 +188,6 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -2693,7 +2692,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       return headers(request).async().method(method, type).get();
-    } catch (ExecutionException | MultiException e) {
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -2703,7 +2702,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       return headers(request).async().method(method, clazz).get();
-    } catch (ExecutionException | MultiException e) {
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -2714,7 +2713,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       return headers(request).async().method(method, entity, clazz).get();
-    } catch (ExecutionException | MultiException e) {
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -2725,7 +2724,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     try {
       headers(request).async().method(method, String.class).get();
-    } catch (ExecutionException | MultiException e) {
+    } catch (ExecutionException e) {
       throw propagate(method, resource, e);
     }
   }
@@ -2811,13 +2810,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
                                      final Exception ex)
       throws DockerException, InterruptedException {
     Throwable cause = ex.getCause();
-
-    // Sometimes e is a org.glassfish.hk2.api.MultiException
-    // which contains the cause we're actually interested in.
-    // So we unpack it here.
-    if (ex instanceof MultiException) {
-      cause = cause.getCause();
-    }
 
     Response response = null;
     if (cause instanceof ResponseProcessingException) {
