@@ -1,8 +1,24 @@
 # Changelog
 
+## 8.15.0
+
+Released January 16, 2019
+
+- Upgrade jackson deps to from 2.9.6 to latest 2.9.8 ([1132][])
+- Relocate remaining packages that are included in shaded jar ([1111][])
+
+[1132]: https://github.com/spotify/docker-client/pull/1132
+[1111]: https://github.com/spotify/docker-client/pull/1111
+
+## 8.14.5
+
+- Support for Windows 10 Docker named pipes ([875][])
+
+[875]: https://github.com/spotify/docker-client/pull/875
+
 ## 8.14.0
 
-Released October 4 2018
+Released October 4, 2018
 
 - Change maven-compiler-plugin source and target from 1.7 to 1.8 to prepare for Java 8.
   JAR should still be compatible with JRE 1.7.
@@ -12,7 +28,7 @@ Released October 4 2018
 
 ## 8.13.0
 
-Released August 29 2018
+Released August 29, 2018
 
 - Make ContainExit.exitCode(), HealthLog.exitCode() and ExecState.exitCode() return a Long instead
  of Integer.
@@ -20,7 +36,7 @@ Released August 29 2018
 
 ## 8.12.0
 
-Released August 26 2018
+Released August 26, 2018
 
 - Make ContainerState.exitCode() return a Long instead of Integer ([1052][])
 - Refactor authentication with docker config.json file ([1051][])

@@ -127,6 +127,8 @@ import com.spotify.docker.client.messages.swarm.SwarmJoin;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
 import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
+import com.spotify.docker.client.npipe.NpipeConnectionSocketFactory;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
@@ -179,10 +181,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.hk2.api.MultiException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
@@ -314,6 +318,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   // ==========================================================================
 
   private static final String UNIX_SCHEME = "unix";
+  private static final String NPIPE_SCHEME = "npipe";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultDockerClient.class);
 
@@ -438,12 +443,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     if (originalUri.getScheme().equals(UNIX_SCHEME)) {
       this.uri = UnixConnectionSocketFactory.sanitizeUri(originalUri);
+    } else if (originalUri.getScheme().equals(NPIPE_SCHEME)) {
+      this.uri = NpipeConnectionSocketFactory.sanitizeUri(originalUri);
     } else {
       this.uri = originalUri;
     }
 
-    final PoolingHttpClientConnectionManager cm = getConnectionManager(builder);
-    final PoolingHttpClientConnectionManager noTimeoutCm = getConnectionManager(builder);
+    final HttpClientConnectionManager cm = getConnectionManager(builder);
+    final HttpClientConnectionManager noTimeoutCm = getConnectionManager(builder);
 
     final RequestConfig requestConfig = RequestConfig.custom()
         .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
@@ -530,15 +537,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return fromNullable(uri.getHost()).or("localhost");
   }
 
-  private PoolingHttpClientConnectionManager getConnectionManager(Builder builder) {
-    final PoolingHttpClientConnectionManager cm =
-        new PoolingHttpClientConnectionManager(getSchemeRegistry(builder));
-
-    // Use all available connections instead of artificially limiting ourselves to 2 per server.
-    cm.setMaxTotal(builder.connectionPoolSize);
-    cm.setDefaultMaxPerRoute(cm.getMaxTotal());
-
-    return cm;
+  private HttpClientConnectionManager getConnectionManager(Builder builder) {
+    if (builder.uri.getScheme().equals(NPIPE_SCHEME)) {
+      final BasicHttpClientConnectionManager bm = 
+          new BasicHttpClientConnectionManager(getSchemeRegistry(builder));
+      return bm;
+    } else {
+      final PoolingHttpClientConnectionManager cm =
+          new PoolingHttpClientConnectionManager(getSchemeRegistry(builder));
+      // Use all available connections instead of artificially limiting ourselves to 2 per server.
+      cm.setMaxTotal(builder.connectionPoolSize);
+      cm.setDefaultMaxPerRoute(cm.getMaxTotal());
+      return cm;
+    }
   }
 
   private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {
@@ -557,6 +568,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     if (builder.uri.getScheme().equals(UNIX_SCHEME)) {
       registryBuilder.register(UNIX_SCHEME, new UnixConnectionSocketFactory(builder.uri));
+    }
+    
+    if (builder.uri.getScheme().equals(NPIPE_SCHEME)) {
+      registryBuilder.register(NPIPE_SCHEME, new NpipeConnectionSocketFactory(builder.uri));
     }
 
     return registryBuilder.build();
@@ -2923,6 +2938,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .dockerCertPath(dockerCertPath).build();
 
     if (endpoint.startsWith(UNIX_SCHEME + "://")) {
+      builder.uri(endpoint);
+    } else if (endpoint.startsWith(NPIPE_SCHEME + "://")) {
       builder.uri(endpoint);
     } else {
       final String stripped = endpoint.replaceAll(".*://", "");

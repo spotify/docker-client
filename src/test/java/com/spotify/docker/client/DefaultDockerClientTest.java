@@ -237,6 +237,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1039,9 +1040,10 @@ public class DefaultDockerClientTest {
           sut.removeImage(imageName);
         } catch (DockerException ignored) {
         }
-        final String dockerDirectory = Resources.getResource("dockerDirectorySleeping").getPath();
+        final URL dockerDirectoryUrl = Resources.getResource("dockerDirectorySleeping");
+        final Path dockerDirectory = Paths.get(dockerDirectoryUrl.toURI());
 
-        sut.build(Paths.get(dockerDirectory), imageName, message -> {
+        sut.build(dockerDirectory, imageName, message -> {
           if (!started.isDone()) {
             started.set(true);
           }
@@ -1049,6 +1051,9 @@ public class DefaultDockerClientTest {
       } catch (InterruptedException e) {
         interrupted.set(true);
         throw e;
+      } catch (Throwable t) {
+        started.setException(t);
+        throw t;
       }
       return null;
     });
