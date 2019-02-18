@@ -343,7 +343,7 @@
               <include>org.apache.httpcomponents:httpcore</include>
               <include>asm:asm</include>
             </includes>
-			<excludes>
+            <excludes>
               <exclude>com.github.jnr:jffi</exclude>
             </excludes>
           </artifactSet>
@@ -400,7 +400,7 @@
               <pattern>com.kenai.constantine</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.kenai.constantine</shadedPattern>
             </relocation>
-			<relocation>
+            <relocation>
               <pattern>com.kenai.jnr</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.kenai.jnr</shadedPattern>
             </relocation>
