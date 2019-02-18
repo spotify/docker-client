@@ -343,6 +343,9 @@
               <include>org.apache.httpcomponents:httpcore</include>
               <include>asm:asm</include>
             </includes>
+            <excludes>
+              <exclude>com.github.jnr:jffi</exclude>
+            </excludes>
           </artifactSet>
           <relocations>
             <relocation>
@@ -394,8 +397,12 @@
               <shadedPattern>com.spotify.docker.client.shaded.org.jvnet</shadedPattern>
             </relocation>
             <relocation>
-              <pattern>com.kenai</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.com.kenai</shadedPattern>
+              <pattern>com.kenai.constantine</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.kenai.constantine</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.kenai.jnr</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.com.kenai.jnr</shadedPattern>
             </relocation>
             <relocation>
               <pattern>mozilla</pattern>
