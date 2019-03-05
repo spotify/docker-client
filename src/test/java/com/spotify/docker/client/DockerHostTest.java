@@ -69,6 +69,13 @@ public class DockerHostTest {
   }
 
   @Test
+  public void testConfigFromEnv() {
+    when(systemDelegate.getenv("DOCKER_CONFIG")).thenReturn("foodir");
+    DockerHost.setSystemDelegate(systemDelegate);
+    assertThat(DockerHost.configPathFromEnv(), equalTo("foodir"));
+  }
+
+  @Test
   public void testDefaultUnixEndpoint() throws Exception {
     assertThat(DockerHost.defaultUnixEndpoint(), equalTo("unix:///var/run/docker.sock"));
   }

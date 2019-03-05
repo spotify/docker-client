@@ -237,6 +237,10 @@ public class DockerHost {
     return systemDelegate.getenv("DOCKER_CERT_PATH");
   }
 
+  static String configPathFromEnv() {
+    return systemDelegate.getenv("DOCKER_CONFIG");
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

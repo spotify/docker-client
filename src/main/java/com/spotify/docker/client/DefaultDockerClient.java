@@ -23,7 +23,6 @@
 
 package com.spotify.docker.client;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -50,8 +49,10 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
@@ -145,6 +146,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -2929,8 +2931,11 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    */
   public static Builder fromEnv() throws DockerCertificateException {
     final String endpoint = DockerHost.endpointFromEnv();
-    final Path dockerCertPath = Paths.get(firstNonNull(DockerHost.certPathFromEnv(),
-                                                       DockerHost.defaultCertPath()));
+    final Path dockerCertPath = Paths.get(Iterables.find(
+        Arrays.asList(DockerHost.certPathFromEnv(),
+            DockerHost.configPathFromEnv(),
+            DockerHost.defaultCertPath()),
+        Predicates.notNull()));
 
     final Builder builder = new Builder();
 
