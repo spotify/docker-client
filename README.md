@@ -1,6 +1,6 @@
 # Docker Client
 
-[![Build Status](https://travis-ci.org/spotify/docker-client.svg?branch=master)](https://travis-ci.org/spotify/docker-client)
+[![Build Status](https://travis-ci.com/spotify/docker-client.svg?branch=master)](https://travis-ci.com/spotify/docker-client)
 [![codecov](https://codecov.io/github/spotify/docker-client/coverage.svg?branch=master)](https://codecov.io/github/spotify/docker-client?branch=master)
 [![Maven Central](https://img.shields.io/maven-central/v/com.spotify/docker-client.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.spotify%22%20docker-client)
 [![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
@@ -21,7 +21,7 @@ It is used in many critical production systems at Spotify.
 
 ## Version compatibility
 docker-client is built and tested against the six most recent minor releases of Docker.
-Right now these are 17.03.1~ce - 17.12.1~ce (specifically the ones [here][1]).
+Right now these are 17.03.1\~ce - 17.12.1\~ce (specifically the ones [here][1]).
 We upload the artifact tested on Docker 17.12.1~ce.
 See [Docker docs on the mapping between Docker version and API version][3].
 
@@ -168,7 +168,7 @@ Shaded:
 docker-client and Jersey 2.x, you will need to explicitly specify the shaded version above.**
 
 
-  [1]: https://travis-ci.org/spotify/docker-client
+  [1]: https://travis-ci.com/spotify/docker-client
   [2]: docs/user_manual.md
   [3]: https://docs.docker.com/engine/api/v1.27/#section/Versioning
 
