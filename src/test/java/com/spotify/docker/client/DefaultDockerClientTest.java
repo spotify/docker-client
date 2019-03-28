@@ -5077,7 +5077,7 @@ public class DefaultDockerClientTest {
         .name(serviceName)
         .taskTemplate(taskSpec)
         .mode(serviceMode)
-        .updateConfig(UpdateConfig.create(null, null, null))
+        .updateConfig(UpdateConfig.create(null, null, null, null))
         .networks(Collections.emptyList())
         .endpointSpec(EndpointSpec.builder()
             .addPort(PortConfig.builder().build())
@@ -5097,6 +5097,7 @@ public class DefaultDockerClientTest {
     assertThat(actualServiceSpec.endpointSpec().mode(),
         equalTo(EndpointSpec.Mode.RESOLUTION_MODE_VIP));
     assertThat(actualServiceSpec.updateConfig().failureAction(), equalTo("pause"));
+    assertThat(actualServiceSpec.updateConfig().order(), equalTo("stop-first"));
 
     final PortConfig.Builder portConfigBuilder = PortConfig.builder()
         .protocol(PROTOCOL_TCP);

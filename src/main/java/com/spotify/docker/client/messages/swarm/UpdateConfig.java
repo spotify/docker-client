@@ -47,11 +47,16 @@ public abstract class UpdateConfig {
   @JsonProperty("FailureAction")
   public abstract String failureAction();
 
+  @Nullable
+  @JsonProperty("Order")
+  public abstract String order();
+
   @JsonCreator
   public static UpdateConfig create(
       @JsonProperty("Parallelism") final Long parallelism,
       @JsonProperty("Delay") final Long delay,
-      @JsonProperty("FailureAction") final String failureAction) {
-    return new AutoValue_UpdateConfig(parallelism, delay, failureAction);
+      @JsonProperty("FailureAction") final String failureAction,
+      @JsonProperty("Order") final String order) {
+    return new AutoValue_UpdateConfig(parallelism, delay, failureAction, order);
   }
 }
