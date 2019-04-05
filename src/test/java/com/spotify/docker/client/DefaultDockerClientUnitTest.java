@@ -204,9 +204,10 @@ public class DefaultDockerClientUnitTest {
     try {
       System.setProperty("http.proxyHost", "gmodules.com");
       System.setProperty("http.proxyPort", "80");
-        final String NON_PROXY_HOSTS = "127.0.0.1|localhost|192.168.*";
-        final List<String> NON_PROXY_HOSTS_PROPERTY_VALUES = Arrays.asList(NON_PROXY_HOSTS, "\"" + NON_PROXY_HOSTS + "\"");
-        for (String value : NON_PROXY_HOSTS_PROPERTY_VALUES) {
+      final String nonProxyHostsPropertyValue = "127.0.0.1|localhost|192.168.*";
+      final List<String> nonProxyHostsPropertyValues = Arrays.asList(
+              nonProxyHostsPropertyValue, "\"" + nonProxyHostsPropertyValue + "\"");
+      for (String value : nonProxyHostsPropertyValues) {
         System.setProperty("http.nonProxyHosts", value);
         final DefaultDockerClient client = DefaultDockerClient.builder()
                 .uri("https://192.168.53.103:2375").build();
