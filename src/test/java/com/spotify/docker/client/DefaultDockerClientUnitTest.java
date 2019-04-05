@@ -93,6 +93,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -203,22 +204,26 @@ public class DefaultDockerClientUnitTest {
     try {
       System.setProperty("http.proxyHost", "gmodules.com");
       System.setProperty("http.proxyPort", "80");
-      System.setProperty("http.nonProxyHosts", "127.0.0.1|localhost|192.168.*");
-      final DefaultDockerClient client = DefaultDockerClient.builder()
-              .uri("https://192.168.53.103:2375").build();
-      assertThat((String) client.getClient().getConfiguration()
-                      .getProperty("jersey.config.client.proxy.uri"),
-              isEmptyOrNullString());
-      final DefaultDockerClient client1 = DefaultDockerClient.builder()
-              .uri("https://127.0.0.1:2375").build();
-      assertThat((String) client1.getClient().getConfiguration()
-                      .getProperty("jersey.config.client.proxy.uri"),
-              isEmptyOrNullString());
-      final DefaultDockerClient client2 = DefaultDockerClient.builder()
-              .uri("https://localhost:2375").build();
-      assertThat((String) client2.getClient().getConfiguration()
-                      .getProperty("jersey.config.client.proxy.uri"),
-              isEmptyOrNullString());
+        final String NON_PROXY_HOSTS = "127.0.0.1|localhost|192.168.*";
+        final List<String> NON_PROXY_HOSTS_PROPERTY_VALUES = Arrays.asList(NON_PROXY_HOSTS, "\"" + NON_PROXY_HOSTS + "\"");
+        for (String value : NON_PROXY_HOSTS_PROPERTY_VALUES) {
+        System.setProperty("http.nonProxyHosts", value);
+        final DefaultDockerClient client = DefaultDockerClient.builder()
+                .uri("https://192.168.53.103:2375").build();
+        assertThat((String) client.getClient().getConfiguration()
+                        .getProperty("jersey.config.client.proxy.uri"),
+                isEmptyOrNullString());
+        final DefaultDockerClient client1 = DefaultDockerClient.builder()
+                .uri("https://127.0.0.1:2375").build();
+        assertThat((String) client1.getClient().getConfiguration()
+                        .getProperty("jersey.config.client.proxy.uri"),
+                isEmptyOrNullString());
+        final DefaultDockerClient client2 = DefaultDockerClient.builder()
+                .uri("https://localhost:2375").build();
+        assertThat((String) client2.getClient().getConfiguration()
+                        .getProperty("jersey.config.client.proxy.uri"),
+                isEmptyOrNullString());
+      }
     } finally {
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
