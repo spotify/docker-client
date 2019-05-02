@@ -43,12 +43,10 @@ import java.util.Set;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Provider
 @Produces(MediaType.APPLICATION_JSON)
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
