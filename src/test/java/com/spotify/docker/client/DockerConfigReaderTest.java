@@ -328,4 +328,24 @@ public class DockerConfigReaderTest {
         .build();
     assertThat(reader.authForAllRegistries(path), is(registryConfigs));
   }
+
+  @Test
+  public void testConfigFromEnv() throws IOException {
+    DockerHost.SystemDelegate systemDelegate = mock(DockerHost.SystemDelegate.class);
+    when(systemDelegate.getenv("DOCKER_CONFIG"))
+      .thenReturn("src/test/resources/dockerConfigFromEnv");
+    when(systemDelegate.getProperty("os.name")).thenReturn(System.getProperty("os.name"));
+    DockerHost.setSystemDelegate(systemDelegate);
+    try {
+      DockerConfigReader dockerConfigReader = new DockerConfigReader();
+      Path path = dockerConfigReader.defaultConfigPath();
+      assertThat(path.toString().replace("\\", "/"), 
+          equalTo("src/test/resources/dockerConfigFromEnv/config.json"));
+
+      final RegistryAuth registryAuth = dockerConfigReader.anyRegistryAuth();
+      assertThat(registryAuth, equalTo(DOCKER_AUTH_CONFIG));
+    } finally {
+      DockerHost.restoreSystemDelegate();
+    }
+  }
 }

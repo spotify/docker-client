@@ -253,6 +253,11 @@ public class DockerConfigReader {
   }
 
   public Path defaultConfigPath() {
+    if (DockerHost.configPathFromEnv() != null) {
+      final Path dockerConfig = Paths.get(DockerHost.configPathFromEnv(), "config.json");
+      LOG.debug("Using config path from DOCKER_CONFIG: {}", dockerConfig);
+      return dockerConfig;
+    }
     final String home = System.getProperty("user.home");
     final Path dockerConfig = Paths.get(home, ".docker", "config.json");
     final Path dockerCfg = Paths.get(home, ".dockercfg");
