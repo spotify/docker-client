@@ -94,6 +94,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import jnr.ffi.annotations.In;
+
 /**
  * A client for interacting with dockerd.
  *
@@ -1625,7 +1627,35 @@ public interface DockerClient extends Closeable {
    */
   void updateService(String serviceId, Long version, ServiceSpec spec, RegistryAuth registryAuth)
           throws DockerException, InterruptedException;
-  
+
+  /**
+   * rollback an existing service to the previous version.
+   * Only available in Docker API &gt;= 1.31.
+   *
+   * @param serviceId the identifier of the service
+   * @param version the version of the service
+   * @param spec the previous service spec
+   * @param registryAuth the registry authentication configuration
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void rollbackService(String serviceId, Long version, ServiceSpec spec,
+                       RegistryAuth registryAuth)
+          throws DockerException, InterruptedException;
+
+  /**
+   * rollback an existing service to the previous version.
+   * Only available in Docker API &gt;= 1.31.
+   *
+   * @param serviceId the identifier of the service
+   * @param version the version of the service
+   * @param spec the new service spec
+   * @throws DockerException      if a server error occurred (500)
+   * @throws InterruptedException If the thread is interrupted
+   */
+  void rollbackService(String serviceId, Long version, ServiceSpec spec)
+          throws DockerException, InterruptedException;
+
   /**
    * List all services. Only available in Docker API &gt;= 1.24.
    *

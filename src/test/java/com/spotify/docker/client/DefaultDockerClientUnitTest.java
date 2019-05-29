@@ -807,6 +807,37 @@ public class DefaultDockerClientUnitTest {
   }
 
   @Test
+  public void testServiceRollback() throws Exception {
+    final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
+    enqueueServerApiVersion("1.31");
+    server.enqueue(new MockResponse()
+            .setResponseCode(200)
+    );
+    final TaskSpec taskSpec = TaskSpec.builder()
+            .containerSpec(ContainerSpec.builder()
+                    .image("this_image_is_not_found_in_the_registry")
+                    .build())
+            .build();
+
+    final ServiceSpec spec = ServiceSpec.builder()
+            .name("test")
+            .taskTemplate(taskSpec)
+            .build();
+    final RegistryConfigs registryConfigs = RegistryConfigs.create(ImmutableMap.of(
+            "server1", RegistryAuth.builder()
+                    .serverAddress("server1")
+                    .username("u1")
+                    .password("p1")
+                    .email("e1")
+                    .build()));
+
+    final RegistryAuthSupplier authSupplier = mock(RegistryAuthSupplier.class);
+    when(authSupplier.authForBuild()).thenReturn(registryConfigs);
+    dockerClient.rollbackService("1",1L, spec, authSupplier.authForSwarm());
+
+  }
+
+  @Test
   public void testListConfigs() throws Exception {
     final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
