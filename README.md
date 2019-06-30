@@ -1,9 +1,18 @@
 # Docker Client
 
-[![Build Status](https://travis-ci.org/spotify/docker-client.svg?branch=master)](https://travis-ci.org/spotify/docker-client)
+[![Build Status](https://travis-ci.com/spotify/docker-client.svg?branch=master)](https://travis-ci.com/spotify/docker-client)
 [![codecov](https://codecov.io/github/spotify/docker-client/coverage.svg?branch=master)](https://codecov.io/github/spotify/docker-client?branch=master)
 [![Maven Central](https://img.shields.io/maven-central/v/com.spotify/docker-client.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.spotify%22%20docker-client)
 [![License](https://img.shields.io/github/license/spotify/docker-client.svg)](LICENSE)
+
+## Status: mature
+
+**Spotify no longer uses recent versions of this project internally. The
+version of docker-client we're using is whatever helios has in its
+[pom.xml][helios-pom]. At this point, we're not developing or accepting new
+features or even fixing non-critical bugs. Feel free to fork this repo though.**
+
+[helios-pom]: https://github.com/spotify/helios/blob/master/pom.xml
 
 This is a [Docker](https://github.com/docker/docker) client written in Java.
 It is used in many critical production systems at Spotify.
