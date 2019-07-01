@@ -23,6 +23,7 @@ package com.spotify.docker.client;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
 import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX;
+import static org.apache.commons.compress.archivers.tar.TarConstants.LF_LINK;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -45,6 +46,8 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.MessageFormat;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -255,6 +258,7 @@ class CompressedDirectory implements Closeable {
     private final Path root;
     private final ImmutableList<DockerIgnorePathMatcher> ignoreMatchers;
     private final TarArchiveOutputStream tarStream;
+    private final Map<Object, String> links = new HashMap<>();
 
     private Visitor(final Path root, ImmutableList<DockerIgnorePathMatcher> ignoreMatchers,
                     final TarArchiveOutputStream tarStream) {
@@ -295,12 +299,25 @@ class CompressedDirectory implements Closeable {
         return FileVisitResult.CONTINUE;
       }
 
-      final TarArchiveEntry entry = new TarArchiveEntry(file.toFile());
+      final Object fileKey = attrs.fileKey();
+      final boolean isLink = links.containsKey(fileKey);
+      final TarArchiveEntry entry;
+      if (isLink) {
+        entry = new TarArchiveEntry(file.toString(), LF_LINK);
+        entry.setSize(0);
+        entry.setLinkName(links.get(fileKey));
+      } else {
+        entry = new TarArchiveEntry(file.toFile());
+        entry.setSize(attrs.size());
+        links.put(fileKey, relativePath.toString());
+      }
+
       entry.setName(relativePath.toString());
       entry.setMode(getFileMode(file));
-      entry.setSize(attrs.size());
       tarStream.putArchiveEntry(entry);
-      Files.copy(file, tarStream);
+      if (!isLink) {
+        Files.copy(file, tarStream);
+      }
       tarStream.closeArchiveEntry();
       return FileVisitResult.CONTINUE;
     }
