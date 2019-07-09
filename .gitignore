@@ -9,3 +9,6 @@ pom.xml.versionsBackup
 .DS_Store
 dependency-reduced-pom.xml
 .checkstyle
+/.apt_generated/
+/.factorypath
+/lib/
