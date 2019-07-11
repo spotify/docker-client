@@ -53,6 +53,10 @@ public abstract class Service {
   @JsonProperty("Spec")
   public abstract ServiceSpec spec();
 
+  @Nullable
+  @JsonProperty("PreviousSpec")
+  public abstract ServiceSpec previousSpec();
+
   @JsonProperty("Endpoint")
   public abstract Endpoint endpoint();
 
@@ -134,8 +138,10 @@ public abstract class Service {
       @JsonProperty("CreatedAt") final Date createdAt,
       @JsonProperty("UpdatedAt") final Date updatedAt,
       @JsonProperty("Spec") final ServiceSpec spec,
+      @JsonProperty("PreviousSpec") final ServiceSpec previousSpec,
       @JsonProperty("Endpoint") final Endpoint endpoint,
       @JsonProperty("UpdateStatus") final UpdateStatus updateStatus) {
-    return new AutoValue_Service(id, version, createdAt, updatedAt, spec, endpoint, updateStatus);
+    return new AutoValue_Service(id, version, createdAt, updatedAt, spec,
+            previousSpec, endpoint, updateStatus);
   }
 }
