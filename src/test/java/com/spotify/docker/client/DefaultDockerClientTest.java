@@ -5077,7 +5077,7 @@ public class DefaultDockerClientTest {
         .name(serviceName)
         .taskTemplate(taskSpec)
         .mode(serviceMode)
-        .updateConfig(UpdateConfig.create(null, null, null))
+        .updateConfig(UpdateConfig.create(null, null, null, null))
         .networks(Collections.emptyList())
         .endpointSpec(EndpointSpec.builder()
             .addPort(PortConfig.builder().build())
@@ -5097,6 +5097,11 @@ public class DefaultDockerClientTest {
     assertThat(actualServiceSpec.endpointSpec().mode(),
         equalTo(EndpointSpec.Mode.RESOLUTION_MODE_VIP));
     assertThat(actualServiceSpec.updateConfig().failureAction(), equalTo("pause"));
+    // The update order attribute was added in the version 17.05.0-ce of docker and the version 1.29
+    // of the docker engine API
+    if (dockerApiVersionAtLeast("1.29")) {
+      assertThat(actualServiceSpec.updateConfig().order(), equalTo("stop-first"));
+    }
 
     final PortConfig.Builder portConfigBuilder = PortConfig.builder()
         .protocol(PROTOCOL_TCP);
