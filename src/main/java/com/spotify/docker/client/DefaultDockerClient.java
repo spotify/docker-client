@@ -6,6 +6,7 @@
  * Copyright (c) 2014 Oleg Poleshuk
  * Copyright (c) 2014 CyDesign Ltd
  * Copyright (c) 2016 ThoughtWorks, Inc
+ * Copyright (C) 2018 Davi da Silva Böger
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,7 +336,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       ObjectMapperProvider.class,
       JacksonFeature.class,
       LogsResponseReader.class,
-      ProgressResponseReader.class);
+      ProgressResponseReader.class,
+      StatsResponseReader.class);
 
   private static final Pattern CONTAINER_NAME_PATTERN =
           Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_.-]+$");
@@ -2404,6 +2406,23 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void stats(final String containerId, final StatsHandler handler)
+      throws DockerException, InterruptedException {
+    final WebTarget resource = resource().path("containers").path(containerId).path("stats");
+
+    try {
+      requestAndTail(GET, handler, resource, resource.request(APPLICATION_JSON_TYPE));
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ContainerNotFoundException(containerId, e);
+        default:
+          throw e;
+      }
+    }
+  }
+
+  @Override
   public void resizeTty(final String containerId, final Integer height, final Integer width)
       throws DockerException, InterruptedException {
     checkTtyParams(height, width);
@@ -2735,14 +2754,63 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
   }
 
-  private static class ResponseTailReader implements Callable<Void> {
+  private static class ProgressResponseTailReader implements Callable<Void> {
     private final ProgressStream stream;
     private final ProgressHandler handler;
     private final String method;
     private final WebTarget resource;
 
-    public ResponseTailReader(ProgressStream stream, ProgressHandler handler,
-                              String method, WebTarget resource) {
+    public ProgressResponseTailReader(ProgressStream stream, ProgressHandler handler,
+                                      String method, WebTarget resource) {
+      this.stream = stream;
+      this.handler = handler;
+      this.method = method;
+      this.resource = resource;
+    }
+
+    @Override
+    public Void call() throws DockerException, InterruptedException, IOException {
+      stream.tail(handler, method, resource.getUri());
+      return null;
+    }
+  }
+
+
+  private void tailResponse(final String method, final Response response,
+                            final ProgressHandler handler, final WebTarget resource)
+        throws DockerException, InterruptedException {
+    final ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
+      final ProgressStream stream = response.readEntity(ProgressStream.class);
+      final Future<?> future = executor.submit(
+              new ProgressResponseTailReader(stream, handler, method, resource));
+      future.get();
+    } catch (ExecutionException e) {
+      final Throwable cause = e.getCause();
+      if (cause instanceof DockerException) {
+        throw (DockerException)cause;
+      } else {
+        throw new DockerException(cause);
+      }
+    } finally {
+      executor.shutdownNow();
+      try {
+        response.close();
+      } catch (ProcessingException e) {
+        // ignore, thrown by jnr-unixsocket when httpcomponent try to read after close
+        // the socket is closed before this exception
+      }
+    }
+  }
+
+  private static class StatsResponseTailReader implements Callable<Void> {
+    private final StatsStream stream;
+    private final StatsHandler handler;
+    private final String method;
+    private final WebTarget resource;
+
+    public StatsResponseTailReader(StatsStream stream, StatsHandler handler,
+                                   String method, WebTarget resource) {
       this.stream = stream;
       this.handler = handler;
       this.method = method;
@@ -2757,13 +2825,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private void tailResponse(final String method, final Response response,
-                            final ProgressHandler handler, final WebTarget resource)
+                            final StatsHandler handler, final WebTarget resource)
         throws DockerException, InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     try {
-      final ProgressStream stream = response.readEntity(ProgressStream.class);
+      final StatsStream stream = response.readEntity(StatsStream.class);
       final Future<?> future = executor.submit(
-              new ResponseTailReader(stream, handler, method, resource));
+              new StatsResponseTailReader(stream, handler, method, resource));
       future.get();
     } catch (ExecutionException e) {
       final Throwable cause = e.getCause();
@@ -2790,8 +2858,19 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     Response response = request(method, Response.class, resource, request, entity);
     tailResponse(method, response, handler, resource);
   }
-  
+
   private void requestAndTail(final String method, final ProgressHandler handler,
+                              final WebTarget resource, final Invocation.Builder request)
+      throws DockerException, InterruptedException {
+    Response response = request(method, Response.class, resource, request);
+    if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+      throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
+                message(response), null);
+    }
+    tailResponse(method, response, handler, resource);
+  }
+
+  private void requestAndTail(final String method, final StatsHandler handler,
                               final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
     Response response = request(method, Response.class, resource, request);
