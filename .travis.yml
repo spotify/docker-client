@@ -12,6 +12,7 @@ language: java
 jdk:
   - oraclejdk8
   - openjdk10
+  - openjdk11
 
 env:
   global:
