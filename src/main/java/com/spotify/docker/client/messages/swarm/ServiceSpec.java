@@ -178,6 +178,10 @@ public abstract class ServiceSpec {
   public static ServiceSpec.Builder builder() {
     return new AutoValue_ServiceSpec.Builder();
   }
+  
+  public static ServiceSpec.Builder builder(ServiceSpec source) {
+      return new AutoValue_ServiceSpec.Builder(source);
+  }
 
   @JsonCreator
   static ServiceSpec create(
