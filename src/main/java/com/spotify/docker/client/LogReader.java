@@ -20,9 +20,6 @@
 
 package com.spotify.docker.client;
 
-import static com.google.common.io.ByteStreams.copy;
-import static com.google.common.io.ByteStreams.nullOutputStream;
-
 import com.google.common.io.ByteStreams;
 import com.spotify.docker.client.LogMessage.Stream;
 
@@ -30,6 +27,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+
+import org.glassfish.jersey.message.internal.ReaderInterceptorExecutor;
 
 public class LogReader implements Closeable {
 
@@ -75,6 +74,7 @@ public class LogReader implements Closeable {
     // Jersey will close the stream and release the connection after we read all the data.
     // We cannot call the stream's close method because it an instance of UncloseableInputStream,
     // where close is a no-op.
-    copy(stream, nullOutputStream());
+    InputStream inputStream = ReaderInterceptorExecutor.closeableInputStream(stream);
+    inputStream.close();
   }
 }

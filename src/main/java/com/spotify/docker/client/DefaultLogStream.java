@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 
 class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream {
 
@@ -76,6 +77,18 @@ class DefaultLogStream extends AbstractIterator<LogMessage> implements LogStream
     final StringBuilder stringBuilder = new StringBuilder();
     while (hasNext()) {
       stringBuilder.append(UTF_8.decode(next().content()));
+    }
+    return stringBuilder.toString();
+  }
+
+  public String readFully(String stop) {
+    final StringBuilder stringBuilder = new StringBuilder();
+    while (hasNext()) {
+      CharBuffer decode = UTF_8.decode(next().content());
+      stringBuilder.append(decode);
+      if (decode.toString().contains(stop)) {
+        break;
+      }
     }
     return stringBuilder.toString();
   }
