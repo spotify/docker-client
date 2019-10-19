@@ -30,6 +30,8 @@ import com.google.auto.value.AutoValue;
 
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class Secret {
@@ -49,6 +51,42 @@ public abstract class Secret {
   @JsonProperty("Spec")
   public abstract SecretSpec secretSpec();
   
+  @AutoValue
+  public abstract static class Criteria {
+    /**
+     * Filter by secret id.
+     */
+    @Nullable
+    public abstract String secretId();
+
+    /**
+     * Filter by label.
+     */
+    @Nullable
+    public abstract String label();
+
+    /**
+     * Filter by secret name.
+     */
+    @Nullable
+    public abstract String name();
+
+    public static Secret.Criteria.Builder builder() {
+      return new AutoValue_Secret_Criteria.Builder();
+    }
+
+    @AutoValue.Builder
+    public abstract static class Builder {
+      public abstract Secret.Criteria.Builder secretId(String nodeId);
+
+      public abstract Secret.Criteria.Builder label(String label);
+
+      public abstract Secret.Criteria.Builder name(String nodeName);
+
+      public abstract Secret.Criteria build();
+    }
+  }
+
   @JsonCreator
   static Secret create(
       @JsonProperty("ID") final String id,
