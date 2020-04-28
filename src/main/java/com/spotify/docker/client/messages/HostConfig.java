@@ -144,6 +144,10 @@ public abstract class HostConfig {
   public abstract ImmutableList<Device> devices();
 
   @Nullable
+  @JsonProperty("DeviceRequests")
+  public abstract ImmutableList<DeviceRequest> deviceRequests();
+
+  @Nullable
   @JsonProperty("Memory")
   public abstract Long memory();
 
@@ -279,6 +283,7 @@ public abstract class HostConfig {
       @JsonProperty("NetworkMode") final String networkMode,
       @JsonProperty("SecurityOpt") final List<String> securityOpt,
       @JsonProperty("Devices") final List<Device> devices,
+      @JsonProperty("DeviceRequests") final List<DeviceRequest> deviceRequests,
       @JsonProperty("Memory") final Long memory,
       @JsonProperty("MemorySwap") final Long memorySwap,
       @JsonProperty("MemorySwappiness") final Integer memorySwappiness,
@@ -330,6 +335,7 @@ public abstract class HostConfig {
         .networkMode(networkMode)
         .securityOpt(securityOpt)
         .devices(devices)
+        .deviceRequests(deviceRequests)
         .memory(memory)
         .memorySwap(memorySwap)
         .memorySwappiness(memorySwappiness)
@@ -580,6 +586,10 @@ public abstract class HostConfig {
     public abstract Builder devices(List<Device> devices);
 
     public abstract Builder devices(Device... devices);
+
+    public abstract Builder deviceRequests(List<DeviceRequest> deviceRequests);
+
+    public abstract Builder deviceRequests(DeviceRequest... deviceRequests);
 
     public abstract Builder memory(Long memory);
 
