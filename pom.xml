@@ -154,7 +154,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.60</version>
+      <version>1.61</version>
     </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
@@ -419,7 +419,7 @@
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
           <transformers>
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
           </transformers>
         </configuration>
         <executions>
