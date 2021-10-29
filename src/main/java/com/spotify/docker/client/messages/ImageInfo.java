@@ -2,14 +2,14 @@
  * -\-\-
  * docker-client
  * --
- * Copyright (C) 2016 Spotify AB
+ * Copyright (C) 2018 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import java.util.Date;
+import java.util.List;
 import javax.annotation.Nullable;
 
 @AutoValue
@@ -37,6 +38,9 @@ public abstract class ImageInfo {
 
   @JsonProperty("Id")
   public abstract String id();
+
+  @JsonProperty("RepoDigests")
+  public abstract List<String> repoDigests();
 
   @JsonProperty("Parent")
   public abstract String parent();
@@ -82,6 +86,7 @@ public abstract class ImageInfo {
   static ImageInfo create(
       @JsonProperty("Id") final String id,
       @JsonProperty("Parent") final String parent,
+      @JsonProperty("RepoDigests") final List<String> repoDigests,
       @JsonProperty("Comment") final String comment,
       @JsonProperty("Created") final Date created,
       @JsonProperty("Container") final String container,
@@ -94,7 +99,9 @@ public abstract class ImageInfo {
       @JsonProperty("Size") final Long size,
       @JsonProperty("VirtualSize") final Long virtualSize,
       @JsonProperty("RootFS") final RootFs rootFs) {
-    return new AutoValue_ImageInfo(id, parent, comment, created, container, containerConfig,
-        dockerVersion, author, config, architecture, os, size, virtualSize, rootFs);
+    return new AutoValue_ImageInfo(
+        id, parent, repoDigests, comment, created, container,
+        containerConfig, dockerVersion, author, config, architecture,
+        os, size, virtualSize, rootFs);
   }
 }
