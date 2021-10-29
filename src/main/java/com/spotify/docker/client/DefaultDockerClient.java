@@ -1976,6 +1976,38 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   @Override
+  public void rollbackService(final String serviceId, final Long version, final ServiceSpec spec)
+          throws  DockerException, InterruptedException {
+    rollbackService(serviceId, version, spec, registryAuthSupplier.authForSwarm());
+  }
+
+  @Override
+  public void rollbackService(final String serviceId, final Long version, final ServiceSpec spec,
+                              final RegistryAuth config)
+          throws DockerException, InterruptedException {
+    assertApiVersionIsAbove("1.31");
+    try {
+      WebTarget resource = resource().path("services")
+              .path(serviceId)
+              .path("update")
+              .queryParam("version", version)
+              .queryParam("Rollback", "previous");
+      request(POST, String.class, resource, resource.request(APPLICATION_JSON_TYPE)
+            .header("X-Registry-Auth", authHeader(config)), Entity.json(spec));
+
+    } catch (DockerRequestException e) {
+      switch (e.status()) {
+        case 404:
+          throw new ServiceNotFoundException(serviceId);
+        default:
+          throw e;
+      }
+    }
+  }
+
+
+
+  @Override
   public List<Service> listServices() throws DockerException, InterruptedException {
     assertApiVersionIsAbove("1.24");
     final WebTarget resource = resource().path("services");
