@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class DefaultLogStreamTest {
@@ -51,6 +52,23 @@ public class DefaultLogStreamTest {
 
     assertThat(stdout.toString(), is("hello\nworld!\n"));
     assertThat(stderr.toString(), is("oops\n"));
+  }
+  
+  @Test
+  public void testReadFullyWithStopWord() throws Exception {
+    when(reader.nextMessage()).thenReturn(
+            logMessage(LogMessage.Stream.STDOUT, "hello\n"),
+            logMessage(LogMessage.Stream.STDERR, "oops\n"),
+            logMessage(LogMessage.Stream.STDOUT, "world!\n"),
+            logMessage(LogMessage.Stream.STDOUT, "Stop world\n"),
+            logMessage(LogMessage.Stream.STDOUT, "Next!\n"),
+            logMessage(LogMessage.Stream.STDOUT, "Logs!\n")
+    );
+
+    String output = logStream.readFully("Stop world");
+
+    Assert.assertTrue(output.contains("Stop world"));
+    Assert.assertFalse(output.contains("Next"));
   }
 
   private static LogMessage logMessage(LogMessage.Stream stream, String msg) {

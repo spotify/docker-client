@@ -29,6 +29,8 @@ public interface LogStream extends Iterator<LogMessage>, Closeable {
 
   String readFully();
 
+  String readFully(String stop);
+
   /**
    * Attaches two {@link java.io.OutputStream}s to the {@link LogStream}.  Closes the streams after
    * use.
